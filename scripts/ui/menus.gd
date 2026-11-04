@@ -1,6 +1,6 @@
 class_name Menus
 extends Control
-## menu screens over the animated backdrop: title, campaign (chapter map + mission cards), briefing, skirmish,
+## menu screens over the animated backdrop: title, campaign (chapter tabs + clickable map), briefing, skirmish,
 ## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
 
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
@@ -324,52 +324,7 @@ func show_campaign(chapter_id := "") -> void:
 	mv.add_child(map)
 	mv.add_child(Style.lbl(ch.get("note", ""), 12, Style.MUTED))
 	v.add_child(mv)
-	var grid := _grid(230)
-	var ms := Content.missions_of(chapter_id)
-	for k in ms.size():
-		grid.add_child(_mission_card(ms[k], Content.mission_index(ms[k].id), open, k + 1, k == ms.size() - 1))
-	v.add_child(grid)
-
-func _mission_card(m: Dictionary, i: int, open: int, number: int, last := false) -> Control:
-	var done := Store.is_done(m.id)
-	var locked := i > open and not done
-	var cv := Style.vbox(8)
-	var top := Style.hbox(12)
-	top.add_child(Medal.make(number, done))
-	var tv := Style.vbox(2)
-	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var t := Style.lbl(m.title, 19, Style.GOLD, Style.display, true)
-	tv.add_child(t)
-	tv.add_child(Style.lbl(m.get("place", ""), 12, Style.MUTED, null, true))
-	top.add_child(tv)
-	cv.add_child(top)
-	var mu := Style.hbox(6)
-	mu.custom_minimum_size.y = 30
-	mu.add_child(Token.make("p", "hero", m.hero, 30))
-	var nu: Array = m.get("newUnits", []).filter(func(x: String) -> bool: return x != "hero")
-	for ty: String in nu:
-		mu.add_child(Token.make("p", ty, m.hero, 30))
-	var new_hero: bool = m.get("newUnits", []).has("hero")
-	var note := Style.lbl("lính mới" if nu.size() else ("tướng mới" if new_hero else ("trận cuối chương" if last else "")), 12, Style.MUTED)
-	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	mu.add_child(note)
-	var sp := Control.new()
-	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	mu.add_child(sp)
-	var badge := "Đã thắng" if done else ("Chưa mở" if locked else "")
-	if badge != "":
-		var f := FontVariation.new()
-		f.base_font = Style.bold
-		f.spacing_glyph = 1
-		var bl := Style.lbl(badge.to_upper(), 11, Style.GOOD if done else Style.MUTED, f)
-		bl.size_flags_vertical = Control.SIZE_SHRINK_END
-		mu.add_child(bl)
-	cv.add_child(mu)
-	var card := _click_card(cv, func() -> void:
-		_sfx("ui")
-		show_briefing(m), not locked, i == open, i == open)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	return card
+	# no mission cards: the map is the menu (hover a node for its title, click to open the briefing)
 
 # ---------- briefing ----------
 func show_briefing(m: Dictionary) -> void:

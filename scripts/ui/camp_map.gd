@@ -25,11 +25,13 @@ func setup(open: int) -> void:
 
 func _fit() -> void:
 	var vh := get_viewport_rect().size.y if is_inside_tree() else 900.0
-	custom_minimum_size.y = minf(size.x * 0.7, vh * 0.62) if size.x > 0 else 400.0
+	custom_minimum_size.y = minf(size.x * 0.7, vh * 0.66) if size.x > 0 else 400.0
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_ENTER_TREE:
 		_fit.call_deferred()
+	elif what == NOTIFICATION_MOUSE_EXIT:
+		hover = ""
 
 ## SVG path with absolute M / C / S commands -> polyline
 static func parse_path(d: String) -> PackedVector2Array:
@@ -92,22 +94,77 @@ func _process(dt: float) -> void:
 	if is_visible_in_tree():
 		queue_redraw()
 
-func _node_at(pos: Vector2) -> String:
+## mission node under pos; locked ones count only when any_state (hover shows their name, clicks ignore them)
+func _node_at(pos: Vector2, any_state := false) -> String:
 	for i in missions.size():
 		var m: Dictionary = missions[i]
-		var ci := Content.mission_index(m.id)
-		if ci > open_index and not Store.is_done(m.id):
+		if not any_state and _locked(m):
 			continue
 		if pos.distance_to(_p(Vector2(m.pos[0], m.pos[1]))) <= 3.6 * _scale():
 			return m.id
 	return ""
 
+func _locked(m: Dictionary) -> bool:
+	return Content.mission_index(m.id) > open_index and not Store.is_done(m.id)
+
+## info box for the hovered mission (or the next one to play): number, status, title, place, what's new.
+## Sits in the top corner away from that node so it never covers it.
+func _draw_info(s: float) -> void:
+	var id := hover
+	if id == "":
+		for m: Dictionary in missions:
+			if Content.mission_index(m.id) == open_index:
+				id = m.id
+	if id == "":
+		return
+	var k := -1
+	for j in missions.size():
+		if missions[j].id == id:
+			k = j
+	if k < 0:
+		return
+	var m: Dictionary = missions[k]
+	var done := Store.is_done(m.id)
+	var locked := _locked(m)
+	var status := "ĐÃ THẮNG" if done else ("CHƯA MỞ" if locked else "TRẬN KẾ TIẾP")
+	var status_col := Style.GOOD if done else (Style.MUTED if locked else Style.GOLD)
+	var nu: Array = m.get("newUnits", []).filter(func(x: String) -> bool: return x != "hero")
+	var note := "Lính mới" if nu.size() else ("Tướng mới" if m.get("newUnits", []).has("hero") else ("Trận cuối chương" if k == missions.size() - 1 else ""))
+	var hint := "Thắng màn trước để mở" if locked else ("Bấm để chơi lại" if done else "Bấm để vào trận")
+	if note != "":
+		hint = note + " · " + hint
+	var head := "MÀN %d / %d" % [k + 1, missions.size()]
+	var rows := [
+		[Style.bold, head, 12, Style.MUTED],
+		[Style.display, m.title, 24, Style.GOLD],
+		[Style.body, m.get("place", ""), 14, Style.INK],
+		[Style.semi, hint, 13, Style.MUTED],
+	]
+	var w := Style.bold.get_string_size(head + "    " + status, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+	for r: Array in rows:
+		w = maxf(w, (r[0] as Font).get_string_size(r[1], HORIZONTAL_ALIGNMENT_LEFT, -1, r[2]).x)
+	w = minf(w + 32, size.x * 0.45)
+	var h := 16.0 + 18 + 32 + 22 + 20 + 12
+	var node_x := _p(Vector2(m.pos[0], m.pos[1])).x
+	var x := size.x - w - 14 if node_x < size.x / 2 else 14.0
+	var box := Rect2(x, 14, w, h)
+	draw_style_box(Style.box(Color(0.09, 0.06, 0.035, 0.88), Color(status_col, 0.55), 10, 0), box)
+	var y := box.position.y + 16
+	Draw.text_a(self, Style.bold, Vector2(x + 16, y), head, 12, Style.MUTED, 0.0, true)
+	Draw.text_a(self, Style.bold, Vector2(x + w - 16, y), status, 12, status_col, 1.0, true)
+	y += 18
+	Draw.text_a(self, Style.display, Vector2(x + 16, y), m.title, 24, Style.GOLD if not locked else Style.MUTED, 0.0, true)
+	y += 32
+	Draw.text_a(self, Style.body, Vector2(x + 16, y), m.get("place", ""), 14, Style.INK, 0.0, true)
+	y += 22
+	Draw.text_a(self, Style.semi, Vector2(x + 16, y), hint, 13, Style.MUTED, 0.0, true)
+
 func _gui_input(ev: InputEvent) -> void:
 	if ev is InputEventMouseMotion:
-		var h := _node_at(ev.position)
+		var h := _node_at(ev.position, true)
 		if h != hover:
 			hover = h
-			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if h != "" else Control.CURSOR_ARROW
+			mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND if _node_at(ev.position) != "" else Control.CURSOR_ARROW
 	elif ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
 		var id := _node_at(ev.position)
 		if id != "":
@@ -210,5 +267,6 @@ func _draw() -> void:
 		Draw.text_c(self, Style.xbold, c, str(missions.find(m) + 1), int(round(2.6 * s)), Color(Color("#3a1a10") if cur else Style.INK, al))
 		var name: String = m.get("region", m.get("place", ""))
 		Draw.text_a(self, Style.bold, c + Vector2(0, 5.6 * s), name, int(round(2.5 * s)), Color(Style.INK, al), 0.5, false, int(0.7 * s), Color("#1a0f08"))
+	_draw_info(s)
 	# frame
 	draw_style_box(Style.box(Color.TRANSPARENT, Style.BRONZE_2, 12, 0), Rect2(Vector2.ZERO, size))

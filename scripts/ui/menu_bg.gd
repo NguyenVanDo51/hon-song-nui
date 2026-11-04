@@ -1,6 +1,6 @@
 class_name MenuBg
 extends Control
-## animated menu backdrop: shader sky / sun / ridges / river, CPU sun glints + rising embers, vignette on top.
+## animated menu backdrop: shader sky / sun / ridges / river, CPU rising embers, vignette on top.
 ## Port of drawBg in src/ui/screens.js. Only animates while visible.
 
 const BG_SHADER := preload("res://shaders/menu_bg.gdshader")
@@ -58,16 +58,8 @@ func _process(dt: float) -> void:
 	fx.queue_redraw()
 
 func _draw_fx() -> void:
-	var W := size.x
 	var H := size.y
-	# sun glints on the river
-	var ry := H * 0.82
-	var sun_x := W * 0.72
-	for i in 14:
-		var yy := ry + 6 + i * ((H - ry) / 14.0)
-		var len := 30.0 + (i * 37) % 80
-		var x0 := sun_x + sin(t / 900.0 + i) * 30 - len / 2
-		fx.draw_line(Vector2(x0, yy), Vector2(x0 + len * (1 - i / 20.0), yy), Color(1, 0.745, 0.47, 0.22), 1.2, true)
+	# (the JS version also drew sun glints on the river; removed: they showed through between the campaign cards as stray dashes)
 	for e: Dictionary in embers:
 		var a := clampf(e.y / H, 0.0, 1.0) * (0.5 + 0.5 * sin(t / 200.0 + e.p))
 		fx.draw_circle(Vector2(e.x, e.y), e.r, Color(1, 0.706, 0.353, a), true, -1.0, true)

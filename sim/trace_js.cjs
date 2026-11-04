@@ -1,6 +1,6 @@
 // JS side of the parity trace: node sim/trace_js.cjs <path to the JS hon-song-nui repo> > js.txt; diff against sim/trace.gd output
 const path = require('path');
-const G = require(path.join(process.argv[2], 'scripts/load.cjs'));
+const G = require(path.resolve(process.argv[2], 'scripts/load.cjs'));
 let seed = 1;
 const rng = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
 G.aiRng = rng;

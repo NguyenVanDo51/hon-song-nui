@@ -13,8 +13,14 @@ var _shot_n := 0
 var _t := 0.0
 
 func _ready() -> void:
-	for a in OS.get_cmdline_user_args():
-		var kv := a.split("=")
+	var args := Array(OS.get_cmdline_user_args())
+	if OS.has_feature("web"):
+		# web: same debug flags from the page URL, e.g. index.html?screen=campaign&speed=3
+		var q: Variant = JavaScriptBridge.eval("window.location.search", true)
+		if q is String and q.length() > 1:
+			args += Array(q.substr(1).split("&"))
+	for a: String in args:
+		var kv := a.uri_decode().split("=")
 		flags[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	EmojiFont.attach([Style.body, Style.semi, Style.bold, Style.xbold, Style.display, Style.display_x])
 	theme = Style.make_theme()

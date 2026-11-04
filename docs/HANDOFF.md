@@ -9,7 +9,7 @@ Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, r�
 4. [ ] Chương 2 "Chống Mã Viện" (năm 42–43): ~8 màn, tướng mới (Thánh Thiên, Bát Nàn, Phùng Thị Chính), địch Mã Viện / Lưu Long / Đoàn Chí. Kiểu thắng mới `reach` (đưa tướng tới ô) cho màn rút quân. Kết bi tráng ở Hát Giang + lời kết.
 5. [ ] Chương 3 "Bà Triệu" (năm 248): ~6–8 màn, phe địch Đông Ngô (đổi skin địch theo chương), tướng Bà Triệu (cưỡi voi), Triệu Quốc Đạt; địch Lục Dận.
 6. [ ] Cân bằng mọi màn mới bằng `sim/sim.gd` (AI phe ta thắng ~40–95% tùy độ khó, trung vị lượt hợp lý), test nội dung qua `sim/tests.gd`.
-7. [ ] Web export: templates 4.7.2 (đang tải về `%TEMP%\hsn_dl\tpl.tpz`, giải nén web_* vào `%APPDATA%\Godot\export_templates\4.7.2.stable\`), preset Web không thread (host được ở itch.io / GitHub Pages không cần header COOP/COEP), xuất `build/web/`, chạy thử bằng http server + Chrome, đóng gói zip.
+7. [x] Web export: templates 4.7.2 (đang tải về `%TEMP%\hsn_dl\tpl.tpz`, giải nén web_* vào `%APPDATA%\Godot\export_templates\4.7.2.stable\`), preset Web không thread (host được ở itch.io / GitHub Pages không cần header COOP/COEP), xuất `build/web/`, chạy thử bằng http server + Chrome, đóng gói zip.
 8. [ ] README + docs cập nhật, commit từng bước.
 
 ## Ghi chú
@@ -29,3 +29,5 @@ Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, r�
 **Chương 2 "Chống Mã Viện" (42–43), m09–m16:** Tin dữ Hợp Phố (Thánh Thiên, giữ) · Sóng An Biên (Lê Chân, diệt thủy quân) · Bát Nàn giữ ải (Bát Nàn bắn xa, chiếm thành) · Trận Lãng Bạc (Trưng Trắc vs Mã Viện) · Phùng Thị Chính (reach, thoát vây) · Rút về Cấm Khê (reach, Trưng Nhị) · Thành Cấm Khê (survive) · Sông Hát (survive, kết bi tráng).
 **Chương 3 "Bà Triệu" (248), m17–m22:** Núi Nưa · Hai anh em (Triệu Quốc Đạt) · Đồn Bồ Điền · Voi một ngà · Lục Dận kéo quân · Núi Tùng (kết). Địch = Đông Ngô (ghi đè skin địch).
 **Tướng mới:** ta: thanhthien (aura +10 công lính cạnh), batnan (bắn 1–2), phungthichinh (đi đồi núi), batrieu (công cao), trieuquocdat (lính cạnh +10 thủ); địch: mavien (aura), luulong (nhanh), doanchi (đi sông), lucdan (guard).
+- Web: `powershell -File tools/export_web.ps1` -> build/web + build/hon-song-nui-web.zip (11 MB). `python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70` chạy thật trong Edge headless (CDP), in console + chụp. Đã thấy tiêu đề + ván m05 (đêm) chạy trên WebGL2, không lỗi.
+- Godot có cửa sổ bị kẹt khởi động khi màn hình tắt/máy vắng người -> khi chạy một mình chỉ dùng headless.

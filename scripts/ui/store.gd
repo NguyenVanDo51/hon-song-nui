@@ -59,8 +59,28 @@ static func load_game() -> Variant:
 		return null
 	var v: Variant = str_to_var(FileAccess.get_file_as_string(SAVE))
 	if v is Dictionary and v.has("state") and v.state is Dictionary and v.state.get("winner") == null:
-		return v
+		if fits_content(v):
+			return v
+		clear_game() # written by an older content set (removed mission / commander): drop it instead of crashing
 	return null
+
+## a save still matches the shipped content: its mission exists and every commander key is still a hero in the theme
+static func fits_content(v: Dictionary) -> bool:
+	var ctx: Dictionary = v.get("ctx", {}) if v.get("ctx") is Dictionary else {}
+	if ctx.get("kind") == "campaign" and Content.mission(str(ctx.get("id", ""))) == null:
+		return false
+	if ctx.get("kind") == "skirmish" and not Content.heroes_of("p").has(ctx.get("hero")):
+		return false
+	var hk: Variant = v.state.get("heroKey")
+	if hk is Dictionary:
+		for side: String in hk:
+			if hk[side] != null and not Content.theme().heroes.has(hk[side]):
+				return false
+	for row: Variant in v.state.get("tiles", []):
+		for t: String in row:
+			if not Rules.TERRAIN.has(t):
+				return false
+	return true
 
 static func clear_game() -> void:
 	if FileAccess.file_exists(SAVE):

@@ -108,7 +108,7 @@ static func unit_type_look(side: String, type: String, hero_key: Variant) -> Dic
 	return theme().units[side][type]
 
 static func hero_look(key: String) -> Dictionary:
-	return theme().heroes[key]
+	return theme().heroes.get(key, { "name": key, "icon": "?", "blurb": "", "side": "e" }) # never hard-crash on a stale key
 
 # ---------- unit guide (role, how to play, traits from stats) ----------
 const GUIDE := preload("res://content/guide.gd")

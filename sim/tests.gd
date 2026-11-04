@@ -301,6 +301,16 @@ func rule_tests() -> void:
 		check(back.owner.keys()[0] is Vector2i, "Vector2i keys")
 		check(back.units[0].hp is int, "int hp")
 	)
+	run("saves from older content are refused (removed commander / mission), current ones kept", func() -> void:
+		var s := Game.new_game(Content.mission("m03"))
+		check(Store.fits_content({ "state": s, "ctx": { "kind": "campaign", "id": "m03" } }), "current save fits")
+		var old: Dictionary = s.duplicate(true)
+		old.heroKey.p = "trungnhi" # m03's commander before the one-commander change
+		check(not Store.fits_content({ "state": old, "ctx": { "kind": "campaign", "id": "m03" } }), "old commander refused")
+		check(not Store.fits_content({ "state": s, "ctx": { "kind": "campaign", "id": "m20" } }), "removed mission refused")
+		check(not Store.fits_content({ "state": s, "ctx": { "kind": "skirmish", "hero": "lechan", "easy": false } }), "old skirmish hero refused")
+		eq(Content.hero_look("lechan").name, "lechan") # stale key: placeholder, no crash
+	)
 
 # ---------- missions ----------
 func mission_tests() -> void:

@@ -30,7 +30,15 @@ godot --headless --path . -s sim/trace.gd [-- only=m01,m05] # 1 dòng/ván: kế
 ## Khớp với bản JS
 Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src/core/engine.js` / `ai.js`: cùng thứ tự duyệt (Dijkstra lấy ô rẻ nhất, chèn trước thắng khi hòa = sort ổn định của V8), cùng biểu thức số thực, cùng RNG LCG tính bằng double. `sim/trace.gd` in cho mỗi ván hash của mọi nước AI + vị trí/máu/KN cuối + vàng; bản JS tương ứng in cùng định dạng, `diff` hai file:
 
-PARITY_TABLE
+Đo 2026-11-04, cùng seed với `scripts/sim.cjs` (seed = 1000 + 7919·ván):
+
+| | Ván giống hệt (hash mọi nước đi) |
+|---|---|
+| Chiến dịch m01–m08 (AI cả hai phe) | 160/160 (20/màn) |
+| Đấu tự do thường / dễ | 12/12 · 12/12 |
+| Bot ngẫu nhiên vs AI | 10/10 |
+
+Đo lại: `node sim/trace_js.cjs ../hon-song-nui > js.txt`, `godot --headless --path . -s sim/trace.gd > gd.txt`, rồi `diff` (bỏ qua dòng banner của Godot). Trace Godot cả bộ ~10 phút trên 8 tiến trình (`-- only=…` để chia).
 
 Thời gian AI một nước (GDScript): m01 trung bình ~9 ms, m05/m08 ~26 ms, tệ nhất ~100 ms (đo khi máy đang bận).
 

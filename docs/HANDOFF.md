@@ -17,3 +17,15 @@ Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, r�
 - Parity với JS chỉ áp dụng cho m01–m08 (chương 1). Thay luật không được đổi hành vi chương 1: chạy `sim/trace.gd -- only=m01` (vài phút) sau mỗi lần sửa core.
 - **Nguyên nhân treo máy (đã sửa):** `Board._dashed` (đường đi nét đứt khi rê chuột) có `while` kẹt do bước số thực quá nhỏ, mỗi vòng thêm 1 lệnh vẽ -> tiến trình Godot 59.7 GB (Windows event 2004 lúc 19:30). Đã viết lại có trần vòng lặp; `camp_map._dashed` cùng lỗi, đã chặn. Mọi lần chạy Godot dùng `tools/run_guarded.ps1` (kill khi >1.5 GB hoặc quá giờ).
 - `sim/click_driver.gd -- mission=m02 fresh` (chạy có cửa sổ): 22 bước bấm chuột qua, đỉnh 301 MB.
+
+## Thiết kế đã chốt (phiên 2026-11-04 tối)
+**Thao tác di chuyển-tấn công (người dùng yêu cầu):**
+- Rê chuột lên địch khi đang chọn lính: vẽ đường tới ô đánh tốt nhất + nhãn xem trước "Gây X · Nhận Y" ngay trên bàn cờ; bấm 1 lần là đánh luôn (không cần bước xác nhận). Không có hover (cảm ứng) thì giữ 2 chạm như cũ.
+- Đã đi tới ô (mode moved): bấm địch trong tầm -> đánh từ ô đó; bấm lại chính ô đích -> hành động mặc định (chiếm nếu được, không thì chờ).
+- Thanh nút nhỏ nổi cạnh ô đích trên bàn cờ (⚔ / 🏠 / 🩹 / Chờ / Hủy) để khỏi rê sang bảng bên.
+- Phím: Space/Enter = hành động mặc định, Tab = lính kế chưa đi, E = hết lượt, H = gợi ý, Esc = hủy.
+**Hệ chương:** `content/chapters/cN.gd` (tiêu đề, năm, bản đồ sơ đồ, ghi đè skin phe địch + chữ "Lượt quân …", lời kết chương). Màn có trường `chapter`. Mở khóa vẫn tuần tự theo `order` toàn cục. Menu chiến dịch có tab chương.
+**Luật mới (không ảnh hưởng chương 1):** win `reach` = tướng ta tới một ô trong `win.at` (tuỳ chọn `turns`: quá lượt là thua). AI phe ta nhắm ô đích.
+**Chương 2 "Chống Mã Viện" (42–43), m09–m16:** Tin dữ Hợp Phố (Thánh Thiên, giữ) · Sóng An Biên (Lê Chân, diệt thủy quân) · Bát Nàn giữ ải (Bát Nàn bắn xa, chiếm thành) · Trận Lãng Bạc (Trưng Trắc vs Mã Viện) · Phùng Thị Chính (reach, thoát vây) · Rút về Cấm Khê (reach, Trưng Nhị) · Thành Cấm Khê (survive) · Sông Hát (survive, kết bi tráng).
+**Chương 3 "Bà Triệu" (248), m17–m22:** Núi Nưa · Hai anh em (Triệu Quốc Đạt) · Đồn Bồ Điền · Voi một ngà · Lục Dận kéo quân · Núi Tùng (kết). Địch = Đông Ngô (ghi đè skin địch).
+**Tướng mới:** ta: thanhthien (aura +10 công lính cạnh), batnan (bắn 1–2), phungthichinh (đi đồi núi), batrieu (công cao), trieuquocdat (lính cạnh +10 thủ); địch: mavien (aura), luulong (nhanh), doanchi (đi sông), lucdan (guard).

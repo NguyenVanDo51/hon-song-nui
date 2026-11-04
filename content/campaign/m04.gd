@@ -13,8 +13,8 @@ const DEF := {
 	"enemyHero": "todinh",
 	"newUnits": ["elephant"],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "elephant"] },
-	"gold": { "p": 500, "e": 250 },
-	"incomeMul": { "e": 0.9 },
+	"gold": { "p": 650, "e": 150 },
+	"incomeMul": { "e": 0.75 },
 	"win": { "type": "hero" },
 	"map": {
 		"rows": [
@@ -36,11 +36,11 @@ const DEF := {
 		["p", "soldier", 1, 7],
 		["p", "elephant", 2, 7],
 		["p", "archer", 0, 8],
+		["p", "soldier", 3, 8],
 		["e", "hero", 11, 1, { "guard": true }],
 		["e", "soldier", 8, 2],
 		["e", "soldier", 10, 3],
 		["e", "archer", 12, 2, { "guard": true }],
-		["e", "elephant", 7, 3],
 	],
 	"story": {
 		"intro": [

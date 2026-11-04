@@ -67,9 +67,15 @@ func _run() -> void:
 	g._on_tile(hero.x, hero.y)
 	g._on_tile(dest.x, dest.y)
 	await process_frame
-	press("Chờ")
+	await process_frame
+	await main.shot("ux_float")
+	ok(g._float.visible and g._float.get_child_count() >= 2, "floating action bar next to the tile (%d buttons)" % g._float.get_child_count())
+	g._on_tile(dest.x, dest.y) # same tile again = default action (wait here)
 	await idle(g)
-	ok(hero.acted and hero.x == dest.x, "hero moved + waited")
+	ok(hero.acted and hero.x == dest.x, "hero moved + waited (click dest twice)")
+	g.select_next()
+	ok(g.ui.sel != null and g.ui.sel != hero.id, "Tab selects next unacted unit")
+	g.cancel()
 	# buy at our castle (1,2)
 	g._on_tile(1, 2)
 	await process_frame
@@ -94,6 +100,26 @@ func _run() -> void:
 	press("⚔ Đánh")
 	await idle(g)
 	ok(foe.hp < hp0 or Game.unit_by_id(s, foe.id) == null, "attack resolved")
+	# mouse path: rest the pointer on an enemy -> board shows the forecast -> one click attacks
+	var arch: Dictionary = s.units.filter(func(u): return u.side == "p" and u.type == "archer")[0]
+	var foe2: Dictionary = s.units.filter(func(u): return u.side == "e" and u.id != foe.id)[0]
+	foe2.x = arch.x + 2
+	foe2.y = arch.y
+	if Game.tile_at(s, foe2.x, foe2.y) == null or Game.unit_at(s, foe2.x, foe2.y) != foe2:
+		foe2.x = arch.x
+		foe2.y = arch.y - 2
+	g._on_tile(arch.x, arch.y)
+	g.ui.hover = Vector2i(foe2.x, foe2.y)
+	g._hover_at = Time.get_ticks_msec() - 500
+	g._build_view()
+	ok(g.board.view.preview != null, "hover forecast on board")
+	await main.shot("ux_forecast")
+	await process_frame
+	var hp1: int = foe2.hp
+	g._on_tile(foe2.x, foe2.y)
+	await idle(g)
+	ok(arch.acted and (foe2.hp < hp1 or Game.unit_by_id(s, foe2.id) == null), "one click attack after hover")
+	g.ui.hover = null
 	# terrain info, hint, codex, speed
 	g._on_tile(6, 0)
 	await process_frame

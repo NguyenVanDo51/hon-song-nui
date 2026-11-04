@@ -94,6 +94,8 @@ func _process(dt: float) -> void:
 		get_tree().quit()
 
 func shot(name: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		return # nothing is rendered (and frame_post_draw never fires)
 	await RenderingServer.frame_post_draw
 	var dir: String = flags.get("shots", "res://shots")
 	DirAccess.make_dir_recursive_absolute(dir)

@@ -13,7 +13,7 @@ var fx: FX
 var T := 48.0
 ## what the game screen wants shown (see GameScreen.build_view)
 var view := { "hide": {}, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
-	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null }
+	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null, "preview": null }
 var hover: Variant = null
 var _stage: Control
 var _terrain: Layer
@@ -45,7 +45,9 @@ func _init() -> void:
 	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	add.material = mat
 	_layers.append(add)
-	_layers.append(_layer(func(ci: CanvasItem) -> void: fx.draw_top(ci, T, FX.now())))
+	_layers.append(_layer(func(ci: CanvasItem) -> void:
+		fx.draw_top(ci, T, FX.now())
+		_draw_preview(ci)))
 	_night = ColorRect.new()
 	_night.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sm := ShaderMaterial.new()
@@ -407,6 +409,30 @@ func _draw_overlays(ci: CanvasItem, time: float) -> void:
 		_cell(ci, v.buyAt[0], v.buyAt[1], Color(1, 0.839, 0.4, 0.15 + pulse * 0.15), Color("#ffd166"))
 	if v.hover != null and v.dest == null:
 		_cell(ci, v.hover.x, v.hover.y, null, Color(1, 1, 1, 0.33), 0.04)
+
+## hover-attack forecast pinned above the target: "⚔ 40  ⤺ 24" (gold = kill, red = our unit falls)
+func _draw_preview(ci: CanvasItem) -> void:
+	var p: Variant = view.get("preview")
+	if p == null or s.is_empty():
+		return
+	var fs := int(clampf(T * 0.24, 12, 20))
+	var give := "⚔ %d%s" % [p.dmg, " hạ gục" if p.kill else ""]
+	var take := "  ↩ %d%s" % [p.counter, " ngã" if p.die else ""] if p.counter > 0 or not p.kill else ""
+	var w1 := Style.xbold.get_string_size(give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var w2 := Style.xbold.get_string_size(take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var pad := 7.0
+	var w := w1 + w2 + pad * 2
+	var h := fs * 1.5
+	var x := clampf((p.x + 0.5) * T - w / 2, 2, s.w * T - w - 2)
+	var y: float = p.y * T - h - 4
+	if y < 2:
+		y = (p.y + 1) * T + 4
+	var box := Style.box(Color(0.08, 0.04, 0.03, 0.92), Style.GOLD if p.kill else (Style.BAD if p.die else Style.BRONZE_2), 7, 0, 2)
+	ci.draw_style_box(box, Rect2(x, y, w, h))
+	var base := y + h / 2 + (Style.xbold.get_ascent(fs) - Style.xbold.get_descent(fs)) / 2
+	ci.draw_string(Style.xbold, Vector2(x + pad, base), give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.GOLD if p.kill else Style.GOOD)
+	if take != "":
+		ci.draw_string(Style.xbold, Vector2(x + pad + w1, base), take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.BAD)
 
 func _draw_units(ci: CanvasItem, time: float) -> void:
 	var v := view

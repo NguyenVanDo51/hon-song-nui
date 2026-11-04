@@ -39,6 +39,8 @@ var _info: VBoxContainer
 var _actions: HFlowContainer
 var _btn_end: Button
 var _end: Control
+var _float: HBoxContainer
+var _hover_at := 0
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -153,6 +155,7 @@ func _build() -> void:
 	board.tile_clicked.connect(_on_tile_clicked)
 	board.hover_changed.connect(func(t: Variant) -> void:
 		ui.hover = t
+		_hover_at = Time.get_ticks_msec()
 		_build_view())
 	board.cancel_requested.connect(cancel)
 	_wrap.add_child(board)
@@ -298,15 +301,41 @@ func _build_view() -> void:
 	v.targets = Game.targets_from(s, u, ui.dest[0], ui.dest[1]) if ui.mode == "target" and u != null else []
 	v.target = ui.target
 	v.path = null
-	if v.selMine and ui.mode == "idle" and ui.hover != null and v.reach.has(ui.hover):
+	v.preview = null
+	var plan: Variant = _hover_attack() if v.selMine else null
+	if plan != null:
+		# hovering an enemy we can hit: path to the attack tile + damage preview on the board
+		var p := Game.preview(s, u, plan.from[0], plan.from[1], plan.target)
+		v.preview = { "x": plan.target.x, "y": plan.target.y, "dmg": p.dmg, "counter": p.counter, "kill": p.kill, "die": p.die }
+		v.path = Game.path_to(Game.reachable(s, u), plan.from[0], plan.from[1])
+		if ui.mode == "idle":
+			v.dest = plan.from
+	elif v.selMine and ui.mode == "idle" and ui.hover != null and v.reach.has(ui.hover):
 		v.path = Game.path_to(v.reach, ui.hover.x, ui.hover.y)
-	if v.selMine and ui.mode != "idle" and ui.dest != null:
+	elif v.selMine and ui.mode != "idle" and ui.dest != null:
 		var r := Game.reachable(s, u)
 		if r.has(Vector2i(ui.dest[0], ui.dest[1])):
 			v.path = Game.path_to(r, ui.dest[0], ui.dest[1])
 	v.info = ui.info
 	v.buyAt = ui.buyAt
 	v.hover = ui.hover
+
+## the attack the selected unit would make on the hovered enemy: {target, from} or null
+func _hover_attack() -> Variant:
+	if ui.hover == null:
+		return null
+	var e: Variant = Game.unit_at(s, ui.hover.x, ui.hover.y)
+	if e == null or e.side != "e":
+		return null
+	var from: Variant = _attack_from(_sel_unit(), e)
+	return { "target": e, "from": from } if from != null else null
+
+## where the selected unit attacks `e` from: the chosen tile if e is in range from it, else the best reachable tile
+func _attack_from(u: Dictionary, e: Dictionary) -> Variant:
+	if ui.mode != "idle" and ui.dest != null:
+		if Game.targets_from(s, u, ui.dest[0], ui.dest[1]).any(func(o: Dictionary) -> bool: return o.id == e.id):
+			return ui.dest
+	return _best_attack_tile(u, e)
 
 func _attackable_anywhere(u: Dictionary, reach: Dictionary) -> Array:
 	var seen := {}
@@ -351,27 +380,28 @@ func _on_tile(x: int, y: int) -> void:
 	var u: Variant = _sel_unit()
 	ui.hint = null; ui.hotBuy = null; ui.hintKind = null
 	if u != null and my_turn and not u.acted and u.side == "p":
-		if ui.mode == "target" and clicked != null and clicked.side == "e":
-			var ts := Game.targets_from(s, u, ui.dest[0], ui.dest[1])
-			if ts.any(func(o: Dictionary) -> bool: return o.id == clicked.id):
-				if ui.target == clicked.id:
+		if clicked != null and clicked.side == "e":
+			var from: Variant = _attack_from(u, clicked)
+			if from != null:
+				# mouse: the preview was already on the board while hovering -> one click attacks.
+				# touch (no settled hover): first tap aims and previews, second tap attacks.
+				var aimed: bool = ui.mode == "target" and ui.target == clicked.id and ui.dest == from
+				if aimed or _hover_settled(x, y):
+					ui.dest = from
 					commit({ "kind": "attack", "target": clicked.id })
 					return
-				ui.target = clicked.id
-				main.audio.play("select")
-				refresh()
-				return
-		var reach := Game.reachable(s, u)
-		if reach.has(Vector2i(x, y)) and (clicked == null or clicked.id == u.id):
-			_set_dest(x, y)
-			return
-		if clicked != null and clicked.side == "e":
-			var from: Variant = _best_attack_tile(u, clicked)
-			if from != null:
 				ui.dest = from; ui.mode = "target"; ui.target = clicked.id; ui.buyAt = null; ui.info = null
 				main.audio.play("select")
 				refresh()
 				return
+		# clicking the chosen tile again = default action (capture if possible, else wait)
+		if ui.mode != "idle" and ui.dest != null and ui.dest[0] == x and ui.dest[1] == y:
+			default_action()
+			return
+		var reach := Game.reachable(s, u)
+		if reach.has(Vector2i(x, y)) and (clicked == null or clicked.id == u.id):
+			_set_dest(x, y)
+			return
 	ui.dest = null; ui.mode = "idle"; ui.target = null; ui.buyAt = null; ui.info = null
 	if clicked != null:
 		ui.sel = clicked.id
@@ -386,6 +416,61 @@ func _on_tile(x: int, y: int) -> void:
 		return
 	ui.info = { "x": x, "y": y }
 	refresh()
+
+## true when the mouse has rested on (x,y) long enough that the board preview was visible
+func _hover_settled(x: int, y: int) -> bool:
+	return ui.hover != null and ui.hover == Vector2i(x, y) and Time.get_ticks_msec() - _hover_at >= 150
+
+## Space / Enter / clicking the chosen tile again: attack the aimed target, else capture, else wait
+func default_action() -> void:
+	var u: Variant = _sel_unit()
+	if ui.busy or u == null or u.side != "p" or u.acted or s.side != "p" or s.winner != null:
+		return
+	if ui.mode == "idle":
+		ui.dest = [u.x, u.y]
+		ui.mode = "moved"
+	if ui.mode == "target" and ui.target != null:
+		commit({ "kind": "attack", "target": ui.target })
+	elif Game.can_capture(s, u, ui.dest[0], ui.dest[1]):
+		commit({ "kind": "capture" })
+	else:
+		commit({ "kind": "wait" })
+
+## Tab: select the next unit of ours that hasn't acted
+func select_next() -> void:
+	if ui.busy or s.side != "p" or s.winner != null:
+		return
+	var mine: Array = s.units.filter(func(o: Dictionary) -> bool: return o.side == "p" and not o.acted)
+	if mine.is_empty():
+		return
+	var i := 0
+	for k in mine.size():
+		if ui.sel != null and mine[k].id == ui.sel:
+			i = (k + 1) % mine.size()
+	var tip: int = ui.tip
+	_reset_ui()
+	ui.tip = tip
+	ui.sel = mine[i].id
+	main.audio.play("select")
+	refresh()
+
+func _unhandled_input(ev: InputEvent) -> void:
+	if not visible or s.is_empty() or _end.visible or main.menus.is_codex_open():
+		return
+	if not (ev is InputEventKey and ev.pressed and not ev.echo):
+		return
+	match ev.keycode:
+		KEY_SPACE, KEY_ENTER, KEY_KP_ENTER:
+			default_action()
+		KEY_TAB:
+			select_next()
+		KEY_E:
+			end_player_turn()
+		KEY_H:
+			_on_hint()
+		_:
+			return
+	get_viewport().set_input_as_handled()
 
 func _set_dest(x: int, y: int) -> void:
 	ui.dest = [x, y]; ui.mode = "moved"; ui.target = null; ui.buyAt = null; ui.info = null
@@ -938,6 +1023,52 @@ func refresh() -> void:
 		_info.add_child(_note("Bấm vào lính để ra lệnh. Bấm thành trống để mua lính. Bấm [b]Gợi ý[/b] nếu chưa biết đi gì."))
 	if ui.hint != null:
 		_info.add_child(Style.rich(ui.hint, 14, Style.GOLD, Style.GOLD_HI))
+	_mirror_float(my_turn and u != null and u.side == "p" and not u.acted and ui.mode != "idle" and ui.dest != null)
+
+## compact copies of the action buttons pinned next to the chosen tile, so orders never leave the board
+func _mirror_float(show: bool) -> void:
+	if _float == null:
+		_float = HBoxContainer.new()
+		_float.add_theme_constant_override("separation", 4)
+		_wrap.add_child(_float)
+	for c in _float.get_children():
+		c.queue_free()
+	_float.visible = show
+	if not show:
+		return
+	for b: Node in _actions.get_children():
+		if not (b is Button):
+			continue
+		var src: Button = b
+		var full := src.text
+		var short := full
+		if full == "Hủy":
+			short = "✕"
+		elif full == "Quay lại":
+			short = "‹"
+		elif full.length() > 2 and full.unicode_at(0) > 0x2000 and " " in full:
+			var parts := full.split(" ")
+			short = parts[0] + (" " + parts[parts.size() - 1].trim_prefix("(").trim_suffix(")") if full.ends_with(")") else "")
+		var fb := Style.button(short, src.theme_type_variation)
+		fb.tooltip_text = full
+		fb.custom_minimum_size = Vector2(38, 36)
+		fb.add_theme_font_size_override("font_size", 15)
+		fb.pressed.connect(func() -> void: src.pressed.emit())
+		_float.add_child(fb)
+	_place_float.call_deferred()
+
+func _place_float() -> void:
+	if _float == null or not _float.visible or ui.dest == null:
+		return
+	_float.reset_size()
+	var T := board.T
+	var tile := board.position + Vector2(ui.dest[0] * T, ui.dest[1] * T)
+	var sz := _float.get_combined_minimum_size()
+	var pos := tile + Vector2(T + 6, (T - sz.y) / 2)
+	if pos.x + sz.x > _wrap.size.x - 4:
+		pos.x = tile.x - sz.x - 6
+	pos.y = clampf(pos.y, 4, _wrap.size.y - sz.y - 4)
+	_float.position = pos
 
 func _preview_box(p: Dictionary) -> Control:
 	var g := GridContainer.new()

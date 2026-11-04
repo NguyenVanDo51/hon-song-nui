@@ -12,6 +12,9 @@ Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`), rồi m�
 Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích** (mới, chương 2). Chương sau mở khi thắng hết chương trước. Thêm chế độ đấu tự do (chọn 1 trong 8 tướng) và Sách lính. Luật: `docs/spec.md`.
 
 ## Chơi
+**Chơi ngay: https://hon-song-nui.vercel.app**
+
+- **Cập nhật bản web trên Vercel** (scope cá nhân `nguyenvando51s-projects`, project `hon-song-nui`): `powershell -File tools/export_web.ps1`, chép `build/web` sang một thư mục tên `hon-song-nui`, rồi trong thư mục đó chạy `npx vercel deploy --prod --yes --scope nguyenvando51s-projects`. Kiểm tra: `python tools/web_smoke.py --url https://hon-song-nui.vercel.app/ --query "?mission=m05&bot&speed=3" --wait 60 --idb`.
 - **Web:** mở bản dựng `build/web/index.html` qua một web server (không mở thẳng file). Phát hành: `powershell -File tools/export_web.ps1` -> `build/web/` + `build/hon-song-nui-web.zip` (~11 MB). itch.io: tạo project kiểu HTML, tải zip lên, bật "SharedArrayBuffer" không cần (bản dựng đơn luồng). GitHub Pages / Netlify: đẩy nguyên thư mục `build/web`.
 - **Windows** (Godot 4.7.2 winget, không có trên PATH):
   ```

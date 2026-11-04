@@ -11,12 +11,15 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WEB = os.path.join(ROOT, "build", "web")
 ap = argparse.ArgumentParser()
 ap.add_argument("--query", default="")
+ap.add_argument("--url", default="", help="test a deployed site instead of build/web, e.g. https://hon-song-nui.vercel.app/")
 ap.add_argument("--wait", type=float, default=40)
+ap.add_argument("--idb", action="store_true", help="print the IndexedDB keys (saved files) after --wait")
 ap.add_argument("--out", default="shots/web.png")
 ap.add_argument("--click", action="append", default=[])
 ap.add_argument("--wait2", type=float, default=4)
 ap.add_argument("--out2", default="shots/web2.png")
 a = ap.parse_args()
+sys.stdout.reconfigure(encoding="utf-8")
 
 class H(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *k, **kw): super().__init__(*k, directory=WEB, **kw)
@@ -67,9 +70,16 @@ try:
     cmd("Runtime.enable"); cmd("Page.enable")
     cmd("Emulation.setDeviceMetricsOverride", width=1600, height=900, deviceScaleFactor=1, mobile=False)
     t0 = time.time()
-    cmd("Page.navigate", url="http://127.0.0.1:%d/index.html%s" % (port, a.query))
+    cmd("Page.navigate", url=(a.url + a.query) if a.url else "http://127.0.0.1:%d/index.html%s" % (port, a.query))
     pump(a.wait)
     shot(a.out)
+    if a.idb:  # list what the game persisted (Godot's user:// lives in IndexedDB "/userfs")
+        js = """(async () => { const out = {}; for (const d of await indexedDB.databases()) {
+            const db = await new Promise((ok, err) => { const q = indexedDB.open(d.name); q.onsuccess = () => ok(q.result); q.onerror = err; });
+            for (const st of db.objectStoreNames) out[d.name + ":" + st] = (await new Promise(ok => {
+                const q = db.transaction(st).objectStore(st).getAllKeys(); q.onsuccess = () => ok(q.result); })).map(String); }
+            return JSON.stringify(out); })()"""
+        print("IDB", cmd("Runtime.evaluate", expression=js, awaitPromise=True, returnByValue=True).get("result", {}).get("value"))
     for c in a.click:
         x, y = map(float, c.split(","))
         for typ in ("mousePressed", "mouseReleased"):

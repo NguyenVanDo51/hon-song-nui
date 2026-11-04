@@ -76,7 +76,8 @@ func projectile(kind: String, fx: float, fy: float, tx: float, ty: float, dur: f
 	var arc := 1.6 if kind == "rock" else (0.35 if kind == "arrow" else 0.15)
 	var pr := { "kind": kind, "fx": fx, "fy": fy, "tx": tx, "ty": ty, "t0": now(), "dur": sp(dur), "arc": arc, "trail": [], "hit": false }
 	projs.append(pr)
-	while not pr.hit and is_inside_tree():
+	# also bail on wall time: fx.update only runs while the board is visible
+	while not pr.hit and is_inside_tree() and now() < pr.t0 + pr.dur + 100.0:
 		await get_tree().process_frame
 
 ## attacker / target: {x, y, id, type, side} from the engine's hit event

@@ -46,7 +46,9 @@ static func parse_path(d: String) -> PackedVector2Array:
 	var num := func() -> float:
 		at[0] += 1
 		return float(toks[at[0] - 1])
-	while at[0] < toks.size():
+	var guard := 0
+	while at[0] < toks.size() and guard < 10000:
+		guard += 1
 		if toks[at[0]] in ["M", "C", "S", "m", "c", "s"]:
 			cmd = toks[at[0]].to_upper()
 			at[0] += 1
@@ -120,9 +122,11 @@ func _dashed(pts: PackedVector2Array, dash: float, gap: float, offset: float, co
 		var b := pts[k + 1]
 		var L := a.distance_to(b)
 		var s := 0.0
-		while s < L - 1e-4:
+		var guard := 0
+		while s < L - 1e-4 and guard < 2000: # bounded: a sub-ulp step must never spin (see Board._dashed)
+			guard += 1
 			var on := ph < dash
-			var step := minf((dash - ph) if on else (period - ph), L - s)
+			var step := maxf(1e-3, minf((dash - ph) if on else (period - ph), L - s))
 			if on:
 				draw_line(a.lerp(b, s / L), a.lerp(b, (s + step) / L), col, width, true)
 			s += step

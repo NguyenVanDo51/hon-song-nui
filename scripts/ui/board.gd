@@ -332,23 +332,42 @@ func _cell(ci: CanvasItem, x: int, y: int, fill: Variant, stroke: Variant, lw :=
 		ci.draw_rect(Rect2(x * T + 2, y * T + 2, T - 4, T - 4), stroke, false, maxf(2.0, T * lw))
 
 ## dashed polyline with a moving phase
+## dashed polyline with a moving phase. Bounded: one pass over a fixed number of dashes (an earlier
+## while-loop could stall on float rounding and append draw commands forever -> 60 GB, machine froze).
 static func _dashed(ci: CanvasItem, pts: Array, col: Color, w: float, on: float, off: float, phase: float) -> void:
 	var period := on + off
-	var walked := fposmod(phase, period)
+	if pts.size() < 2 or period <= 0.0:
+		return
+	var cum := PackedFloat32Array([0.0])
 	for i in range(1, pts.size()):
+		cum.append(cum[i - 1] + (pts[i] as Vector2).distance_to(pts[i - 1]))
+	var total := cum[cum.size() - 1]
+	var start := -fposmod(phase, period)
+	var n := int(ceil((total - start) / period)) + 1
+	for k in mini(n, 400):
+		var s0 := maxf(0.0, start + k * period)
+		var s1 := minf(total, start + k * period + on)
+		if s1 > s0:
+			ci.draw_polyline(_sub_path(pts, cum, s0, s1), col, w, true)
+
+## points of the polyline between arc lengths s0..s1
+static func _sub_path(pts: Array, cum: PackedFloat32Array, s0: float, s1: float) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in range(1, pts.size()):
+		var l0 := cum[i - 1]
+		var l1 := cum[i]
+		if l1 < s0 or l0 > s1 or l1 <= l0:
+			continue
 		var a: Vector2 = pts[i - 1]
 		var b: Vector2 = pts[i]
-		var L := a.distance_to(b)
-		var d := 0.0
-		while d < L:
-			var in_period := fposmod(walked + d, period)
-			if in_period < on:
-				var e := minf(L, d + (on - in_period))
-				ci.draw_line(a.lerp(b, d / L), a.lerp(b, e / L), col, w, true)
-				d = e
-			else:
-				d = minf(L, d + (period - in_period))
-		walked += L
+		var p0 := a.lerp(b, clampf((s0 - l0) / (l1 - l0), 0.0, 1.0))
+		var p1 := a.lerp(b, clampf((s1 - l0) / (l1 - l0), 0.0, 1.0))
+		if out.is_empty():
+			out.append(p0)
+		out.append(p1)
+	if out.size() == 1:
+		out.append(out[0])
+	return out
 
 func _draw_overlays(ci: CanvasItem, time: float) -> void:
 	var v := view

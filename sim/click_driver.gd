@@ -1,0 +1,136 @@
+extends SceneTree
+## drives the human click path through the real UI (no bot). run with -- mission=m02 fresh
+
+var main: Node
+var fails := 0
+
+func _init() -> void:
+	main = load("res://main.tscn").instantiate()
+	root.add_child(main)
+	_run.call_deferred()
+
+func ok(cond: bool, msg: String) -> void:
+	print(("ok   " if cond else "FAIL ") + msg)
+	if not cond:
+		fails += 1
+
+func wait(sec: float) -> void:
+	await create_timer(sec).timeout
+
+func find_btn(n: Node, text: String) -> Button:
+	if n is Button and n.is_visible_in_tree():
+		var t: String = n.text
+		if n.has_meta("title"):
+			t = (n.get_meta("title") as Label).text
+		if t.begins_with(text):
+			return n
+	for c in n.get_children():
+		var b := find_btn(c, text)
+		if b:
+			return b
+	return null
+
+func press(text: String, where: Node = null) -> bool:
+	var b := find_btn(where if where else main, text)
+	ok(b != null and not b.disabled, "button '%s'" % text)
+	if b and not b.disabled:
+		b.pressed.emit()
+		return true
+	return false
+
+func idle(g: Node) -> void:
+	for i in 400:
+		if not g.ui.busy:
+			return
+		await process_frame
+
+func _run() -> void:
+	FX.speed = 3.0
+	await wait(1.0)
+	var g = main.game
+	var s: Dictionary = g.s
+	var hero: Dictionary = s.units.filter(func(u): return u.side == "p" and u.type == "hero")[0]
+	# select hero -> panel info, reach, hover path
+	g._on_tile(hero.x, hero.y)
+	ok(g._info.get_child_count() > 0 and g.board.view.reach != null, "select hero shows info + reach")
+	var dest: Dictionary
+	for r in g.board.view.reach.values():
+		if (r.x != hero.x or r.y != hero.y) and Game.unit_at(s, r.x, r.y) == null:
+			dest = r
+	g.ui.hover = Vector2i(dest.x, dest.y)
+	g._build_view()
+	ok(g.board.view.path != null, "hover draws path")
+	g._on_tile(dest.x, dest.y)
+	await process_frame
+	press("Hủy")
+	await process_frame
+	g._on_tile(hero.x, hero.y)
+	g._on_tile(dest.x, dest.y)
+	await process_frame
+	press("Chờ")
+	await idle(g)
+	ok(hero.acted and hero.x == dest.x, "hero moved + waited")
+	# buy at our castle (1,2)
+	g._on_tile(1, 2)
+	await process_frame
+	ok(g.ui.buyAt != null, "castle click opens buy panel")
+	var gold0: int = s.gold.p
+	press("", g._actions) # first enabled buy button
+	await process_frame
+	ok(s.gold.p < gold0, "bought a unit (%d -> %d)" % [gold0, s.gold.p])
+	# attack: bring an enemy soldier next to our soldier, then click it
+	var sol: Dictionary = s.units.filter(func(u): return u.side == "p" and u.type == "soldier")[0]
+	var foe: Dictionary = s.units.filter(func(u): return u.side == "e" and u.type == "soldier")[0]
+	foe.x = sol.x + 1
+	foe.y = sol.y
+	if Game.unit_at(s, foe.x, foe.y) != foe:
+		foe.y = sol.y + 1
+		foe.x = sol.x
+	g._on_tile(sol.x, sol.y)
+	g._on_tile(foe.x, foe.y)
+	await process_frame
+	ok(g.ui.mode == "target", "click enemy -> target mode with preview")
+	var hp0: int = foe.hp
+	press("⚔ Đánh")
+	await idle(g)
+	ok(foe.hp < hp0 or Game.unit_by_id(s, foe.id) == null, "attack resolved")
+	# terrain info, hint, codex, speed
+	g._on_tile(6, 0)
+	await process_frame
+	ok(g._info.get_child_count() > 0, "terrain info")
+	g._on_hint()
+	await process_frame
+	ok(g.ui.hint != null, "hint shows")
+	main.menus.open_codex("e")
+	await process_frame
+	ok(main.menus.is_codex_open(), "codex opens over game")
+	main.menus.close_codex()
+	g._on_speed()
+	# end turn -> enemy turn -> back to us
+	g.cancel()
+	press("Hết lượt")
+	for i in 1200:
+		if s.side == "p" and not g.ui.busy:
+			break
+		await process_frame
+	ok(s.side == "p" and s.turn == 2, "enemy turn played, turn 2 (turn %d)" % s.turn)
+	# save -> title -> continue
+	g.save()
+	main.show_title()
+	await wait(0.6)
+	press("Đánh tiếp")
+	await wait(0.6)
+	ok(g.visible and g.s.turn == 2 and g.s.units.size() == s.units.size(), "continue restores the save")
+	# win -> next mission -> briefing -> start
+	g.s.winner = "p"
+	g.s.reason = "castlesLost"
+	g.finish()
+	await wait(1.5)
+	press("Màn tiếp")
+	await wait(0.6)
+	ok(not g.visible, "end -> next mission briefing")
+	press("Xuất quân")
+	await wait(0.8)
+	ok(g.visible and g.s.scenario == "m03", "briefing starts m03")
+	print("DRIVER DONE fails=%d" % fails)
+	quit(1 if fails else 0)

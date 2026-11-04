@@ -1,6 +1,6 @@
 class_name GameScreen
 extends Control
-## the war table: top bar, tips strip, board, side panel; input, event playback, enemy turn loop, hint, end screen.
+## the war table: top bar (with Hết lượt), tips strip, board + one popup pinned beside the selection; input, event playback, enemy turn loop, hint, end screen.
 ## Port of the game half of src/ui/screens.js.
 
 const DEFAULT_TIPS := [
@@ -38,9 +38,12 @@ var _banner: Banner
 var _info: VBoxContainer
 var _actions: HFlowContainer
 var _btn_end: Button
+var _left: Label
 var _end: Control
-var _float: HBoxContainer
+var _pop: PanelContainer
+var _pop_anchor: Variant = null # [x, y] tile the popup belongs to; null = top centre of the board
 var _hover_at := 0
+const POP_W := 290.0
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -94,6 +97,17 @@ func _build() -> void:
 	_goal.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_goal.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bh.add_child(_goal)
+	_left = Style.lbl("", 13, Style.MUTED, Style.semi)
+	_left.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bh.add_child(_left)
+	_btn_end = Style.button("Hết lượt", "ActGo")
+	_btn_end.add_theme_font_size_override("font_size", 16)
+	_btn_end.custom_minimum_size = Vector2(118, 36)
+	_btn_end.tooltip_text = "Kết thúc lượt (phím E)"
+	_btn_end.pressed.connect(func() -> void:
+		main.audio.play("ui")
+		end_player_turn())
+	bh.add_child(_btn_end)
 	_btn_hint = _ibtn("Gợi ý", "Gợi ý nước đi", _on_hint)
 	bh.add_child(_btn_hint)
 	bh.add_child(_ibtn("Sách lính", "Sách lính", func() -> void: main.menus.open_codex("p")))
@@ -162,31 +176,23 @@ func _build() -> void:
 	_banner = Banner.new()
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_wrap.add_child(_banner)
-	var panel := PanelContainer.new()
-	var ps := Style.box(Color("#1d100b"), Color.TRANSPARENT, 0, 14)
-	ps.border_color = Style.LACQUER_3; ps.border_width_left = 1
-	panel.add_theme_stylebox_override("panel", ps)
-	panel.custom_minimum_size.x = 330
-	body.add_child(panel)
-	var scroll := ScrollContainer.new()
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	panel.add_child(scroll)
-	var pv := Style.vbox(10)
-	pv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(pv)
+	# no side panel: everything about the current selection lives in one popup pinned next to its tile
+	_pop = PanelContainer.new()
+	var ps := Style.box(Color(0.075, 0.045, 0.03, 0.96), Style.BRONZE_2, 12, 12)
+	ps.shadow_color = Color(0, 0, 0, 0.55); ps.shadow_size = 14; ps.shadow_offset = Vector2(0, 6)
+	_pop.add_theme_stylebox_override("panel", ps)
+	_pop.z_index = 50 # above board tokens / FX
+	_pop.visible = false
+	_wrap.add_child(_pop)
+	var pv := Style.vbox(8)
+	pv.custom_minimum_size.x = POP_W
+	_pop.add_child(pv)
 	_info = Style.vbox(6)
 	pv.add_child(_info)
 	_actions = HFlowContainer.new()
 	_actions.add_theme_constant_override("h_separation", 6)
 	_actions.add_theme_constant_override("v_separation", 6)
 	pv.add_child(_actions)
-	_btn_end = Style.menu_button("Hết lượt", "", true)
-	(_btn_end.get_meta("title") as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_btn_end.custom_minimum_size.y = 52
-	_btn_end.pressed.connect(func() -> void:
-		main.audio.play("ui")
-		end_player_turn())
-	pv.add_child(_btn_end)
 	_end = Control.new()
 	_end.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_end.visible = false
@@ -219,6 +225,7 @@ func _fit() -> void:
 	board.position = ((_wrap.size - board.size) / 2.0).floor()
 	_frame.position = board.position
 	_frame.size = board.size
+	_place_pop.call_deferred()
 
 # ---------- lifecycle ----------
 func _def_for(c: Dictionary) -> Dictionary:
@@ -846,8 +853,8 @@ func _on_hint() -> void:
 	refresh()
 
 # ---------- panel ----------
-func _note(bb: String, color := Style.MUTED) -> RichTextLabel:
-	return Style.rich(bb, 14, color, Style.INK)
+func _note(bb: String, color := Style.MUTED, size := 14) -> RichTextLabel:
+	return Style.rich(bb, size, color, Style.INK)
 
 func _head(token: Control, name: String, sub: String, side := "") -> HBoxContainer:
 	var h := Style.hbox(10)
@@ -867,6 +874,8 @@ func _act(label: String, fn: Callable, opts := {}) -> Button:
 	var go: bool = opts.get("go", false)
 	var b := Style.button(label, ("ActGoHot" if hot else "ActGo") if go else ("ActHot" if hot else "ActBtn"))
 	b.disabled = opts.get("disabled", false)
+	b.add_theme_font_size_override("font_size", 17)
+	b.custom_minimum_size = Vector2(52, 44)
 	b.pressed.connect(func() -> void:
 		main.audio.play("ui")
 		fn.call())
@@ -894,7 +903,8 @@ func _goal_line() -> String:
 	return "[b][color=#%s]%s[/color][/b]%s · Làng [b]%d/%d[/b] · Quân [b]%d/%d[/b]" % [Style.GOLD.to_html(false), obj, castle_txt,
 		Game.villages(s, "p"), Game.villages(s, "e"), Game.unit_count(s, "p"), s.unitCap]
 
-func _unit_info(u: Dictionary) -> void:
+## compact unit card for the popup: token + name + side/HP/XP, HP bar, one stat line; full = also the unit's description
+func _unit_info(u: Dictionary, full := false) -> void:
 	var st := Game.stat(s, u)
 	var look := Content.unit_look(s, u)
 	var dt: Array = ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != "idle" else [u.x, u.y]
@@ -902,14 +912,17 @@ func _unit_info(u: Dictionary) -> void:
 	var xl: Array = Rules.RULES.xpLevels
 	var next: Variant = xl[u.rank] if u.rank < xl.size() else null
 	var name: String = look.name + (" " + "★".repeat(u.rank) if u.rank else "")
-	var sub := "%s · Máu %d/100 · KN %d%s" % [Content.theme().factions[u.side].short, u.hp, u.xp, ("/%d" % next) if next != null else ""]
-	_info.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 48), name, sub, u.side))
-	_info.add_child(Style.Bar.make(u.hp / 100.0, 8, Color("#5fa83c"), Style.GOOD))
+	var sub := "Máu %d · KN %d%s · %s +%d thủ" % [u.hp, u.xp, ("/%d" % next) if next != null else "",
+		Content.terrain(t).name, Game.terrain_def(s, u, dt[0], dt[1])]
+	_info.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 40), name, sub, u.side))
+	_info.add_child(Style.Bar.make(u.hp / 100.0, 6, Color("#5fa83c"), Style.GOOD))
 	var r: int = 5 * u.rank
-	_info.add_child(Style.stat_bars([["Công", st.atk + r, 75], ["Thủ", st.def + r, 30], ["Đi · Tầm", "%d · %s" % [st.mv, Style.stat_range(st)]]]))
-	var desc: String = look.blurb if u.type == "hero" else look.desc
-	var guard := " Đang canh gác (💤): chỉ ra tay khi quân ta tới gần." if u.get("guard", false) else ""
-	_info.add_child(_note("%s +%d thủ. %s%s" % [Content.terrain(t).name, Game.terrain_def(s, u, dt[0], dt[1]), desc, guard]))
+	_info.add_child(_note("Công [b]%d[/b] · Thủ [b]%d[/b] · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [st.atk + r, st.def + r, st.mv, Style.stat_range(st)], Style.MUTED, 14))
+	if full:
+		var desc: String = look.blurb if u.type == "hero" else look.desc
+		_info.add_child(_note(desc, Style.MUTED, 13))
+	if u.get("guard", false):
+		_info.add_child(_note("💤 Đang canh gác: chỉ ra tay khi quân ta tới gần.", Style.MUTED, 13))
 
 func refresh() -> void:
 	if s.is_empty():
@@ -921,19 +934,23 @@ func refresh() -> void:
 	_income.text = "+%d" % Game.income(s, "p")
 	_goal.text = Style.bold_in(_goal_line(), Style.INK)
 	for c in _info.get_children() + _actions.get_children():
+		c.get_parent().remove_child(c) # now, so the popup measures only the new content
 		c.queue_free()
 	var my_turn: bool = s.side == "p" and not ui.busy and s.winner == null
 	_btn_end.disabled = not my_turn
 	_btn_hint.disabled = not my_turn
+	var enemy_busy: bool = ui.busy and s.side == "e"
+	_btn_end.text = ("%s đang ra quân…" % Content.theme().factions.e.short) if enemy_busy else "Hết lượt"
+	var left: int = s.units.filter(func(o: Dictionary) -> bool: return o.side == "p" and not o.acted).size()
+	_left.text = ("Còn %d quân chưa đi" % left) if my_turn and left > 0 else ""
+	_pop_anchor = null
 	var u: Variant = _sel_unit()
-	if ui.busy and s.side == "e":
-		_info.add_child(_head(null, "%s đang ra quân…" % Content.theme().factions.e.short, "", "e"))
-		_info.add_child(_note("Bấm [b]x2[/b] trên thanh trên để xem nhanh hơn."))
-	elif ui.busy:
+	if ui.busy:
 		pass
 	elif u != null:
-		_unit_info(u)
 		if my_turn and u.side == "p" and not u.acted and ui.mode != "idle":
+			_pop_anchor = ui.dest
+			_unit_info(u)
 			var dx: int = ui.dest[0]
 			var dy: int = ui.dest[1]
 			var targets := Game.targets_from(s, u, dx, dy)
@@ -975,44 +992,52 @@ func refresh() -> void:
 				_actions.add_child(_act("Chờ", func() -> void: commit({ "kind": "wait" }), { "hot": hk == "wait" }))
 				_actions.add_child(_act("Hủy", cancel))
 		elif my_turn and u.side == "p" and not u.acted:
-			_info.add_child(_note("Bấm ô xanh để đi (bấm chính ô đang đứng để hành động tại chỗ), hoặc bấm kẻ địch viền đỏ để đánh."))
-		elif u.side == "p" and u.acted:
-			_info.add_child(_note("Đã hành động lượt này."))
+			pass # choosing where to go: the board (blue tiles, red-ringed enemies, hover forecast) is the whole UI
+		else:
+			_pop_anchor = [u.x, u.y]
+			_unit_info(u, true)
+			if u.side == "p" and u.acted:
+				_info.add_child(_note("Đã hành động lượt này.", Style.MUTED, 13))
 	elif ui.buyAt != null:
 		var x: int = ui.buyAt[0]
 		var y: int = ui.buyAt[1]
+		_pop_anchor = [x, y]
 		_info.add_child(_head(null, "Mộ quân", "Có %d vàng · Quân %d/%d · lính mới đi được từ lượt sau" % [s.gold.p, Game.unit_count(s, "p"), s.unitCap]))
 		var grid := GridContainer.new()
 		grid.columns = 1
 		grid.add_theme_constant_override("v_separation", 6)
-		grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.custom_minimum_size.x = POP_W
 		for o: Dictionary in Game.buy_options(s, "p", x, y):
 			var look := Content.unit_type_look("p", o.type, s.heroKey.p)
 			var type: String = o.type
 			var b := _act("", func() -> void: buy_unit(type), { "disabled": not o.ok or not my_turn, "hot": ui.hotBuy == o.type })
 			b.tooltip_text = look.blurb if o.type == "hero" else look.desc
-			b.custom_minimum_size = Vector2(0, 40)
+			b.custom_minimum_size = Vector2(POP_W, 46)
 			var row := Style.hbox(8)
 			row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			row.offset_left = 8
-			row.offset_right = -10
-			row.add_child(Token.make("p", o.type, s.heroKey.p, 28))
-			var nm := Style.lbl(look.name, 14, Style.INK if o.ok else Color(Style.INK, 0.45), Style.bold)
+			row.offset_right = -12
+			var tk := Token.make("p", o.type, s.heroKey.p, 32)
+			tk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(tk)
+			var nm := Style.lbl(look.name, 16, Style.INK if o.ok else Color(Style.INK, 0.45), Style.bold)
 			nm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			nm.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 			nm.size_flags_vertical = Control.SIZE_FILL
 			row.add_child(nm)
-			var cost := Style.lbl(str(o.cost), 14, Style.GOLD if o.ok else Color(Style.GOLD, 0.45), Style.semi)
+			var cost := Style.lbl(str(o.cost), 16, Style.GOLD if o.ok else Color(Style.GOLD, 0.45), Style.semi)
 			cost.size_flags_vertical = Control.SIZE_FILL
 			cost.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 			row.add_child(cost)
 			b.add_child(row)
 			grid.add_child(b)
 		_actions.add_child(grid)
+		_actions.add_child(_act("Đóng", cancel))
 	elif ui.info != null:
 		var x: int = ui.info.x
 		var y: int = ui.info.y
+		_pop_anchor = [x, y]
 		var t: String = s.tiles[y][x]
 		var own: Variant = s.owner.get(Vector2i(x, y))
 		var tr: Dictionary = Rules.TERRAIN[t]
@@ -1021,65 +1046,70 @@ func refresh() -> void:
 			own_txt = " · " + (("của ta" if own == "p" else "của địch") if own != null else "chưa ai chiếm")
 		_info.add_child(_head(null, Content.terrain(t).name + own_txt, "Thủ +%d · Giá đi %s" % [tr.def, "không qua" if tr.cost == INF else str(int(tr.cost))]))
 		if t == "v":
-			_info.add_child(_note("Dân binh hoặc tướng đứng vào rồi bấm Chiếm: +%d vàng/lượt, hồi máu lính ta." % Rules.RULES.incomeVillage))
+			_info.add_child(_note("Dân binh hoặc tướng đứng vào rồi bấm Chiếm: +%d vàng/lượt, hồi máu lính ta." % Rules.RULES.incomeVillage, Style.MUTED, 13))
 		if t == "c":
-			_info.add_child(_note("Chỉ tướng chiếm được thành. Thành: +%d vàng/lượt, mua lính, hồi máu. Có quân đứng trên thành thì không mua lính ở đó được." % Rules.RULES.incomeCastle))
+			_info.add_child(_note("Chỉ tướng chiếm được thành. Thành: +%d vàng/lượt, mua lính, hồi máu. Có quân đứng trên thành thì không mua lính ở đó được." % Rules.RULES.incomeCastle, Style.MUTED, 13))
 		if t == "~":
-			_info.add_child(_note("Chỉ quân bay và tướng biết đi sông qua được."))
+			_info.add_child(_note("Chỉ quân bay và tướng biết đi sông qua được.", Style.MUTED, 13))
 		if Game.grave_at(s, x, y) != null:
-			_info.add_child(_note(Content.text("graveNote")))
-	elif my_turn:
-		var left: int = s.units.filter(func(o: Dictionary) -> bool: return o.side == "p" and not o.acted).size()
-		_info.add_child(_head(null, "Lượt của ta", "Còn %d quân chưa hành động" % left))
-		_info.add_child(_note("Bấm vào lính để ra lệnh. Bấm thành trống để mua lính. Bấm [b]Gợi ý[/b] nếu chưa biết đi gì."))
+			_info.add_child(_note(Content.text("graveNote"), Style.MUTED, 13))
 	if ui.hint != null:
 		_info.add_child(Style.rich(ui.hint, 14, Style.GOLD, Style.GOLD_HI))
-	_mirror_float(my_turn and u != null and u.side == "p" and not u.acted and ui.mode != "idle" and ui.dest != null)
+	_pop.visible = _info.get_child_count() + _actions.get_child_count() > 0
+	if _pop.visible:
+		_place_pop.call_deferred()
 
-## compact copies of the action buttons pinned next to the chosen tile, so orders never leave the board
-func _mirror_float(show: bool) -> void:
-	if _float == null:
-		_float = HBoxContainer.new()
-		_float.add_theme_constant_override("separation", 4)
-		_wrap.add_child(_float)
-	for c in _float.get_children():
-		c.queue_free()
-	_float.visible = show
-	if not show:
+## put the popup beside its tile: right / left / below / above, whichever hides the fewest units (enemies count
+## triple) and never the tile itself or the aimed target. No anchor (a lone hint) -> top centre of the board.
+func _place_pop() -> void:
+	if _pop == null or not _pop.visible:
 		return
-	for b: Node in _actions.get_children():
-		if not (b is Button):
-			continue
-		var src: Button = b
-		var full := src.text
-		var short := full
-		if full == "Hủy":
-			short = "✕"
-		elif full == "Quay lại":
-			short = "‹"
-		elif full.length() > 2 and full.unicode_at(0) > 0x2000 and " " in full:
-			var parts := full.split(" ")
-			short = parts[0] + (" " + parts[parts.size() - 1].trim_prefix("(").trim_suffix(")") if full.ends_with(")") else "")
-		var fb := Style.button(short, src.theme_type_variation)
-		fb.tooltip_text = full
-		fb.custom_minimum_size = Vector2(38, 36)
-		fb.add_theme_font_size_override("font_size", 15)
-		fb.pressed.connect(func() -> void: src.pressed.emit())
-		_float.add_child(fb)
-	_place_float.call_deferred()
-
-func _place_float() -> void:
-	if _float == null or not _float.visible or ui.dest == null:
+	# wrapped text only knows its height after one layout pass at the final width: shrink, wait a frame, measure
+	_pop.size = Vector2.ZERO
+	_pop.modulate.a = 0.0 # hidden while measuring, so it never flashes at the old spot
+	await get_tree().process_frame
+	_pop.modulate.a = 1.0
+	if not _pop.visible:
 		return
-	_float.reset_size()
+	_pop.size = Vector2.ZERO
+	var sz := _pop.get_combined_minimum_size()
+	_pop.size = sz
+	var lim := _wrap.size
+	if _pop_anchor == null:
+		_pop.position = Vector2(((lim.x - sz.x) / 2.0), board.position.y + 10).floor()
+		return
 	var T := board.T
-	var tile := board.position + Vector2(ui.dest[0] * T, ui.dest[1] * T)
-	var sz := _float.get_combined_minimum_size()
-	var pos := tile + Vector2(T + 6, (T - sz.y) / 2)
-	if pos.x + sz.x > _wrap.size.x - 4:
-		pos.x = tile.x - sz.x - 6
-	pos.y = clampf(pos.y, 4, _wrap.size.y - sz.y - 4)
-	_float.position = pos
+	var tile := board.position + Vector2(_pop_anchor[0] * T, _pop_anchor[1] * T)
+	var keep: Array[Rect2] = [Rect2(tile, Vector2(T, T))]
+	if ui.mode == "target" and ui.target != null:
+		var tg: Variant = Game.unit_by_id(s, ui.target)
+		if tg != null:
+			keep.append(Rect2(board.position + Vector2(tg.x * T, tg.y * T), Vector2(T, T)))
+	var gap := 10.0
+	var cands: Array[Vector2] = [
+		tile + Vector2(T + gap, (T - sz.y) / 2), tile + Vector2(-sz.x - gap, (T - sz.y) / 2),
+		tile + Vector2((T - sz.x) / 2, T + gap), tile + Vector2((T - sz.x) / 2, -sz.y - gap),
+	]
+	var best := cands[0]
+	var best_cost := INF
+	for k in cands.size():
+		var p := cands[k]
+		p.x = clampf(p.x, 6, maxf(6.0, lim.x - sz.x - 6))
+		p.y = clampf(p.y, 6, maxf(6.0, lim.y - sz.y - 6))
+		var r := Rect2(p, sz)
+		var cost := float(k) * 0.1
+		for kr: Rect2 in keep:
+			if r.intersects(kr.grow(-2)):
+				cost += 100.0
+		for o: Dictionary in s.units:
+			if o.id == ui.sel:
+				continue
+			if r.intersects(Rect2(board.position + Vector2(o.x * T, o.y * T), Vector2(T, T)).grow(-T * 0.2)):
+				cost += 3.0 if o.side != "p" else 1.0
+		if cost < best_cost:
+			best_cost = cost
+			best = p
+	_pop.position = best.floor()
 
 func _preview_box(p: Dictionary) -> Control:
 	var g := GridContainer.new()

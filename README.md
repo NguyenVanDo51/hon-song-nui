@@ -26,9 +26,9 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 
 ### Điều khiển
 - Bấm lính để thấy ô đi được. **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
-- Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Thanh nút nhỏ hiện ngay cạnh lính (⚔ / 🏠 / 🩹 / Chờ / ✕).
+- Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Không có bảng bên: mọi lệnh (⚔ Đánh / 🏠 Chiếm / 🩹 / Chờ / Hủy), dự báo trận, mua lính, thông tin lính và ô đất hiện trong một popup ngay cạnh ô trên bàn cờ, tự né không che quân. Nút **Hết lượt** ở thanh trên cùng.
 - Phím: `Space`/`Enter` hành động mặc định · `Tab` lính kế chưa đi · `E` hết lượt · `H` gợi ý · `Esc`/chuột phải hủy.
-- Bấm thành trống của ta để mua lính.
+- Bấm thành trống của ta để mua lính (popup cạnh thành).
 
 Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|campaign[:c2]|briefing:m05|skirmish|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60`.
 
@@ -88,7 +88,7 @@ Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục c�
 
 ## Kiến trúc
 - `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom chương + màn và trả theme đã gộp theo chương đang mở.
-- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, giới thiệu màn, đấu tự do, Sách lính), `game_screen.gd` (thanh trên, mẹo, bảng bên, thanh nút nổi, phát lại sự kiện, lượt địch, gợi ý, kết thúc), `board.gd` (bàn cờ: lớp địa hình cache, lớp động, FX, đêm, nhãn dự báo), `fx.gd`, `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh tổng hợp + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
+- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, giới thiệu màn, đấu tự do, Sách lính), `game_screen.gd` (thanh trên + Hết lượt, mẹo, popup lệnh cạnh ô, phát lại sự kiện, lượt địch, gợi ý, kết thúc), `board.gd` (bàn cờ: lớp địa hình cache, lớp động, FX, đêm, nhãn dự báo), `fx.gd`, `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh tổng hợp + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
 - `shaders/`: nền menu, logo ánh kim, vignette, màn đêm.
 - Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 

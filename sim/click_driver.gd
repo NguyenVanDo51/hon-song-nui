@@ -50,9 +50,9 @@ func _run() -> void:
 	var g = main.game
 	var s: Dictionary = g.s
 	var hero: Dictionary = s.units.filter(func(u): return u.side == "p" and u.type == "hero")[0]
-	# select hero -> panel info, reach, hover path
+	# select hero -> reach, hover path
 	g._on_tile(hero.x, hero.y)
-	ok(g._info.get_child_count() > 0 and g.board.view.reach != null, "select hero shows info + reach")
+	ok(g.board.view.reach != null and not g._pop.visible, "select hero shows reach, board stays clear (no popup yet)")
 	var dest: Dictionary
 	for r in g.board.view.reach.values():
 		if (r.x != hero.x or r.y != hero.y) and Game.unit_at(s, r.x, r.y) == null:
@@ -68,8 +68,13 @@ func _run() -> void:
 	g._on_tile(dest.x, dest.y)
 	await process_frame
 	await process_frame
+	await process_frame
+	await process_frame
 	await main.shot("ux_float")
-	ok(g._float.visible and g._float.get_child_count() >= 2, "floating action bar next to the tile (%d buttons)" % g._float.get_child_count())
+	ok(g._pop.visible and g._actions.get_child_count() >= 2, "popup with orders next to the tile (%d buttons)" % g._actions.get_child_count())
+	var T: float = g.board.T
+	var tr := Rect2(g.board.position + Vector2(dest.x * T, dest.y * T), Vector2(T, T))
+	ok(not Rect2(g._pop.position, g._pop.size).intersects(tr.grow(-2)), "popup does not cover the destination tile")
 	g._on_tile(dest.x, dest.y) # same tile again = default action (wait here)
 	await idle(g)
 	ok(hero.acted and hero.x == dest.x, "hero moved + waited (click dest twice)")

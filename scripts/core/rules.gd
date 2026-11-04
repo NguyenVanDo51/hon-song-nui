@@ -39,6 +39,16 @@ const HEROES := {
 	"huyenlenh": { "atk": 55, "def": 15, "mv": 5, "move": "water" },
 	"douy": { "atk": 55, "def": 25, "mv": 4, "move": "foot", "tBonus": { "f": 15 } },
 	"hieuuy": { "atk": 65, "def": 15, "mv": 6, "move": "foot" },
+	# chapter 2–3 (aura = +10 atk to adjacent allies, rmax 2 = shoots like an archer)
+	"thanhthien": { "atk": 60, "def": 20, "mv": 5, "move": "foot", "aura": 10 },
+	"batnan": { "atk": 55, "def": 15, "mv": 5, "move": "mount", "rmin": 1, "rmax": 2, "antiAir": 20 },
+	"phungthichinh": { "atk": 60, "def": 20, "mv": 5, "move": "foot", "tBonus": { "f": 10, "h": 10 } },
+	"batrieu": { "atk": 72, "def": 22, "mv": 5, "move": "foot" },
+	"trieuquocdat": { "atk": 60, "def": 20, "mv": 5, "move": "mount", "guard": 10 },
+	"mavien": { "atk": 70, "def": 25, "mv": 5, "move": "foot", "aura": 10 },
+	"luulong": { "atk": 62, "def": 18, "mv": 6, "move": "foot" },
+	"doanchi": { "atk": 58, "def": 20, "mv": 5, "move": "water" },
+	"lucdan": { "atk": 66, "def": 24, "mv": 5, "move": "foot", "guard": 10 },
 }
 
 const RULES := {

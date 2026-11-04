@@ -1,28 +1,78 @@
 class_name Content
 extends RefCounted
-## content registry: campaign missions (every content/campaign/*.gd, sorted by `order`), skirmish maps, theme lookups.
-## All name / icon resolution goes through here.
+## content registry: chapters (content/chapters/*.gd), campaign missions (content/campaign/*.gd, sorted by `order`,
+## each tagged with its `chapter`), skirmish maps, theme lookups. All name / icon resolution goes through here.
+## theme() is the base theme with the active chapter's overrides merged in (enemy faction skin, UI words, chapter map).
 
 const THEME_SCRIPT := preload("res://content/theme.gd")
 const SKIRMISH := preload("res://content/skirmish_maps.gd")
 const CAMPAIGN_DIR := "res://content/campaign"
+const CHAPTER_DIR := "res://content/chapters"
 
 static var _campaign: Array = []
+static var _chapters: Array = []
+static var _themes := {}
+## chapter whose skin / map the UI shows; set by the menus and the game screen
+static var active_chapter := "c1"
+
+static func _defs(dir: String) -> Array:
+	var out := []
+	var seen := {}
+	for f in DirAccess.get_files_at(dir):
+		f = f.trim_suffix(".remap") # exported builds list scripts as *.gd.remap
+		if not f.ends_with(".gd") or seen.has(f):
+			continue
+		seen[f] = true
+		out.append(load(dir + "/" + f).DEF)
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.order < b.order)
+	return out
 
 static func theme() -> Dictionary:
-	return THEME_SCRIPT.THEME
+	if not _themes.has(active_chapter):
+		var t: Dictionary = THEME_SCRIPT.THEME.duplicate(true)
+		var ch: Variant = chapter(active_chapter)
+		if ch != null:
+			_deep_merge(t, ch.get("theme", {}))
+			t.chapter = ch
+		_themes[active_chapter] = t
+	return _themes[active_chapter]
+
+static func _deep_merge(into: Dictionary, over: Dictionary) -> void:
+	for k: Variant in over:
+		if into.get(k) is Dictionary and over[k] is Dictionary:
+			_deep_merge(into[k], over[k])
+		else:
+			into[k] = over[k]
 
 static func campaign() -> Array:
 	if _campaign.is_empty():
-		var seen := {}
-		for f in DirAccess.get_files_at(CAMPAIGN_DIR):
-			f = f.trim_suffix(".remap")
-			if not f.ends_with(".gd") or seen.has(f):
-				continue
-			seen[f] = true
-			_campaign.append(load(CAMPAIGN_DIR + "/" + f).DEF)
-		_campaign.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.order < b.order)
+		_campaign = _defs(CAMPAIGN_DIR)
 	return _campaign
+
+static func chapters() -> Array:
+	if _chapters.is_empty():
+		_chapters = _defs(CHAPTER_DIR)
+	return _chapters
+
+static func chapter(id: String) -> Variant:
+	for c: Dictionary in chapters():
+		if c.id == id:
+			return c
+	return null
+
+static func chapter_of(m: Dictionary) -> String:
+	return m.get("chapter", "c1")
+
+static func missions_of(chapter_id: String) -> Array:
+	return campaign().filter(func(m: Dictionary) -> bool: return chapter_of(m) == chapter_id)
+
+static func use_chapter(id: String) -> void:
+	active_chapter = id if chapter(id) != null else "c1"
+
+## a chapter opens once every mission before it (campaign order) is won
+static func chapter_unlocked(id: String, unlocked_index: int) -> bool:
+	var ms := missions_of(id)
+	return ms.is_empty() or mission_index(ms[0].id) <= unlocked_index
 
 static func mission(id: String) -> Variant:
 	for m: Dictionary in campaign():

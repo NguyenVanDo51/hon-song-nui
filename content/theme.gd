@@ -4,8 +4,8 @@ extends RefCounted
 
 const THEME := {
 	"title": "Hồn Sông Núi",
-	"tagline": "Khởi nghĩa Hai Bà Trưng · năm 40 · chiến thuật theo lượt",
-	"lede": "Năm 40, quân Đông Hán đô hộ Giao Chỉ, thái thú Tô Định vơ vét khắp nơi. Hai Bà Trưng dựng cờ ở Hát Môn, đánh chiếm lại từng vùng quanh Hà Nội ngày nay, đến tận trị sở Luy Lâu.",
+	"tagline": "Hai Bà Trưng · Bà Triệu · chiến thuật theo lượt",
+	"lede": "Năm 40, Hai Bà Trưng dựng cờ ở Hát Môn, đuổi quân Đông Hán khỏi Giao Chỉ. Hai năm sau, Mã Viện kéo đại quân sang. Hai trăm năm sau nữa, ở núi Nưa, Bà Triệu lại cưỡi voi ra trận đánh quân Ngô. Ba chương, hai mươi hai trận.",
 	"text": {
 		"enemyTurn": "Lượt quân Hán",
 		"skirmishTitle": "Đấu tự do · Đồng bằng sông Hồng",
@@ -14,28 +14,6 @@ const THEME := {
 		"raiseButton": "🩹 Cứu thương",
 		"graveNote": "Lính ngã: thầy lang đứng cạnh có thể cứu dậy thành thương binh. Sau 2 vòng thì mất.",
 		"graveName": "Lính ngã",
-	},
-	"chapter": {
-		"title": "Khởi nghĩa Hai Bà Trưng",
-		"subtitle": "Mùa xuân năm 40 · Giao Chỉ dưới ách Đông Hán",
-		"note": "Sơ đồ phỏng theo, không đúng tỉ lệ. Địa danh ghi theo tên ngày nay.",
-		"rivers": [
-			{
-				"name": "Sông Hồng",
-				"w": 3.2,
-				"d": "M0,16 C14,20 22,26 34,30 S52,36 58,42 S70,56 80,62 S94,68 100,70",
-			},
-			{ "name": "Sông Đuống", "w": 2, "d": "M57,40 C64,36 72,36 80,34 S92,32 100,31" },
-			{ "name": "Sông Đáy", "w": 1.6, "d": "M10,22 C12,32 9,42 13,52 S16,64 15,70" },
-			{ "name": "Sông Cà Lồ", "w": 1.3, "d": "M22,8 C34,10 44,8 54,12 S66,20 74,26 S80,32 82,34" },
-		],
-		"lakes": [{ "name": "Hồ Tây", "cx": 50, "cy": 42.5, "rx": 3, "ry": 2.1 }],
-		"labels": [
-			{ "text": "GIAO CHỈ", "x": 30, "y": 62, "size": 4 },
-			{ "text": "Sông Hồng", "x": 82, "y": 58, "size": 2.2, "river": true },
-			{ "text": "Sông Đuống", "x": 86, "y": 29, "size": 2, "river": true },
-			{ "text": "Sông Đáy", "x": 4, "y": 46, "size": 2, "river": true },
-		],
 	},
 	"factions": {
 		"p": {
@@ -194,11 +172,24 @@ const THEME := {
 			"icon": "🐴",
 			"blurb": "Tướng kỵ phương Bắc: nhanh, đánh đau, thủ mỏng.",
 		},
+		# chapter 2
+		"thanhthien": { "side": "p", "name": "Thánh Thiên", "icon": "🔥", "blurb": "Nữ tướng giữ đất Hợp Phố, giỏi khích lệ quân: lính ta đứng cạnh +10 công." },
+		"batnan": { "side": "p", "name": "Bát Nàn", "icon": "🦅", "blurb": "Nữ tướng đất Phú Thọ, giỏi cung nỏ: bắn xa 1–2 ô, đi đồi núi nhanh." },
+		"phungthichinh": { "side": "p", "name": "Phùng Thị Chính", "icon": "👶", "blurb": "Nữ tướng sinh con ngay giữa trận, địu con mà đánh: đứng trong rừng, trên đồi +10 thủ." },
+		"mavien": { "side": "e", "name": "Mã Viện", "icon": "🎖️", "blurb": "Phục Ba tướng quân nhà Hán, lão tướng trăm trận: quân đứng cạnh hắn +10 công." },
+		"luulong": { "side": "e", "name": "Lưu Long", "icon": "🐉", "blurb": "Phó tướng của Mã Viện: đi nhanh 6 ô." },
+		"doanchi": { "side": "e", "name": "Đoàn Chí", "icon": "⚓", "blurb": "Lâu thuyền tướng quân, chỉ huy thủy binh Hán: đi được trên sông, biển." },
+		# chapter 3
+		"batrieu": { "side": "p", "name": "Bà Triệu", "icon": "🌪️", "blurb": "Triệu Thị Trinh, cưỡi voi ra trận, mặc áo giáp vàng: công rất cao." },
+		"trieuquocdat": { "side": "p", "name": "Triệu Quốc Đạt", "icon": "⛰️", "blurb": "Anh của Bà Triệu, hào trưởng huyện Quan Yên: đi đồi núi nhanh, lính đứng cạnh +10 thủ." },
+		"lucdan": { "side": "e", "name": "Lục Dận", "icon": "🪓", "blurb": "Thứ sử Giao Châu nhà Ngô, đem quân đàn áp: thủ dày, lính đứng cạnh +10 thủ." },
 	},
 	"people": {
 		"bamanthien": { "name": "Bà Man Thiện", "icon": "👵" },
 		"lactuong": { "name": "Lạc tướng", "icon": "🧔" },
 		"danlang": { "name": "Dân làng", "icon": "👨" },
 		"truyenthuyet": { "name": "Sử tích", "icon": "📖" },
+		"thamtu": { "name": "Thám tử", "icon": "🕵️" },
+		"lenhngo": { "name": "Quan Ngô", "icon": "🏮" },
 	},
 }

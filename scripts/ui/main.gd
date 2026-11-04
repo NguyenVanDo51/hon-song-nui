@@ -48,8 +48,8 @@ func _boot() -> void:
 	var sc: String = flags.get("screen", "title")
 	if sc.begins_with("briefing"):
 		menus.show_briefing(Content.mission(sc.split(":")[1] if ":" in sc else "m01"))
-	elif sc == "campaign":
-		menus.show_campaign()
+	elif sc.begins_with("campaign"):
+		menus.show_campaign(sc.split(":")[1] if ":" in sc else "")
 	elif sc == "skirmish":
 		menus.show_skirmish()
 	elif sc == "codex":
@@ -63,9 +63,9 @@ func show_title() -> void:
 	game.leave()
 	menus.show_title()
 
-func show_campaign() -> void:
+func show_campaign(chapter_id := "") -> void:
 	game.leave()
-	menus.show_campaign()
+	menus.show_campaign(chapter_id)
 
 func show_briefing(m: Dictionary) -> void:
 	game.leave()

@@ -14,7 +14,7 @@ var t := 0.0
 
 func setup(open: int) -> void:
 	open_index = open
-	missions = Content.campaign().filter(func(m: Dictionary) -> bool: return m.has("pos"))
+	missions = Content.missions_of(Content.active_chapter).filter(func(m: Dictionary) -> bool: return m.has("pos"))
 	rivers.clear()
 	for r: Dictionary in Content.theme().chapter.get("rivers", []):
 		rivers.append({ "w": float(r.w), "pts": parse_path(r.d) })
@@ -207,7 +207,7 @@ func _draw() -> void:
 			stroke = Color("#fff6d8")
 		draw_circle(c, r, Color(fill, al), true, -1.0, true)
 		draw_arc(c, r, 0, TAU, 32, Color(stroke, al), 0.45 * s, true)
-		Draw.text_c(self, Style.xbold, c, str(i + 1), int(round(2.6 * s)), Color(Color("#3a1a10") if cur else Style.INK, al))
+		Draw.text_c(self, Style.xbold, c, str(missions.find(m) + 1), int(round(2.6 * s)), Color(Color("#3a1a10") if cur else Style.INK, al))
 		var name: String = m.get("region", m.get("place", ""))
 		Draw.text_a(self, Style.bold, c + Vector2(0, 5.6 * s), name, int(round(2.5 * s)), Color(Style.INK, al), 0.5, false, int(0.7 * s), Color("#1a0f08"))
 	# frame

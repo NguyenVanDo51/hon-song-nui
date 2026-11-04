@@ -35,7 +35,52 @@ func _init() -> void:
 func content_tests() -> void:
 	var all: Array = Content.campaign().duplicate()
 	all.append(Content.skirmish_def("dong_bang", Content.heroes_of("p")[0], false))
-	eq(Content.campaign().size(), 8, "campaign size")
+	eq(Content.campaign().size(), 22, "campaign size")
+	run("chapters: 3 chapters, every mission in one, missions of a chapter are consecutive", func() -> void:
+		eq(Content.chapters().map(func(c: Dictionary) -> String: return c.id), ["c1", "c2", "c3"])
+		var seen := []
+		for m: Dictionary in Content.campaign():
+			var c := Content.chapter_of(m)
+			check(Content.chapter(c) != null, "chapter of " + m.id)
+			if seen.is_empty() or seen.back() != c:
+				check(not seen.has(c), "chapter %s split" % c)
+				seen.append(c)
+		for c: Dictionary in Content.chapters():
+			for key: String in ["title", "subtitle", "rivers", "labels", "outro"]:
+				check(c.has(key), "%s.%s" % [c.id, key])
+			check(Content.missions_of(c.id).size() >= 6, c.id + " has missions")
+		check(Content.chapter_unlocked("c1", 0) and not Content.chapter_unlocked("c2", 7) and Content.chapter_unlocked("c2", 8), "unlock order")
+	)
+	run("theme: chapter 3 reskins the enemy, other chapters keep Hán", func() -> void:
+		Content.use_chapter("c3")
+		eq(Content.theme().units.e.soldier.name, "Bộ binh Ngô")
+		eq(Content.text("enemyTurn"), "Lượt quân Ngô")
+		eq(Content.theme().units.e.drum.name, "Cờ lệnh", "unchanged keys survive the merge")
+		Content.use_chapter("c1")
+		eq(Content.theme().units.e.soldier.name, "Bộ binh Hán")
+		eq(Content.theme().chapter.id, "c1")
+	)
+	run("reach: hero on the goal wins, time runs out loses", func() -> void:
+		var s := Game.new_game(Content.mission("m13"))
+		var hero: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.type == "hero")[0]
+		var goal: Array = s.win.at[0]
+		for u: Dictionary in s.units:
+			if u.side == "e" and abs(u.x - goal[0]) + abs(u.y - goal[1]) <= 1:
+				u.x = 0
+				u.y = 0
+		hero.x = goal[0]
+		hero.y = goal[1] + 1
+		Game.do_action(s, { "id": hero.id, "to": goal, "kind": "wait" })
+		eq(s.winner, "p")
+		eq(s.reason, "reached")
+		var s2 := Game.new_game(Content.mission("m13"))
+		for i in 60:
+			if s2.winner != null:
+				break
+			Game.end_turn(s2)
+		eq(s2.winner, "e")
+		eq(s2.reason, "timeUp")
+	)
 	for def: Dictionary in all:
 		run("content valid: " + def.id, func() -> void:
 			var rows: Array = def.map.rows

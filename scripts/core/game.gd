@@ -390,12 +390,25 @@ static func unit_count(s: Dictionary, side: String) -> int:
 static func pending_waves(s: Dictionary) -> bool:
 	return s.waves.any(func(w: Dictionary) -> bool: return not w.done)
 
+## win type "reach": our hero stands on one of win.at
+static func hero_on_goal(s: Dictionary) -> bool:
+	for u: Dictionary in s.units:
+		if u.side == "p" and u.type == "hero":
+			for g: Array in s.win.get("at", []):
+				if u.x == g[0] and u.y == g[1]:
+					return true
+	return false
+
 ## a reason string when `side` has lost, else null
 static func loss_reason(s: Dictionary, side: String) -> Variant:
 	if side == "p" and s.heroMustLive and s.heroDead.p:
 		return "heroFell"
 	if side == "e" and s.win.type == "hero" and s.heroDead.e:
 		return "heroKilled"
+	if side == "e" and s.win.type == "reach" and hero_on_goal(s):
+		return "reached"
+	if side == "p" and s.win.type == "reach" and s.heroDead.p:
+		return "heroFell"
 	var c := castles(s, side)
 	var n := unit_count(s, side)
 	if c == 0 and s.hadCastle[side]:
@@ -455,6 +468,11 @@ static func end_turn(s: Dictionary) -> Array:
 			s.winner = "p"
 			s.reason = "survived"
 			ev.append({ "t": "win", "side": "p", "reason": "survived" })
+			return ev
+		if s.win.type == "reach" and s.win.has("turns") and s.turn > s.win.turns:
+			s.winner = "e"
+			s.reason = "timeUp"
+			ev.append({ "t": "win", "side": "e", "reason": "timeUp" })
 			return ev
 	else:
 		for w: Dictionary in s.waves:

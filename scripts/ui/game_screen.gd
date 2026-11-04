@@ -231,6 +231,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	s = state
 	ctx = c
 	def = _def_for(c)
+	Content.use_chapter(Content.chapter_of(def)) # enemy skin + wording of this chapter
 	_reset_ui()
 	stats = { "kills": 0, "losses": 0 }
 	board.view.hide.clear()
@@ -708,8 +709,10 @@ func finish() -> void:
 	var hero: String = Content.hero_look(s.heroKey.p).name
 	var eh: String = Content.hero_look(s.heroKey.e).name if s.heroKey.e != null else "quân địch"
 	var texts := {
-		"p": { "routed": "Đã quét sạch quân địch.", "castlesLost": "Đã chiếm hết thành của địch.", "heroKilled": "%s đã bị hạ." % eh, "survived": "Đã giữ vững đến khi nước rút.", "heroFell": "" },
-		"e": { "heroFell": "%s đã ngã." % hero, "castlesLost": "Thành của ta đã mất.", "routed": "Quân ta đã tan.", "heroKilled": "" },
+		"p": { "routed": "Đã quét sạch quân địch.", "castlesLost": "Đã chiếm hết thành của địch.", "heroKilled": "%s đã bị hạ." % eh,
+			"survived": "Đã giữ vững đến cùng.", "reached": "%s đã tới nơi an toàn." % hero, "heroFell": "" },
+		"e": { "heroFell": "%s đã ngã." % hero, "castlesLost": "Thành của ta đã mất.", "routed": "Quân ta đã tan.", "heroKilled": "",
+			"timeUp": "Không kịp tới nơi, giặc đã khép vòng vây." },
 	}
 	var reason_text: String = texts[s.winner].get(s.reason, "")
 	await get_tree().create_timer(0.6).timeout
@@ -717,26 +720,33 @@ func finish() -> void:
 		return
 	main.audio.play("win" if win else "lose")
 	var buttons := []
+	var outro: Array = def.get("story", {}).get("outro", []) if win else []
 	if ctx.kind == "campaign":
 		var i := Content.mission_index(ctx.id)
+		var cid := Content.chapter_of(def)
 		if win:
 			Store.mark_done(ctx.id)
 			var c := Content.campaign()
+			var chapter_ms := Content.missions_of(cid)
+			if chapter_ms.back().id == ctx.id:
+				# last mission of a chapter: the chapter's closing lines follow the mission's
+				outro = outro + Content.chapter(cid).get("outro", [])
+				reason_text += " Hết chương: %s." % Content.chapter(cid).title
 			if i + 1 < c.size():
 				var next: Dictionary = c[i + 1]
-				buttons.append(["Màn tiếp ›", func() -> void: main.show_briefing(next), true])
+				var new_chapter := Content.chapter_of(next) != cid
+				buttons.append(["Chương tiếp ›" if new_chapter else "Màn tiếp ›", func() -> void: main.show_briefing(next), true])
 			else:
-				reason_text += " Chiến dịch đã hoàn thành!"
-			buttons.append(["Bản đồ chiến dịch", main.show_campaign, false])
+				reason_text += " Toàn bộ chiến dịch đã hoàn thành!"
+			buttons.append(["Bản đồ chiến dịch", func() -> void: main.show_campaign(cid), false])
 		else:
 			var c2 := ctx.duplicate()
 			buttons.append(["Đánh lại", func() -> void: main.start_game(Game.new_game(Content.mission(c2.id)), c2), true])
-			buttons.append(["Bản đồ chiến dịch", main.show_campaign, false])
+			buttons.append(["Bản đồ chiến dịch", func() -> void: main.show_campaign(cid), false])
 	else:
 		buttons.append(["Ván mới", main.show_skirmish, true])
 		buttons.append(["Menu", main.show_title, false])
-	var story: Dictionary = def.get("story", {})
-	_show_end(win, reason_text, story.get("outro", []) if win else [], buttons)
+	_show_end(win, reason_text, outro, buttons)
 	if main.flags.has("shots"):
 		get_tree().create_timer(1.5).timeout.connect(func() -> void: main.shot((main.flags.get("tag", "s")) + "_end"))
 
@@ -875,6 +885,7 @@ func _goal_line() -> String:
 		"rout": "Diệt hết địch (còn %d)" % Game.unit_count(s, "e"),
 		"hero": "Hạ %s" % eh,
 		"survive": "Giữ vững: còn %d lượt" % maxi(0, w.get("turns", 0) - s.turn + 1),
+		"reach": "Đưa %s tới cờ vàng%s" % [Content.hero_look(s.heroKey.p).name, (": còn %d lượt" % maxi(0, w.turns - s.turn + 1)) if w.has("turns") else ""],
 	}[w.type]
 	if s.heroMustLive:
 		obj += " · giữ %s" % Content.hero_look(s.heroKey.p).name
@@ -916,7 +927,7 @@ func refresh() -> void:
 	_btn_hint.disabled = not my_turn
 	var u: Variant = _sel_unit()
 	if ui.busy and s.side == "e":
-		_info.add_child(_head(null, "Yêu quái đang ra quân…", "", "e"))
+		_info.add_child(_head(null, "%s đang ra quân…" % Content.theme().factions.e.short, "", "e"))
 		_info.add_child(_note("Bấm [b]x2[/b] trên thanh trên để xem nhanh hơn."))
 	elif ui.busy:
 		pass

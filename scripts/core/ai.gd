@@ -84,6 +84,8 @@ static func expected_hit(s: Dictionary, u: Dictionary, x: int, y: int, attackers
 static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array:
 	var st := Game.stat(s, u)
 	var out := []
+	if s.win.type == "reach" and u.side == "p" and u.type == "hero":
+		return s.win.get("at", []).duplicate() # escape missions: the hero only cares about the goal
 	var cap_v: bool = st.get("capV", false)
 	var cap_c: bool = st.get("capC", false)
 	if cap_v or cap_c:
@@ -152,6 +154,10 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 
 		if danger.has(key):
 			pos += 900 # block the capture
+		if s.win.type == "reach" and u.side == "p" and u.type == "hero":
+			for g: Array in s.win.get("at", []):
+				if g[0] == rx and g[1] == ry:
+					pos += 20000 # stepping on the goal wins
 		consider.call(pos, { "id": u.id, "to": [rx, ry], "kind": "wait" })
 
 		if Game.can_capture(s, u, rx, ry):

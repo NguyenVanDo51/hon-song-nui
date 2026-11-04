@@ -160,6 +160,7 @@ static func goal_text(def: Dictionary) -> String:
 		"rout": "Diệt hết quân địch.",
 		"hero": "Hạ %s." % eh,
 		"survive": "Giữ vững đến hết lượt %s." % str(w.get("turns", "")),
+		"reach": "Đưa %s tới ô cờ vàng%s." % [Content.hero_look(def.hero).name, (" trong %d lượt" % w.turns) if w.has("turns") else ""],
 	}[w.type]
 	if def.get("heroMustLive", false):
 		t += " %s ngã là thua." % Content.hero_look(def.hero).name
@@ -183,7 +184,12 @@ func show_title() -> void:
 	list.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	var camp := Content.campaign()
 	var ui := Store.unlocked_index()
-	var prog := "Đã hoàn thành cả chiến dịch" if ui >= camp.size() else "Màn %d/%d: %s" % [ui + 1, camp.size(), camp[ui].title]
+	var prog := "Đã hoàn thành cả ba chương"
+	if ui < camp.size():
+		var cm: Dictionary = camp[ui]
+		var cid := Content.chapter_of(cm)
+		var ms := Content.missions_of(cid)
+		prog = "Chương %d · Màn %d/%d: %s" % [Content.chapters().find(Content.chapter(cid)) + 1, ms.find(cm) + 1, ms.size(), cm.title]
 	list.add_child(_on(Style.menu_button("Chiến dịch", prog, true), show_campaign))
 	var sv: Variant = Store.load_game()
 	if sv != null:
@@ -238,13 +244,34 @@ func _logo(text: String) -> Control:
 	return holder
 
 # ---------- campaign ----------
-func show_campaign() -> void:
+## chapter "" = the chapter of the first unwon mission
+func show_campaign(chapter_id := "") -> void:
+	var open := Store.unlocked_index()
+	if chapter_id == "":
+		var camp0 := Content.campaign()
+		chapter_id = Content.chapter_of(camp0[mini(open, camp0.size() - 1)])
+	Content.use_chapter(chapter_id)
 	var ch: Dictionary = Content.theme().get("chapter", {})
 	var v := _page(1040)
 	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), ch.get("title", "Chiến dịch")))
+	# chapter tabs
+	var tabs := Style.hbox(8)
+	var chs := Content.chapters()
+	for k in chs.size():
+		var c: Dictionary = chs[k]
+		var unlocked := Content.chapter_unlocked(c.id, open)
+		var label := "Chương %d · %s" % [k + 1, c.get("years", "")] + ("" if unlocked else "  🔒")
+		var b := Style.button(label, "SegOn" if c.id == chapter_id else "SegBtn")
+		b.disabled = not unlocked
+		b.tooltip_text = c.title + ("" if unlocked else " · thắng hết chương trước để mở")
+		var cid: String = c.id
+		_on(b, func() -> void: show_campaign(cid))
+		tabs.add_child(b)
+	v.add_child(tabs)
 	var sub := Style.lbl(ch.get("subtitle", ""), 15, Style.MUTED)
 	v.add_child(sub)
-	var open := Store.unlocked_index()
+	if ch.get("blurb", "") != "":
+		v.add_child(Style.lbl(ch.blurb, 14, Style.INK, null, true))
 	var map := CampMap.new()
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map.setup(open)
@@ -256,17 +283,17 @@ func show_campaign() -> void:
 	mv.add_child(Style.lbl(ch.get("note", ""), 12, Style.MUTED))
 	v.add_child(mv)
 	var grid := _grid(230)
-	var camp := Content.campaign()
-	for i in camp.size():
-		grid.add_child(_mission_card(camp[i], i, open))
+	var ms := Content.missions_of(chapter_id)
+	for k in ms.size():
+		grid.add_child(_mission_card(ms[k], Content.mission_index(ms[k].id), open, k + 1, k == ms.size() - 1))
 	v.add_child(grid)
 
-func _mission_card(m: Dictionary, i: int, open: int) -> Control:
+func _mission_card(m: Dictionary, i: int, open: int, number: int, last := false) -> Control:
 	var done := Store.is_done(m.id)
 	var locked := i > open and not done
 	var cv := Style.vbox(8)
 	var top := Style.hbox(12)
-	top.add_child(Medal.make(i + 1, done))
+	top.add_child(Medal.make(number, done))
 	var tv := Style.vbox(2)
 	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var t := Style.lbl(m.title, 19, Style.GOLD, Style.display, true)
@@ -280,7 +307,8 @@ func _mission_card(m: Dictionary, i: int, open: int) -> Control:
 	var nu: Array = m.get("newUnits", []).filter(func(x: String) -> bool: return x != "hero")
 	for ty: String in nu:
 		mu.add_child(Token.make("p", ty, m.hero, 30))
-	var note := Style.lbl("lính mới" if nu.size() else "trận cuối", 12, Style.MUTED)
+	var new_hero: bool = m.get("newUnits", []).has("hero")
+	var note := Style.lbl("lính mới" if nu.size() else ("tướng mới" if new_hero else ("trận cuối chương" if last else "")), 12, Style.MUTED)
 	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	mu.add_child(note)
 	var sp := Control.new()
@@ -303,16 +331,17 @@ func _mission_card(m: Dictionary, i: int, open: int) -> Control:
 
 # ---------- briefing ----------
 func show_briefing(m: Dictionary) -> void:
-	var camp := Content.campaign()
-	var i := Content.mission_index(m.id)
+	var cid := Content.chapter_of(m)
+	Content.use_chapter(cid)
+	var ms := Content.missions_of(cid)
 	var v := _page(1040)
-	v.add_child(_head("‹ Bản đồ chiến dịch", show_campaign))
+	v.add_child(_head("‹ Bản đồ chiến dịch", func() -> void: show_campaign(cid)))
 	var cols := Style.hbox(18)
 	var story := Style.vbox(8)
 	story.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	story.size_flags_stretch_ratio = 1.3
 	story.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	story.add_child(_eyebrow("Màn %d/%d" % [i + 1, camp.size()]))
+	story.add_child(_eyebrow("Chương %d · Màn %d/%d" % [Content.chapters().find(Content.chapter(cid)) + 1, ms.find(m) + 1, ms.size()]))
 	var title := Style.lbl(m.title, 48, Style.GOLD, Style.display, true)
 	title.add_theme_constant_override("line_spacing", -8)
 	story.add_child(title)

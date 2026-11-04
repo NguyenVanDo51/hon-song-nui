@@ -243,6 +243,9 @@ func _draw_dyn(ci: CanvasItem) -> void:
 				_draw_building(ci, t, x * T, y * T, s.owner.get(Vector2i(x, y), "n"), time, x, y)
 	for g: Dictionary in s.graves:
 		_draw_grave(ci, g.x * T, g.y * T, time)
+	if s.win.type == "reach":
+		for at: Array in s.win.get("at", []):
+			_draw_goal(ci, at[0] * T, at[1] * T, time)
 	_draw_overlays(ci, time)
 	fx.draw_under(ci, T, time)
 	_draw_units(ci, time)
@@ -311,6 +314,16 @@ func _draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, 
 		var flag := _join([Draw.quad(top, Vector2(X + T * 0.64, Y - T * 0.06 + wave), tip, 6),
 			Draw.quad(tip, Vector2(X + T * 0.64, Y + T * 0.06 + wave), P.call(0.5, 0.08), 6)])
 		ci.draw_colored_polygon(flag, flag_col)
+
+## "reach" goal: pulsing gold frame + a tall gold banner
+func _draw_goal(ci: CanvasItem, X: float, Y: float, time: float) -> void:
+	var pulse := 0.5 + 0.5 * sin(time / 300.0)
+	ci.draw_rect(Rect2(X + 2, Y + 2, T - 4, T - 4), Color(1, 0.84, 0.4, 0.12 + 0.12 * pulse))
+	ci.draw_rect(Rect2(X + 2, Y + 2, T - 4, T - 4), Color(1, 0.84, 0.4, 0.6 + 0.4 * pulse), false, maxf(2.0, T * 0.06))
+	var wave := sin(time / 240.0) * T * 0.03
+	ci.draw_line(Vector2(X + T * 0.22, Y + T * 0.92), Vector2(X + T * 0.22, Y + T * 0.08), Color("#3b3026"), maxf(1.5, T / 26.0))
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(X + T * 0.22, Y + T * 0.08), Vector2(X + T * 0.5, Y + T * 0.14 + wave),
+		Vector2(X + T * 0.22, Y + T * 0.28)]), Color("#ffd166"))
 
 ## fallen soldier: spear planted in the ground, dropped round shield, slow breathing red cloth
 func _draw_grave(ci: CanvasItem, X: float, Y: float, time: float) -> void:

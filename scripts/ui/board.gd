@@ -7,6 +7,10 @@ extends Control
 signal tile_clicked(x: int, y: int)
 signal hover_changed(tile: Variant)
 signal cancel_requested
+signal info_requested(id: int)
+
+const BUFF_ATK := Color("#ff9a3c") # aura: +10 attack
+const BUFF_DEF := Color("#5cc8ff") # guard: +10 defence
 
 var s: Dictionary = {}
 var fx: FX
@@ -15,6 +19,8 @@ var T := 48.0
 var view := { "hide": {}, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
 	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null, "preview": null }
 var hover: Variant = null
+var _info_spots := [] # [[centre, unit id]] of the ⓘ dots drawn this frame
+var _info_hit_id := -1
 var _stage: Control
 var _terrain: Layer
 var _layers: Array[Layer] = []
@@ -111,17 +117,33 @@ func _gui_input(ev: InputEvent) -> void:
 		return
 	if ev is InputEventMouseButton and ev.pressed:
 		if ev.button_index == MOUSE_BUTTON_LEFT:
-			var tl: Variant = _tile_at_mouse(ev.position)
-			if tl != null:
-				tile_clicked.emit(tl.x, tl.y)
+			var info_id := _info_at(ev.position)
+			if info_id >= 0:
+				info_requested.emit(info_id)
+			else:
+				var tl: Variant = _tile_at_mouse(ev.position)
+				if tl != null:
+					tile_clicked.emit(tl.x, tl.y)
 		elif ev.button_index == MOUSE_BUTTON_RIGHT:
 			cancel_requested.emit()
 		accept_event()
 	elif ev is InputEventMouseMotion:
+		var ih := _info_at(ev.position)
+		if ih != _info_hit_id:
+			_info_hit_id = ih
+			tooltip_text = "Xem thông tin quân" if ih >= 0 else ""
 		var tl: Variant = _tile_at_mouse(ev.position)
 		if tl != hover:
 			hover = tl
 			hover_changed.emit(tl)
+
+## unit id whose ⓘ dot is under p (a little larger than drawn, so it is easy to hit), else -1
+func _info_at(p: Vector2) -> int:
+	var r := maxf(11.0, T * 0.17)
+	for sp: Array in _info_spots:
+		if p.distance_to(sp[0]) <= r:
+			return sp[1]
+	return -1
 
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_MOUSE_EXIT and hover != null:
@@ -422,6 +444,28 @@ func _draw_overlays(ci: CanvasItem, time: float) -> void:
 		_cell(ci, v.buyAt[0], v.buyAt[1], Color(1, 0.839, 0.4, 0.15 + pulse * 0.15), Color("#ffd166"))
 	if v.hover != null and v.dest == null:
 		_cell(ci, v.hover.x, v.hover.y, null, Color(1, 1, 1, 0.33), 0.04)
+	_draw_support_range(ci, pulse)
+
+## hovering (or having selected) a unit that buffs its neighbours: tint the 4 tiles where allies get the bonus
+func _draw_support_range(ci: CanvasItem, pulse: float) -> void:
+	var src: Variant = null
+	if hover != null:
+		src = Game.unit_at(s, hover.x, hover.y)
+	if src == null and view.sel != null:
+		src = view.sel
+	if src == null:
+		return
+	var st := Game.stat(s, src)
+	if not (st.get("aura", 0) or st.get("guard", 0)):
+		return
+	var col := BUFF_ATK if st.get("aura", 0) else BUFF_DEF
+	var at: Array = view.dest if view.sel != null and src.id == view.sel.id and view.dest != null else [src.x, src.y]
+	for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+		var x: int = at[0] + d.x
+		var y: int = at[1] + d.y
+		if Game.tile_at(s, x, y) == null:
+			continue
+		_cell(ci, x, y, Color(col, 0.10 + pulse * 0.08), Color(col, 0.55), 0.04)
 
 ## hover-attack forecast pinned above the target: "⚔ 40  ⤺ 24" (gold = kill, red = our unit falls)
 func _draw_preview(ci: CanvasItem) -> void:
@@ -448,6 +492,7 @@ func _draw_preview(ci: CanvasItem) -> void:
 		ci.draw_string(Style.xbold, Vector2(x + pad + w1, base), take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.BAD)
 
 func _draw_units(ci: CanvasItem, time: float) -> void:
+	_info_spots.clear()
 	var v := view
 	var list := []
 	for u: Dictionary in s.units:
@@ -495,8 +540,46 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 				Draw.text_a(ci, Style.xbold, Vector2(c.x + T * 0.48, c.y + T * 0.3), str(maxi(0, hp)), int(round(T * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
 			if u.rank:
 				Draw.text_a(ci, Style.xbold, Vector2(c.x - T * 0.48, c.y - T * 0.5), "★".repeat(u.rank), int(round(T * 0.2)), Color("#ffd166"), 0.0, true, 3, Color("#2a1606"))
-			if u.get("guard", false) and u.side == "e":
-				Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.5, c.y - T * 0.52), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
+			if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat* below)
+				Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * 0.52), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
+			if it.alpha < 0 and off == null and not v.busy:
+				_draw_buffs(ci, u, c, int(round(x)), int(round(y)), time)
+				_draw_info_dot(ci, u, c)
+
+## ⚔ / 🛡 pips + a soft ring for units that stand next to a drum / aura hero (+10 atk) or a guard hero (+10 def).
+## Uses Game.buffs_at, i.e. the very test damage() uses, so what you see is what the forecast counts.
+func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time: float) -> void:
+	var b := Game.buffs_at(s, u, x, y)
+	var pips := []
+	if b.atk:
+		pips.append(BUFF_ATK)
+	if b.def:
+		pips.append(BUFF_DEF)
+	if pips.is_empty():
+		return
+	var pulse := 0.5 + 0.5 * sin(time / 300.0 + u.id)
+	for k in pips.size():
+		Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * (0.44 + k * 0.05), T * (0.16 + k * 0.02), Color(pips[k], 0.45 + pulse * 0.4), maxf(1.5, T * 0.035))
+	var r := maxf(6.0, T * 0.12)
+	for k in pips.size():
+		var p := c + Vector2(-T * 0.40, -T * 0.08 + k * r * 2.2)
+		ci.draw_circle(p, r + 1.5, Color(0.06, 0.03, 0.02, 0.9))
+		ci.draw_circle(p, r, pips[k])
+		if pips[k] == BUFF_ATK:
+			Draw.text_c(ci, Style.xbold, p, "⚔", int(round(r * 1.35)), Color("#2a1206"))
+		else:
+			var sh := PackedVector2Array([p + Vector2(-r * 0.55, -r * 0.55), p + Vector2(r * 0.55, -r * 0.55), p + Vector2(r * 0.55, r * 0.05), p + Vector2(0, r * 0.7), p + Vector2(-r * 0.55, r * 0.05)])
+			ci.draw_colored_polygon(sh, Color("#0b2330"))
+
+## small ⓘ on the top-right of every token; clicking it opens the unit card (board → info_requested)
+func _draw_info_dot(ci: CanvasItem, u: Dictionary, c: Vector2) -> void:
+	var p := c + Vector2(T * 0.38, -T * 0.36)
+	var r := maxf(7.0, T * 0.11)
+	var hot: bool = hover != null and _info_hit_id == u.id
+	ci.draw_circle(p, r + 1.0, Color(0.06, 0.03, 0.02, 0.85 if hot else 0.6))
+	ci.draw_arc(p, r, 0, TAU, 20, Color(Style.GOLD, 0.95 if hot else 0.55), maxf(1.0, T * 0.018), true)
+	Draw.text_c(ci, Style.xbold, p + Vector2(0, r * 0.05), "i", int(round(r * 1.4)), Color(Style.INK, 1.0 if hot else 0.8))
+	_info_spots.append([p, u.id])
 
 func _update_night(time: float) -> void:
 	var lights := PackedVector3Array()

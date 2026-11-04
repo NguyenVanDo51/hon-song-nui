@@ -26,9 +26,10 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 
 ### Điều khiển
 - Bấm lính để thấy ô đi được. **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
-- Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Không có bảng bên: mọi lệnh (⚔ Đánh / 🏠 Chiếm / 🩹 / Chờ / Hủy), dự báo trận, mua lính, thông tin lính và ô đất hiện trong một popup ngay cạnh ô trên bàn cờ, tự né không che quân. Nút **Hết lượt** ở thanh trên cùng.
+- Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Không có "đi tại chỗ": bấm lại lính đang đứng là bỏ chọn (trừ khi chiếm / cứu thương được ngay tại đó). Không có bảng bên: mọi lệnh (⚔ Đánh / 🏠 Chiếm / 🩹 / Chờ / Hủy), dự báo trận, mua lính, thông tin lính và ô đất hiện trong một popup ngay cạnh ô trên bàn cờ, tự né không che quân.
 - Phím: `Space`/`Enter` hành động mặc định · `Tab` lính kế chưa đi · `E` hết lượt · `H` gợi ý · `Esc`/chuột phải hủy.
-- Bấm thành trống của ta để mua lính (popup cạnh thành).
+- Bấm thành trống của ta để mua lính (popup cạnh thành). Nút **Hết lượt** nằm ở góc dưới bên phải bàn cờ, sáng nhịp khi mọi quân đã ra lệnh.
+- **ⓘ** ở góc mỗi quân: thẻ thông tin (chỉ số, buff đang có, đặc tính, cách dùng). Quân đứng cạnh Trống trận / tướng hào quang có chấm ⚔ cam (+10 công), cạnh tướng che chắn có chấm 🛡 xanh (+10 thủ); rê chuột lên nguồn buff để thấy 4 ô nó phủ. Lần đầu gặp một loại quân, game dừng lại giới thiệu nó.
 
 Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|campaign[:c2]|briefing:m05|skirmish|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60`.
 
@@ -36,7 +37,7 @@ Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
 ```
 powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # 42 test: luật, 22 màn hợp lệ, chương, lưu ván
-powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh"  # 25 bước bấm chuột qua UI thật
+powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # 25 bước bấm chuột qua UI thật
 bash tools/sim_many.sh "m09 m10 m11" 12 4                                                        # cân bằng: AI chơi cả hai phe
 python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70                           # chạy bản web trong Edge headless, in console + chụp
 ```
@@ -88,7 +89,7 @@ Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục c�
 
 ## Kiến trúc
 - `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom chương + màn và trả theme đã gộp theo chương đang mở.
-- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, giới thiệu màn, đấu tự do, Sách lính), `game_screen.gd` (thanh trên + Hết lượt, mẹo, popup lệnh cạnh ô, phát lại sự kiện, lượt địch, gợi ý, kết thúc), `board.gd` (bàn cờ: lớp địa hình cache, lớp động, FX, đêm, nhãn dự báo), `fx.gd`, `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh tổng hợp + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
+- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, giới thiệu màn, đấu tự do, Sách lính), `game_screen.gd` (thanh trên, mẹo, popup lệnh cạnh ô, nút Hết lượt cạnh bàn cờ, giới thiệu quân mới, ⓘ, phát lại sự kiện, lượt địch, gợi ý, kết thúc), `board.gd` (bàn cờ: lớp địa hình cache, lớp động, FX, đêm, nhãn dự báo), `fx.gd`, `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh tổng hợp + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
 - `shaders/`: nền menu, logo ánh kim, vignette, màn đêm.
 - Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 

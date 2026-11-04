@@ -137,9 +137,9 @@ static func _pop_min(open: Array) -> Array:
 
 ## Dijkstra within move budget; passes allies, blocked by enemies; excludes occupied tiles except own start.
 ## returns { Vector2i: {cost, prev, x, y} } in discovery order
-static func reachable(s: Dictionary, u: Dictionary) -> Dictionary:
+## every tile the unit can reach (stop or pass) with intact prev links; reachable() then drops tiles where an ally stands
+static func _reach_all(s: Dictionary, u: Dictionary, occ: Dictionary) -> Dictionary:
 	var st := stat(s, u)
-	var occ := occupancy(s)
 	var mv: float = st.mv
 	var mc: String = st.move
 	var best := { Vector2i(u.x, u.y): { "cost": 0.0, "prev": null, "x": u.x, "y": u.y } }
@@ -165,11 +165,21 @@ static func reachable(s: Dictionary, u: Dictionary) -> Dictionary:
 			if cb == null or nc < cb.cost:
 				best[key] = { "cost": nc, "prev": Vector2i(x, y), "x": nx, "y": ny }
 				open.append([nc, nx, ny])
+	return best
+
+static func reachable(s: Dictionary, u: Dictionary) -> Dictionary:
+	var occ := occupancy(s)
+	var best := _reach_all(s, u, occ)
 	for key: Vector2i in best.keys():
 		var o: Variant = occ.get(key)
 		if o != null and o.id != u.id:
 			best.erase(key)
 	return best
+
+## UI / animation route from the unit to (x, y): walks through allies (path_to on reachable() breaks there,
+## because tiles with allies are dropped from it; that older path is still what the guard rule looks at)
+static func path_for(s: Dictionary, u: Dictionary, x: int, y: int) -> Array:
+	return path_to(_reach_all(s, u, occupancy(s)), x, y)
 
 static func path_to(reach: Dictionary, x: int, y: int) -> Array:
 	var out := []
@@ -198,6 +208,23 @@ static func _adjacent_flag(s: Dictionary, side: String, x: int, y: int, flag: St
 		if o.side == side and o.id != self_id and dist(o.x, o.y, x, y) == 1 and stat(s, o).get(flag, 0):
 			return true
 	return false
+
+## UI helper, no rule effect: the positional bonuses unit u would get standing at (x, y) — same adjacency test as
+## damage(): aura ally next to it -> +10 atk when it attacks, guard ally -> +10 def when it is hit; plus terrain def.
+## Returns { atk, atk_from (unit or null), def, def_from, terrain }.
+static func buffs_at(s: Dictionary, u: Dictionary, x: int, y: int) -> Dictionary:
+	var out := { "atk": 0, "atk_from": null, "def": 0, "def_from": null, "terrain": terrain_def(s, u, x, y) }
+	for o: Dictionary in s.units:
+		if o.side != u.side or o.id == u.id or dist(o.x, o.y, x, y) != 1:
+			continue
+		var st := stat(s, o)
+		if st.get("aura", 0) and out.atk_from == null:
+			out.atk = 10
+			out.atk_from = o
+		if st.get("guard", 0) and out.def_from == null:
+			out.def = 10
+			out.def_from = o
+	return out
 
 static func terrain_def(s: Dictionary, u: Dictionary, x: int, y: int, attacker_magic := false) -> int:
 	var st := stat(s, u)
@@ -291,13 +318,14 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		if d == null or not targets_from(s, u, tx, ty).has(d):
 			push_error("out of range %s" % act); return []
 	var ev := []
-	var path := path_to(reach, tx, ty)
+	var path := path_to(reach, tx, ty) # breaks at allies; kept for the guard rule (JS parity)
+	var route := path_for(s, u, tx, ty) # full route for the move animation
 	u.x = tx
 	u.y = ty
 	if path.size() > 1 or act.kind != "wait":
 		u.guard = false
-	if path.size() > 1:
-		ev.append({ "t": "move", "id": u.id, "path": path })
+	if route.size() > 1:
+		ev.append({ "t": "move", "id": u.id, "path": route })
 
 	if act.kind == "attack":
 		d.guard = false

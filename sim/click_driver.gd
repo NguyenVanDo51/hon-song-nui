@@ -1,5 +1,5 @@
 extends SceneTree
-## drives the human click path through the real UI (no bot). run with -- mission=m02 fresh
+## drives the human click path through the real UI (no bot). run with -- mission=m02 fresh nointro
 
 var main: Node
 var fails := 0
@@ -129,6 +129,25 @@ func _run() -> void:
 	g._on_tile(6, 0)
 	await process_frame
 	ok(g._info.get_child_count() > 0, "terrain info")
+	g.cancel()
+	# ⓘ on a token: unit card with traits + how to play; next click on the board just closes it
+	var any_u: Dictionary = s.units.filter(func(u): return u.side == "e")[0]
+	g._on_info_requested(any_u.id)
+	await process_frame
+	ok(g.ui.peek == any_u.id and g._pop.visible and g._info.get_child_count() >= 4, "ⓘ opens the unit card (%d rows)" % g._info.get_child_count())
+	g._on_tile_clicked(0, 0)
+	ok(g.ui.peek == null, "board click closes the unit card")
+	await process_frame
+	ok(g.board._info_spots.size() == s.units.size(), "every unit has an ⓘ dot (%d/%d)" % [g.board._info_spots.size(), s.units.size()])
+	# new-unit intro card (Store untouched: called directly)
+	g._intro_card(any_u, 0, 1)
+	await process_frame
+	ok(g._intro_layer != null and g._intro_layer.is_inside_tree(), "intro card shows")
+	await main.shot("ux_intro")
+	g._intro_closed.emit()
+	for i in 30:
+		await process_frame
+	ok(g._intro_layer == null, "intro card closes")
 	g._on_hint()
 	await process_frame
 	ok(g.ui.hint != null, "hint shows")

@@ -184,6 +184,30 @@ func rule_tests() -> void:
 		Game.do_action(s, { "id": a.id, "to": [2, 1], "kind": "attack", "target": d.id })
 		eq([d.hp, a.hp], [60, 76])
 	)
+	run("buffs_at (UI) agrees with damage(): drum aura +10 atk, guard hero +10 def, only when adjacent", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["p", "drum", 1, 2], ["e", "soldier", 2, 1], ["e", "hero", 3, 1]])
+		s.heroKey.e = "lucdan" # guard 10
+		var a: Dictionary = s.units[0]
+		var d: Dictionary = s.units[2]
+		var ba := Game.buffs_at(s, a, 1, 1)
+		var bd := Game.buffs_at(s, d, 2, 1)
+		eq([ba.atk, ba.def, bd.atk, bd.def], [10, 0, 0, 10])
+		eq(ba.atk_from.type, "drum")
+		var st_a := Game.stat(s, a)
+		var st_d := Game.stat(s, d)
+		eq(Game.damage(s, a, 1, 1, 100, d), int(st_a.atk + ba.atk - (st_d.def + bd.def + bd.terrain)))
+		eq(Game.buffs_at(s, a, 0, 0).atk, 0) # (0,0) is not next to the drum at (1,2)
+		eq(Content.traits("drum", null).any(func(t: String) -> bool: return "+10 công" in t), true)
+		eq(Content.how_to_play("archer") != "", true)
+	)
+	run("path_for walks through an ally (the drawn route used to lose its start there)", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["p", "archer", 2, 1], ["e", "soldier", 5, 4]])
+		s.tiles[0][2] = "m"; s.tiles[2][2] = "m" # only way east is through the archer
+		var u: Dictionary = s.units[0]
+		eq(Game.path_for(s, u, 3, 1), [[1, 1], [2, 1], [3, 1]])
+		var ev := Game.do_action(s, { "id": u.id, "to": [3, 1], "kind": "wait" })
+		eq(ev[0].path, [[1, 1], [2, 1], [3, 1]])
+	)
 	run("archer at range 2 takes no counter from melee", func() -> void:
 		var s := blank([["p", "archer", 1, 1], ["e", "soldier", 3, 1]])
 		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })

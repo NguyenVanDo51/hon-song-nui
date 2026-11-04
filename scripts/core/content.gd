@@ -189,7 +189,10 @@ static func speaker(key: String) -> Dictionary:
 	return { "name": key, "icon": "💬" }
 
 static func is_foe(key: String) -> bool:
-	return theme().heroes.has(key) and theme().heroes[key].side == "e"
+	var t := theme()
+	if t.heroes.has(key):
+		return t.heroes[key].side == "e"
+	return t.people.has(key) and t.people[key].get("side", "p") == "e"
 
 static func terrain(t: String) -> Dictionary:
 	return theme().terrain[t]

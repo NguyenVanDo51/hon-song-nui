@@ -792,7 +792,7 @@ var _intro_on := false
 var _intro_layer: Control = null
 
 func _look_key(u: Dictionary) -> String:
-	return ("hero:%s" % s.heroKey[u.side]) if u.type == "hero" else ("%s:%s" % [u.side, u.type])
+	return ("hero:%s" % s.heroKey[u.side]) if u.type == "hero" else ("unit:%s" % u.type) # both sides share one roster
 
 ## the first time a kind of unit (or a hero) shows up on the board, stop and introduce it: role, traits, how to play.
 ## Remembered per player (Store "seen_units"). Off for bot / nointro runs, which also never write the seen list.

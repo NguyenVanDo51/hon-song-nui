@@ -10,7 +10,7 @@ const DEF := {
 	"pos": [30, 19],
 	"history": "Mê Linh là quê của Hai Bà. Đuổi được quân Hán rồi, Trưng Trắc lên ngôi vua, đóng đô ở Mê Linh.",
 	"hero": "trungtrac",
-	"enemyHero": "huyenlenh",
+	"enemyHero": "todinh",
 	"newUnits": ["archer"],
 	"allowed": { "p": ["soldier", "archer"], "e": ["soldier", "archer"] },
 	"gold": { "p": 400, "e": 100 },

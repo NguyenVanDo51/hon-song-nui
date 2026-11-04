@@ -185,7 +185,7 @@ func show_title() -> void:
 	list.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	var camp := Content.campaign()
 	var ui := Store.unlocked_index()
-	var prog := "Đã hoàn thành cả ba chương"
+	var prog := "Đã hoàn thành cả hai chương"
 	if ui < camp.size():
 		var cm: Dictionary = camp[ui]
 		var cid := Content.chapter_of(cm)
@@ -228,7 +228,7 @@ const CREDITS := [
 	["Biểu tượng", "Noto Emoji của Google · Apache License 2.0."],
 	["Âm thanh", "Tổng hợp bằng mã ngay khi chạy, nhạc nền theo thang ngũ cung."],
 	["Sử liệu", "Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi."],
-	["Tưởng nhớ", "Hai Bà Trưng, Bà Triệu và các nữ tướng đã đứng lên giành lại non sông."],
+	["Tưởng nhớ", "Hai Bà Trưng và các nữ tướng đã đứng lên giành lại non sông."],
 ]
 
 func _open_credits() -> void:

@@ -9,7 +9,7 @@ const DEF := {
 	"region": "Phúc Thọ",
 	"pos": [16, 30],
 	"history": "Mùa xuân năm 40, Hai Bà Trưng dựng cờ khởi nghĩa chống nhà Đông Hán. Tương truyền lễ thề diễn ra ở Hát Môn, nay thuộc Phúc Thọ, Hà Nội.",
-	"hero": "trungnhi",
+	"hero": "trungtrac",
 	"enemyHero": null,
 	"newUnits": ["hero", "soldier"],
 	"allowed": { "p": [], "e": [] },
@@ -50,9 +50,9 @@ const DEF := {
 		"outro": [["trungnhi", "Cờ đã dựng ở Hát Môn. Tin truyền đi, nghĩa binh các làng kéo về."]],
 	},
 	"tips": [
-		"Bấm [b]Trưng Nhị[/b] (viền vàng): ô xanh là chỗ đi được, kẻ địch viền đỏ là đánh được.",
+		"Bấm [b]Trưng Trắc[/b] (viền vàng): ô xanh là chỗ đi được, kẻ địch viền đỏ là đánh được.",
 		"Bấm thẳng vào lính Hán viền đỏ để xem trước [b]gây[/b] bao nhiêu, [b]nhận[/b] bao nhiêu, rồi bấm [b]Đánh[/b].",
 		"Lính đứng trên làng rồi bấm [b]Chiếm[/b]: làng của ta hồi 20 máu mỗi lượt.",
-		"Trưng Nhị ngã là thua. Ra lệnh xong cho cả đội thì bấm [b]Hết lượt[/b].",
+		"Trưng Trắc ngã là thua. Ra lệnh xong cho cả đội thì bấm [b]Hết lượt[/b].",
 	],
 }

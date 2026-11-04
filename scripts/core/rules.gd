@@ -45,7 +45,7 @@ const HEROES := {
 	"phungthichinh": { "atk": 60, "def": 20, "mv": 5, "move": "foot", "tBonus": { "f": 10, "h": 10 } },
 	"batrieu": { "atk": 72, "def": 22, "mv": 5, "move": "foot" },
 	"trieuquocdat": { "atk": 60, "def": 20, "mv": 5, "move": "mount", "guard": 10 },
-	"mavien": { "atk": 70, "def": 25, "mv": 5, "move": "foot", "aura": 10 },
+	"mavien": { "atk": 65, "def": 20, "mv": 5, "move": "water" }, # same commander profile as todinh (one enemy commander look)
 	"luulong": { "atk": 62, "def": 18, "mv": 6, "move": "foot" },
 	"doanchi": { "atk": 58, "def": 20, "mv": 5, "move": "water" },
 	"lucdan": { "atk": 66, "def": 24, "mv": 5, "move": "foot", "guard": 10 },

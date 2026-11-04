@@ -7,7 +7,7 @@ const DEF := {
 	"place": "Từ Lãng Bạc về chân núi Ba Vì",
 	"region": "Rút quân", "pos": [36, 42],
 	"history": "Sau Lãng Bạc, quân Hai Bà rút về Cấm Khê, vùng núi thuộc Ba Vì ngày nay, để giữ lực lượng. Mã Viện bám theo không rời.",
-	"hero": "trungnhi", "enemyHero": "mavien",
+	"hero": "trungtrac", "enemyHero": "mavien",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum"], "e": [] },
 	"gold": { "p": 300, "e": 0 },
@@ -45,8 +45,8 @@ const DEF := {
 		"outro": [["trungnhi", "Đã về tới Cấm Khê. Ở đây có núi làm thành, ta còn đánh được lâu."]],
 	},
 	"tips": [
-		"Mục tiêu: đưa [b]Trưng Nhị[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 10 lượt.",
+		"Mục tiêu: đưa [b]Trưng Trắc[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 10 lượt.",
 		"Chỉ có 3 cây cầu qua sông. Cầu hẹp: một lính đứng chặn là cả đoàn phải chờ.",
-		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Trưng Nhị chờ quá lâu.",
+		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Trưng Trắc chờ quá lâu.",
 	],
 }

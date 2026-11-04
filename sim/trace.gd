@@ -46,13 +46,16 @@ func play(def: Dictionary, naive: bool) -> String:
 
 func _init() -> void:
 	AI.rng = rng
+	# rules parity with the JS original runs on a frozen copy of its content (sim/legacy: the 8 chapter-1 missions
+	# and skirmish map as ported), so later map / hero redesigns in content/ do not touch the check. Rules = live code.
 	var runs := []
-	for m: Dictionary in Content.campaign():
+	for i in range(1, 9):
+		var m: Dictionary = load("res://sim/legacy/m%02d.gd" % i).DEF
 		runs.append([m.id, 20, func(_g: int) -> Dictionary: return m, false])
-	var heroes := Content.heroes_of("p")
-	runs.append(["skirmish", 12, func(g: int) -> Dictionary: return Content.skirmish_def("dong_bang", heroes[g % 3], false), false])
-	runs.append(["skirmish-easy", 12, func(g: int) -> Dictionary: return Content.skirmish_def("dong_bang", heroes[g % 3], true), false])
-	runs.append(["naive", 10, func(_g: int) -> Dictionary: return Content.skirmish_def("dong_bang", heroes[0], false), true])
+	var heroes := ["trungtrac", "trungnhi", "lechan"]
+	runs.append(["skirmish", 12, func(g: int) -> Dictionary: return _legacy_skirmish(heroes[g % 3], false), false])
+	runs.append(["skirmish-easy", 12, func(g: int) -> Dictionary: return _legacy_skirmish(heroes[g % 3], true), false])
+	runs.append(["naive", 10, func(_g: int) -> Dictionary: return _legacy_skirmish(heroes[0], false), true])
 	var only := []
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("only="):
@@ -64,3 +67,13 @@ func _init() -> void:
 			seed_v = 1000.0 + g * 7919
 			print("%s %d %s" % [r[0], g, play(r[2].call(g), r[3])])
 	quit()
+
+## Content.skirmish_def as it was at the port, on the frozen dong_bang map
+static func _legacy_skirmish(hero_key: String, easy: bool) -> Dictionary:
+	var m: Dictionary = load("res://sim/legacy/skirmish_maps.gd").MAPS.dong_bang
+	return {
+		"id": "skirmish:dong_bang", "title": m.name, "hero": hero_key, "enemyHero": "todinh", "chapter": "c1",
+		"map": { "rows": m.rows }, "owner": m.owner, "units": m.units,
+		"gold": { "p": 300, "e": 150 if easy else 300 }, "incomeMul": { "e": 0.7 if easy else 1 },
+		"win": { "type": "castles" }, "skirmish": { "mapId": "dong_bang", "easy": easy },
+	}

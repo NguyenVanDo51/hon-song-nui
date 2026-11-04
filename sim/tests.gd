@@ -42,9 +42,9 @@ func content_tests() -> void:
 			for y in rows.size():
 				eq(rows[y], (rows[rows.size() - 1 - y] as String).reverse(), "%s row %d" % [mid, y])
 	)
-	eq(Content.campaign().size(), 22, "campaign size")
-	run("chapters: 3 chapters, every mission in one, missions of a chapter are consecutive", func() -> void:
-		eq(Content.chapters().map(func(c: Dictionary) -> String: return c.id), ["c1", "c2", "c3"])
+	eq(Content.campaign().size(), 16, "campaign size")
+	run("chapters: 2 chapters, every mission in one, missions of a chapter are consecutive", func() -> void:
+		eq(Content.chapters().map(func(c: Dictionary) -> String: return c.id), ["c1", "c2"])
 		var seen := []
 		for m: Dictionary in Content.campaign():
 			var c := Content.chapter_of(m)
@@ -58,14 +58,56 @@ func content_tests() -> void:
 			check(Content.missions_of(c.id).size() >= 6, c.id + " has missions")
 		check(Content.chapter_unlocked("c1", 0) and not Content.chapter_unlocked("c2", 7) and Content.chapter_unlocked("c2", 8), "unlock order")
 	)
-	run("theme: chapter 3 reskins the enemy, other chapters keep Hán", func() -> void:
-		Content.use_chapter("c3")
-		eq(Content.theme().units.e.soldier.name, "Bộ binh Ngô")
-		eq(Content.text("enemyTurn"), "Lượt quân Ngô")
-		eq(Content.theme().units.e.drum.name, "Cờ lệnh", "unchanged keys survive the merge")
+	run("our commander can walk (over turns) to every castle, the enemy commander and the reach goal", func() -> void:
+		for m: Dictionary in Content.campaign():
+			var s := Game.new_game(m)
+			var hero: Variant = null
+			for u: Dictionary in s.units:
+				if u.side == "p" and u.type == "hero":
+					hero = u
+			if hero == null:
+				continue
+			var mc: String = Game.stat(s, hero).move
+			var seen := { Vector2i(hero.x, hero.y): true }
+			var q := [Vector2i(hero.x, hero.y)]
+			while q.size():
+				var c: Vector2i = q.pop_back()
+				for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var n := c + d
+					if not seen.has(n) and Game.tile_at(s, n.x, n.y) != null and Game.move_cost(mc, Game.tile_at(s, n.x, n.y)) < INF:
+						seen[n] = true
+						q.append(n)
+			var need := []
+			for y in s.h:
+				for x in s.w:
+					if s.tiles[y][x] == "c":
+						need.append(Vector2i(x, y))
+			for u: Dictionary in s.units:
+				if u.side == "e" and u.type == "hero":
+					need.append(Vector2i(u.x, u.y))
+			for at: Array in s.win.get("at", []):
+				need.append(Vector2i(at[0], at[1]))
+			for t: Vector2i in need:
+				# the enemy commander may stand on water: a neighbouring land tile is enough to strike it
+				var ok := seen.has(t) or [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)].any(func(d: Vector2i) -> bool: return seen.has(t + d))
+				check(ok, "%s: commander cannot reach %s" % [m.id, t])
+	)
+	run("one roster for both sides; one commander for us; enemy commanders share one look", func() -> void:
+		for c: String in ["c1", "c2"]:
+			Content.use_chapter(c)
+			for ty: String in Rules.UNITS:
+				if ty == "hero":
+					continue
+				eq(Content.unit_type_look("e", ty, null).name, Content.unit_type_look("p", ty, null).name, ty)
+				eq(Content.unit_type_look("e", ty, null).icon, Content.unit_type_look("p", ty, null).icon, ty)
 		Content.use_chapter("c1")
-		eq(Content.theme().units.e.soldier.name, "Bộ binh Hán")
-		eq(Content.theme().chapter.id, "c1")
+		eq(Content.heroes_of("p"), ["trungtrac"])
+		for m: Dictionary in Content.campaign():
+			eq(m.hero, "trungtrac", m.id)
+			if m.enemyHero != null:
+				eq(m.enemyHero, "todinh" if Content.chapter_of(m) == "c1" else "mavien", m.id)
+		eq(Content.hero_look("todinh").icon, Content.hero_look("mavien").icon)
+		eq(Rules.HEROES.todinh, Rules.HEROES.mavien)
 	)
 	run("reach: hero on the goal wins, time runs out loses", func() -> void:
 		var s := Game.new_game(Content.mission("m13"))

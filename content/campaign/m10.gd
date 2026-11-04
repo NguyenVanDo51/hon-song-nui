@@ -7,7 +7,7 @@ const DEF := {
 	"place": "An Biên · Hải Phòng",
 	"region": "An Biên", "pos": [80, 44],
 	"history": "Nữ tướng Lê Chân lập trang An Biên, luyện thủy binh ở cửa biển. Thành phố Hải Phòng ngày nay thờ bà như người mở đất.",
-	"hero": "lechan", "enemyHero": "doanchi",
+	"hero": "trungtrac", "enemyHero": "mavien",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": ["soldier", "archer", "elephant"] },
 	"gold": { "p": 500, "e": 250 }, "incomeMul": { "e": 0.85 },
@@ -33,13 +33,13 @@ const DEF := {
 		"intro": [
 			["lechan", "Thủy binh Hán của Đoàn Chí vào cửa sông, định đánh thọc lên Lãng Bạc."],
 			["doanchi", "Đàn bà luyện thủy quân? Lâu thuyền của ta sẽ nghiền nát thuyền nan của chúng!"],
-			["lechan", "Sông nước là nhà của ta. Hạ được Đoàn Chí, thủy binh giặc sẽ rối loạn."],
+			["lechan", "Mã Viện đích thân cầm thủy binh. Đánh lui được hắn, thủy binh giặc sẽ rối loạn."],
 		],
-		"outro": [["lechan", "Đoàn Chí đã ngã. Thủy binh giặc phải quay về Hợp Phố chờ lệnh Mã Viện."]],
+		"outro": [["lechan", "Mã Viện trúng thương, phải lui thuyền về Hợp Phố."]],
 	},
 	"tips": [
-		"Mục tiêu: [b]hạ Đoàn Chí[/b]. Hắn đứng gác gần thành địch phía đông nam.",
-		"Lê Chân đi được trên sông, lính đứng cạnh bà +10 thủ. Bộ binh và voi phải qua [b]cầu[/b].",
-		"Đoàn Chí cũng đi được trên sông. Đừng để Lê Chân một mình giữa dòng.",
+		"Mục tiêu: [b]hạ Mã Viện[/b]. Hắn đứng gác gần thành địch phía đông nam.",
+		"Bộ binh và voi phải qua [b]cầu[/b]; chỉ kỵ binh lội được sông.",
+		"Mã Viện đi được trên sông. Đừng để Trưng Trắc một mình đầu cầu.",
 	],
 }

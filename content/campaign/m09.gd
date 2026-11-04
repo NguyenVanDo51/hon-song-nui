@@ -7,8 +7,8 @@ const DEF := {
 	"place": "Hợp Phố · bờ biển phía đông bắc",
 	"region": "Hợp Phố", "pos": [88, 12],
 	"history": "Năm 42, Mã Viện tập hợp hai vạn quân và hai nghìn thuyền ở Hợp Phố. Tương truyền nữ tướng Thánh Thiên được Trưng Vương giao giữ vùng này.",
-	"hero": "thanhthien", "enemyHero": null,
-	"newUnits": ["hero"],
+	"hero": "trungtrac", "enemyHero": null,
+	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman"], "e": [] },
 	"gold": { "p": 400, "e": 0 },
 	"win": { "type": "survive", "turns": 9 },
@@ -43,7 +43,7 @@ const DEF := {
 	},
 	"tips": [
 		"Mục tiêu: [b]giữ vững 9 lượt[/b]. Giặc đổ bộ từ biển ở các lượt 2, 3, 5, 7.",
-		"[b]Thánh Thiên[/b] như một trống đồng biết đánh: lính đứng sát bà được [b]+10 công[/b]. Đặt bà giữa đội hình.",
-		"Thánh Thiên ngã là thua. Đừng để bà đứng ở mép biển.",
+		"Giữ đội hình sát nhau quanh thành, để [b]Trống trận[/b] đứng giữa: lính đứng sát được +10 công.",
+		"Trưng Trắc ngã là thua. Đừng để bà đứng ở mép biển.",
 	],
 }

@@ -9,7 +9,7 @@ const DEF := {
 	"region": "Hạ Lôi",
 	"pos": [41, 13],
 	"history": "Đền Hạ Lôi (Mê Linh) thờ Hai Bà Trưng. Tương truyền Hai Bà sinh ra ở làng này, mẹ là bà Man Thiện.",
-	"hero": "trungnhi",
+	"hero": "trungtrac",
 	"enemyHero": null,
 	"newUnits": ["drum"],
 	"allowed": { "p": ["soldier", "archer", "drum"], "e": [] },
@@ -58,6 +58,6 @@ const DEF := {
 		"Mục tiêu: [b]giữ vững 10 lượt[/b]. Địch đổ bộ từ sông ở các lượt 2, 4, 6, 8.",
 		"[b]Trống đồng[/b] đánh yếu, nhưng lính ta đứng sát bên được [b]+10 công[/b]. Đặt trống giữa đội hình.",
 		"Đứng trên làng, thành, đồi, rừng để được thêm thủ khi địch tràn lên.",
-		"Trưng Nhị ngã là thua. Đừng để tướng một mình phía trước.",
+		"Trưng Trắc ngã là thua. Đừng để tướng một mình phía trước.",
 	],
 }

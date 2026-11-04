@@ -198,7 +198,7 @@ const THEME := {
 	"people": {
 		"bamanthien": { "name": "Bà Man Thiện", "icon": "👵" },
 		"lactuong": { "name": "Lạc tướng", "icon": "🧔" },
-		"danlang": { "name": "Dân làng", "icon": "🧑‍🌾" },
+		"danlang": { "name": "Dân làng", "icon": "👨" },
 		"truyenthuyet": { "name": "Sử tích", "icon": "📖" },
 	},
 }

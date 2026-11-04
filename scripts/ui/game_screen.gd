@@ -97,7 +97,7 @@ func _build() -> void:
 	bh.add_child(_ibtn("Sách lính", "Sách lính", func() -> void: main.menus.open_codex("p")))
 	_btn_speed = _ibtn("x1", "Tốc độ hiệu ứng", _on_speed)
 	bh.add_child(_btn_speed)
-	_btn_sound = _ibtn("♪", "Âm thanh", func() -> void:
+	_btn_sound = _ibtn("🔊", "Âm thanh", func() -> void:
 		main.audio.set_muted(not main.audio.muted)
 		_sound_label())
 	bh.add_child(_btn_sound)
@@ -207,7 +207,7 @@ func _on_speed() -> void:
 
 func _sound_label() -> void:
 	_btn_sound.add_theme_color_override("font_color", Style.MUTED if main.audio.muted else Style.INK)
-	_btn_sound.text = "♪̸" if main.audio.muted else "♪"
+	_btn_sound.text = "🔇" if main.audio.muted else "🔊"
 
 func _fit() -> void:
 	if s.is_empty():

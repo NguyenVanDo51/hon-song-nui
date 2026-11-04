@@ -16,6 +16,7 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		var kv := a.split("=")
 		flags[kv[0]] = kv[1] if kv.size() > 1 else "1"
+	EmojiFont.attach([Style.body, Style.semi, Style.bold, Style.xbold, Style.display, Style.display_x])
 	theme = Style.make_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	RenderingServer.set_default_clear_color(Style.LACQUER)

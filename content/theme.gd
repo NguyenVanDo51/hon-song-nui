@@ -51,6 +51,7 @@ const THEME := {
 	},
 	"terrain": {
 		".": { "name": "Đồng lúa", "paint": "field", "base": "#5a7a3a", "line": "#6d8f44" },
+		"r": { "name": "Đường mòn", "paint": "road", "base": "#5a7a3a", "line": "#6d8f44", "dirt": "#a48a58", "dirt2": "#7c6740", "pebble": "#c2ab7a" },
 		"f": { "name": "Rừng", "paint": "forest", "base": "#3d5a2a", "tree": "#22401b", "tree2": "#2f5523" },
 		"h": { "name": "Đồi", "paint": "hill", "base": "#77733f", "hill": "#959150", "hill2": "#aaa65d" },
 		"m": {

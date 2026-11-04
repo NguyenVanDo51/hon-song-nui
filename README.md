@@ -1,15 +1,18 @@
 # Hồn Sông Núi — bản Godot
 
 Chiến thuật theo lượt trên lưới ô, lấy cảm hứng từ các cuộc khởi nghĩa của phụ nữ Việt thời Bắc thuộc. Godot 4.7, GDScript, chạy trên web và máy bàn.
-Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`), rồi mở rộng thành ba chương.
+Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`), rồi mở rộng thành hai chương.
 
-| Chương | Năm | Màn | Tướng ta mới | Địch |
+| Chương | Năm | Màn | Chỉ huy ta | Chỉ huy địch |
 |---|---|---|---|---|
-| 1 · Khởi nghĩa Hai Bà Trưng | 40 | m01–m08 | Trưng Trắc, Trưng Nhị, Lê Chân | Đông Hán: Tô Định, Huyện lệnh, Đô úy, Hiệu úy |
-| 2 · Chống Mã Viện | 42–43 | m09–m16 | Thánh Thiên, Bát Nàn, Phùng Thị Chính | Mã Viện, Lưu Long, Đoàn Chí |
-| 3 · Bà Triệu | 248 | m17–m22 | Bà Triệu, Triệu Quốc Đạt | Đông Ngô: Lục Dận |
+| 1 · Khởi nghĩa Hai Bà Trưng | 40 | m01–m08 | Trưng Trắc | Tô Định |
+| 2 · Chống Mã Viện | 42–43 | m09–m16 | Trưng Trắc | Mã Viện |
 
-Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích** (mới, chương 2). Chương sau mở khi thắng hết chương trước. Thêm chế độ đấu tự do (chọn 1 trong 8 tướng) và Sách lính. Luật: `docs/spec.md`.
+Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); chỉ huy ta suốt game là Trưng Trắc; chỉ huy địch mỗi chương một tên nhưng cùng hình, cùng chỉ số. Các nhân vật khác (Trưng Nhị, Lê Chân, Thánh Thiên, Bát Nàn, Phùng Thị Chính, Đoàn Chí...) chỉ xuất hiện trong lời thoại.
+
+Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích** (chương 2). Chương sau mở khi thắng hết chương trước. Thêm chế độ đấu tự do (3 chiến trường) và Sách lính. Luật: `docs/spec.md`.
+
+**Bản đồ** bố trí theo lối bản đồ chiến thuật cổ điển (đối chiếu bản làm lại Ancient Empires Reloaded): **đường mòn** nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi ở lõi, đồi quanh, rừng ở mép) chiếm ~30% đất, chừa một vòng trống quanh thành. Đường mòn chỉ khác đồng lúa ở hình vẽ (thủ 0, tốn 1). Bản đồ sinh lại bằng `sim/mapgen.gd` từ bố cục tay (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích).
 
 ## Chơi
 **Chơi ngay: https://hon-song-nui.vercel.app**
@@ -36,10 +39,12 @@ Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m
 ## Kiểm tra
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
 ```
-powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # 42 test: luật, 22 màn hợp lệ, chương, lưu ván
-powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # 25 bước bấm chuột qua UI thật
+powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # 43 test: luật, 16 màn hợp lệ, tướng tới được mục tiêu, chương, lưu ván
+powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # 31 bước bấm chuột qua UI thật (popup lệnh, ⓘ, giới thiệu quân)
 bash tools/sim_many.sh "m09 m10 m11" 12 4                                                        # cân bằng: AI chơi cả hai phe
 python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70                           # chạy bản web trong Edge headless, in console + chụp
+powershell -File tools/run_guarded.ps1 -Log p.log -GArgs "--headless --path . -s sim/path_check.gd"   # mọi đường đi vẽ trên bàn cờ liền mạch (2365 đường)
+powershell -File tools/run_guarded.ps1 -Log g.log -GArgs "--headless --path . -s sim/mapgen.gd -- only=m03"  # sinh lại bố cục bản đồ (in ra, không ghi file)
 ```
 Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
 
@@ -62,7 +67,7 @@ AI chơi cả hai phe; "p" = số ván phe ta thắng. Chương 1 lấy số c�
 
 Màn mở chương dễ (≥ 90%), giữa chương ~70–90%, trận cuối chương ~60%. Màn "giữ vững" khó cân hơn vì chỉ tướng địch chiếm được thành.
 
-## Khớp với bản JS (chương 1)
+## Khớp với bản JS (luật)
 Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src/core/engine.js` / `ai.js`: cùng thứ tự duyệt (Dijkstra lấy ô rẻ nhất, chèn trước thắng khi hòa = sort ổn định của V8), cùng biểu thức số thực, cùng RNG LCG tính bằng double. `sim/trace.gd` in cho mỗi ván hash của mọi nước AI + vị trí/máu/KN cuối + vàng; `sim/trace_js.cjs` in cùng định dạng từ bản JS.
 
 | Đo 2026-11-04 (seed = 1000 + 7919·ván) | Ván giống hệt |
@@ -72,7 +77,7 @@ Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src
 | Bot ngẫu nhiên vs AI | 10/10 |
 | Sau khi thêm chương 2–3 (luật `reach`, tướng mới): m01, m04, m07 | 60/60 |
 
-Các luật mới chỉ chạy khi màn khai báo (`win.type == "reach"`), nên chương 1 vẫn chơi y hệt bản JS. Đo lại: `node sim/trace_js.cjs ../hon-song-nui > js.txt`, `godot --headless --path . -s sim/trace.gd -- only=m01 > gd.txt`, `diff`.
+Từ khi đổi bản đồ và chỉ huy, `trace.gd` chạy trên **bản sao đóng băng** của nội dung chương 1 lúc port (`sim/legacy/`: 8 màn + bản đồ đấu tự do), còn luật và AI là code hiện tại. Nhờ vậy vẫn kiểm được luật khớp bản JS dù nội dung đã khác: m01, m04, đấu tự do 52/52 giống hệt (2026-11-05). Đo lại: `node sim/trace_js.cjs ../hon-song-nui > js.txt`, `godot --headless --path . -s sim/trace.gd -- only=m01 > gd.txt`, `diff`.
 
 AI một nước (GDScript, máy bàn): ~9 ms ở bản đồ nhỏ, ~26 ms ở bản đồ lớn.
 
@@ -80,7 +85,8 @@ AI một nước (GDScript, máy bàn): ~9 ms ở bản đồ nhỏ, ~26 ms ở 
 | Muốn đổi | Sửa ở |
 |---|---|
 | Tên, icon, màu phe, chữ giao diện | `content/theme.gd` |
-| Chương (tiêu đề, năm, bản đồ sơ đồ, đổi skin phe địch, lời kết chương) | `content/chapters/cN.gd` |
+| Chương (tiêu đề, năm, bản đồ sơ đồ, lời kết chương) | `content/chapters/cN.gd` |
+| Lối chơi từng loại quân (thẻ giới thiệu, ⓘ) | `content/guide.gd` (đặc tính tự sinh từ chỉ số) |
 | Màn (1 file / màn, tự gom theo `order`, gắn `chapter`) | `content/campaign/mNN.gd`, định dạng ở `docs/content.md` |
 | Bản đồ đấu tự do | `content/skirmish_maps.gd` |
 | Chỉ số lính, tướng, địa hình, kinh tế | `scripts/core/rules.gd` |

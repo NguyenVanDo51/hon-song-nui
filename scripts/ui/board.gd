@@ -163,6 +163,7 @@ func _draw_terrain(ci: CanvasItem) -> void:
 				ci.draw_texture_rect(tex, Rect2(x * T, y * T, T, T), false)
 			else:
 				_paint(ci, p.paint, x * T, y * T, p, x, y)
+	_draw_roads(ci)
 	# shorelines: sand on land edges touching water
 	for y in s.h:
 		for x in s.w:
@@ -184,6 +185,39 @@ func _draw_terrain(ci: CanvasItem) -> void:
 	for y in range(1, s.h):
 		ci.draw_line(Vector2(0, y * T + 0.5), Vector2(s.w * T, y * T + 0.5), gc, 1.0)
 
+## dirt tracks: every path tile joins its path / village / castle / bridge neighbours with a worn band (two tones +
+## pebbles), so the roads read as one network leading to the buildings and over the bridges
+func _draw_roads(ci: CanvasItem) -> void:
+	var p: Dictionary = Content.terrain("r")
+	# how far from this tile's centre the band runs toward each kind of neighbour (tile units):
+	# path -> the shared edge (the neighbour draws its own half), village / castle -> up to the building, bridge -> onto the planks
+	var links := { "r": 0.5, "v": 1.0, "c": 1.0, "=": 0.62 }
+	var w := T * 0.30
+	for pass_i in 2:
+		var col := Color(p.dirt2) if pass_i == 0 else Color(p.dirt)
+		var ww := w + (T * 0.07 if pass_i == 0 else 0.0)
+		for y in s.h:
+			for x in s.w:
+				if s.tiles[y][x] != "r":
+					continue
+				var c := Vector2((x + 0.5) * T, (y + 0.5) * T)
+				ci.draw_circle(c, ww / 2, col)
+				for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+					var nt: Variant = Game.tile_at(s, x + d.x, y + d.y)
+					if nt == null or not links.has(nt):
+						continue
+					var e := c + Vector2(d) * T * float(links[nt])
+					ci.draw_line(c, e, col, ww)
+					if nt != "r":
+						ci.draw_circle(e, ww / 2, col)
+	for y in s.h:
+		for x in s.w:
+			if s.tiles[y][x] != "r":
+				continue
+			for i in 4:
+				var q := Vector2((x + 0.3 + hash01(x, y, i + 40) * 0.4) * T, (y + 0.3 + hash01(x, y, i + 50) * 0.4) * T)
+				ci.draw_circle(q, maxf(1.0, T * 0.018), Color(p.pebble, 0.8))
+
 ## polygon filled with a linear gradient from p0 (c0) to p1 (c1)
 static func _grad_poly(ci: CanvasItem, pts: PackedVector2Array, p0: Vector2, p1: Vector2, c0: Color, c1: Color) -> void:
 	var axis := p1 - p0
@@ -195,6 +229,11 @@ static func _grad_poly(ci: CanvasItem, pts: PackedVector2Array, p0: Vector2, p1:
 
 func _paint(ci: CanvasItem, kind: String, X: float, Y: float, p: Dictionary, x: int, y: int) -> void:
 	match kind:
+		"road":
+			ci.draw_rect(Rect2(X, Y, T, T), Color(p.base)) # grass under the track (_draw_roads paints the dirt)
+			for i in 4:
+				ci.draw_rect(Rect2(X + hash01(x, y, i) * T, Y + hash01(x, y, i + 20) * T, maxf(1.0, T / 30.0), maxf(2.0, T / 14.0)),
+					Color("#7da350") if hash01(x, y, i + 9) > 0.5 else Color("#4c6b30"))
 		"field", "village":
 			ci.draw_rect(Rect2(X, Y, T, T), Color(p.base))
 			for i in range(1, 5):
@@ -565,8 +604,13 @@ func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time
 		var p := c + Vector2(-T * 0.40, -T * 0.08 + k * r * 2.2)
 		ci.draw_circle(p, r + 1.5, Color(0.06, 0.03, 0.02, 0.9))
 		ci.draw_circle(p, r, pips[k])
-		if pips[k] == BUFF_ATK:
-			Draw.text_c(ci, Style.xbold, p, "⚔", int(round(r * 1.35)), Color("#2a1206"))
+		if pips[k] == BUFF_ATK: # two crossed blades (the ⚔ glyph is not in the fonts at this size)
+			var ink := Color("#2a1206")
+			var lw := maxf(1.5, r * 0.26)
+			ci.draw_line(p + Vector2(-r * 0.55, r * 0.55), p + Vector2(r * 0.55, -r * 0.55), ink, lw, true)
+			ci.draw_line(p + Vector2(r * 0.55, r * 0.55), p + Vector2(-r * 0.55, -r * 0.55), ink, lw, true)
+			ci.draw_line(p + Vector2(-r * 0.62, r * 0.25), p + Vector2(-r * 0.25, r * 0.62), ink, lw, true)
+			ci.draw_line(p + Vector2(r * 0.62, r * 0.25), p + Vector2(r * 0.25, r * 0.62), ink, lw, true)
 		else:
 			var sh := PackedVector2Array([p + Vector2(-r * 0.55, -r * 0.55), p + Vector2(r * 0.55, -r * 0.55), p + Vector2(r * 0.55, r * 0.05), p + Vector2(0, r * 0.7), p + Vector2(-r * 0.55, r * 0.05)])
 			ci.draw_colored_polygon(sh, Color("#0b2330"))

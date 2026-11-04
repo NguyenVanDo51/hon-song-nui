@@ -11,6 +11,12 @@
 ## Bản đồ đấu tự do
 `content/skirmish_maps.gd`: `name`, `blurb`, `rows`, `owner`, `units`, tùy chọn `chapter` (skin địch) và `enemyHero`. Nên vẽ đối xứng xoay 180° (test kiểm tra cho các bản đồ mới).
 
+## Bố trí bản đồ
+Theo lối bản đồ chiến thuật cổ điển: **đường mòn** (`r`) nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi lõi, đồi quanh, rừng mép), khoảng 30% đất; chừa vòng trống quanh thành; voi và máy bắn đá (không qua núi) phải đi được giữa các thành. Vẽ tay xong có thể cho `sim/mapgen.gd` sắp lại địa hình (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích): chạy nó, rồi chép các dòng `MAP` vào file màn.
+
+## Quân và chỉ huy
+Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ khác màu). Chỉ huy ta duy nhất là `trungtrac`; chỉ huy địch mỗi chương một tên (`todinh`, `mavien`), cùng hình và chỉ số. Nhân vật khác nói trong thoại khai báo ở `people` (thêm `"side": "e"` nếu là người phe địch). Lối chơi từng loại quân: `content/guide.gd`.
+
 ## Thêm màn chiến dịch
 Tạo `content/campaign/mNN.gd` (game tự gom mọi file trong thư mục, xếp theo `order`; `"chapter": "c2"` gắn màn vào chương, mặc định c1):
 
@@ -22,8 +28,8 @@ const DEF := {
 	"title": "Tên màn", "place": "Địa danh",
 	"region": "Tên vùng", "pos": [x, y],   # điểm trên bản đồ chiến dịch (khung 100 x 70)
 	"history": "Một câu sử tích",         # hiện ở màn giới thiệu
-	"hero": "trungtrac",                  # key trong Rules.HEROES
-	"enemyHero": "todinh",                # null = địch không có tướng
+	"hero": "trungtrac",                  # luôn là trungtrac (một chỉ huy cả game)
+	"enemyHero": "todinh",                # chương 1: todinh, chương 2: mavien (cùng hình, cùng chỉ số); null = không có tướng
 	"newUnits": ["bird"],                 # thẻ "Lính mới" ở màn giới thiệu
 	"allowed": { "p": [...], "e": [...] },  # lính được mua mỗi phe
 	"gold": { "p": 300, "e": 400 }, "incomeMul": { "e": 1.2 },   # độ khó
@@ -31,7 +37,7 @@ const DEF := {
 	"heroMustLive": false,                # true = tướng ta ngã là thua
 	"unitCap": 15,                        # trần quân mỗi phe (mặc định Rules.RULES.unitCap)
 	"night": false,                       # phủ màn đêm
-	"map": { "rows": ["..f~..", ...] },   # . đồng  f rừng  h đồi  m núi  ~ sông  = cầu  v làng  c thành
+	"map": { "rows": ["..f~..", ...] },   # . đồng  r đường mòn  f rừng  h đồi  m núi  ~ sông  = cầu  v làng  c thành
 	"owner": [[x, y, "p"], ...],          # làng/thành có chủ lúc đầu
 	"units": [["p", "hero", x, y], ["e", "soldier", x, y, { "guard": true, "hp": 70, "rank": 1 }], ...],
 	"graves": [[x, y]],

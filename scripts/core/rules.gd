@@ -10,6 +10,7 @@ const TERRAIN := {
 	"m": { "def": 20, "cost": 3 },
 	"~": { "def": 0, "cost": INF, "water": true },
 	"=": { "def": 0, "cost": 1 },
+	"r": { "def": 0, "cost": 1 }, # path: same as open field, drawn as a dirt track that links villages, castles, bridges
 	"v": { "def": 15, "cost": 1, "building": "village" },
 	"c": { "def": 20, "cost": 1, "building": "castle" },
 }

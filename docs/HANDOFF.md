@@ -33,3 +33,12 @@ Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, r�
 - Godot có cửa sổ bị kẹt khởi động khi màn hình tắt/máy vắng người -> khi chạy một mình chỉ dùng headless.
 - Cân bằng (sim AI-vs-AI 12 ván/màn, `bash tools/sim_many.sh "m09 m10" 12 4`): đang chỉnh vòng 3. Màn "giữ vững" dễ thắng vì chỉ tướng địch chiếm được thành -> đã bớt quân/vàng ta, thêm đợt địch lượt 1.
 - Đã thêm: 3 bản đồ đấu tự do (đối xứng), màn Ghi công, icon, tab "Quân địch" trong Sách lính.
+
+## 2026-11-05 — vòng góp ý sau bản web đầu
+Người chơi (chủ repo) góp ý, đã làm:
+- Màn chiến dịch chỉ còn bản đồ (bỏ lưới thẻ); khung thông tin khi rê chuột lên điểm.
+- Bỏ panel phải: mọi thứ trong một popup cạnh ô (lệnh, dự báo, mua lính, thông tin); nút Hết lượt cạnh bàn cờ.
+- Buff hiện trên quân (chấm ⚔ cam / 🛡 xanh + vòng sáng), dự báo liệt kê mọi hệ số, ⓘ trên mọi quân, hoạt cảnh giới thiệu quân mới.
+- Không còn "đi tại chỗ". Sửa đường đi bị mất đoạn khi đi xuyên quân ta (`Game.path_for`).
+- Theo lối Ancient Empires (repo tham khảo: AncientTree/project_aeii): một bộ lính chung hai phe, một chỉ huy ta (Trưng Trắc) cả game, chỉ huy địch một tên mỗi chương cùng hình; bỏ chương 3; bản đồ có đường mòn `r` và địa hình gom khối (`sim/mapgen.gd`).
+- Kiểm tra luật khớp JS chuyển sang nội dung đóng băng `sim/legacy/`.

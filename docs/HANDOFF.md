@@ -8,9 +8,9 @@ Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, r�
 3. [x] Hệ chương: nội dung chia chương (mỗi chương: tiêu đề, bản đồ sơ đồ, phe địch có thể đổi tên/skin, chữ "Lượt quân …"). Menu chiến dịch chọn chương; chương sau mở khi xong chương trước.
 4. [x] Chương 2 "Chống Mã Viện" (năm 42–43): ~8 màn, tướng mới (Thánh Thiên, Bát Nàn, Phùng Thị Chính), địch Mã Viện / Lưu Long / Đoàn Chí. Kiểu thắng mới `reach` (đưa tướng tới ô) cho màn rút quân. Kết bi tráng ở Hát Giang + lời kết.
 5. [x] Chương 3 "Bà Triệu" (năm 248): ~6–8 màn, phe địch Đông Ngô (đổi skin địch theo chương), tướng Bà Triệu (cưỡi voi), Triệu Quốc Đạt; địch Lục Dận.
-6. [ ] Cân bằng mọi màn mới bằng `sim/sim.gd` (AI phe ta thắng ~40–95% tùy độ khó, trung vị lượt hợp lý), test nội dung qua `sim/tests.gd`.
+6. [x] Cân bằng mọi màn mới bằng `sim/sim.gd` (AI phe ta thắng ~40–95% tùy độ khó, trung vị lượt hợp lý), test nội dung qua `sim/tests.gd`.
 7. [x] Web export: templates 4.7.2 (đang tải về `%TEMP%\hsn_dl\tpl.tpz`, giải nén web_* vào `%APPDATA%\Godot\export_templates\4.7.2.stable\`), preset Web không thread (host được ở itch.io / GitHub Pages không cần header COOP/COEP), xuất `build/web/`, chạy thử bằng http server + Chrome, đóng gói zip.
-8. [ ] README + docs cập nhật, commit từng bước.
+8. [x] README + docs cập nhật, commit từng bước.
 
 ## Ghi chú
 - Lệnh dài (trace, sim nhiều màn, tải file) chạy tách rời (Start-Process) để sống qua restart phiên.
@@ -31,3 +31,5 @@ Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, r�
 **Tướng mới:** ta: thanhthien (aura +10 công lính cạnh), batnan (bắn 1–2), phungthichinh (đi đồi núi), batrieu (công cao), trieuquocdat (lính cạnh +10 thủ); địch: mavien (aura), luulong (nhanh), doanchi (đi sông), lucdan (guard).
 - Web: `powershell -File tools/export_web.ps1` -> build/web + build/hon-song-nui-web.zip (11 MB). `python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70` chạy thật trong Edge headless (CDP), in console + chụp. Đã thấy tiêu đề + ván m05 (đêm) chạy trên WebGL2, không lỗi.
 - Godot có cửa sổ bị kẹt khởi động khi màn hình tắt/máy vắng người -> khi chạy một mình chỉ dùng headless.
+- Cân bằng (sim AI-vs-AI 12 ván/màn, `bash tools/sim_many.sh "m09 m10" 12 4`): đang chỉnh vòng 3. Màn "giữ vững" dễ thắng vì chỉ tướng địch chiếm được thành -> đã bớt quân/vàng ta, thêm đợt địch lượt 1.
+- Đã thêm: 3 bản đồ đấu tự do (đối xứng), màn Ghi công, icon, tab "Quân địch" trong Sách lính.

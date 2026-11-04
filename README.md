@@ -40,7 +40,23 @@ python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70          
 Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
 
 ## Cân bằng (sim AI-vs-AI, 12 ván/màn)
-BALANCE_TABLE
+AI chơi cả hai phe; "p" = số ván phe ta thắng. Chương 1 lấy số của bản JS gốc (20 ván, y hệt bản Godot).
+
+| Màn | Kiểu | Ta thắng | Trung vị lượt | | Màn | Kiểu | Ta thắng | Trung vị lượt |
+|---|---|---|---|---|---|---|---|---|
+| m01 Lời Thề Hát Môn | diệt hết | 19/20 | 11 | | m12 Trận Lãng Bạc | chiếm thành | 12/12 | 24 |
+| m02 Về Lại Mê Linh | chiếm thành | 20/20 | 18 | | m13 Địu Con Phá Vây | tới đích | 10/12 | 10 |
+| m03 Giữ Làng Hạ Lôi | giữ vững | 20/20 | 11 | | m14 Rút Về Cấm Khê | tới đích | 8/12 | 8 |
+| m04 Phá Đồn Cổ Loa | hạ tướng | 19/20 | 26 | | m15 Thành Cấm Khê | giữ vững | 7/12 | 11 |
+| m05 Đêm Hồ Tây | chiếm thành | 11/20 | 19 | | m16 Đêm Sông Hát | giữ vững | 18/20 | 9 |
+| m06 Kỵ Binh Bãi Sông | chiếm thành | 8/20 | 37 | | m17 Tiếng Gọi Núi Nưa | diệt hết | 11/12 | 9 |
+| m07 Vây Thành Long Biên | chiếm thành | 12/20 | 26 | | m18 Hai Anh Em Họ Triệu | chiếm thành | 11/12 | 21 |
+| m08 Trị Sở Luy Lâu | chiếm thành | 8/20 | 34 | | m19 Đồn Bồ Điền | hạ tướng | 9/12 | 18 |
+| m09 Tin Dữ Hợp Phố | giữ vững | 12/12 | 10 | | m20 Voi Một Ngà | chiếm thành | 10/12 | 33 |
+| m10 Sóng An Biên | hạ tướng | 8/12 | 29 | | m21 Lục Dận Kéo Quân | giữ vững | 10/12 | 11 |
+| m11 Bát Nàn Giữ Ải | chiếm thành | 11/12 | 22 | | m22 Núi Tùng | chiếm thành | 7/12 | 36 |
+
+Màn mở chương dễ (≥ 90%), giữa chương ~70–90%, trận cuối chương ~60%. Màn "giữ vững" khó cân hơn vì chỉ tướng địch chiếm được thành.
 
 ## Khớp với bản JS (chương 1)
 Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src/core/engine.js` / `ai.js`: cùng thứ tự duyệt (Dijkstra lấy ô rẻ nhất, chèn trước thắng khi hòa = sort ổn định của V8), cùng biểu thức số thực, cùng RNG LCG tính bằng double. `sim/trace.gd` in cho mỗi ván hash của mọi nước AI + vị trí/máu/KN cuối + vàng; `sim/trace_js.cjs` in cùng định dạng từ bản JS.

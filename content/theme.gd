@@ -1,0 +1,204 @@
+extends RefCounted
+## all names, icons, colors, UI wording. Swap this file to re-skin; scripts/core/rules.gd keeps the numbers.
+## any unit / hero / terrain may set "img": "res://..." to replace the emoji / procedural drawing.
+
+const THEME := {
+	"title": "Hồn Sông Núi",
+	"tagline": "Khởi nghĩa Hai Bà Trưng · năm 40 · chiến thuật theo lượt",
+	"lede": "Năm 40, quân Đông Hán đô hộ Giao Chỉ, thái thú Tô Định vơ vét khắp nơi. Hai Bà Trưng dựng cờ ở Hát Môn, đánh chiếm lại từng vùng quanh Hà Nội ngày nay, đến tận trị sở Luy Lâu.",
+	"text": {
+		"enemyTurn": "Lượt quân Hán",
+		"skirmishTitle": "Đấu tự do · Đồng bằng sông Hồng",
+		"skirmishBlurb": "Chọn tướng, đấu với Tô Định",
+		"raiseVerb": "cứu thương",
+		"raiseButton": "🩹 Cứu thương",
+		"graveNote": "Lính ngã: thầy lang đứng cạnh có thể cứu dậy thành thương binh. Sau 2 vòng thì mất.",
+		"graveName": "Lính ngã",
+	},
+	"chapter": {
+		"title": "Khởi nghĩa Hai Bà Trưng",
+		"subtitle": "Mùa xuân năm 40 · Giao Chỉ dưới ách Đông Hán",
+		"note": "Sơ đồ phỏng theo, không đúng tỉ lệ. Địa danh ghi theo tên ngày nay.",
+		"rivers": [
+			{
+				"name": "Sông Hồng",
+				"w": 3.2,
+				"d": "M0,16 C14,20 22,26 34,30 S52,36 58,42 S70,56 80,62 S94,68 100,70",
+			},
+			{ "name": "Sông Đuống", "w": 2, "d": "M57,40 C64,36 72,36 80,34 S92,32 100,31" },
+			{ "name": "Sông Đáy", "w": 1.6, "d": "M10,22 C12,32 9,42 13,52 S16,64 15,70" },
+			{ "name": "Sông Cà Lồ", "w": 1.3, "d": "M22,8 C34,10 44,8 54,12 S66,20 74,26 S80,32 82,34" },
+		],
+		"lakes": [{ "name": "Hồ Tây", "cx": 50, "cy": 42.5, "rx": 3, "ry": 2.1 }],
+		"labels": [
+			{ "text": "GIAO CHỈ", "x": 30, "y": 62, "size": 4 },
+			{ "text": "Sông Hồng", "x": 82, "y": 58, "size": 2.2, "river": true },
+			{ "text": "Sông Đuống", "x": 86, "y": 29, "size": 2, "river": true },
+			{ "text": "Sông Đáy", "x": 4, "y": 46, "size": 2, "river": true },
+		],
+	},
+	"factions": {
+		"p": {
+			"name": "Quân Hai Bà Trưng",
+			"short": "Quân ta",
+			"body": "#7a2219",
+			"body2": "#a8372a",
+			"ring": "#f0a07c",
+			"glow": "#ff9a6b",
+			"roof": "#c2412f",
+		},
+		"e": {
+			"name": "Quân Đông Hán",
+			"short": "Quân Hán",
+			"body": "#1f2740",
+			"body2": "#34406a",
+			"ring": "#d8c27a",
+			"glow": "#f0d890",
+			"roof": "#3d4a78",
+		},
+		"n": { "roof": "#7a6a55" },
+	},
+	"terrain": {
+		".": { "name": "Đồng lúa", "paint": "field", "base": "#5a7a3a", "line": "#6d8f44" },
+		"f": { "name": "Rừng", "paint": "forest", "base": "#3d5a2a", "tree": "#22401b", "tree2": "#2f5523" },
+		"h": { "name": "Đồi", "paint": "hill", "base": "#77733f", "hill": "#959150", "hill2": "#aaa65d" },
+		"m": {
+			"name": "Núi",
+			"paint": "mountain",
+			"base": "#625a4e",
+			"rock": "#8a7f6e",
+			"rock2": "#6f6556",
+			"snow": "#e4ddcd",
+		},
+		"~": { "name": "Sông", "paint": "water", "base": "#24577a", "wave": "#4c8db0", "deep": "#1c4766" },
+		"=": {
+			"name": "Cầu tre",
+			"paint": "bridge",
+			"base": "#24577a",
+			"wave": "#4c8db0",
+			"deep": "#1c4766",
+			"plank": "#8a6438",
+			"plank2": "#5e4124",
+		},
+		"v": { "name": "Làng", "paint": "village", "base": "#5a7a3a", "line": "#6d8f44", "wall": "#dcc6a0" },
+		"c": { "name": "Thành", "paint": "castle", "base": "#5d6a3c", "wall": "#b0a48c", "wall2": "#8c816c" },
+	},
+	"units": {
+		"p": {
+			"hero": null,
+			"soldier": {
+				"name": "Nghĩa binh",
+				"icon": "🗡️",
+				"desc": "Trai làng cầm giáo theo Hai Bà. Rẻ, chiếm được làng.",
+			},
+			"archer": { "name": "Nỏ thủ", "icon": "🏹", "desc": "Nỏ Lạc Việt bắn xa 1–2 ô. +20 công khi bắn kỵ binh." },
+			"drum": {
+				"name": "Trống đồng",
+				"icon": "🥁",
+				"desc": "Tiếng trống thúc quân: lính ta đứng cạnh +10 công.",
+			},
+			"shaman": {
+				"name": "Thầy lang",
+				"icon": "🌿",
+				"desc": "Tên tẩm thuốc độc, bỏ qua thủ địa hình. Cứu lính ngã ngay cạnh thành thương binh.",
+			},
+			"elephant": {
+				"name": "Voi chiến",
+				"icon": "🐘",
+				"desc": "Voi Hai Bà cưỡi ra trận. Thủ dày, đánh mạnh, đi chậm, không lên được núi.",
+			},
+			"bird": {
+				"name": "Khinh kỵ",
+				"icon": "🐎",
+				"desc": "Ngựa nhẹ thuộc đường tắt, lội chỗ sông cạn: mọi ô chỉ tốn 1. Chạy trống trải nên không được địa hình che.",
+			},
+			"catapult": {
+				"name": "Nỏ liên châu",
+				"icon": "🎯",
+				"desc": "Nỏ lớn bắn nhiều mũi, xa 2–4 ô. Đã đi thì không bắn được lượt đó. Không đánh trả.",
+			},
+			"ghost": {
+				"name": "Thương binh",
+				"icon": "🩹",
+				"desc": "Lính ngã được thầy lang cứu dậy. Không chiếm được làng.",
+			},
+		},
+		"e": {
+			"hero": null,
+			"soldier": { "name": "Bộ binh Hán", "icon": "🔱", "desc": "Lính cầm kích. Rẻ, chiếm được làng." },
+			"archer": { "name": "Cung thủ Hán", "icon": "🏹", "desc": "Bắn xa 1–2 ô. +20 công khi bắn kỵ binh." },
+			"drum": { "name": "Cờ lệnh", "icon": "🚩", "desc": "Phất cờ đốc chiến: quân đứng cạnh +10 công." },
+			"shaman": {
+				"name": "Phương sĩ",
+				"icon": "📿",
+				"desc": "Bùa thuốc phương Bắc, bỏ qua thủ địa hình. Cứu lính ngã ngay cạnh thành thương binh.",
+			},
+			"elephant": {
+				"name": "Giáp binh",
+				"icon": "🛡️",
+				"desc": "Lính mặc giáp sắt nặng. Thủ dày, đánh mạnh, đi chậm, không lên được núi.",
+			},
+			"bird": {
+				"name": "Kỵ binh Hán",
+				"icon": "🐎",
+				"desc": "Ngựa phương Bắc: mọi ô chỉ tốn 1. Chạy trống trải nên không được địa hình che.",
+			},
+			"catapult": {
+				"name": "Máy bắn đá",
+				"icon": "🪨",
+				"desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả.",
+			},
+			"ghost": { "name": "Thương binh", "icon": "🩹", "desc": "Lính ngã được cứu dậy. Không chiếm được làng." },
+		},
+	},
+	"heroes": {
+		"trungtrac": {
+			"side": "p",
+			"name": "Trưng Trắc",
+			"icon": "👑",
+			"blurb": "Con gái Lạc tướng Mê Linh, quen đất trung du: đi đồi núi nhanh, đứng trên đồi, núi +10 thủ.",
+		},
+		"trungnhi": {
+			"side": "p",
+			"name": "Trưng Nhị",
+			"icon": "⚔️",
+			"blurb": "Em gái Trưng Trắc, giỏi võ: công cao, đi xa 6 ô.",
+		},
+		"lechan": {
+			"side": "p",
+			"name": "Lê Chân",
+			"icon": "⛵",
+			"blurb": "Nữ tướng luyện thủy quân: đi được trên sông, lính đứng cạnh +10 thủ.",
+		},
+		"todinh": {
+			"side": "e",
+			"name": "Tô Định",
+			"icon": "📜",
+			"blurb": "Thái thú Giao Chỉ, có thuyền lầu theo hầu: đi được trên sông.",
+		},
+		"huyenlenh": {
+			"side": "e",
+			"name": "Huyện lệnh",
+			"icon": "🏮",
+			"blurb": "Quan Hán coi huyện, đi thuyền thu thuế: đi được trên sông.",
+		},
+		"douy": {
+			"side": "e",
+			"name": "Đô úy",
+			"icon": "🪖",
+			"blurb": "Võ quan giữ đồn, quen đánh rừng: đứng trong rừng +15 thủ.",
+		},
+		"hieuuy": {
+			"side": "e",
+			"name": "Hiệu úy",
+			"icon": "🐴",
+			"blurb": "Tướng kỵ phương Bắc: nhanh, đánh đau, thủ mỏng.",
+		},
+	},
+	"people": {
+		"bamanthien": { "name": "Bà Man Thiện", "icon": "👵" },
+		"lactuong": { "name": "Lạc tướng", "icon": "🧔" },
+		"danlang": { "name": "Dân làng", "icon": "🧑‍🌾" },
+		"truyenthuyet": { "name": "Sử tích", "icon": "📖" },
+	},
+}

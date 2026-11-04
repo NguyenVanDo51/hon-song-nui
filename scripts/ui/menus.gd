@@ -1,0 +1,552 @@
+class_name Menus
+extends Control
+## menu screens over the animated backdrop: title, campaign (chapter map + mission cards), briefing, skirmish,
+## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
+
+const LOGO_SHADER := preload("res://shaders/logo.gdshader")
+
+var main: Node
+var bg: MenuBg
+var root: Control # current page lives here
+var page: Control = null
+var codex: Control = null
+var _codex_card: Control
+var _codex_grid: GridContainer
+var _codex_seg: Array = []
+var codex_side := "p"
+var hero_choice := ""
+var easy := true
+
+func _init() -> void:
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bg = MenuBg.new()
+	add_child(bg)
+	root = Control.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(root)
+	hero_choice = Content.heroes_of("p")[0]
+
+# ---------- helpers ----------
+func _sfx(name: String) -> void:
+	if main and main.get("audio"):
+		main.audio.play(name)
+
+func _on(b: BaseButton, fn: Callable, sound := "ui") -> BaseButton:
+	b.pressed.connect(func() -> void:
+		_sfx(sound)
+		fn.call())
+	return b
+
+## fresh scrolling page, content centred at max_w; center_v = title-style vertical centring
+func _page(max_w := 1040.0, center_v := false) -> VBoxContainer:
+	visible = true
+	bg.visible = true
+	if page:
+		page.queue_free()
+	var sc := ScrollContainer.new()
+	sc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var mc := MarginContainer.new()
+	mc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	sc.add_child(mc)
+	var v := Style.vbox(18)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	v.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	if center_v:
+		v.alignment = BoxContainer.ALIGNMENT_CENTER
+	mc.add_child(v)
+	var fit := func() -> void:
+		var m := maxf(16.0, (sc.size.x - max_w) / 2.0)
+		mc.add_theme_constant_override("margin_left", int(m))
+		mc.add_theme_constant_override("margin_right", int(m))
+		mc.add_theme_constant_override("margin_top", 28)
+		mc.add_theme_constant_override("margin_bottom", 28)
+		if center_v:
+			mc.custom_minimum_size.y = sc.size.y - 1
+	sc.resized.connect(fit)
+	root.add_child(sc)
+	page = sc
+	# enter: fade + slide up 14px
+	sc.modulate.a = 0.0
+	sc.offset_top = 14
+	sc.offset_bottom = 14
+	var tw := sc.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(sc, "modulate:a", 1.0, 0.45)
+	tw.tween_property(sc, "offset_top", 0.0, 0.45)
+	tw.tween_property(sc, "offset_bottom", 0.0, 0.45)
+	return v
+
+func _eyebrow(text: String, size := 12) -> Label:
+	var f := FontVariation.new()
+	f.base_font = Style.bold
+	f.spacing_glyph = 2
+	return Style.lbl(text.to_upper(), size, Style.BRONZE, f)
+
+func _h2(text: String, size := 30) -> Label:
+	return Style.lbl(text, size, Style.GOLD, Style.display)
+
+func _head(back_text: String, back_fn: Callable, title := "") -> HBoxContainer:
+	var h := Style.hbox(14)
+	h.add_child(_on(Style.button(back_text, "BackBtn"), back_fn))
+	if title != "":
+		h.add_child(_h2(title))
+	return h
+
+## clickable glass card (mission / hero pick): hover = gold border; hot = gold border + soft glow
+func _click_card(content: Control, on_click: Callable, enabled := true, hot := false, pulse := false) -> PanelContainer:
+	var p := PanelContainer.new()
+	var normal := Style.box(Style.GLASS, Style.LACQUER_3, 12, 14)
+	var hover := normal.duplicate()
+	hover.border_color = Style.GOLD
+	hover.shadow_color = Color(0, 0, 0, 0.55)
+	hover.shadow_size = 16
+	if hot:
+		normal = Style.box(Color(0.22, 0.14, 0.08, 0.9), Style.GOLD, 12, 14)
+		normal.shadow_color = Color(Style.GOLD, 0.15)
+		normal.shadow_size = 14
+		hover = normal
+		if pulse:
+			var tw := p.create_tween().set_loops().set_trans(Tween.TRANS_SINE)
+			tw.tween_property(normal, "shadow_size", 22, 1.2)
+			tw.parallel().tween_property(normal, "shadow_color", Color(Style.GOLD, 0.3), 1.2)
+			tw.tween_property(normal, "shadow_size", 14, 1.2)
+			tw.parallel().tween_property(normal, "shadow_color", Color(Style.GOLD, 0.15), 1.2)
+	p.add_theme_stylebox_override("panel", normal)
+	p.add_child(content)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ignore_mouse(content)
+	if enabled:
+		p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		p.mouse_entered.connect(func() -> void: p.add_theme_stylebox_override("panel", hover))
+		p.mouse_exited.connect(func() -> void: p.add_theme_stylebox_override("panel", normal))
+		p.gui_input.connect(func(ev: InputEvent) -> void:
+			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+				on_click.call())
+	else:
+		p.modulate = Color(0.75, 0.75, 0.75, 0.5)
+	return p
+
+func _ignore_mouse(n: Node) -> void:
+	for c in n.get_children():
+		if c is Control:
+			c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_ignore_mouse(c)
+
+## auto-fill grid: column count follows the width (CSS repeat(auto-fill, minmax(min_w, 1fr)));
+## auto_fit = never more columns than children (CSS auto-fit collapses the empty tracks)
+func _grid(min_w: float, gap := 12, auto_fit := false) -> GridContainer:
+	var g := GridContainer.new()
+	g.add_theme_constant_override("h_separation", gap)
+	g.add_theme_constant_override("v_separation", gap)
+	g.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	g.resized.connect(func() -> void:
+		var n := maxi(1, int((g.size.x + gap) / (min_w + gap)))
+		if auto_fit:
+			n = clampi(g.get_child_count(), 1, n)
+		if n != g.columns:
+			g.columns = n)
+	g.columns = 4
+	return g
+
+static func goal_text(def: Dictionary) -> String:
+	var w := { "type": "castles" }
+	w.merge(def.get("win", {}), true)
+	var eh: String = Content.hero_look(def.enemyHero).name if def.get("enemyHero") != null else "địch"
+	var t: String = {
+		"castles": "Chiếm hết thành của địch.",
+		"rout": "Diệt hết quân địch.",
+		"hero": "Hạ %s." % eh,
+		"survive": "Giữ vững đến hết lượt %s." % str(w.get("turns", "")),
+	}[w.type]
+	if def.get("heroMustLive", false):
+		t += " %s ngã là thua." % Content.hero_look(def.hero).name
+	return t
+
+# ---------- title ----------
+func show_title() -> void:
+	var th := Content.theme()
+	var v := _page(640, true)
+	v.add_child(_eyebrow(th.tagline))
+	v.add_child(_logo(th.title))
+	var lede := Style.lbl(th.lede, 16, Style.INK, null, true)
+	lede.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	lede.add_theme_constant_override("shadow_offset_y", 1)
+	lede.add_theme_constant_override("line_spacing", 6)
+	lede.custom_minimum_size.x = 560
+	lede.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	v.add_child(lede)
+	var list := Style.vbox(10)
+	list.custom_minimum_size.x = 420
+	list.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	var camp := Content.campaign()
+	var ui := Store.unlocked_index()
+	var prog := "Đã hoàn thành cả chiến dịch" if ui >= camp.size() else "Màn %d/%d: %s" % [ui + 1, camp.size(), camp[ui].title]
+	list.add_child(_on(Style.menu_button("Chiến dịch", prog, true), show_campaign))
+	var sv: Variant = Store.load_game()
+	if sv != null:
+		list.add_child(_on(Style.menu_button("Đánh tiếp ván đang dở", "%s · lượt %d" % [sv.get("title", ""), sv.state.turn]), func() -> void:
+			var s2: Variant = Store.load_game()
+			if s2 != null:
+				main.start_game(s2.state, s2.ctx)))
+	list.add_child(_on(Style.menu_button("Đấu tự do", Content.text("skirmishBlurb")), show_skirmish))
+	list.add_child(_on(Style.menu_button("Sách lính", "Xem tính chất từng loại quân"), func() -> void: open_codex()))
+	v.add_child(list)
+	var tg := Style.hbox(8)
+	var snd := Style.button("Âm thanh", "ChipBtn")
+	var mus := Style.button("Nhạc nền", "ChipBtn")
+	var sync := func() -> void:
+		var a: Variant = main.get("audio") if main else null
+		snd.theme_type_variation = "ChipOn" if a == null or not a.muted else "ChipBtn"
+		mus.theme_type_variation = "ChipOn" if a == null or a.music_on else "ChipBtn"
+	_on(snd, func() -> void:
+		if main and main.get("audio"):
+			main.audio.set_muted(not main.audio.muted)
+		sync.call())
+	_on(mus, func() -> void:
+		if main and main.get("audio"):
+			main.audio.set_music(not main.audio.music_on)
+		sync.call())
+	sync.call()
+	tg.add_child(snd)
+	tg.add_child(mus)
+	v.add_child(tg)
+
+## gold-leaf logo: shimmer shader label over a dark offset copy (CSS drop-shadow 0 3px 0 #4a2c0e)
+func _logo(text: String) -> Control:
+	var holder := Control.new()
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var size := 104
+	var shadow := Style.lbl(text, size, Color("#4a2c0e"), Style.display_x)
+	var glow := Style.lbl(text, size, Color(Style.GOLD, 0.0), Style.display_x)
+	glow.add_theme_color_override("font_shadow_color", Color(Style.GOLD, 0.16))
+	glow.add_theme_constant_override("shadow_outline_size", 24)
+	glow.add_theme_constant_override("shadow_offset_y", 0)
+	var gold := Style.lbl(text, size, Color.WHITE, Style.display_x)
+	var mat := ShaderMaterial.new()
+	mat.shader = LOGO_SHADER
+	gold.material = mat
+	for l: Label in [glow, shadow, gold]:
+		holder.add_child(l)
+	shadow.position = Vector2(0, 3)
+	# label size is only known once it is laid out in the tree
+	gold.resized.connect(func() -> void:
+		mat.set_shader_parameter("width", gold.size.x)
+		holder.custom_minimum_size = gold.size + Vector2(0, 3))
+	return holder
+
+# ---------- campaign ----------
+func show_campaign() -> void:
+	var ch: Dictionary = Content.theme().get("chapter", {})
+	var v := _page(1040)
+	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), ch.get("title", "Chiến dịch")))
+	var sub := Style.lbl(ch.get("subtitle", ""), 15, Style.MUTED)
+	v.add_child(sub)
+	var open := Store.unlocked_index()
+	var map := CampMap.new()
+	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	map.setup(open)
+	map.picked.connect(func(id: String) -> void:
+		_sfx("ui")
+		show_briefing(Content.mission(id)))
+	var mv := Style.vbox(6)
+	mv.add_child(map)
+	mv.add_child(Style.lbl(ch.get("note", ""), 12, Style.MUTED))
+	v.add_child(mv)
+	var grid := _grid(230)
+	var camp := Content.campaign()
+	for i in camp.size():
+		grid.add_child(_mission_card(camp[i], i, open))
+	v.add_child(grid)
+
+func _mission_card(m: Dictionary, i: int, open: int) -> Control:
+	var done := Store.is_done(m.id)
+	var locked := i > open and not done
+	var cv := Style.vbox(8)
+	var top := Style.hbox(12)
+	top.add_child(Medal.make(i + 1, done))
+	var tv := Style.vbox(2)
+	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var t := Style.lbl(m.title, 19, Style.GOLD, Style.display, true)
+	tv.add_child(t)
+	tv.add_child(Style.lbl(m.get("place", ""), 12, Style.MUTED, null, true))
+	top.add_child(tv)
+	cv.add_child(top)
+	var mu := Style.hbox(6)
+	mu.custom_minimum_size.y = 30
+	mu.add_child(Token.make("p", "hero", m.hero, 30))
+	var nu: Array = m.get("newUnits", []).filter(func(x: String) -> bool: return x != "hero")
+	for ty: String in nu:
+		mu.add_child(Token.make("p", ty, m.hero, 30))
+	var note := Style.lbl("lính mới" if nu.size() else "trận cuối", 12, Style.MUTED)
+	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	mu.add_child(note)
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mu.add_child(sp)
+	var badge := "Đã thắng" if done else ("Chưa mở" if locked else "")
+	if badge != "":
+		var f := FontVariation.new()
+		f.base_font = Style.bold
+		f.spacing_glyph = 1
+		var bl := Style.lbl(badge.to_upper(), 11, Style.GOOD if done else Style.MUTED, f)
+		bl.size_flags_vertical = Control.SIZE_SHRINK_END
+		mu.add_child(bl)
+	cv.add_child(mu)
+	var card := _click_card(cv, func() -> void:
+		_sfx("ui")
+		show_briefing(m), not locked, i == open, i == open)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return card
+
+# ---------- briefing ----------
+func show_briefing(m: Dictionary) -> void:
+	var camp := Content.campaign()
+	var i := Content.mission_index(m.id)
+	var v := _page(1040)
+	v.add_child(_head("‹ Bản đồ chiến dịch", show_campaign))
+	var cols := Style.hbox(18)
+	var story := Style.vbox(8)
+	story.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	story.size_flags_stretch_ratio = 1.3
+	story.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	story.add_child(_eyebrow("Màn %d/%d" % [i + 1, camp.size()]))
+	var title := Style.lbl(m.title, 48, Style.GOLD, Style.display, true)
+	title.add_theme_constant_override("line_spacing", -8)
+	story.add_child(title)
+	story.add_child(Style.lbl(m.get("place", ""), 15, Style.MUTED))
+	if m.get("history", "") != "":
+		var hb := PanelContainer.new()
+		var hs := Style.box(Color(0, 0, 0, 0.2), Color.TRANSPARENT, 8, 9)
+		hs.corner_radius_top_left = 0
+		hs.corner_radius_bottom_left = 0
+		hs.border_color = Style.BRONZE
+		hs.border_width_left = 3
+		hs.content_margin_left = 12
+		hb.add_theme_stylebox_override("panel", hs)
+		hb.add_child(Style.rich("[b]Sử tích[/b]  " + m.history, 14, Style.INK, Style.GOLD))
+		story.add_child(hb)
+	story.add_child(Style.dialogue(m.get("story", {}).get("intro", [])))
+	cols.add_child(story)
+
+	var side := Style.vbox(12)
+	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side.size_flags_stretch_ratio = 1.0
+	side.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	var goal := Style.card()
+	var gv := Style.vbox(6)
+	gv.add_child(Style.lbl("Mục tiêu", 17, Style.GOLD, Style.display))
+	gv.add_child(Style.lbl(goal_text(m), 15, Style.INK, null, true))
+	goal.add_child(gv)
+	side.add_child(goal)
+	for ty: String in m.get("newUnits", []):
+		side.add_child(Style.unit_card("p", ty, m.hero, { "tag": "Tướng của bạn" if ty == "hero" else "Lính mới" }))
+	var sides := Style.card()
+	var sv := Style.vbox(8)
+	sv.add_child(Style.lbl("Hai bên", 17, Style.GOLD, Style.display))
+	var hl := Content.hero_look(m.hero)
+	sv.add_child(_side_row("p", "hero", m.hero, "[b]%s[/b] · %s" % [hl.name, hl.blurb]))
+	if m.get("enemyHero") != null:
+		var el := Content.hero_look(m.enemyHero)
+		sv.add_child(_side_row("e", "hero", m.enemyHero, "[b]%s[/b] · %s" % [el.name, el.blurb]))
+	else:
+		sv.add_child(_side_row("e", "soldier", null, "[b]%s[/b] · địch không có tướng chỉ huy." % Content.theme().units.e.soldier.name))
+	var buys: Array = []
+	for ty: String in m.get("allowed", {}).get("p", []):
+		buys.append(Content.theme().units.p[ty].name)
+	if buys.size():
+		sv.add_child(Style.lbl("Mua được: " + ", ".join(buys), 13, Style.MUTED, null, true))
+	sides.add_child(sv)
+	side.add_child(sides)
+	var go := Style.menu_button("Xuất quân", "", true)
+	(go.get_meta("title") as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	go.custom_minimum_size.y = 56
+	_on(go, func() -> void: main.start_game(Game.new_game(m), { "kind": "campaign", "id": m.id }))
+	side.add_child(go)
+	cols.add_child(side)
+	v.add_child(cols)
+
+func _side_row(side: String, type: String, hk: Variant, bb: String) -> Control:
+	var r := Style.hbox(10)
+	var tk := Token.make(side, type, hk, 40)
+	tk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	r.add_child(tk)
+	var t := Style.rich(bb, 14, Style.INK, Style.INK)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	r.add_child(t)
+	return r
+
+# ---------- skirmish ----------
+func show_skirmish() -> void:
+	var v := _page(1040)
+	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), Content.text("skirmishTitle")))
+	var grid := _grid(220, 12, true)
+	for key: String in Content.heroes_of("p"):
+		var h := Content.hero_look(key)
+		var st: Dictionary = Rules.HEROES[key]
+		var cv := Style.vbox(8)
+		var top := Style.hbox(12)
+		top.add_child(Token.make("p", "hero", key, 56))
+		var tv := Style.vbox(2)
+		tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tv.add_child(Style.lbl(h.name, 21, Style.GOLD, Style.display))
+		tv.add_child(Style.lbl("Công %d · Thủ %d · Đi %d" % [st.atk, st.def, st.mv], 12, Style.MUTED))
+		top.add_child(tv)
+		cv.add_child(top)
+		cv.add_child(Style.lbl(h.blurb, 14, Style.INK, null, true))
+		var card := _click_card(cv, func() -> void:
+			hero_choice = key
+			_sfx("select")
+			show_skirmish(), true, key == hero_choice)
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		grid.add_child(card)
+	v.add_child(grid)
+	var row := Style.hbox(10)
+	var seg := Style.hbox(0)
+	var e_btn := Style.button("Dễ", "SegOn" if easy else "SegBtn")
+	var n_btn := Style.button("Thường", "SegBtn" if easy else "SegOn")
+	_on(e_btn, func() -> void:
+		easy = true
+		show_skirmish())
+	_on(n_btn, func() -> void:
+		easy = false
+		show_skirmish())
+	seg.add_child(e_btn)
+	seg.add_child(n_btn)
+	row.add_child(seg)
+	var go := Style.menu_button("Xuất quân", "", true)
+	go.custom_minimum_size.x = 200
+	_on(go, func() -> void:
+		main.start_game(Game.new_game(Content.skirmish_def("dong_bang", hero_choice, easy)), { "kind": "skirmish", "hero": hero_choice, "easy": easy }))
+	row.add_child(go)
+	v.add_child(row)
+	# no enter-slide jitter when only the selection changed
+	if page:
+		page.modulate.a = 1.0
+		page.offset_top = 0
+		page.offset_bottom = 0
+
+func hide_all() -> void:
+	visible = false
+	if page:
+		page.queue_free()
+		page = null
+
+# ---------- codex ----------
+func add_overlays() -> void:
+	if codex:
+		return
+	codex = Control.new()
+	codex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	codex.visible = false
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.008, 0.004, 0.72)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	codex.add_child(dim)
+	var mc := MarginContainer.new()
+	mc.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side: String in ["left", "right", "top", "bottom"]:
+		mc.add_theme_constant_override("margin_" + side, 16)
+	codex.add_child(mc)
+	var center := CenterContainer.new()
+	mc.add_child(center)
+	var card := PanelContainer.new()
+	var cs := Style.box(Color("#1d100b"), Style.BRONZE_2, 16, 18)
+	cs.shadow_color = Color(0, 0, 0, 0.55)
+	cs.shadow_size = 30
+	cs.shadow_offset = Vector2(0, 10)
+	card.add_theme_stylebox_override("panel", cs)
+	center.add_child(card)
+	_codex_card = card
+	var v := Style.vbox(14)
+	var head := Style.hbox(14)
+	head.add_child(_h2("Sách lính"))
+	var seg := Style.hbox(0)
+	for pair: Array in [["p", "Quân ta"], ["e", "Yêu quái"]]:
+		var b := Style.button(pair[1], "SegBtn")
+		var sd: String = pair[0]
+		_on(b, func() -> void: open_codex(sd))
+		seg.add_child(b)
+		_codex_seg.append([sd, b])
+	head.add_child(seg)
+	var sp := Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(sp)
+	head.add_child(_on(Style.button("Đóng ✕", "BackBtn"), close_codex))
+	v.add_child(head)
+	var sc := ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_codex_grid = _grid(260)
+	_codex_grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(_codex_grid)
+	v.add_child(sc)
+	card.add_child(v)
+	var fit := func() -> void:
+		card.custom_minimum_size = Vector2(minf(1000, mc.size.x - 32), mc.size.y - 32)
+	mc.resized.connect(fit)
+	if main:
+		main.add_child(codex)
+	else:
+		add_child(codex)
+
+func open_codex(side := "p") -> void:
+	if codex == null:
+		add_overlays()
+	codex_side = side
+	for pair: Array in _codex_seg:
+		(pair[1] as Button).theme_type_variation = "SegOn" if pair[0] == side else "SegBtn"
+	for c in _codex_grid.get_children():
+		c.queue_free()
+	var types: Array = Rules.BUY_ORDER.duplicate()
+	types.append("ghost")
+	for ty: String in types:
+		var uc := Style.unit_card(side, ty, null)
+		uc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_codex_grid.add_child(uc)
+	for hk: String in Content.heroes_of(side):
+		var uc := Style.unit_card(side, "hero", hk, { "tag": "Tướng" })
+		uc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_codex_grid.add_child(uc)
+	if not codex.visible:
+		codex.visible = true
+		codex.modulate.a = 0.0
+		_codex_card.pivot_offset = _codex_card.size / 2.0
+		_codex_card.scale = Vector2(0.9, 0.9)
+		var tw := codex.create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(codex, "modulate:a", 1.0, 0.3)
+		tw.tween_property(_codex_card, "scale", Vector2.ONE, 0.4)
+
+func close_codex() -> void:
+	if codex:
+		codex.visible = false
+
+func is_codex_open() -> bool:
+	return codex != null and codex.visible
+
+
+## numbered gold medallion on mission cards (green once won)
+class Medal extends Control:
+	var n := 1
+	var done := false
+
+	static func make(p_n: int, p_done: bool) -> Medal:
+		var m := Medal.new()
+		m.n = p_n
+		m.done = p_done
+		m.custom_minimum_size = Vector2(44, 44)
+		m.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		m.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		return m
+
+	func _draw() -> void:
+		var c := Vector2(22, 22)
+		var hi := Color("#c7f0a8") if done else Color("#ffe9a8")
+		var lo := Color("#5f9a3c") if done else Color("#b8873a")
+		var rim := Color("#3b6524") if done else Color("#7a5320")
+		draw_circle(c + Vector2(0, 1.5), 22, rim, true, -1.0, true)
+		Draw.radial(self, c, 20.5, [[0.0, hi], [1.0, lo]], 32, Vector2.ONE, Vector2(-6.6, -8.8))
+		Draw.text_c(self, Style.display_x, c, str(n), 21, Style.LACQUER)

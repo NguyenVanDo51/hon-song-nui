@@ -10,7 +10,7 @@ const DEF := {
 	"hero": "trungtrac", "enemyHero": "mavien",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"], "e": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"] },
-	"gold": { "p": 800, "e": 400 }, "incomeMul": { "e": 0.7 },
+	"gold": { "p": 900, "e": 300 }, "incomeMul": { "e": 0.55 },
 	"win": { "type": "castles" },
 	"map": { "rows": [
 		"..f..h....f..c..",

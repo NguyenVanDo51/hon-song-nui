@@ -11,7 +11,7 @@ const DEF := {
 	"newUnits": ["hero"],
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },
-	"win": { "type": "reach", "at": [[12, 1]], "turns": 12 },
+	"win": { "type": "reach", "at": [[12, 1]], "turns": 14 },
 	"heroMustLive": true,
 	"map": { "rows": [
 		"f..h...f..h...",
@@ -27,14 +27,14 @@ const DEF := {
 	] },
 	"owner": [[12, 1, "p"]],
 	"units": [
-		["p", "hero", 1, 8], ["p", "soldier", 2, 8], ["p", "archer", 0, 8], ["p", "elephant", 1, 9],
-		["e", "soldier", 5, 4], ["e", "soldier", 8, 2], ["e", "soldier", 11, 5], ["e", "archer", 10, 1],
-		["e", "bird", 12, 4], ["e", "elephant", 10, 6], ["e", "soldier", 11, 1, { "guard": true }], ["e", "archer", 13, 2, { "guard": true }],
+		["p", "hero", 1, 8], ["p", "soldier", 2, 8], ["p", "archer", 0, 8], ["p", "elephant", 1, 9], ["p", "soldier", 0, 7],
+		["e", "soldier", 5, 4], ["e", "soldier", 11, 5, { "hp": 80 }], ["e", "archer", 10, 1],
+		["e", "elephant", 10, 6], ["e", "soldier", 11, 1, { "guard": true, "hp": 70 }], ["e", "archer", 13, 2, { "guard": true, "hp": 70 }],
 	],
 	"waves": [
-		{ "turn": 3, "units": [["soldier", 0, 5], ["soldier", 3, 9]] },
+		{ "turn": 3, "units": [["soldier", 0, 5]] },
 		{ "turn": 5, "units": [["bird", 0, 2], ["soldier", 5, 9]] },
-		{ "turn": 8, "units": [["soldier", 0, 0], ["archer", 6, 9]] },
+		{ "turn": 9, "units": [["soldier", 0, 0], ["archer", 6, 9]] },
 	],
 	"story": {
 		"intro": [
@@ -45,8 +45,8 @@ const DEF := {
 		"outro": [["phungthichinh", "Mẹ con ta đã về tới làng. Con trai ta sinh ra giữa trận, lớn lên sẽ không biết sợ."]],
 	},
 	"tips": [
-		"Mục tiêu: đưa [b]Phùng Thị Chính[/b] tới [b]làng có cờ ta[/b] ở góc đông bắc trong 12 lượt. Không cần diệt địch.",
+		"Mục tiêu: đưa [b]Phùng Thị Chính[/b] tới [b]ô cờ vàng[/b] (làng góc đông bắc) trong 14 lượt. Không cần diệt địch.",
 		"Bà ngã là thua. Cho voi và lính đi trước hút đòn, bà đi sau.",
-		"Đứng trong rừng, trên đồi bà được +10 thủ. Giặc từ phía sau đuổi tới ở lượt 3, 5, 8.",
+		"Đứng trong rừng, trên đồi bà được +10 thủ. Giặc từ phía sau đuổi tới ở lượt 3, 5, 9.",
 	],
 }

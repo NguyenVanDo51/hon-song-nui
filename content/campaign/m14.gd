@@ -11,7 +11,7 @@ const DEF := {
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum"], "e": [] },
 	"gold": { "p": 300, "e": 0 },
-	"win": { "type": "reach", "at": [[1, 2]], "turns": 14 },
+	"win": { "type": "reach", "at": [[1, 2]], "turns": 10 },
 	"heroMustLive": true,
 	"map": { "rows": [
 		"mmh..f..~~..f...",
@@ -45,7 +45,7 @@ const DEF := {
 		"outro": [["trungnhi", "Đã về tới Cấm Khê. Ở đây có núi làm thành, ta còn đánh được lâu."]],
 	},
 	"tips": [
-		"Mục tiêu: đưa [b]Trưng Nhị[/b] về [b]thành Cấm Khê[/b] ở góc tây bắc trong 14 lượt.",
+		"Mục tiêu: đưa [b]Trưng Nhị[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 10 lượt.",
 		"Chỉ có 3 cây cầu qua sông. Cầu hẹp: một lính đứng chặn là cả đoàn phải chờ.",
 		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Trưng Nhị chờ quá lâu.",
 	],

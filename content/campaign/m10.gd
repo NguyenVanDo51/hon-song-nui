@@ -10,7 +10,7 @@ const DEF := {
 	"hero": "lechan", "enemyHero": "doanchi",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": ["soldier", "archer", "elephant"] },
-	"gold": { "p": 500, "e": 200 }, "incomeMul": { "e": 0.8 },
+	"gold": { "p": 500, "e": 250 }, "incomeMul": { "e": 0.85 },
 	"win": { "type": "hero" },
 	"map": { "rows": [
 		".c..f..~~~..h..",

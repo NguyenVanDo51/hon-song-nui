@@ -16,6 +16,7 @@ var _codex_seg: Array = []
 var codex_side := "p"
 var hero_choice := ""
 var easy := true
+var map_choice := "dong_bang"
 
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -218,7 +219,48 @@ func show_title() -> void:
 	sync.call()
 	tg.add_child(snd)
 	tg.add_child(mus)
+	tg.add_child(_on(Style.button("Ghi công", "ChipBtn"), _open_credits))
 	v.add_child(tg)
+
+const CREDITS := [
+	["Trò chơi", "Hồn Sông Núi · chiến thuật theo lượt, viết bằng Godot Engine 4.7 (MIT)."],
+	["Phông chữ", "Be Vietnam Pro, Alegreya SC, Noto Sans Symbols 2 · SIL Open Font License 1.1."],
+	["Biểu tượng", "Noto Emoji của Google · Apache License 2.0."],
+	["Âm thanh", "Tổng hợp bằng mã ngay khi chạy, nhạc nền theo thang ngũ cung."],
+	["Sử liệu", "Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi."],
+	["Tưởng nhớ", "Hai Bà Trưng, Bà Triệu và các nữ tướng đã đứng lên giành lại non sông."],
+]
+
+func _open_credits() -> void:
+	var ov := Control.new()
+	ov.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var dim := ColorRect.new()
+	dim.color = Color(0.02, 0.008, 0.004, 0.72)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ov.add_child(dim)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	ov.add_child(center)
+	var card := PanelContainer.new()
+	card.add_theme_stylebox_override("panel", Style.box(Color("#1d100b"), Style.BRONZE_2, 16, 22))
+	card.custom_minimum_size.x = 620
+	center.add_child(card)
+	var v := Style.vbox(12)
+	v.add_child(_h2("Ghi công"))
+	for row: Array in CREDITS:
+		var r := Style.vbox(2)
+		r.add_child(Style.lbl(row[0], 15, Style.GOLD, Style.display))
+		r.add_child(Style.lbl(row[1], 14, Style.INK, null, true))
+		v.add_child(r)
+	var close := Style.button("Đóng ✕", "BackBtn")
+	close.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_on(close, func() -> void: ov.queue_free())
+	v.add_child(close)
+	card.add_child(v)
+	dim.gui_input.connect(func(ev: InputEvent) -> void:
+		if ev is InputEventMouseButton and ev.pressed:
+			ov.queue_free())
+	add_child(ov)
 
 ## gold-leaf logo: shimmer shader label over a dark offset copy (CSS drop-shadow 0 3px 0 #4a2c0e)
 func _logo(text: String) -> Control:
@@ -411,7 +453,7 @@ func _side_row(side: String, type: String, hk: Variant, bb: String) -> Control:
 # ---------- skirmish ----------
 func show_skirmish() -> void:
 	var v := _page(1040)
-	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), Content.text("skirmishTitle")))
+	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), "Đấu tự do"))
 	var grid := _grid(220, 12, true)
 	for key: String in Content.heroes_of("p"):
 		var h := Content.hero_look(key)
@@ -433,6 +475,20 @@ func show_skirmish() -> void:
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		grid.add_child(card)
 	v.add_child(grid)
+	# battlefield
+	var maps := Style.hbox(10)
+	for mid: String in Content.SKIRMISH.MAPS:
+		var md: Dictionary = Content.SKIRMISH.MAPS[mid]
+		var mv := Style.vbox(2)
+		mv.add_child(Style.lbl(md.name, 18, Style.GOLD, Style.display))
+		mv.add_child(Style.lbl(md.get("blurb", ""), 13, Style.MUTED, null, true))
+		var mcard := _click_card(mv, func() -> void:
+			map_choice = mid
+			_sfx("select")
+			show_skirmish(), true, mid == map_choice)
+		mcard.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		maps.add_child(mcard)
+	v.add_child(maps)
 	var row := Style.hbox(10)
 	var seg := Style.hbox(0)
 	var e_btn := Style.button("Dễ", "SegOn" if easy else "SegBtn")
@@ -449,7 +505,7 @@ func show_skirmish() -> void:
 	var go := Style.menu_button("Xuất quân", "", true)
 	go.custom_minimum_size.x = 200
 	_on(go, func() -> void:
-		main.start_game(Game.new_game(Content.skirmish_def("dong_bang", hero_choice, easy)), { "kind": "skirmish", "hero": hero_choice, "easy": easy }))
+		main.start_game(Game.new_game(Content.skirmish_def(map_choice, hero_choice, easy)), { "kind": "skirmish", "hero": hero_choice, "easy": easy, "map": map_choice }))
 	row.add_child(go)
 	v.add_child(row)
 	# no enter-slide jitter when only the selection changed
@@ -494,7 +550,7 @@ func add_overlays() -> void:
 	var head := Style.hbox(14)
 	head.add_child(_h2("Sách lính"))
 	var seg := Style.hbox(0)
-	for pair: Array in [["p", "Quân ta"], ["e", "Yêu quái"]]:
+	for pair: Array in [["p", "Quân ta"], ["e", "Quân địch"]]:
 		var b := Style.button(pair[1], "SegBtn")
 		var sd: String = pair[0]
 		_on(b, func() -> void: open_codex(sd))

@@ -34,7 +34,14 @@ func _init() -> void:
 # ---------- content ----------
 func content_tests() -> void:
 	var all: Array = Content.campaign().duplicate()
-	all.append(Content.skirmish_def("dong_bang", Content.heroes_of("p")[0], false))
+	for mid: String in Content.SKIRMISH.MAPS:
+		all.append(Content.skirmish_def(mid, Content.heroes_of("p")[0], false))
+	run("skirmish: new maps are 180° rotations (fair start)", func() -> void:
+		for mid: String in ["cua_bien", "nui_rung"]:
+			var rows: Array = Content.SKIRMISH.MAPS[mid].rows
+			for y in rows.size():
+				eq(rows[y], (rows[rows.size() - 1 - y] as String).reverse(), "%s row %d" % [mid, y])
+	)
 	eq(Content.campaign().size(), 22, "campaign size")
 	run("chapters: 3 chapters, every mission in one, missions of a chapter are consecutive", func() -> void:
 		eq(Content.chapters().map(func(c: Dictionary) -> String: return c.id), ["c1", "c2", "c3"])

@@ -1,64 +1,79 @@
 # Hồn Sông Núi — bản Godot
 
-Viết lại `../hon-song-nui` (JS + canvas, một trang HTML) bằng Godot 4.7, GDScript.
-Gốc so sánh: JS commit `3e888f1` (reskin Hai Bà Trưng, 2026-11-04).
+Chiến thuật theo lượt trên lưới ô, lấy cảm hứng từ các cuộc khởi nghĩa của phụ nữ Việt thời Bắc thuộc. Godot 4.7, GDScript, chạy trên web và máy bàn.
+Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`), rồi mở rộng thành ba chương.
 
-Chiến thuật theo lượt trên lưới ô: khởi nghĩa Hai Bà Trưng năm 40, chiến dịch 8 màn quanh Hà Nội + đấu tự do. Luật xem `docs/spec.md`.
+| Chương | Năm | Màn | Tướng ta mới | Địch |
+|---|---|---|---|---|
+| 1 · Khởi nghĩa Hai Bà Trưng | 40 | m01–m08 | Trưng Trắc, Trưng Nhị, Lê Chân | Đông Hán: Tô Định, Huyện lệnh, Đô úy, Hiệu úy |
+| 2 · Chống Mã Viện | 42–43 | m09–m16 | Thánh Thiên, Bát Nàn, Phùng Thị Chính | Mã Viện, Lưu Long, Đoàn Chí |
+| 3 · Bà Triệu | 248 | m17–m22 | Bà Triệu, Triệu Quốc Đạt | Đông Ngô: Lục Dận |
 
-## Chạy (Windows)
-Godot 4.7.2 cài bằng winget, không có trên PATH:
+Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích** (mới, chương 2). Chương sau mở khi thắng hết chương trước. Thêm chế độ đấu tự do (chọn 1 trong 8 tướng) và Sách lính. Luật: `docs/spec.md`.
 
-```
-set GODOT=%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64.exe
-%GODOT% --path .              # chơi
-%GODOT% -e --path .           # mở editor
-```
-Clone mới: chạy `Godot_v4.7.2-stable_win64_console.exe --headless --path . --import` một lần trước. Lệnh không cửa sổ (test, sim) dùng bản `_console.exe` để thấy output. macOS: `godot --path .`.
+## Chơi
+- **Web:** mở bản dựng `build/web/index.html` qua một web server (không mở thẳng file). Phát hành: `powershell -File tools/export_web.ps1` -> `build/web/` + `build/hon-song-nui-web.zip` (~11 MB). itch.io: tạo project kiểu HTML, tải zip lên, bật "SharedArrayBuffer" không cần (bản dựng đơn luồng). GitHub Pages / Netlify: đẩy nguyên thư mục `build/web`.
+- **Windows** (Godot 4.7.2 winget, không có trên PATH):
+  ```
+  set GODOT=%LOCALAPPDATA%\Microsoft\WinGet\Packages\GodotEngine.GodotEngine_Microsoft.Winget.Source_8wekyb3d8bbwe\Godot_v4.7.2-stable_win64.exe
+  %GODOT% --path .              # chơi
+  %GODOT% -e --path .           # mở editor
+  ```
+  Clone mới: chạy `Godot_v4.7.2-stable_win64_console.exe --headless --path . --import` một lần. macOS: `godot --path .`.
 
-Điều khiển: chuột trái chọn / đi / đánh, chuột phải hoặc `Esc` hủy (Esc cũng đóng Sách lính).
+### Điều khiển
+- Bấm lính để thấy ô đi được. **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
+- Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Thanh nút nhỏ hiện ngay cạnh lính (⚔ / 🏠 / 🩹 / Chờ / ✕).
+- Phím: `Space`/`Enter` hành động mặc định · `Tab` lính kế chưa đi · `E` hết lượt · `H` gợi ý · `Esc`/chuột phải hủy.
+- Bấm thành trống của ta để mua lính.
 
-Cờ debug (sau `--`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|campaign|briefing:m05|skirmish|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình định kỳ (và màn kết thúc) · `quit_at=60`.
+Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|campaign[:c2]|briefing:m05|skirmish|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60`.
 
 ## Kiểm tra
+Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
 ```
-godot --headless --path . -s sim/tests.gd                 # 25 test (luật, nội dung, lưu ván), exit 1 nếu hỏng
-godot --headless --path . -s sim/sim.gd -- mission all 20  # cân bằng: AI chơi cả hai phe, giống scripts/sim.cjs
-godot --headless --path . -s sim/sim.gd -- skirmish 12 [easy] | naive 10
-godot --headless --path . -s sim/trace.gd [-- only=m01,m05] # 1 dòng/ván: kết quả + hash FNV mọi nước đi
+powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # 42 test: luật, 22 màn hợp lệ, chương, lưu ván
+powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh"  # 25 bước bấm chuột qua UI thật
+bash tools/sim_many.sh "m09 m10 m11" 12 4                                                        # cân bằng: AI chơi cả hai phe
+python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70                           # chạy bản web trong Edge headless, in console + chụp
 ```
+Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
 
-## Khớp với bản JS
-Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src/core/engine.js` / `ai.js`: cùng thứ tự duyệt (Dijkstra lấy ô rẻ nhất, chèn trước thắng khi hòa = sort ổn định của V8), cùng biểu thức số thực, cùng RNG LCG tính bằng double. `sim/trace.gd` in cho mỗi ván hash của mọi nước AI + vị trí/máu/KN cuối + vàng; bản JS tương ứng in cùng định dạng, `diff` hai file:
+## Cân bằng (sim AI-vs-AI, 12 ván/màn)
+BALANCE_TABLE
 
-Đo 2026-11-04, cùng seed với `scripts/sim.cjs` (seed = 1000 + 7919·ván):
+## Khớp với bản JS (chương 1)
+Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src/core/engine.js` / `ai.js`: cùng thứ tự duyệt (Dijkstra lấy ô rẻ nhất, chèn trước thắng khi hòa = sort ổn định của V8), cùng biểu thức số thực, cùng RNG LCG tính bằng double. `sim/trace.gd` in cho mỗi ván hash của mọi nước AI + vị trí/máu/KN cuối + vàng; `sim/trace_js.cjs` in cùng định dạng từ bản JS.
 
-| | Ván giống hệt (hash mọi nước đi) |
+| Đo 2026-11-04 (seed = 1000 + 7919·ván) | Ván giống hệt |
 |---|---|
-| Chiến dịch m01–m08 (AI cả hai phe) | 160/160 (20/màn) |
+| Chiến dịch m01–m08 (AI cả hai phe) | 160/160 |
 | Đấu tự do thường / dễ | 12/12 · 12/12 |
 | Bot ngẫu nhiên vs AI | 10/10 |
+| Sau khi thêm chương 2–3 (luật `reach`, tướng mới): m01, m04, m07 | 60/60 |
 
-Đo lại: `node sim/trace_js.cjs ../hon-song-nui > js.txt`, `godot --headless --path . -s sim/trace.gd > gd.txt`, rồi `diff` (bỏ qua dòng banner của Godot). Trace Godot cả bộ ~10 phút trên 8 tiến trình (`-- only=…` để chia).
+Các luật mới chỉ chạy khi màn khai báo (`win.type == "reach"`), nên chương 1 vẫn chơi y hệt bản JS. Đo lại: `node sim/trace_js.cjs ../hon-song-nui > js.txt`, `godot --headless --path . -s sim/trace.gd -- only=m01 > gd.txt`, `diff`.
 
-Thời gian AI một nước (GDScript): m01 trung bình ~9 ms, m05/m08 ~26 ms, tệ nhất ~100 ms (đo khi máy đang bận).
+AI một nước (GDScript, máy bàn): ~9 ms ở bản đồ nhỏ, ~26 ms ở bản đồ lớn.
 
 ## Thay nội dung (không đụng code)
 | Muốn đổi | Sửa ở |
 |---|---|
-| Tên, icon, màu phe, chữ giao diện, bản đồ chiến dịch | `content/theme.gd` |
-| Màn chiến dịch (1 file / màn, tự gom theo `order`) | `content/campaign/mNN.gd`, định dạng ở `docs/content.md` |
+| Tên, icon, màu phe, chữ giao diện | `content/theme.gd` |
+| Chương (tiêu đề, năm, bản đồ sơ đồ, đổi skin phe địch, lời kết chương) | `content/chapters/cN.gd` |
+| Màn (1 file / màn, tự gom theo `order`, gắn `chapter`) | `content/campaign/mNN.gd`, định dạng ở `docs/content.md` |
 | Bản đồ đấu tự do | `content/skirmish_maps.gd` |
 | Chỉ số lính, tướng, địa hình, kinh tế | `scripts/core/rules.gd` |
 | Ảnh thật thay emoji / hình vẽ | thêm `"img": "res://…png"` vào lính / tướng / địa hình trong theme |
+Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục có NotoSansSymbols2.ttf>` để tải PNG Noto tương ứng.
 
 ## Kiến trúc
-- `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary cùng tên trường với bản JS (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://`.
-- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, bản đồ chiến dịch, giới thiệu màn, đấu tự do, Sách lính), `game_screen.gd` (thanh trên, mẹo, bảng bên, phát lại sự kiện, lượt địch, gợi ý, màn kết thúc), `board.gd` (bàn cờ: lớp địa hình cache + lớp động + FX + đêm), `fx.gd` (hạt, đạn, vòng, số bay, rung), `token.gd`, `style.gd` (bảng màu, font, Theme, widget), `draw.gd` (gradient / elip / đường cong), `audio.gd` (âm thanh tổng hợp lúc khởi động, nhạc ngũ cung sinh ngẫu nhiên), `store.gd`.
+- `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom chương + màn và trả theme đã gộp theo chương đang mở.
+- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, giới thiệu màn, đấu tự do, Sách lính), `game_screen.gd` (thanh trên, mẹo, bảng bên, thanh nút nổi, phát lại sự kiện, lượt địch, gợi ý, kết thúc), `board.gd` (bàn cờ: lớp địa hình cache, lớp động, FX, đêm, nhãn dự báo), `fx.gd`, `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh tổng hợp + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
 - `shaders/`: nền menu, logo ánh kim, vignette, màn đêm.
-- Font: Be Vietnam Pro + Alegreya SC (OFL, `assets/fonts`). Emoji lấy từ font hệ thống (Segoe UI Emoji / Apple Color Emoji) qua fallback.
+- Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 
-## Khác bản JS
-- Chỉ bố cục ngang (bảng bên phải); bản web còn có bố cục dọc cho điện thoại.
-- Bỏ hiệu ứng nhấc nút khi rê chuột và nút "Xuất quân" dính đáy; thẻ màn khóa làm mờ thay vì xám.
-- Âm thanh dựng sẵn thành sample lúc khởi động (22 kHz) thay vì WebAudio thời gian thực; nhạc canh nhịp theo khung hình.
-- Giữ nguyên hai chuỗi còn sót từ skin cũ của bản gốc: "Yêu quái đang ra quân…" (bảng bên lúc địch đi) và tab "Yêu quái" trong Sách lính.
+## Giới hạn đã biết
+- Bố cục ngang, tối ưu cho máy tính / máy tính bảng nằm ngang; điện thoại dọc chơi được nhưng chữ nhỏ.
+- Âm thanh dựng sẵn thành sample lúc khởi động (22 kHz); trên web chỉ phát sau cú bấm đầu tiên (quy định trình duyệt).
+- Sử tích trong game theo truyền thuyết và sách sử phổ thông, có lược bớt cho hợp lối chơi.

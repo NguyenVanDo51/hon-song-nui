@@ -10,7 +10,7 @@ const DEF := {
 	"hero": "batrieu", "enemyHero": "lucdan",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": [] },
-	"gold": { "p": 650, "e": 0 },
+	"gold": { "p": 150, "e": 0 },
 	"win": { "type": "survive", "turns": 10 },
 	"map": { "rows": [
 		"..f...h...mmmm",
@@ -26,14 +26,16 @@ const DEF := {
 	] },
 	"owner": [[12, 2, "p"], [10, 4, "p"], [12, 8, "p"]],
 	"units": [
-		["p", "hero", 11, 2], ["p", "elephant", 12, 3], ["p", "archer", 11, 3], ["p", "drum", 10, 2], ["p", "soldier", 11, 4], ["p", "shaman", 10, 3],
+		["p", "hero", 11, 2], ["p", "elephant", 12, 3], ["p", "archer", 11, 3], ["p", "soldier", 11, 4, { "hp": 70 }],
 	],
 	"waves": [
-		{ "turn": 2, "units": [["soldier", 0, 1], ["soldier", 0, 5], ["soldier", 4, 9], ["archer", 0, 3]] },
-		{ "turn": 3, "units": [["bird", 0, 7], ["soldier", 2, 9]] },
-		{ "turn": 4, "units": [["elephant", 0, 4], ["catapult", 1, 9], ["soldier", 0, 0], ["archer", 5, 9]] },
-		{ "turn": 6, "units": [["hero", 0, 5], ["soldier", 0, 2], ["soldier", 3, 9], ["elephant", 0, 8], ["catapult", 0, 6]] },
-		{ "turn": 8, "units": [["soldier", 0, 1, { "rank": 1 }], ["soldier", 0, 7, { "rank": 1 }], ["bird", 6, 9], ["archer", 0, 4], ["elephant", 2, 9]] },
+		{ "turn": 1, "units": [["soldier", 4, 2], ["soldier", 5, 6], ["archer", 3, 4]] },
+		{ "turn": 2, "units": [["soldier", 0, 1], ["soldier", 0, 5], ["soldier", 4, 9], ["archer", 0, 3], ["elephant", 0, 6]] },
+		{ "turn": 3, "units": [["bird", 0, 7], ["soldier", 2, 9, { "rank": 1 }], ["bird", 0, 2]] },
+		{ "turn": 4, "units": [["elephant", 0, 4], ["catapult", 1, 9], ["soldier", 0, 0, { "rank": 1 }], ["archer", 5, 9], ["drum", 0, 5]] },
+		{ "turn": 5, "units": [["soldier", 0, 8], ["archer", 3, 9], ["elephant", 0, 1]] },
+		{ "turn": 6, "units": [["hero", 0, 5], ["soldier", 0, 2, { "rank": 1 }], ["soldier", 3, 9], ["elephant", 0, 8], ["catapult", 0, 6], ["archer", 0, 3, { "rank": 1 }]] },
+		{ "turn": 8, "units": [["soldier", 0, 1, { "rank": 2 }], ["soldier", 0, 7, { "rank": 1 }], ["bird", 6, 9], ["archer", 0, 4], ["elephant", 2, 9], ["catapult", 0, 0]] },
 	],
 	"story": {
 		"intro": [

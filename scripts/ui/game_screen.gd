@@ -224,7 +224,7 @@ func _fit() -> void:
 func _def_for(c: Dictionary) -> Dictionary:
 	if c.kind == "campaign":
 		return Content.mission(c.id)
-	return Content.skirmish_def("dong_bang", c.hero, c.easy)
+	return Content.skirmish_def(c.get("map", "dong_bang"), c.hero, c.easy)
 
 func start(state: Dictionary, c: Dictionary) -> void:
 	gen += 1

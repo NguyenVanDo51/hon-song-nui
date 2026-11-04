@@ -87,11 +87,12 @@ static func mission_index(id: String) -> int:
 			return i
 	return -1
 
-## free-play def: any hero vs the first enemy hero in the theme
+## free-play def: any hero vs the map's enemy hero (default: the first enemy hero in the theme)
 static func skirmish_def(map_id: String, hero_key: String, easy: bool) -> Dictionary:
-	var m: Dictionary = SKIRMISH.MAPS[map_id]
+	var m: Dictionary = SKIRMISH.MAPS.get(map_id, SKIRMISH.MAPS.dong_bang)
 	return {
-		"id": "skirmish:" + map_id, "title": m.name, "hero": hero_key, "enemyHero": heroes_of("e")[0],
+		"id": "skirmish:" + map_id, "title": m.name, "hero": hero_key, "enemyHero": m.get("enemyHero", heroes_of("e")[0]),
+		"chapter": m.get("chapter", "c1"),
 		"map": { "rows": m.rows }, "owner": m.owner, "units": m.units,
 		"gold": { "p": 300, "e": 150 if easy else 300 }, "incomeMul": { "e": 0.7 if easy else 1 },
 		"win": { "type": "castles" }, "skirmish": { "mapId": map_id, "easy": easy },

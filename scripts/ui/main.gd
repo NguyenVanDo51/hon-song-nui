@@ -22,6 +22,8 @@ func _ready() -> void:
 	for a: String in args:
 		var kv := a.uri_decode().split("=")
 		flags[kv[0]] = kv[1] if kv.size() > 1 else "1"
+	if flags.has("profile"): # profile=test: settings / progress / save kept apart from the player's
+		Store.use_profile(str(flags.profile))
 	EmojiFont.attach([Style.body, Style.semi, Style.bold, Style.xbold, Style.display, Style.display_x])
 	theme = Style.make_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

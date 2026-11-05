@@ -2,9 +2,17 @@ class_name Store
 extends RefCounted
 ## persistence in user://: settings + campaign progress (ConfigFile), the running game (var_to_str keeps ints + Vector2i keys)
 
-const CFG := "user://hsn.cfg"
-const SAVE := "user://hsn_save_v1.txt"
+static var CFG := "user://hsn.cfg"
+static var SAVE := "user://hsn_save_v1.txt"
+const STATE_V := 2 # Game.new_game writes "v"; bump both when the saved state shape changes
+const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
 static var _cfg: ConfigFile
+
+## test runs (click driver, tests) keep their settings / progress / save apart from the player's
+static func use_profile(name: String) -> void:
+	CFG = "user://hsn_%s.cfg" % name
+	SAVE = "user://hsn_%s_save.txt" % name
+	_cfg = null
 
 static func _c() -> ConfigFile:
 	if _cfg == null:
@@ -45,8 +53,9 @@ static func tips_hidden(scenario: String) -> bool:
 
 static func hide_tips(scenario: String) -> void:
 	var h: Array = Array(get_v("tips_hidden", [])).duplicate()
-	h.append(scenario)
-	set_v("tips_hidden", h)
+	if not h.has(scenario):
+		h.append(scenario)
+		set_v("tips_hidden", h)
 
 # ---------- running game ----------
 static func save_game(s: Dictionary, ctx: Dictionary, title: String) -> void:
@@ -66,6 +75,21 @@ static func load_game() -> Variant:
 
 ## a save still matches the shipped content: its mission exists and every commander key is still a hero in the theme
 static func fits_content(v: Dictionary) -> bool:
+	var st: Dictionary = v.state
+	if int(st.get("v", 0)) != STATE_V:
+		return false
+	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead"]:
+		if not st.has(k):
+			return false
+	if not WIN_TYPES.has(str(st.win.get("type", ""))):
+		return false
+	for u: Variant in st.units:
+		if not (u is Dictionary) or not Rules.UNITS.has(u.get("type")):
+			return false
+	for side: String in st.allowed:
+		for t: Variant in st.allowed[side]:
+			if not Rules.UNITS.has(t):
+				return false
 	var ctx: Dictionary = v.get("ctx", {}) if v.get("ctx") is Dictionary else {}
 	if ctx.get("kind") == "campaign" and Content.mission(str(ctx.get("id", ""))) == null:
 		return false
@@ -74,7 +98,7 @@ static func fits_content(v: Dictionary) -> bool:
 	var hk: Variant = v.state.get("heroKey")
 	if hk is Dictionary:
 		for side: String in hk:
-			if hk[side] != null and not Content.theme().heroes.has(hk[side]):
+			if hk[side] != null and not (Content.theme().heroes.has(hk[side]) and Rules.HEROES.has(hk[side])):
 				return false
 	for row: Variant in v.state.get("tiles", []):
 		for t: String in row:

@@ -198,4 +198,52 @@ static func terrain(t: String) -> Dictionary:
 	return theme().terrain[t]
 
 static func text(key: String) -> String:
-	return theme().text[key]
+	return str(theme().text.get(key, key)) # a missing key shows itself instead of crashing
+
+static func _names(hero_keys: Dictionary) -> Dictionary:
+	var e: Variant = hero_keys.get("e")
+	return { "hero": hero_look(str(hero_keys.get("p", ""))).name, "eh": hero_look(str(e)).name if e != null else text("noEnemyHero") }
+
+## objective wording for a win spec; form "brief" (briefing) or "bar" (top bar). Unknown win types fall back to the type name.
+static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars := {}, must_live := false) -> String:
+	var w := { "type": "castles" }
+	w.merge(win, true)
+	var v := _names(hero_keys)
+	v.merge(vars, true)
+	v.turns = str(w.get("turns", ""))
+	v.within = (" trong %d lượt" % int(w.turns)) if w.has("turns") else ""
+	v.left_txt = (": còn %s lượt" % str(v.get("left", ""))) if w.has("turns") else ""
+	var g: Dictionary = theme().get("goals", {}).get(w.type, {})
+	var t := str(g.get(form, w.type)).format(v)
+	if must_live:
+		t += text("mustLiveBrief" if form == "brief" else "mustLiveBar").format(v)
+	return t
+
+## end card line: winner side + engine reason ("" when there is nothing to add)
+static func end_text(winner: Variant, reason: String, hero_keys: Dictionary) -> String:
+	var line: String = theme().get("ends", {}).get(str(winner), {}).get(reason, "")
+	return line.format(_names(hero_keys))
+
+## rule note for a terrain tile, built from the rules (who captures, who crosses) so it never restates them wrongly
+static func tile_note(t: String) -> String:
+	var who := func(pred: Callable) -> String:
+		var names := []
+		for type: String in Rules.UNITS:
+			var st: Dictionary = Rules.UNITS[type]
+			if st.get("buyable", true) and pred.call(st, type):
+				names.append(theme().units.p[type].name if type != "hero" else "tướng")
+		return ", ".join(names)
+	match t:
+		"v":
+			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.RULES.incomeVillage })
+		"c":
+			return text("tileCastle").format({ "capC": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false)), "income": Rules.RULES.incomeCastle })
+		"~":
+			var crossers: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.move == "fly" or st.move == "water")
+			var water_heroes := []
+			for hk: String in Rules.HEROES:
+				if Rules.HEROES[hk].get("move", "") == "water" and theme().heroes.has(hk):
+					water_heroes.append(theme().heroes[hk].name)
+			var all := ", ".join([crossers] + water_heroes) if crossers != "" else ", ".join(water_heroes)
+			return text("tileWater").format({ "water": all }) if all != "" else ""
+	return ""

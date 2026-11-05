@@ -153,19 +153,7 @@ func _grid(min_w: float, gap := 12, auto_fit := false) -> GridContainer:
 	return g
 
 static func goal_text(def: Dictionary) -> String:
-	var w := { "type": "castles" }
-	w.merge(def.get("win", {}), true)
-	var eh: String = Content.hero_look(def.enemyHero).name if def.get("enemyHero") != null else "địch"
-	var t: String = {
-		"castles": "Chiếm hết thành của địch.",
-		"rout": "Diệt hết quân địch.",
-		"hero": "Hạ %s." % eh,
-		"survive": "Giữ vững đến hết lượt %s." % str(w.get("turns", "")),
-		"reach": "Đưa %s tới ô cờ vàng%s." % [Content.hero_look(def.hero).name, (" trong %d lượt" % w.turns) if w.has("turns") else ""],
-	}[w.type]
-	if def.get("heroMustLive", false):
-		t += " %s ngã là thua." % Content.hero_look(def.hero).name
-	return t
+	return Content.goal_text(def.get("win", {}), "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, {}, def.get("heroMustLive", false))
 
 # ---------- title ----------
 func show_title() -> void:

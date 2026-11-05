@@ -5,6 +5,7 @@ var main: Node
 var fails := 0
 
 func _init() -> void:
+	Store.use_profile("driver") # never touch the player's save / progress / settings
 	main = load("res://main.tscn").instantiate()
 	root.add_child(main)
 	_run.call_deferred()
@@ -211,5 +212,14 @@ func _run() -> void:
 	press("Xuất quân")
 	await wait(0.8)
 	ok(g.visible and g.s.scenario == "m03", "briefing starts m03")
+	# win, then straight back to the menu inside the end-card pause: the win must still count
+	await wait(0.5)
+	g.s.winner = "p"
+	g.s.reason = "castlesLost"
+	g.finish()
+	await wait(0.1)
+	main.show_title()
+	await wait(0.8)
+	ok(Store.is_done("m03") and not g._end.visible, "win kept when leaving during the end pause")
 	print("DRIVER DONE fails=%d" % fails)
 	quit(1 if fails else 0)

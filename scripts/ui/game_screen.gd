@@ -1,13 +1,8 @@
 class_name GameScreen
 extends Control
-## the war table: top bar (with Hết lượt), tips strip, board + one popup pinned beside the selection; input, event playback, enemy turn loop, hint, end screen.
+## the war table: full-screen map + floating HUD (turn/gold/goal, ⚙ menu, unit card, Hết lượt), one orders popup beside the selection;
+## input, event playback, enemy turn loop, hint, end screen.
 ## Port of the game half of src/ui/screens.js.
-
-const DEFAULT_TIPS := [
-	"Bấm lính để xem ô đi được. Bấm kẻ địch viền đỏ để xem trước rồi [b]Đánh[/b].",
-	"Bấm [b]thành[/b] của ta khi ô trống để mua lính. Làng, thành cho vàng mỗi lượt.",
-	"Mở [b]Sách lính[/b] để xem tính chất từng loại quân.",
-]
 
 ## selection modes: idle = nothing / choosing where to go; moved = destination picked; target = enemy aimed
 const M_IDLE := "idle"
@@ -23,11 +18,11 @@ var gen := 0
 var ui := {}
 var stats := { "kills": 0, "losses": 0 }
 var fx: FX
-var board: Control # Board (2D) or Board3D: same surface (signals, view, fit, set_state, tile_rect)
+var board: Board
 var battle: BattleView
 
 var _turn: Label
-var _gold_box: Control
+var _gold_box: HBoxContainer
 var _gold_num: Label
 var _income: Label
 var _goal: RichTextLabel
@@ -41,10 +36,11 @@ var _btn_restart: Button
 var _ff := false
 var _user_speed := 1.0
 var _end_armed_until := 0
-var _coach: PanelContainer
-var _coach_n: Label
-var _coach_text: RichTextLabel
-var _coach_next: Button
+var _gear: Button
+var _menu: PanelContainer
+var _hud_tr: Control
+var _card: PanelContainer
+var _card_box: VBoxContainer
 var _wrap: Control
 var _frame: Panel
 var _banner: Banner
@@ -57,6 +53,7 @@ var _pop: PanelContainer
 var _pop_anchor: Variant = null # [x, y] tile the popup belongs to; null = top centre of the board
 var _hover_at := 0
 const POP_W := 290.0
+const HUD_M := 10.0 # HUD distance from the screen edge
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -79,131 +76,111 @@ func _reset_ui() -> void:
 		"hotBuy": null, "hover": ui.get("hover"), "tip": ui.get("tip", 0), "hintKind": null, "peek": null }
 
 # ---------- layout ----------
+## the map fills the screen; everything else floats over it: turn / gold / goal (top-left), ⚙ menu (top-right),
+## selected unit card (bottom-left), Hết lượt (bottom-right), one orders popup beside the selected tile
 func _build() -> void:
 	var bg := BgPaint.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
-	var root := Style.vbox(0)
-	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(root)
-	# top bar
-	var bar := PanelContainer.new()
-	var bs := Style.box(Color("#22130d"), Color.TRANSPARENT, 0, 0)
-	bs.content_margin_left = 14; bs.content_margin_right = 14; bs.content_margin_top = 8; bs.content_margin_bottom = 8
-	bs.border_color = Style.LACQUER_3; bs.border_width_bottom = 1
-	bs.shadow_color = Color(0, 0, 0, 0.5); bs.shadow_size = 8
-	bar.add_theme_stylebox_override("panel", bs)
-	bar.z_index = 1
-	root.add_child(bar)
-	var bh := Style.hbox(12)
-	bar.add_child(bh)
-	_turn = Style.lbl("Lượt 1", 21, Style.GOLD, Style.display_x)
-	bh.add_child(_turn)
-	_gold_box = PanelContainer.new()
-	var gs := Style.box(Color(0, 0, 0, 0.45), Style.LACQUER_3, 99, 0)
-	gs.content_margin_left = 4; gs.content_margin_right = 12; gs.content_margin_top = 3; gs.content_margin_bottom = 3
-	_gold_box.add_theme_stylebox_override("panel", gs)
-	var gh := Style.hbox(6)
-	gh.add_child(Coin.new())
+	_wrap = Control.new()
+	_wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_wrap.clip_contents = true
+	_wrap.resized.connect(_fit)
+	add_child(_wrap)
+	_frame = Panel.new()
+	var fs := Style.box(Color.TRANSPARENT, Style.BRONZE_2, 6, 0, 2)
+	fs.shadow_color = Color(0, 0, 0, 0.7); fs.shadow_size = 18; fs.shadow_offset = Vector2(0, 8)
+	fs.expand_margin_left = 2; fs.expand_margin_right = 2; fs.expand_margin_top = 2; fs.expand_margin_bottom = 2
+	_frame.add_theme_stylebox_override("panel", fs)
+	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wrap.add_child(_frame)
+	board = Board.new()
+	board.fx = fx
+	board.tile_clicked.connect(_on_tile_clicked)
+	board.hover_changed.connect(func(t: Variant) -> void:
+		ui.hover = t
+		_hover_at = Time.get_ticks_msec()
+		_build_view())
+	board.cancel_requested.connect(cancel)
+	board.info_requested.connect(_on_info_requested)
+	_wrap.add_child(board)
+	_banner = Banner.new()
+	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_wrap.add_child(_banner)
+	# top-left: turn, gold, goal
+	var tl := PanelContainer.new()
+	tl.add_theme_stylebox_override("panel", _hud_box())
+	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tl.position = Vector2(HUD_M, HUD_M)
+	tl.z_index = 40
+	add_child(tl)
+	var tv := Style.vbox(2)
+	tl.add_child(tv)
+	var th := Style.hbox(10)
+	tv.add_child(th)
+	_turn = Style.lbl("Lượt 1", 19, Style.GOLD, Style.display_x)
+	th.add_child(_turn)
+	_gold_box = Style.hbox(5)
+	_gold_box.add_child(Coin.new())
 	_gold_num = Style.lbl("0", 16, Style.GOLD, Style.bold)
 	_gold_num.pivot_offset = Vector2(10, 10)
-	gh.add_child(_gold_num)
+	_gold_box.add_child(_gold_num)
 	_income = Style.lbl("", 13, Style.GOOD, Style.semi)
-	gh.add_child(_income)
-	_gold_box.add_child(gh)
-	bh.add_child(_gold_box)
-	_goal = Style.rich("", 13, Style.MUTED)
-	_goal.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_goal.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	bh.add_child(_goal)
-	_btn_hint = _ibtn("Gợi ý", "Gợi ý nước đi", _on_hint)
-	bh.add_child(_btn_hint)
-	bh.add_child(_ibtn("Sách lính", "Sách lính", func() -> void: main.menus.open_codex("p")))
-	_btn_speed = _ibtn("x1", "Tốc độ hiệu ứng", _on_speed)
-	bh.add_child(_btn_speed)
-	_btn_ff = _ibtn("⏩ Tua lượt địch", "Chạy nhanh lượt địch, bỏ qua cảnh đánh (giữ Space / chuột cũng tua)", func() -> void:
+	_gold_box.add_child(_income)
+	th.add_child(_gold_box)
+	_goal = Style.rich("", 13, Style.INK)
+	_goal.fit_content = true
+	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
+	tv.add_child(_goal)
+	# top-right: ⏩ (enemy turn) + ⚙
+	var tr := Style.hbox(8)
+	tr.z_index = 40
+	tr.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	tr.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	tr.position = Vector2(-HUD_M, HUD_M)
+	add_child(tr)
+	_hud_tr = tr
+	_btn_ff = _ibtn("» Tua lượt địch", "Chạy nhanh lượt địch, bỏ qua cảnh đánh (giữ Space / chuột cũng tua)", func() -> void:
 		_ff = true
 		if battle.visible:
 			battle.skip()
 		_btn_ff.visible = false)
 	_btn_ff.visible = false
-	bh.add_child(_btn_ff)
-	_btn_battle = _ibtn("⚔", "Cảnh giao chiến khi đánh: Luôn / Khi ta đánh / Tắt (phím B). Tắt = đánh ngay trên bàn cờ.", _toggle_battle)
-	bh.add_child(_btn_battle)
-	_battle_label()
-	_btn_sound = _ibtn("🔊", "Âm thanh", func() -> void:
-		main.audio.set_muted(not main.audio.muted)
-		_sound_label())
-	bh.add_child(_btn_sound)
-	_btn_restart = _ibtn("Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart)
-	bh.add_child(_btn_restart)
-	bh.add_child(_ibtn("Menu", "Về menu", func() -> void:
-		save()
-		main.show_title()))
-	# tips strip
-	_coach = PanelContainer.new()
-	var cs := Style.box(Color(0.94, 0.79, 0.42, 0.13), Color.TRANSPARENT, 0, 0)
-	cs.content_margin_left = 14; cs.content_margin_right = 14; cs.content_margin_top = 7; cs.content_margin_bottom = 7
-	cs.border_color = Color(0.94, 0.79, 0.42, 0.25); cs.border_width_bottom = 1
-	_coach.add_theme_stylebox_override("panel", cs)
-	var ch := Style.hbox(10)
-	_coach_n = Style.lbl("", 15, Style.GOLD, Style.display_x)
-	ch.add_child(_coach_n)
-	_coach_text = Style.rich("", 14, Style.INK, Style.GOLD)
-	_coach_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_coach_text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	ch.add_child(_coach_text)
-	_coach_next = Style.button("Tiếp ›", "LinkBtn")
-	_coach_next.pressed.connect(func() -> void:
-		main.audio.play("ui")
-		ui.tip = (ui.tip + 1) % _tips().size()
-		_render_tip())
-	ch.add_child(_coach_next)
-	var hide := Style.button("Ẩn", "LinkBtn")
-	hide.add_theme_color_override("font_color", Style.MUTED)
-	hide.pressed.connect(func() -> void:
-		main.audio.play("ui")
-		Store.hide_tips(s.scenario)
-		_coach.visible = false)
-	ch.add_child(hide)
-	_coach.add_child(ch)
-	root.add_child(_coach)
-	# board + panel
-	var body := Style.hbox(0)
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	root.add_child(body)
-	_wrap = Control.new()
-	_wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_wrap.clip_contents = true
-	_wrap.resized.connect(_fit)
-	body.add_child(_wrap)
-	_frame = Panel.new()
-	var fs := Style.box(Color.TRANSPARENT, Style.BRONZE_2, 8, 0, 2)
-	fs.shadow_color = Color(0, 0, 0, 0.7); fs.shadow_size = 24; fs.shadow_offset = Vector2(0, 12)
-	fs.expand_margin_left = 2; fs.expand_margin_right = 2; fs.expand_margin_top = 2; fs.expand_margin_bottom = 2
-	_frame.add_theme_stylebox_override("panel", fs)
-	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_wrap.add_child(_frame)
-	_make_board(Store.board_3d())
-	_banner = Banner.new()
-	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_wrap.add_child(_banner)
+	tr.add_child(_btn_ff)
+	_gear = _ibtn("", "Menu, cài đặt", func() -> void: _show_menu(not _menu.visible))
+	_gear.custom_minimum_size = Vector2(44, 40)
+	var gi := GearIcon.new() # no gear glyph in the bundled fonts: drawn
+	gi.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	gi.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_gear.add_child(gi)
+	tr.add_child(_gear)
+	_build_menu()
+	# bottom-left: what is selected
+	_card = PanelContainer.new()
+	_card.add_theme_stylebox_override("panel", _hud_box())
+	_card.z_index = 40
+	_card.visible = false
+	add_child(_card)
+	_card_box = Style.vbox(5)
+	_card_box.custom_minimum_size.x = 270
+	_card.add_child(_card_box)
+	# bottom-right: Hết lượt
 	_btn_end = Style.menu_button("Hết lượt", "Còn 0 quân chưa đi", true)
 	(_btn_end.get_meta("title") as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	(_btn_end.get_meta("sub") as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_btn_end.custom_minimum_size.x = 210
+	_btn_end.custom_minimum_size.x = 190
 	_btn_end.tooltip_text = "Kết thúc lượt (phím E)"
 	_btn_end.z_index = 40 # over the board, under the orders popup
 	_btn_end.pressed.connect(func() -> void:
 		main.audio.play("ui")
 		end_player_turn())
-	_wrap.add_child(_btn_end)
-	# no side panel: everything about the current selection lives in one popup pinned next to its tile
+	add_child(_btn_end)
+	# orders popup pinned next to the selected tile
 	_pop = PanelContainer.new()
 	var ps := Style.box(Color(0.075, 0.045, 0.03, 0.96), Style.BRONZE_2, 12, 12)
 	ps.shadow_color = Color(0, 0, 0, 0.55); ps.shadow_size = 14; ps.shadow_offset = Vector2(0, 6)
 	_pop.add_theme_stylebox_override("panel", ps)
-	_pop.z_index = 50 # above board tokens / FX
+	_pop.z_index = 50 # above board tokens / FX and the HUD
 	_pop.visible = false
 	_wrap.add_child(_pop)
 	var pv := Style.vbox(8)
@@ -216,40 +193,69 @@ func _build() -> void:
 	_actions.add_theme_constant_override("v_separation", 6)
 	pv.add_child(_actions)
 	_end = Control.new()
-	_end.z_index = 60 # over the top bar (1), Hết lượt (40) and the popup (50)
+	_end.z_index = 60 # over the HUD (40) and the popup (50)
 	_end.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_end.visible = false
 	add_child(_end)
+	resized.connect(_place_hud)
 
-## 2D map or 3D tabletop; swapping keeps the game, only the renderer changes
-func _make_board(three_d: bool) -> void:
-	var at := -1
-	if board != null:
-		at = board.get_index()
-		board.queue_free()
-	board = Board3D.new() if three_d else Board.new()
-	board.fx = fx
-	board.tile_clicked.connect(_on_tile_clicked)
-	board.hover_changed.connect(func(t: Variant) -> void:
-		ui.hover = t
-		_hover_at = Time.get_ticks_msec()
-		_build_view())
-	board.cancel_requested.connect(cancel)
-	board.info_requested.connect(_on_info_requested)
-	_wrap.add_child(board)
-	if at >= 0:
-		_wrap.move_child(board, at)
-	_frame.visible = not three_d # the 3D board sits on its own table
+func _hud_box() -> StyleBoxFlat:
+	var b := Style.box(Color(0.075, 0.045, 0.03, 0.86), Color(Style.BRONZE_2, 0.7), 10, 10)
+	b.content_margin_top = 7; b.content_margin_bottom = 7
+	b.shadow_color = Color(0, 0, 0, 0.45); b.shadow_size = 10; b.shadow_offset = Vector2(0, 4)
+	return b
 
-func _toggle_3d() -> void:
-	if ui.busy:
+## ⚙ dropdown: hint, unit book, speed, battle scene, sound, restart, leave
+func _build_menu() -> void:
+	_menu = PanelContainer.new()
+	_menu.add_theme_stylebox_override("panel", _hud_box())
+	_menu.z_index = 55
+	_menu.visible = false
+	add_child(_menu)
+	var v := Style.vbox(6)
+	v.custom_minimum_size.x = 230
+	_menu.add_child(v)
+	var item := func(text: String, tip: String, fn: Callable, close := true) -> Button:
+		var b := _ibtn(text, tip, func() -> void:
+			if close:
+				_show_menu(false)
+			fn.call())
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.custom_minimum_size.y = 40
+		v.add_child(b)
+		return b
+	_btn_hint = item.call("💬 Gợi ý nước đi", "Gợi ý (phím H)", _on_hint)
+	item.call("📖 Sách lính", "Tính chất từng loại quân", func() -> void: main.menus.open_codex("p"))
+	_btn_speed = item.call("", "Tốc độ hoạt cảnh", _on_speed, false)
+	_btn_battle = item.call("", "Cảnh giao chiến khi đánh: Luôn / Khi ta đánh / Tắt (phím B). Tắt = đánh ngay trên bàn cờ.", _toggle_battle, false)
+	_btn_sound = item.call("", "Âm thanh", func() -> void:
+		main.audio.set_muted(not main.audio.muted)
+		_sound_label(), false)
+	_btn_restart = item.call("↩ Đánh lại màn này", "Chơi lại màn này từ đầu", _confirm_restart)
+	item.call("🏠 Về menu chính", "Lưu ván và về menu", func() -> void:
+		save()
+		main.show_title())
+
+func _show_menu(on: bool) -> void:
+	_menu.visible = on
+	if on:
+		_menu.size = Vector2.ZERO
+		_place_hud()
+
+## HUD corners follow the window (the map under them fills the screen)
+func _place_hud() -> void:
+	if _btn_end == null:
 		return
-	Store.set_board_3d(not (board is Board3D))
-	_make_board(Store.board_3d())
-	board.set_state(s)
-	board.refresh_terrain()
-	_fit()
-	_build_view()
+	var eb := _btn_end.get_combined_minimum_size()
+	_btn_end.size = eb
+	_btn_end.position = size - eb - Vector2(HUD_M, HUD_M)
+	if _card.visible:
+		_card.reset_size()
+		var cs := _card.get_combined_minimum_size()
+		_card.position = Vector2(HUD_M, size.y - cs.y - HUD_M)
+	if _menu.visible:
+		var ms := _menu.get_combined_minimum_size()
+		_menu.position = Vector2(size.x - ms.x - HUD_M, HUD_M + 48)
 
 func _ibtn(text: String, tip: String, fn: Callable) -> Button:
 	var b := Style.button(text, "IconBtn")
@@ -260,7 +266,7 @@ func _ibtn(text: String, tip: String, fn: Callable) -> Button:
 	return b
 
 func _speed_label() -> void:
-	_btn_speed.text = "x%d" % int(FX.speed)
+	_btn_speed.text = "» Tốc độ hoạt cảnh: x%d" % int(FX.speed)
 
 func _on_speed() -> void:
 	FX.speed = 2.0 if FX.speed == 1.0 else (3.0 if FX.speed == 2.0 else 1.0)
@@ -287,37 +293,20 @@ func _toggle_battle() -> void:
 
 func _battle_label() -> void:
 	var m := Store.battle_mode()
-	_btn_battle.add_theme_color_override("font_color", Style.MUTED if m == "off" else Style.INK)
-	_btn_battle.text = "⚔ " + Store.BATTLE_MODE_NAMES[m]
+	_btn_battle.text = "⚔ Cảnh đánh: " + Store.BATTLE_MODE_NAMES[m]
 
 func _sound_label() -> void:
-	_btn_sound.add_theme_color_override("font_color", Style.MUTED if main.audio.muted else Style.INK)
-	_btn_sound.text = "🔇" if main.audio.muted else "🔊"
+	_btn_sound.text = "🔇 Âm thanh: Tắt" if main.audio.muted else "🔊 Âm thanh: Bật"
 
 func _fit() -> void:
 	if s.is_empty():
 		return
-	board.fit(_wrap.size - Vector2(16, 16))
-	var eb := _btn_end.get_combined_minimum_size()
-	if (_wrap.size.x - board.size.x) / 2.0 < eb.x + 24: # no side margin for Hết lượt -> keep a strip under the board
-		board.fit(_wrap.size - Vector2(16, 16 + eb.y + 10))
+	board.fit(_wrap.size - Vector2(8, 8))
 	board.position = ((_wrap.size - board.size) / 2.0).floor()
-	if (_wrap.size.x - board.size.x) / 2.0 < eb.x + 24:
-		board.position.y = floorf((_wrap.size.y - board.size.y - eb.y - 10) / 2.0)
 	_frame.position = board.position
 	_frame.size = board.size
-	_place_end()
+	_place_hud()
 	_place_pop.call_deferred()
-
-## Hết lượt lives on the table: right of the board's bottom corner when there is room, else just under it
-func _place_end() -> void:
-	var eb := _btn_end.get_combined_minimum_size()
-	_btn_end.size = eb
-	var br: Vector2 = board.position + board.size
-	if (_wrap.size.x - board.size.x) / 2.0 >= eb.x + 24:
-		_btn_end.position = Vector2(br.x + 14, br.y - eb.y)
-	else:
-		_btn_end.position = Vector2(br.x - eb.x, br.y + 10)
 
 func _refresh_end_button(my_turn: bool) -> void:
 	var left: int = s.units.filter(func(o: Dictionary) -> bool: return o.side == "p" and not o.acted).size()
@@ -325,7 +314,7 @@ func _refresh_end_button(my_turn: bool) -> void:
 	_btn_end.disabled = not my_turn
 	(_btn_end.get_meta("title") as Label).text = "Lượt địch" if enemy_busy else "Hết lượt"
 	var sub := ("%s đang ra quân…" % Content.theme().factions.e.short) if enemy_busy else (
-		("Còn %d quân chưa đi · Space: giữ chỗ" % left) if left > 0 else "Mọi quân đã ra lệnh")
+		("Còn %d quân chưa đi" % left) if left > 0 else "Mọi quân đã ra lệnh")
 	Style.set_sub(_btn_end, sub if (my_turn or enemy_busy) else "")
 	# everyone has moved: the button breathes so the next step is obvious
 	var hot := my_turn and left == 0
@@ -337,7 +326,7 @@ func _refresh_end_button(my_turn: bool) -> void:
 		_end_pulse.kill()
 		_end_pulse = null
 		_btn_end.modulate = Color.WHITE
-	_place_end()
+	_place_hud()
 
 # ---------- lifecycle ----------
 func _def_for(c: Dictionary) -> Dictionary:
@@ -351,8 +340,6 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	ctx = c
 	def = _def_for(c)
 	Content.use_chapter(Content.chapter_of(def)) # enemy skin + wording of this chapter
-	if (board is Board3D) != Store.board_3d():
-		_make_board(Store.board_3d())
 	_reset_ui()
 	stats = { "kills": 0, "losses": 0 }
 	board.view.hide.clear()
@@ -365,14 +352,14 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	_speed_label()
 	_sound_label()
 	_battle_label()
-	_tips_init()
+	_show_menu(false)
 	_fit.call_deferred()
 	board.refresh_terrain()
 	save()
 	refresh()
 	banner(_turn_banner() if s.side == "p" else Content.text("enemyTurn"), s.side != "p")
 	if s.side == "p":
-		_intro_new_units.call_deferred() # on a resumed enemy turn, play() introduces new units itself
+		_intro_new_units.call_deferred()
 	if s.side == "e":
 		enemy_turn()
 	else:
@@ -397,21 +384,6 @@ func save() -> void:
 	if s.is_empty() or s.winner != null:
 		return
 	Store.save_game(s, ctx, def.get("title", ""))
-
-# ---------- tips ----------
-func _tips() -> Array:
-	return def.get("tips", DEFAULT_TIPS)
-
-func _tips_init() -> void:
-	ui.tip = 0
-	_coach.visible = not Store.tips_hidden(s.scenario)
-	_render_tip()
-
-func _render_tip() -> void:
-	var list := _tips()
-	_coach_n.text = "Mẹo %d/%d" % [ui.tip + 1, list.size()]
-	_coach_text.text = Style.bold_in(list[ui.tip], Style.GOLD)
-	_coach_next.text = "Tiếp ›" if ui.tip + 1 < list.size() else "Từ đầu"
 
 # ---------- view ----------
 func _sel_unit() -> Variant:
@@ -523,6 +495,9 @@ func _attack_score(p: Dictionary) -> float:
 
 # ---------- input ----------
 func _on_tile_clicked(x: int, y: int) -> void:
+	if _menu.visible: # a click on the map closes the ⚙ menu first
+		_show_menu(false)
+		return
 	if s.is_empty() or ui.busy or s.winner != null:
 		return
 	if ui.peek != null: # first click anywhere just closes the unit card
@@ -540,6 +515,9 @@ func _on_info_requested(id: int) -> void:
 	refresh()
 
 func cancel() -> void:
+	if _menu.visible:
+		_show_menu(false)
+		return
 	if ui.busy or s.is_empty():
 		return
 	if ui.peek != null:
@@ -669,8 +647,6 @@ func _unhandled_input(ev: InputEvent) -> void:
 			_on_hint()
 		KEY_B:
 			_toggle_battle()
-		KEY_V:
-			_toggle_3d()
 		_:
 			return
 	get_viewport().set_input_as_handled()
@@ -715,7 +691,6 @@ func buy_unit(type: String) -> void:
 	ui.hotBuy = null
 	save()
 	refresh()
-	_intro_new_units()
 
 ## units of ours that could still attack or capture this turn
 func _open_work() -> int:
@@ -879,7 +854,7 @@ func play(events: Array, before: Dictionary) -> void:
 		if dived and e.t != "hit" and e.t != "die":
 			dived = false
 			await board.unfocus()
-		if e.t == "hit" and not dived and board is Board3D and not e.get("counter", false) and _scene_on(e):
+		if e.t == "hit" and not dived and not e.get("counter", false) and _zoom_on(e):
 			dived = true
 			await board.focus(Vector2i(e.fx, e.fy), Vector2i(e.x, e.y))
 		if e.t == "hit" and not e.get("counter", false) and _battle_on(e):
@@ -958,14 +933,16 @@ func play(events: Array, before: Dictionary) -> void:
 		await board.unfocus()
 	v.hp = null
 	v.sprites = v.sprites.filter(func(sp: Dictionary) -> bool: return not dying.has(sp.u.id))
-	if gen == my:
-		await _intro_new_units() # reinforcements / raised units of a kind never met before
 
 ## cut-away duel for the attack at events[i] (+ its counter); marks both hits handled and applies their damage to the shown hp
 func _battle_on(e: Dictionary) -> bool:
-	return _scene_on(e) and not (board is Board3D)
+	return _scene_on(e)
 
-## the battle-scene setting allows a close-up of this attack (cut-away duel in 2D, camera dive on the 3D board)
+## attacks that play on the map zoom onto the two units (no cut-away scene for this one, not fast-forwarding)
+func _zoom_on(e: Dictionary) -> bool:
+	return not _scene_on(e) and not _ff and not main.flags.has("bot") and not main.flags.has("nozoom")
+
+## the battle-scene setting wants the cut-away duel for this attack
 func _scene_on(e: Dictionary) -> bool:
 	var m := Store.battle_mode()
 	if m == "off" or (m == "mine" and e.side != "p") or _ff or main.flags.has("nobattle"):
@@ -1017,27 +994,32 @@ signal _intro_closed
 var _intro_on := false
 var _intro_layer: Control = null
 
-func _look_key(u: Dictionary) -> String:
-	return ("hero:%s" % s.heroKey[u.side]) if u.type == "hero" else ("unit:%s" % u.type) # both sides share one roster
-
-## the first time a kind of unit (or a hero) shows up on the board, stop and introduce it: role, traits, how to play.
-## Remembered per player (Store "seen_units"). Off for bot / nointro runs, which also never write the seen list.
+## entering a mission: introduce every kind of unit this mission brings (on the map, in its reinforcements, or
+## buyable) that the player has never met — all at the start, never mid-battle. Remembered per player
+## (Store "seen_units"). Off for bot / nointro runs, which also never write the seen list.
 func _intro_new_units() -> void:
 	if main.flags.has("bot") or main.flags.has("nointro") or _intro_on or s.is_empty() or not visible:
 		return
 	var seen: Array = Store.get_v("seen_units", [])
-	var fresh := []
+	var fresh := [] # [side, type]
 	var keys := []
+	var add := func(side: String, type: String) -> void:
+		var k := ("hero:%s" % s.heroKey[side]) if type == "hero" else ("unit:%s" % type)
+		if not seen.has(k) and not keys.has(k) and (type != "hero" or s.heroKey[side] != null):
+			keys.append(k)
+			fresh.append({ "side": side, "type": type })
 	for side: String in ["p", "e"]:
 		for hero_first: bool in [true, false]:
 			for u: Dictionary in s.units:
-				if u.side != side or (u.type == "hero") != hero_first:
-					continue
-				var k := _look_key(u)
-				if seen.has(k) or keys.has(k):
-					continue
-				keys.append(k)
-				fresh.append(u)
+				if u.side == side and (u.type == "hero") == hero_first:
+					add.call(side, u.type)
+			if side == "e":
+				for w: Dictionary in s.waves:
+					for wu: Array in w.units:
+						if (wu[0] == "hero") == hero_first:
+							add.call("e", wu[0])
+		for t: String in s.allowed.get(side, []):
+			add.call(side, t)
 	if fresh.is_empty():
 		return
 	_intro_on = true
@@ -1340,15 +1322,9 @@ func _act(label: String, fn: Callable, opts := {}) -> Button:
 	return b
 
 func _goal_line() -> String:
-	var ec := Game.castles(s, "e")
 	var obj := Content.goal_text(s.win, "bar", s.heroKey, {
-		"n": ec if s.win.type == "castles" else Game.unit_count(s, "e"), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) }, s.heroMustLive)
-	var pc := Game.castles(s, "p")
-	var vs := func(label: String, a: int, b: int) -> String:
-		return " · %s: ta [b]%d[/b] – địch [b]%d[/b]" % [label, a, b]
-	var castle_txt: String = vs.call("Thành", pc, ec) if pc or ec else ""
-	return "[b][color=#%s]%s[/color][/b]%s%s · Quân [b]%d[/b] (tối đa %d)" % [Style.GOLD.to_html(false), obj, castle_txt,
-		vs.call("Làng", Game.villages(s, "p"), Game.villages(s, "e")), Game.unit_count(s, "p"), s.unitCap]
+		"n": Game.castles(s, "e") if s.win.type == "castles" else Game.unit_count(s, "e"), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) }, s.heroMustLive)
+	return "[color=#%s]🎯[/color] %s" % [Style.GOLD.to_html(false), obj]
 
 ## compact unit card for the popup: token + name + side/HP/XP, HP bar, one stat line; full = also the unit's description
 func _unit_info(u: Dictionary, full := false) -> void:
@@ -1379,6 +1355,54 @@ func _unit_info(u: Dictionary, full := false) -> void:
 		_info.add_child(_note("[b]Cách dùng:[/b] " + Content.how_to_play(u.type), Style.GOLD, 13))
 	if u.get("guard", false):
 		_info.add_child(_note("💤 Đang canh gác: chỉ ra tay khi quân ta tới gần.", Style.MUTED, 13))
+
+## bottom-left card: the selected unit's basics + "Chi tiết", or the clicked tile. Hidden when nothing is picked
+## (or while the full unit card is open beside its tile).
+func _render_card(u: Variant, peek: Variant) -> void:
+	for c in _card_box.get_children():
+		_card_box.remove_child(c)
+		c.queue_free()
+	var show := false
+	if peek == null and u != null:
+		show = true
+		var st := Game.stat(s, u)
+		var look := Content.unit_look(s, u)
+		var dt: Array = ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != M_IDLE else [u.x, u.y]
+		var name: String = look.name + (" " + "★".repeat(u.rank) if u.rank else "")
+		var side_txt: String = Content.theme().factions[u.side].short
+		var sub := "%s · Máu %d%s" % [side_txt, u.hp, " · đã đi" if u.side == "p" and u.acted else ""]
+		_card_box.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 38), name, sub, u.side))
+		_card_box.add_child(Style.Bar.make(u.hp / 100.0, 5, Color("#5fa83c"), Style.GOOD))
+		var r: int = Rules.RULES.rankBonus * u.rank
+		var b := Game.buffs_at(s, u, dt[0], dt[1])
+		var atk_txt := "[b]%d[/b]" % (st.atk + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_ATK.to_html(false), b.atk] if b.atk else "")
+		var def_txt := "[b]%d[/b]" % (st.def + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_DEF.to_html(false), b.def] if b.def else "")
+		_card_box.add_child(_note("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [atk_txt, def_txt, st.mv, Style.stat_range(st)], Style.MUTED, 14))
+		var id: int = u.id
+		var more := Style.button("📜 Chi tiết", "ChipBtn")
+		more.tooltip_text = "Tính chất, cách dùng, kinh nghiệm"
+		more.size_flags_horizontal = Control.SIZE_SHRINK_END
+		more.pressed.connect(func() -> void: _on_info_requested(id))
+		_card_box.add_child(more)
+	elif peek == null and ui.info != null:
+		show = true
+		var x: int = ui.info.x
+		var y: int = ui.info.y
+		var t: String = s.tiles[y][x]
+		var own: Variant = s.owner.get(Vector2i(x, y))
+		var tr: Dictionary = Rules.TERRAIN[t]
+		var own_txt := ""
+		if tr.has("building"):
+			own_txt = " · " + (("của ta" if own == "p" else "của địch") if own != null else "chưa ai chiếm")
+		_card_box.add_child(_head(null, Content.terrain(t).name + own_txt, "Thủ +%d · Giá đi %s" % [tr.def, "không qua" if tr.cost == INF else str(int(tr.cost))]))
+		var note := Content.tile_note(t)
+		if note != "":
+			_card_box.add_child(_note(note, Style.MUTED, 13))
+		if Game.grave_at(s, x, y) != null:
+			_card_box.add_child(_note(Content.text("graveNote"), Style.MUTED, 13))
+	_card.visible = show
+	_card.reset_size()
+	_place_hud.call_deferred() # wrapped text knows its height after one layout pass
 
 ## the live bonuses as words: who gives them and when they count
 func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
@@ -1420,7 +1444,7 @@ func refresh() -> void:
 	_gold_num.text = str(s.gold.p)
 	_gold_box.visible = s.allowed.p.size() > 0 or Game.castles(s, "p") > 0
 	_income.text = "+%d" % Game.income(s, "p")
-	_goal.text = Style.bold_in(_goal_line(), Style.INK)
+	_goal.text = _goal_line()
 	for c in _info.get_children() + _actions.get_children():
 		c.get_parent().remove_child(c) # now, so the popup measures only the new content
 		c.queue_free()
@@ -1430,6 +1454,7 @@ func refresh() -> void:
 	_pop_anchor = null
 	var u: Variant = _sel_unit()
 	var peek: Variant = Game.unit_by_id(s, ui.peek) if ui.peek != null else null
+	_render_card(u, peek)
 	if ui.busy:
 		pass
 	elif peek != null:
@@ -1442,7 +1467,6 @@ func refresh() -> void:
 	elif u != null:
 		if my_turn and u.side == "p" and not u.acted and ui.mode != M_IDLE:
 			_pop_anchor = ui.dest
-			_unit_info(u)
 			var dx: int = ui.dest[0]
 			var dy: int = ui.dest[1]
 			var targets := Game.targets_from(s, u, dx, dy)
@@ -1487,13 +1511,8 @@ func refresh() -> void:
 				if dx != u.x or dy != u.y: # no "wait" on its own tile
 					_actions.add_child(_act("Chờ", func() -> void: commit({ "kind": "wait" }), { "hot": hk == "wait" }))
 				_actions.add_child(_act("Hủy", cancel))
-		elif my_turn and u.side == "p" and not u.acted:
-			pass # choosing where to go: the board (blue tiles, red-ringed enemies, hover forecast) is the whole UI
 		else:
-			_pop_anchor = [u.x, u.y]
-			_unit_info(u, true)
-			if u.side == "p" and u.acted:
-				_info.add_child(_note("Đã hành động lượt này.", Style.MUTED, 13))
+			pass # stats live in the corner card; choosing where to go = the board (blue tiles, red-ringed enemies)
 	elif ui.buyAt != null:
 		var x: int = ui.buyAt[0]
 		var y: int = ui.buyAt[1]
@@ -1530,25 +1549,10 @@ func refresh() -> void:
 			grid.add_child(b)
 		_actions.add_child(grid)
 		_actions.add_child(_act("Đóng", cancel))
-	elif ui.info != null:
-		var x: int = ui.info.x
-		var y: int = ui.info.y
-		_pop_anchor = [x, y]
-		var t: String = s.tiles[y][x]
-		var own: Variant = s.owner.get(Vector2i(x, y))
-		var tr: Dictionary = Rules.TERRAIN[t]
-		var own_txt := ""
-		if tr.has("building"):
-			own_txt = " · " + (("của ta" if own == "p" else "của địch") if own != null else "chưa ai chiếm")
-		_info.add_child(_head(null, Content.terrain(t).name + own_txt, "Thủ +%d · Giá đi %s" % [tr.def, "không qua" if tr.cost == INF else str(int(tr.cost))]))
-		var note := Content.tile_note(t)
-		if note != "":
-			_info.add_child(_note(note, Style.MUTED, 13))
-		if Game.grave_at(s, x, y) != null:
-			_info.add_child(_note(Content.text("graveNote"), Style.MUTED, 13))
 	if ui.hint != null:
 		_info.add_child(Style.rich(ui.hint, 14, Style.GOLD, Style.GOLD_HI))
 	_pop.visible = _info.get_child_count() + _actions.get_child_count() > 0
+	(_info.get_parent() as Control).custom_minimum_size.x = POP_W if _info.get_child_count() > 0 or _actions.get_child_count() > 3 else 0.0
 	if _pop.visible:
 		_place_pop.call_deferred()
 
@@ -1636,6 +1640,20 @@ func _preview_box(p: Dictionary) -> Control:
 
 
 ## gold coin icon in the top bar
+## ⚙ drawn (the bundled fonts have no gear glyph)
+class GearIcon extends Control:
+	func _draw() -> void:
+		var c := size / 2.0
+		var r := minf(size.x, size.y) * 0.24
+		var col := Style.INK
+		var pts := PackedVector2Array()
+		for i in 48:
+			var a := TAU * i / 48.0
+			var tooth := 1.0 if (i / 3) % 2 == 0 else 0.0
+			pts.append(c + Vector2(cos(a), sin(a)) * r * (1.0 + 0.32 * tooth))
+		draw_colored_polygon(pts, col)
+		draw_circle(c, r * 0.45, Color("#3a2416"))
+
 class Coin extends Control:
 	func _init() -> void:
 		custom_minimum_size = Vector2(20, 20)

@@ -6,8 +6,9 @@ var fails := 0
 
 func _init() -> void:
 	Store.use_profile("driver") # never touch the player's save / progress / settings
-	Store.board3d_flag = 0 # this driver walks the 2D board
+	Store.set_battle_mode("off") # cut-away scene off + no zoom: the driver runs fast
 	main = load("res://main.tscn").instantiate()
+	main.flags["nozoom"] = "1"
 	root.add_child(main)
 	_run.call_deferred()
 
@@ -110,22 +111,12 @@ func _run() -> void:
 	await process_frame
 	ok(g.ui.mode == "target", "click enemy -> target mode with preview")
 	var hp0: int = foe.hp
-	Store.set_battle_mode("all")
 	press("⚔ Đánh")
-	var seen := false
-	for i in 60:
+	var shown := false
+	for i in 20:
 		await process_frame
-		if g.battle.visible:
-			seen = true
-			break
-	ok(seen, "battle scene opens on attack")
-	await wait(0.6)
-	await main.shot("ux_battle")
-	g.battle._gui_input(_click())
-	var t0 := Time.get_ticks_msec()
-	while g.battle.visible and Time.get_ticks_msec() - t0 < 3000:
-		await process_frame
-	ok(not g.battle.visible and Time.get_ticks_msec() - t0 < 1500, "click skips the battle scene (%d ms)" % (Time.get_ticks_msec() - t0))
+		shown = shown or g.battle.visible
+	ok(not shown, "no cut-away scene by default")
 	await idle(g)
 	ok(foe.hp < hp0 or Game.unit_by_id(s, foe.id) == null, "attack resolved")
 	# mouse path: rest the pointer on an enemy -> board shows the forecast -> one click attacks
@@ -144,10 +135,16 @@ func _run() -> void:
 	await main.shot("ux_forecast")
 	await process_frame
 	var hp1: int = foe2.hp
-	press("⚔ Luôn") # top-bar toggle cycles Luôn -> Khi ta đánh -> Tắt
-	ok(Store.battle_mode() == "mine", "battle toggle: Luôn -> Khi ta đánh")
-	press("⚔ Khi ta đánh")
-	ok(Store.battle_mode() == "off", "battle toggle: -> Tắt")
+	g._gear.pressed.emit() # ⚙ menu: battle scene toggle cycles Tắt -> Luôn -> Khi ta đánh (menu stays open)
+	await process_frame
+	ok(g._menu.visible, "⚙ opens the menu")
+	press("⚔ Cảnh đánh: Tắt")
+	ok(Store.battle_mode() == "all", "battle toggle: Tắt -> Luôn")
+	press("⚔ Cảnh đánh: Luôn")
+	ok(Store.battle_mode() == "mine", "battle toggle: -> Khi ta đánh")
+	Store.set_battle_mode("off")
+	g._on_tile_clicked(0, 0)
+	ok(not g._menu.visible, "a map click closes the menu")
 	g._on_tile(foe2.x, foe2.y)
 	var opened := false
 	for i in 20:
@@ -155,13 +152,13 @@ func _run() -> void:
 		opened = opened or g.battle.visible
 	ok(not opened, "no battle scene when off")
 	await idle(g)
-	Store.set_battle_mode("all")
+	Store.set_battle_mode("off")
 	ok(arch.acted and (foe2.hp < hp1 or Game.unit_by_id(s, foe2.id) == null), "one click attack after hover")
 	g.ui.hover = null
 	# terrain info, hint, codex, speed
 	g._on_tile(6, 0)
 	await process_frame
-	ok(g._info.get_child_count() > 0, "terrain info")
+	ok(g._card.visible and g._card_box.get_child_count() > 0, "terrain info in the corner card")
 	g.cancel()
 	# ⓘ on a token: unit card with traits + how to play; next click on the board just closes it
 	var any_u: Dictionary = s.units.filter(func(u): return u.side == "e")[0]

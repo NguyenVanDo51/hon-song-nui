@@ -30,26 +30,20 @@ static func set_v(key: String, v: Variant) -> void:
 const BATTLE_MODES := ["all", "mine", "off"]
 const BATTLE_MODE_NAMES := { "all": "Luôn", "mine": "Khi ta đánh", "off": "Tắt" }
 
+## default off: attacks play on the map (with a zoom); the cut-away scene is opt-in from ⚙.
+## Settings saved before that default changed are reset once (they were never a deliberate choice).
 static func battle_mode() -> String:
-	var m: Variant = get_v("battle_mode", "") # ConfigFile treats a null default as "no default" and logs an error
-	if m == "": # older settings stored an on/off flag
-		return "all" if bool(get_v("battle_scene", true)) else "off"
-	return m if BATTLE_MODES.has(m) else "all"
+	if not bool(get_v("battle_default_off", false)):
+		_c().set_value("hsn", "battle_default_off", true)
+		set_v("battle_mode", "off")
+	var m: Variant = get_v("battle_mode", "off")
+	return m if BATTLE_MODES.has(m) else "off"
 
 static func set_battle_mode(m: String) -> void:
 	set_v("battle_mode", m)
 
 static func cycle_battle_mode() -> void:
 	set_battle_mode(BATTLE_MODES[(BATTLE_MODES.find(battle_mode()) + 1) % BATTLE_MODES.size()])
-
-## 3D tabletop board (prototype); `board3d_flag` (debug flag 3d=1/0) overrides the saved choice for this run
-static var board3d_flag := -1
-static func board_3d() -> bool:
-	return bool(get_v("board3d", false)) if board3d_flag < 0 else board3d_flag == 1
-
-static func set_board_3d(on: bool) -> void:
-	board3d_flag = -1
-	set_v("board3d", on)
 
 # ---------- campaign progress ----------
 static func done_list() -> Array:
@@ -71,15 +65,6 @@ static func unlocked_index() -> int:
 	while i < c.size() and is_done(c[i].id):
 		i += 1
 	return i
-
-static func tips_hidden(scenario: String) -> bool:
-	return Array(get_v("tips_hidden", [])).has(scenario)
-
-static func hide_tips(scenario: String) -> void:
-	var h: Array = Array(get_v("tips_hidden", [])).duplicate()
-	if not h.has(scenario):
-		h.append(scenario)
-		set_v("tips_hidden", h)
 
 # ---------- running game ----------
 static func save_game(s: Dictionary, ctx: Dictionary, title: String) -> void:

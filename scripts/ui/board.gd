@@ -58,6 +58,9 @@ var _layers: Array[Layer] = []
 var _night: ColorRect
 var _clouds := []
 var _motes := []
+var _zoom := 0.0 # 0 = whole map, 1 = close-up on _zoom_at (px)
+var _zoom_at := Vector2.ZERO
+const ZOOM := 1.9
 
 class Layer extends Control:
 	var fn: Callable
@@ -135,6 +138,24 @@ func fit(avail: Vector2) -> void:
 func refresh_terrain() -> void:
 	_terrain_dirty = true
 
+## close-up on an exchange: the map scales up around the two tiles (awaitable); unfocus() eases back
+func focus(a: Vector2i, b: Vector2i) -> void:
+	_zoom_at = (Vector2(a + b) / 2.0 + Vector2(0.5, 0.5)) * T
+	var z0 := _zoom
+	await fx.tween(300.0, func(k: float) -> void: _zoom = lerpf(z0, 1.0, 1.0 - pow(1.0 - k, 3.0)))
+
+func unfocus() -> void:
+	var z0 := _zoom
+	await fx.tween(260.0, func(k: float) -> void: _zoom = lerpf(z0, 0.0, k * k * (3.0 - 2.0 * k)))
+
+func _apply_zoom(shake: Vector2) -> void:
+	var sc := lerpf(1.0, ZOOM, _zoom)
+	var p := (size / 2.0 - _zoom_at * sc) * _zoom
+	p = p.clamp(size - size * sc, Vector2.ZERO) # never show past the map edge
+	_stage.scale = Vector2(sc, sc)
+	_stage.position = p + shake
+	clip_contents = _zoom > 0.0
+
 ## a tile's rectangle in the parent's coordinates (popup placement; Board3D returns its projected footprint)
 func tile_rect(x: int, y: int) -> Rect2:
 	return Rect2(position + Vector2(x * T, y * T), Vector2(T, T))
@@ -155,7 +176,7 @@ func _process(dt: float) -> void:
 		_terrain.bake(Vector2(T * s.w, T * s.h), sc)
 		_terrain_view.queue_redraw()
 	_atlas.ensure(T, sc, s.heroKey)
-	_stage.position = fx.shake_offset(t) * T
+	_apply_zoom(fx.shake_offset(t) * T)
 	for l: Layer in _layers:
 		l.queue_redraw()
 	_night.visible = s.night

@@ -31,6 +31,27 @@ func _draw() -> void:
 
 ## art preview: full-colour per-side figures, assets/units/styles/<fig_style>/<type>_<side>.svg (falls back to the silhouette)
 static var fig_style := ""
+static var _rast := {} # "path@px" -> ImageTexture
+static var _has := {} # path -> bool
+
+## SVG rasterised at the exact on-screen size (8 px steps): no mipmap blur from downscaling a big import
+static func raster(path: String, px: float) -> Texture2D:
+	var b := maxi(16, ceili(px / 8.0) * 8)
+	var key := "%s@%d" % [path, b]
+	if not _rast.has(key):
+		if _rast.size() > 96:
+			_rast.clear()
+		var img := Image.new()
+		var src := FileAccess.get_file_as_string(path)
+		if src == "" or img.load_svg_from_string(src, b / 256.0) != OK:
+			return null
+		_rast[key] = ImageTexture.create_from_image(img)
+	return _rast[key]
+
+static func _exists(path: String) -> bool:
+	if not _has.has(path):
+		_has[path] = FileAccess.file_exists(path)
+	return _has[path]
 
 static func image(path: Variant) -> Texture2D:
 	if path == null or path == "":
@@ -47,9 +68,9 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var hero := p_type == "hero"
 	var foe := hero and p_side == "e"
 	if fig_style != "":
-		var alt := image("res://assets/units/styles/%s/%s_%s.svg" % [fig_style, p_type, p_side])
-		if alt:
-			_standee(ci, c, T, p_side, hero, foe, fac, alt, o.merged({ "color": true }))
+		var alt := "res://assets/units/styles/%s/%s_%s.svg" % [fig_style, p_type, p_side]
+		if _exists(alt):
+			_standee(ci, c, T, p_side, hero, foe, fac, null, o.merged({ "color": true, "svg": alt }))
 			return
 	var fig := image(look.get("fig"))
 	if fig:
@@ -118,6 +139,9 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 	var foot := base - Vector2(0, bob)
 	if colour:
 		h *= 1.12
+		fig = raster(o.svg, h * Baked.screen_scale(ci) * absf(Draw.xf.get_scale().x))
+		if fig == null:
+			return
 	var r := Rect2(-h / 2.0, -h, h, h)
 	ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(flip, 1.0), 0.0, foot))
 	var w := maxf(1.0, T * 0.03)

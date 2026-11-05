@@ -12,6 +12,8 @@ signal info_requested(id: int)
 
 const BUFF_ATK := Color("#ff9a3c") # aura: +10 attack
 const BUFF_DEF := Color("#5cc8ff") # guard: +10 defence
+const BUFF_UP := Color("#5fd35a") # buff arrow (map)
+const BUFF_INK := Color("#1d3a17")
 const GRASS_A := Color("#7da350")
 const GRASS_B := Color("#4c6b30")
 const TRUNK := Color("#4a3420")
@@ -791,33 +793,25 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 
 ## ⚔ / 🛡 pips + a soft ring for units that stand next to a drum / aura hero (+10 atk) or a guard hero (+10 def).
 ## Uses Game.buffs_at, i.e. the very test damage() uses, so what you see is what the forecast counts.
+## buffed unit (drum aura +atk / guard +def): green ground ring + one green up arrow per buff, bobbing
 func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time: float) -> void:
 	var b := Game.buffs_at(s, u, x, y)
-	var pips := []
-	if b.atk:
-		pips.append(BUFF_ATK)
-	if b.def:
-		pips.append(BUFF_DEF)
-	if pips.is_empty():
+	var n := int(b.atk > 0) + int(b.def > 0)
+	if n == 0:
 		return
 	var pulse := 0.5 + 0.5 * sin(time / 300.0 + u.id)
-	for k in pips.size():
-		Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * (0.44 + k * 0.05), T * (0.16 + k * 0.02), Color(pips[k], 0.45 + pulse * 0.4), maxf(1.5, T * 0.035))
-	var r := maxf(6.0, T * 0.12)
-	for k in pips.size():
-		var p := c + Vector2(-T * 0.40, -T * 0.08 + k * r * 2.2)
-		ci.draw_circle(p, r + 1.5, Color(0.06, 0.03, 0.02, 0.9))
-		ci.draw_circle(p, r, pips[k])
-		if pips[k] == BUFF_ATK: # two crossed blades (the ⚔ glyph is not in the fonts at this size)
-			var ink := BLADE_INK
-			var lw := maxf(1.5, r * 0.26)
-			ci.draw_line(p + Vector2(-r * 0.55, r * 0.55), p + Vector2(r * 0.55, -r * 0.55), ink, lw, true)
-			ci.draw_line(p + Vector2(r * 0.55, r * 0.55), p + Vector2(-r * 0.55, -r * 0.55), ink, lw, true)
-			ci.draw_line(p + Vector2(-r * 0.62, r * 0.25), p + Vector2(-r * 0.25, r * 0.62), ink, lw, true)
-			ci.draw_line(p + Vector2(r * 0.62, r * 0.25), p + Vector2(r * 0.25, r * 0.62), ink, lw, true)
-		else:
-			var sh := PackedVector2Array([p + Vector2(-r * 0.55, -r * 0.55), p + Vector2(r * 0.55, -r * 0.55), p + Vector2(r * 0.55, r * 0.05), p + Vector2(0, r * 0.7), p + Vector2(-r * 0.55, r * 0.05)])
-			ci.draw_colored_polygon(sh, SHIELD_INK)
+	Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * 0.44, T * 0.16, Color(BUFF_UP, 0.45 + pulse * 0.4), maxf(1.5, T * 0.035))
+	var h := maxf(12.0, T * 0.3) # arrow height
+	var w := h * 0.62
+	for k in n:
+		var bob := sin(time / 260.0 + u.id + k * 1.3) * h * 0.12
+		var p := c + Vector2(-T * 0.4 + k * w * 0.95, -T * 0.34 + bob) # arrow tip, beside the head
+		var pts := PackedVector2Array([p, p + Vector2(w / 2.0, h * 0.5), p + Vector2(w * 0.2, h * 0.5), p + Vector2(w * 0.2, h),
+			p + Vector2(-w * 0.2, h), p + Vector2(-w * 0.2, h * 0.5), p + Vector2(-w / 2.0, h * 0.5)])
+		var outline := pts.duplicate()
+		outline.append(pts[0])
+		ci.draw_colored_polygon(pts, BUFF_UP)
+		ci.draw_polyline(outline, BUFF_INK, maxf(1.5, T * 0.025), true)
 
 ## light holes + torches follow units / owned buildings / graves: rebuilt only when those change (flicker runs on shader TIME)
 func _update_night() -> void:

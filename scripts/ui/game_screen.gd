@@ -1364,8 +1364,8 @@ func _unit_info(u: Dictionary, full := false) -> void:
 	_info.add_child(Style.Bar.make(u.hp / 100.0, 6, Color("#5fa83c"), Style.GOOD))
 	var r: int = 5 * u.rank
 	var b := Game.buffs_at(s, u, dt[0], dt[1])
-	var atk_txt := "[b]%d[/b]" % (st.atk + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_ATK.to_html(false), b.atk] if b.atk else "")
-	var def_txt := "[b]%d[/b]" % (st.def + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_DEF.to_html(false), b.def] if b.def else "")
+	var atk_txt := "[b]%d[/b]" % (st.atk + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_UP.to_html(false), b.atk] if b.atk else "")
+	var def_txt := "[b]%d[/b]" % (st.def + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_UP.to_html(false), b.def] if b.def else "")
 	_info.add_child(_note("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [atk_txt, def_txt, st.mv, Style.stat_range(st)], Style.MUTED, 14))
 	for line: String in _buff_lines(u, b):
 		_info.add_child(_note(line, Style.INK, 13))
@@ -1398,8 +1398,8 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		_card_box.add_child(Style.Bar.make(u.hp / 100.0, 5, Color("#5fa83c"), Style.GOOD))
 		var r: int = Rules.RULES.rankBonus * u.rank
 		var b := Game.buffs_at(s, u, dt[0], dt[1])
-		var atk_txt := "[b]%d[/b]" % (st.atk + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_ATK.to_html(false), b.atk] if b.atk else "")
-		var def_txt := "[b]%d[/b]" % (st.def + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_DEF.to_html(false), b.def] if b.def else "")
+		var atk_txt := "[b]%d[/b]" % (st.atk + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_UP.to_html(false), b.atk] if b.atk else "")
+		var def_txt := "[b]%d[/b]" % (st.def + r) + (" [color=#%s][b]+%d[/b][/color]" % [Board.BUFF_UP.to_html(false), b.def] if b.def else "")
 		_card_box.add_child(_note("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [atk_txt, def_txt, st.mv, Style.stat_range(st)], Style.MUTED, 14))
 		var id: int = u.id
 		var more := Style.button("📜 Chi tiết", "ChipBtn")
@@ -1431,9 +1431,9 @@ func _render_card(u: Variant, peek: Variant) -> void:
 func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
 	var out := []
 	if b.atk:
-		out.append("[color=#%s]⚔ +%d công[/color] khi ra đòn: đứng cạnh %s." % [Board.BUFF_ATK.to_html(false), b.atk, _name_of(b.atk_from)])
+		out.append("[color=#%s]⚔ +%d công[/color] khi ra đòn: đứng cạnh %s." % [Board.BUFF_UP.to_html(false), b.atk, _name_of(b.atk_from)])
 	if b.def:
-		out.append("[color=#%s]🛡 +%d thủ[/color] khi bị đánh: đứng cạnh %s." % [Board.BUFF_DEF.to_html(false), b.def, _name_of(b.def_from)])
+		out.append("[color=#%s]🛡 +%d thủ[/color] khi bị đánh: đứng cạnh %s." % [Board.BUFF_UP.to_html(false), b.def, _name_of(b.def_from)])
 	return out
 
 ## why the forecast numbers are what they are: every modifier that touches this attack
@@ -1443,7 +1443,7 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	var stg := Game.stat(s, tgt)
 	var bu := Game.buffs_at(s, u, dx, dy)
 	if bu.atk:
-		parts.append("[color=#%s]+%d công[/color] nhờ %s" % [Board.BUFF_ATK.to_html(false), bu.atk, _name_of(bu.atk_from)])
+		parts.append("[color=#%s]+%d công[/color] nhờ %s" % [Board.BUFF_UP.to_html(false), bu.atk, _name_of(bu.atk_from)])
 	if su.get("antiAir", 0) and stg.move == "fly":
 		parts.append("+%d công đánh kỵ binh" % su.antiAir)
 	if u.rank:
@@ -1454,7 +1454,7 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	elif bt.terrain:
 		parts.append("địch được %s +%d thủ" % [Content.terrain(s.tiles[tgt.y][tgt.x]).name.to_lower(), bt.terrain])
 	if bt.def:
-		parts.append("[color=#%s]địch +%d thủ[/color] nhờ %s" % [Board.BUFF_DEF.to_html(false), bt.def, _name_of(bt.def_from)])
+		parts.append("[color=#%s]địch +%d thủ[/color] nhờ %s" % [Board.BUFF_UP.to_html(false), bt.def, _name_of(bt.def_from)])
 	if stg.get("siege", false):
 		parts.append("địch không đánh trả được")
 	return " · ".join(parts)

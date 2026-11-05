@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<defs>
+<linearGradient id="w" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c79a69"/><stop offset="0.35" stop-color="#f0d2a6"/><stop offset="1" stop-color="#a87747"/></linearGradient>
+<linearGradient id="t" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#93362b"/><stop offset="0.35" stop-color="#e58a74"/><stop offset="1" stop-color="#93362b"/></linearGradient>
+<radialGradient id="h" cx="0.38" cy="0.35" r="0.7"><stop offset="0" stop-color="#f6dcb4"/><stop offset="0.7" stop-color="#d6a874"/><stop offset="1" stop-color="#b0804f"/></radialGradient>
+<radialGradient id="m" cx="0.38" cy="0.3" r="0.75"><stop offset="0" stop-color="#d3d9de"/><stop offset="1" stop-color="#7d868e"/></radialGradient>
+<radialGradient id="sh" cx="0.4" cy="0.38" r="0.7"><stop offset="0" stop-color="#e58a74"/><stop offset="1" stop-color="#93362b"/></radialGradient>
+<linearGradient id="d" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9c6e43"/><stop offset="0.4" stop-color="#d8b07f"/><stop offset="1" stop-color="#8a5f38"/></linearGradient>
+</defs>
+<path d="M98 108 Q128 96 158 108 L170 226 Q170 242 128 242 Q86 242 86 226 Z" fill="url(#w)"/>
+<path d="M98 108 Q128 96 158 108 L165 178 Q128 188 91 178 Z" fill="url(#t)"/>
+<path d="M90 172 Q128 184 166 172 L167 184 Q128 196 89 184 Z" fill="#5e4129" opacity="0.85"/>
+<path d="M100 206 Q108 222 104 238 M150 204 Q146 222 152 238 M126 196 Q122 218 128 240" fill="none" stroke="#8a5f38" stroke-width="2" opacity="0.35"/>
+<circle cx="128" cy="68" r="38" fill="url(#h)"/>
+<path d="M90 66 A38 38 0 0 1 166 66 Q128 56 90 66 Z" fill="url(#m)"/>
+<circle cx="128" cy="30" r="6" fill="url(#m)"/>
+<circle cx="140" cy="76" r="4" fill="#3a2a1e"/>
+<circle cx="156" cy="76" r="4" fill="#3a2a1e"/>
+<path d="M142 90 Q149 95 156 90" fill="none" stroke="#3a2a1e" stroke-width="3" stroke-linecap="round"/>
+<rect x="190" y="34" width="10" height="208" rx="5" fill="url(#d)"/>
+<path d="M195 6 L207 38 L183 38 Z" fill="url(#m)"/>
+<ellipse cx="195" cy="148" rx="14" ry="12" fill="url(#h)"/>
+<ellipse cx="88" cy="160" rx="36" ry="40" fill="#8a5f38"/>
+<ellipse cx="85" cy="158" rx="33" ry="37" fill="url(#sh)"/>
+<ellipse cx="85" cy="158" rx="12" ry="13" fill="url(#m)"/>
+<path d="M62 136 Q72 126 86 124" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.35"/>
+</svg>

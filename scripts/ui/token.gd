@@ -29,6 +29,9 @@ func _draw() -> void:
 	Draw.xf = Transform2D.IDENTITY
 	paint(self, Vector2(px / 2.0, px / 2.0 - px * 0.04), px * 0.95, side, type, hero_key, { "mirror": false })
 
+## art preview: full-colour per-side figures, assets/units/styles/<fig_style>/<type>_<side>.svg (falls back to the silhouette)
+static var fig_style := ""
+
 static func image(path: Variant) -> Texture2D:
 	if path == null or path == "":
 		return null
@@ -43,6 +46,11 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var look := Content.unit_type_look(p_side, p_type, p_hero)
 	var hero := p_type == "hero"
 	var foe := hero and p_side == "e"
+	if fig_style != "":
+		var alt := image("res://assets/units/styles/%s/%s_%s.svg" % [fig_style, p_type, p_side])
+		if alt:
+			_standee(ci, c, T, p_side, hero, foe, fac, alt, o.merged({ "color": true }))
+			return
 	var fig := image(look.get("fig"))
 	if fig:
 		_standee(ci, c, T, p_side, hero, foe, fac, fig, o)
@@ -101,16 +109,19 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 		halo(ci, c - Vector2(0, bob), T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
 	var h := T * (0.74 if hero else 0.66)
 	var flip := -1.0 if side == "e" and o.get("mirror", true) else 1.0
-	var col: Color = fac.get("fig", fac.body2)
+	var colour: bool = o.get("color", false) # full-colour art: drawn as is, no faction fill / ink outline
+	var col: Color = Color.WHITE if colour else fac.get("fig", fac.body2)
 	col *= o.get("tint", Color.WHITE)
 	col.a *= al
 	var ink := FIG_INK
 	ink.a *= al
 	var foot := base - Vector2(0, bob)
+	if colour:
+		h *= 1.12
 	var r := Rect2(-h / 2.0, -h, h, h)
 	ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(flip, 1.0), 0.0, foot))
 	var w := maxf(1.0, T * 0.03)
-	for d: Vector2 in [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7, Vector2(-w, w) * 0.7, Vector2(w, w) * 0.7]:
+	for d: Vector2 in ([] if colour else [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7, Vector2(-w, w) * 0.7, Vector2(w, w) * 0.7]):
 		ci.draw_texture_rect(fig, Rect2(r.position + d, r.size), false, ink)
 	ci.draw_texture_rect(fig, r, false, col)
 	var fl: float = o.get("flash", 0.0)

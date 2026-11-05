@@ -110,9 +110,7 @@ func _build() -> void:
 	bh.add_child(_ibtn("Sách lính", "Sách lính", func() -> void: main.menus.open_codex("p")))
 	_btn_speed = _ibtn("x1", "Tốc độ hiệu ứng", _on_speed)
 	bh.add_child(_btn_speed)
-	_btn_battle = _ibtn("⚔", "Cảnh giao chiến khi đánh: bật / tắt", func() -> void:
-		BattleView.set_enabled(not BattleView.enabled())
-		_battle_label())
+	_btn_battle = _ibtn("⚔", "Cảnh giao chiến khi đánh: bật / tắt (phím B). Tắt = đánh ngay trên bàn cờ.", _toggle_battle)
 	bh.add_child(_btn_battle)
 	_battle_label()
 	_btn_sound = _ibtn("🔊", "Âm thanh", func() -> void:
@@ -227,6 +225,10 @@ func _on_speed() -> void:
 	Store.set_v("speed", FX.speed)
 	_speed_label()
 
+func _toggle_battle() -> void:
+	BattleView.set_enabled(not BattleView.enabled())
+	_battle_label()
+
 func _battle_label() -> void:
 	var on := BattleView.enabled()
 	_btn_battle.add_theme_color_override("font_color", Style.INK if on else Style.MUTED)
@@ -304,6 +306,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	visible = true
 	_speed_label()
 	_sound_label()
+	_battle_label()
 	_tips_init()
 	_fit.call_deferred()
 	board.refresh_terrain()
@@ -570,6 +573,8 @@ func _unhandled_input(ev: InputEvent) -> void:
 			end_player_turn()
 		KEY_H:
 			_on_hint()
+		KEY_B:
+			_toggle_battle()
 		_:
 			return
 	get_viewport().set_input_as_handled()

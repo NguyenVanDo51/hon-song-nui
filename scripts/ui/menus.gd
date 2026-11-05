@@ -204,10 +204,16 @@ func show_title() -> void:
 	var tg := Style.hbox(8)
 	var snd := Style.button("Âm thanh", "ChipBtn")
 	var mus := Style.button("Nhạc nền", "ChipBtn")
+	var bat := Style.button("Cảnh đánh", "ChipBtn")
+	bat.tooltip_text = "Mỗi lần đánh chuyển sang cảnh giao chiến riêng. Tắt: đánh ngay trên bàn cờ (nhanh hơn)."
 	var sync := func() -> void:
 		var a: Variant = main.get("audio") if main else null
 		snd.theme_type_variation = "ChipOn" if a == null or not a.muted else "ChipBtn"
 		mus.theme_type_variation = "ChipOn" if a == null or a.music_on else "ChipBtn"
+		bat.theme_type_variation = "ChipOn" if BattleView.enabled() else "ChipBtn"
+	_on(bat, func() -> void:
+		BattleView.set_enabled(not BattleView.enabled())
+		sync.call())
 	_on(snd, func() -> void:
 		if main and main.get("audio"):
 			main.audio.set_muted(not main.audio.muted)
@@ -219,6 +225,7 @@ func show_title() -> void:
 	sync.call()
 	tg.add_child(snd)
 	tg.add_child(mus)
+	tg.add_child(bat)
 	tg.add_child(_on(Style.button("Ghi công", "ChipBtn"), _open_credits))
 	v.add_child(tg)
 

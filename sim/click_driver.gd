@@ -163,7 +163,7 @@ func _run() -> void:
 	g._on_tile_clicked(0, 0)
 	ok(g.ui.peek == null, "board click closes the unit card")
 	await process_frame
-	ok(g.board._info_spots.size() == s.units.size(), "every unit has an ⓘ dot (%d/%d)" % [g.board._info_spots.size(), s.units.size()])
+	ok(g.board._info_spots.is_empty(), "no ⓘ dots on the figures (details live in the corner card)")
 	# new-unit intro card (Store untouched: called directly)
 	g._intro_card(any_u, 0, 1)
 	await process_frame

@@ -676,7 +676,6 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 				Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * 0.52), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
 			if it.alpha < 0 and off == null and not v.busy and not it.has("die"):
 				_draw_buffs(ci, u, c, int(round(x)), int(round(y)), time)
-				_draw_info_dot(ci, u, c)
 
 ## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
 ## striking leans into the blow (fx.offsets), getting hit shoves it back (fx.knock), dying topples it over (ghost),
@@ -778,16 +777,6 @@ func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time
 		else:
 			var sh := PackedVector2Array([p + Vector2(-r * 0.55, -r * 0.55), p + Vector2(r * 0.55, -r * 0.55), p + Vector2(r * 0.55, r * 0.05), p + Vector2(0, r * 0.7), p + Vector2(-r * 0.55, r * 0.05)])
 			ci.draw_colored_polygon(sh, SHIELD_INK)
-
-## small ⓘ on the top-right of every token; clicking it opens the unit card (board → info_requested)
-func _draw_info_dot(ci: CanvasItem, u: Dictionary, c: Vector2) -> void:
-	var p := c + Vector2(T * 0.38, -T * 0.36)
-	var r := maxf(7.0, T * 0.11)
-	var hot: bool = hover != null and _info_hit_id == u.id
-	ci.draw_circle(p, r + 1.0, Color(0.06, 0.03, 0.02, 0.85 if hot else 0.6))
-	ci.draw_arc(p, r, 0, TAU, 20, Color(Style.GOLD, 0.95 if hot else 0.55), maxf(1.0, T * 0.018), true)
-	Draw.text_c(ci, Style.xbold, p + Vector2(0, r * 0.05), "i", int(round(r * 1.4)), Color(Style.INK, 1.0 if hot else 0.8))
-	_info_spots.append([p, u.id])
 
 ## light holes + torches follow units / owned buildings / graves: rebuilt only when those change (flicker runs on shader TIME)
 func _update_night() -> void:

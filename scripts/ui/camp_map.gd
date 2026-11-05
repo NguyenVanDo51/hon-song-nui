@@ -198,6 +198,7 @@ func _xf(pts: PackedVector2Array) -> PackedVector2Array:
 	return out
 
 func _draw() -> void:
+	Draw.xf = Transform2D.IDENTITY
 	var ch: Dictionary = Content.theme().chapter
 	var s := _scale()
 	var fp: Dictionary = Content.theme().factions.p

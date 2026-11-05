@@ -2,6 +2,55 @@ class_name Draw
 extends RefCounted
 ## canvas helpers the Canvas2D original had for free: ellipses, multi-stop radial / linear gradients (vertex colors), curves.
 
+## transform the current item is drawn with. draw_set_transform* is absolute, so nested helpers compose with this
+## (painters that set a transform go through set_xf; every Layer resets it at the start of its _draw)
+static var xf := Transform2D.IDENTITY
+## font sizes text is rasterised at: each distinct (size, outline) is a glyph cache that is never freed, so other
+## sizes are drawn at the next step up and scaled down
+const SIZES := [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+	36, 40, 44, 48, 56, 64, 72, 80, 96, 112, 128, 160, 192, 256]
+static var _pal_key := ""
+static var _pal := {}
+static var _cols := {}
+
+static func set_xf(ci: CanvasItem, m: Transform2D) -> void:
+	xf = m
+	ci.draw_set_transform_matrix(m)
+
+## smallest step >= size
+static func font_size(size: float) -> int:
+	var n := int(ceil(size - 0.01))
+	for q: int in SIZES:
+		if q >= n:
+			return q
+	return SIZES[SIZES.size() - 1]
+
+## "#rrggbb" -> Color, parsed once
+static func col(hex: String) -> Color:
+	var c: Variant = _cols.get(hex)
+	if c == null:
+		c = Color(hex)
+		_cols[hex] = c
+	return c
+
+## the active chapter's theme with every "#..." string pre-parsed into a Color (factions, terrain, units).
+## Rebuilt when Content.use_chapter switches chapter.
+static func pal() -> Dictionary:
+	if _pal_key != Content.active_chapter or _pal.is_empty():
+		_pal_key = Content.active_chapter
+		_pal = _parse(Content.theme())
+	return _pal
+
+static func _parse(v: Variant) -> Variant:
+	if v is Dictionary:
+		var out := {}
+		for k: Variant in v:
+			out[k] = _parse(v[k])
+		return out
+	if v is String and v.begins_with("#") and Color.html_is_valid(v):
+		return Color(v)
+	return v
+
 static func arc_points(c: Vector2, rx: float, ry: float, a0 := 0.0, a1 := TAU, rot := 0.0, seg := 28) -> PackedVector2Array:
 	var pts := PackedVector2Array()
 	var tr := Transform2D(rot, c)
@@ -88,18 +137,36 @@ static func cubic(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, n := 16) -
 		out.append(p0 * u * u * u + p1 * 3 * u * u * t + p2 * 3 * u * t * t + p3 * t * t * t)
 	return out
 
-## text centred on pos (both axes) with optional outline
-static func text_c(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, outline := 0, outline_col := Color.BLACK) -> void:
-	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	var base := pos + Vector2(-w / 2.0, (font.get_ascent(size) - font.get_descent(size)) / 2.0)
-	if outline > 0:
-		ci.draw_string_outline(font, base, s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, outline, outline_col)
-	ci.draw_string(font, base, s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+## text centred on pos (both axes) with optional outline. scale draws the size-`size` text scaled (animated pops)
+static func text_c(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, outline := 0, outline_col := Color.BLACK, scale := 1.0) -> void:
+	_text(ci, font, pos, s, size, color, 0.5, 0.5, outline, outline_col, scale)
 
 ## text with the given anchor: ax 0 left / 0.5 centre / 1 right; top = true puts pos at the text top, else baseline
-static func text_a(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, ax := 0.0, top := false, outline := 0, outline_col := Color.BLACK) -> void:
-	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
-	var base := pos + Vector2(-w * ax, font.get_ascent(size) if top else 0.0)
-	if outline > 0:
-		ci.draw_string_outline(font, base, s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, outline, outline_col)
-	ci.draw_string(font, base, s, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
+static func text_a(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, ax := 0.0, top := false, outline := 0, outline_col := Color.BLACK, scale := 1.0) -> void:
+	_text(ci, font, pos, s, size, color, ax, 1.0 if top else 0.0, outline, outline_col, scale)
+
+## ay: 0.5 = vertically centred on pos, 1 = pos is the top, 0 = pos is the baseline
+static func _text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, ax: float, ay: float, outline: int, outline_col: Color, scale: float) -> void:
+	if size <= 0 or size * scale < 1.0:
+		return
+	var q := font_size(size) # scale animates without picking another size
+	var k := size * scale / q
+	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, q).x
+	var dy := 0.0
+	if ay == 0.5:
+		dy = (font.get_ascent(q) - font.get_descent(q)) / 2.0
+	elif ay == 1.0:
+		dy = font.get_ascent(q)
+	var ol := maxi(1, int(round(float(outline) * q / size))) if outline > 0 else 0
+	if is_equal_approx(k, 1.0):
+		var base := pos + Vector2(-w * ax, dy)
+		if ol > 0:
+			ci.draw_string_outline(font, base, s, HORIZONTAL_ALIGNMENT_LEFT, -1, q, ol, outline_col)
+		ci.draw_string(font, base, s, HORIZONTAL_ALIGNMENT_LEFT, -1, q, color)
+		return
+	ci.draw_set_transform_matrix(xf * Transform2D(0.0, Vector2(k, k), 0.0, pos))
+	var b := Vector2(-w * ax, dy)
+	if ol > 0:
+		ci.draw_string_outline(font, b, s, HORIZONTAL_ALIGNMENT_LEFT, -1, q, ol, outline_col)
+	ci.draw_string(font, b, s, HORIZONTAL_ALIGNMENT_LEFT, -1, q, color)
+	ci.draw_set_transform_matrix(xf)

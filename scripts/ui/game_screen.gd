@@ -363,7 +363,7 @@ func leave() -> void:
 		FX.speed = _user_speed
 	_btn_ff.visible = false
 	gen += 1
-	battle.skip()
+	battle.close()
 	if _intro_layer != null:
 		_intro_closed.emit()
 	visible = false

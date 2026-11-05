@@ -1,9 +1,11 @@
 class_name Audio
 extends Node
-## synthesized SFX + pentatonic ambient music, no audio files (port of src/ui/audio.js).
+## synthesized SFX + pentatonic ambient music (port of src/ui/audio.js).
 ## Every WebAudio recipe (oscillators with exp pitch ramps + vibrato, filtered noise, gain envelopes) is rendered
-## offline once into an AudioStreamWAV on a worker thread at boot, then played from small player pools.
-## Sounds requested before their buffer is ready are skipped (boot render takes well under a second).
+## offline by tools/bake_sfx.gd into assets/sfx/*.wav; at runtime each sound is loaded on its first play and kept.
+## (Rendering at boot took 1.7 s, and the single-threaded web build ran it on the main thread = blank screen.)
+## Regenerate after changing a recipe: godot --headless --path . -s tools/bake_sfx.gd  (then --import once).
+## A missing file falls back to rendering that one sound on the spot.
 
 const SR := 22050
 const MASTER := 0.8
@@ -48,12 +50,12 @@ const SFX := {
 
 var muted: bool
 var music_on: bool
-var _streams := {} # "s:<sfx>" / "m:<note>" -> AudioStreamWAV, filled from the worker
+const DIR := "res://assets/sfx"
+var _streams := {} # "s:<sfx>" / "m:<note>" -> AudioStreamWAV, filled on first use
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _music_players: Array[AudioStreamPlayer] = []
 var _next_sfx := 0
 var _next_music := 0
-var _task := -1
 var _clock := 0.0
 var _next_beat := 0.1
 var _step := 0
@@ -70,12 +72,6 @@ func _ready() -> void:
 		add_child(m)
 		_music_players.append(m)
 	_apply_volume()
-	_task = WorkerThreadPool.add_task(_synth_all, false, "audio synth")
-
-func _exit_tree() -> void:
-	if _task >= 0:
-		WorkerThreadPool.wait_for_task_completion(_task)
-		_task = -1
 
 func unlock() -> void:
 	pass # browsers needed a user gesture; Godot does not
@@ -83,7 +79,7 @@ func unlock() -> void:
 func play(name: String) -> void:
 	if muted:
 		return
-	var st: AudioStreamWAV = _streams.get("s:" + name)
+	var st := _stream("s:" + name)
 	if st == null:
 		return
 	var p := _sfx_players[_next_sfx]
@@ -147,7 +143,7 @@ func _music_step() -> void:
 func _play_note(key: String) -> void:
 	if muted:
 		return
-	var st: AudioStreamWAV = _streams.get("m:" + key)
+	var st := _stream("m:" + key)
 	if st == null:
 		return
 	var p := _music_players[_next_music]
@@ -158,36 +154,51 @@ func _play_note(key: String) -> void:
 static func note(deg: int) -> float:
 	return BASE * pow(2.0, (SCALE[((deg % 5) + 5) % 5] + 12 * floori(deg / 5.0)) / 12.0)
 
-# ---------- offline synthesis (worker thread) ----------
-func _synth_all() -> void:
-	var rng := RandomNumberGenerator.new()
-	var sfx := {}
+# ---------- baked streams ----------
+static func file_of(key: String) -> String:
+	return "%s/%s.wav" % [DIR, key.replace(":", "_")]
+
+func _stream(key: String) -> AudioStream:
+	var st: Variant = _streams.get(key)
+	if st == null:
+		var path := file_of(key)
+		if ResourceLoader.exists(path):
+			st = load(path)
+		else:
+			var r: Variant = recipes().get(key)
+			if r == null:
+				return null
+			push_warning("audio: %s not baked, rendering it now (run tools/bake_sfx.gd)" % path)
+			st = to_stream(_render(r[0], r[1], RandomNumberGenerator.new()))
+		_streams[key] = st
+	return st
+
+static func to_stream(pcm: PackedByteArray) -> AudioStreamWAV:
+	var w := AudioStreamWAV.new()
+	w.format = AudioStreamWAV.FORMAT_16_BITS
+	w.mix_rate = SR
+	w.stereo = false
+	w.data = pcm
+	return w
+
+## every sound: key -> [recipe parts, bus gain]. "s:<name>" = SFX (Audio.play names), "m:<note>" = music
+static func recipes() -> Dictionary:
+	var out := {}
 	for name: String in SFX:
-		sfx["s:" + name] = _render(SFX[name], SFX_GAIN * MASTER, rng)
-	_install.call_deferred(sfx)
-	var mus := {}
+		out["s:" + name] = [SFX[name], SFX_GAIN * MASTER]
 	var g := MUSIC_GAIN * MASTER
 	for d in 10:
 		var f := note(d)
 		var main := { "f": f, "type": "sine", "dur": BEAT * 1.8, "vol": 0.5, "attack": 0.04, "vib": 3 }
-		mus["m:n%d" % d] = _render([["tone", main]], g, rng)
+		out["m:n%d" % d] = [[["tone", main]], g]
 		var gl := main.duplicate()
 		gl.f = f * 0.94
 		gl.f2 = f
-		mus["m:g%d" % d] = _render([["tone", gl]], g, rng)
-		mus["m:o%d" % d] = _render([["tone", { "f": f * 2, "type": "sine", "dur": BEAT * 1.2, "vol": 0.08, "attack": 0.04 }]], g, rng)
-	mus["m:bass"] = _render([["tone", { "f": BASE / 2, "f2": BASE / 2.2, "type": "sine", "dur": 0.6, "vol": 0.4 }]], g, rng)
-	mus["m:thump"] = _render([["tone", { "f": 70, "f2": 45, "type": "sine", "dur": 0.4, "vol": 0.5 }]], g, rng)
-	_install.call_deferred(mus)
-
-func _install(bufs: Dictionary) -> void:
-	for key: String in bufs:
-		var w := AudioStreamWAV.new()
-		w.format = AudioStreamWAV.FORMAT_16_BITS
-		w.mix_rate = SR
-		w.stereo = false
-		w.data = bufs[key]
-		_streams[key] = w
+		out["m:g%d" % d] = [[["tone", gl]], g]
+		out["m:o%d" % d] = [[["tone", { "f": f * 2, "type": "sine", "dur": BEAT * 1.2, "vol": 0.08, "attack": 0.04 }]], g]
+	out["m:bass"] = [[["tone", { "f": BASE / 2, "f2": BASE / 2.2, "type": "sine", "dur": 0.6, "vol": 0.4 }]], g]
+	out["m:thump"] = [[["tone", { "f": 70, "f2": 45, "type": "sine", "dur": 0.4, "vol": 0.5 }]], g]
+	return out
 
 ## mix every part of a recipe into one buffer, scaled by the bus gain; returns 16-bit PCM bytes
 static func _render(parts: Array, gain: float, rng: RandomNumberGenerator) -> PackedByteArray:

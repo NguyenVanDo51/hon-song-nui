@@ -2,7 +2,8 @@ class_name Board
 extends Control
 ## the battlefield: cached terrain layer + animated water, buildings, fallen soldiers, overlays, units, effects, night, ambience.
 ## Looks come from the theme; any unit / terrain "img" replaces the procedural drawing. Port of src/ui/render.js.
-## Layers (bottom -> top): terrain (redrawn only on fit = cached) | dyn | fx normal | fx additive | numbers | night | ambient.
+## Layers (bottom -> top): terrain (baked once into a texture on fit / refresh) | dyn | fx normal | fx additive | numbers | night | ambient.
+## Units are drawn from a pre-rendered Token.Atlas. Nothing is drawn while the duel view covers the board.
 
 signal tile_clicked(x: int, y: int)
 signal hover_changed(tile: Variant)
@@ -11,6 +12,31 @@ signal info_requested(id: int)
 
 const BUFF_ATK := Color("#ff9a3c") # aura: +10 attack
 const BUFF_DEF := Color("#5cc8ff") # guard: +10 defence
+const GRASS_A := Color("#7da350")
+const GRASS_B := Color("#4c6b30")
+const TRUNK := Color("#4a3420")
+const DOOR := Color("#3a2a1c")
+const GATE := Color("#2d2219")
+const POLE := Color("#3b3026")
+const FLAG_N := Color("#a89b84")
+const GOAL := Color("#ffd166")
+const SPEAR := Color("#5e4124")
+const BLADE := Color("#c9c2b0")
+const CLOTH := Color("#b8322a")
+const SHIELD := Color("#7a5a34")
+const SHIELD_RIM := Color("#c9a35e")
+const RING_SEL := Color("#bfe4ff")
+const ATTACK := Color("#ff7a5f")
+const TARGET := Color("#ffe08a")
+const PATH := Color("#ffe9a8")
+const BUY := Color("#ffd166")
+const HP_HI := Color("#8fd16a")
+const HP_MID := Color("#ffd166")
+const HP_LO := Color("#ff6b57")
+const STAR := Color("#ffd166")
+const STAR_INK := Color("#2a1606")
+const BLADE_INK := Color("#2a1206")
+const SHIELD_INK := Color("#0b2330")
 
 var s: Dictionary = {}
 var fx: FX
@@ -22,7 +48,12 @@ var hover: Variant = null
 var _info_spots := [] # [[centre, unit id]] of the ⓘ dots drawn this frame
 var _info_hit_id := -1
 var _stage: Control
-var _terrain: Layer
+var _terrain: Baked # offscreen render of the static terrain
+var _terrain_view: Layer # draws that texture
+var _terrain_dirty := true
+var _scale := 0.0 # screen px per canvas unit the terrain / tokens were baked at
+var _atlas: Token.Atlas
+var _night_key := -1
 var _layers: Array[Layer] = []
 var _night: ColorRect
 var _clouds := []
@@ -31,6 +62,7 @@ var _motes := []
 class Layer extends Control:
 	var fn: Callable
 	func _draw() -> void:
+		Draw.xf = Transform2D.IDENTITY
 		fn.call(self)
 
 static func hash01(x: int, y: int, n: int) -> float:
@@ -43,7 +75,13 @@ func _init() -> void:
 	_stage = Control.new()
 	_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_stage)
-	_terrain = _layer(_draw_terrain)
+	_terrain = Baked.new(_draw_terrain)
+	add_child(_terrain)
+	_terrain_view = _layer(func(ci: CanvasItem) -> void:
+		if not s.is_empty():
+			ci.draw_texture_rect(_terrain.get_texture(), Rect2(Vector2.ZERO, ci.size), false))
+	_terrain_view.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST # baked 1:1 with screen pixels
+	_atlas = Token.Atlas.new(self)
 	_layers.append(_layer(_draw_dyn))
 	_layers.append(_layer(func(ci: CanvasItem) -> void: fx.draw_over(ci, T, FX.now())))
 	var add := _layer(func(ci: CanvasItem) -> void: fx.draw_add(ci, T, FX.now()))
@@ -77,6 +115,8 @@ func _layer(fn: Callable) -> Layer:
 func set_state(state: Dictionary) -> void:
 	s = state
 	_motes.clear()
+	_terrain_dirty = true
+	_night_key = -1
 
 ## pick the tile size for the space available
 func fit(avail: Vector2) -> void:
@@ -87,24 +127,37 @@ func fit(avail: Vector2) -> void:
 	custom_minimum_size = px
 	size = px
 	_stage.size = px
-	for l: Control in [_terrain, _night] + _layers:
+	for l: Control in [_terrain_view, _night] + _layers:
 		l.size = px
-	_terrain.queue_redraw()
+	_terrain_dirty = true
+	_night_key = -1
 
 func refresh_terrain() -> void:
-	_terrain.queue_redraw()
+	_terrain_dirty = true
 
-func _process(_dt: float) -> void:
+func _process(dt: float) -> void:
 	if s.is_empty() or not is_visible_in_tree():
 		return
 	var t := FX.now()
 	fx.update(t)
+	# the duel view covers the whole screen: draw nothing underneath (it otherwise kept ~2000 draw calls alive)
+	_stage.visible = not BattleView.covering
+	if BattleView.covering:
+		return
+	var sc := Baked.screen_scale(self)
+	if _terrain_dirty or not is_equal_approx(sc, _scale):
+		_terrain_dirty = false
+		_scale = sc
+		_terrain.bake(Vector2(T * s.w, T * s.h), sc)
+		_terrain_view.queue_redraw()
+	_atlas.ensure(T, sc, s.heroKey)
 	_stage.position = fx.shake_offset(t) * T
 	for l: Layer in _layers:
 		l.queue_redraw()
 	_night.visible = s.night
 	if s.night:
-		_update_night(t)
+		_update_night()
+		_drift_motes(dt)
 
 # ---------- input ----------
 func _tile_at_mouse(p: Vector2) -> Variant:
@@ -233,7 +286,7 @@ func _paint(ci: CanvasItem, kind: String, X: float, Y: float, p: Dictionary, x: 
 			ci.draw_rect(Rect2(X, Y, T, T), Color(p.base)) # grass under the track (_draw_roads paints the dirt)
 			for i in 4:
 				ci.draw_rect(Rect2(X + hash01(x, y, i) * T, Y + hash01(x, y, i + 20) * T, maxf(1.0, T / 30.0), maxf(2.0, T / 14.0)),
-					Color("#7da350") if hash01(x, y, i + 9) > 0.5 else Color("#4c6b30"))
+					GRASS_A if hash01(x, y, i + 9) > 0.5 else GRASS_B)
 		"field", "village":
 			ci.draw_rect(Rect2(X, Y, T, T), Color(p.base))
 			for i in range(1, 5):
@@ -242,7 +295,7 @@ func _paint(ci: CanvasItem, kind: String, X: float, Y: float, p: Dictionary, x: 
 					Color(p.line), maxf(1.0, T / 40.0), true)
 			for i in 6:
 				ci.draw_rect(Rect2(X + hash01(x, y, i) * T, Y + hash01(x, y, i + 20) * T, maxf(1.0, T / 30.0), maxf(2.0, T / 14.0)),
-					Color("#7da350") if hash01(x, y, i + 9) > 0.5 else Color("#4c6b30"))
+					GRASS_A if hash01(x, y, i + 9) > 0.5 else GRASS_B)
 		"forest":
 			ci.draw_rect(Rect2(X, Y, T, T), Color(p.base))
 			var trees := [[0.25, 0.42], [0.72, 0.38], [0.5, 0.68], [0.2, 0.86], [0.8, 0.84]]
@@ -251,7 +304,7 @@ func _paint(ci: CanvasItem, kind: String, X: float, Y: float, p: Dictionary, x: 
 				var by: float = Y + T * trees[i][1]
 				var h := T * (0.36 + hash01(x, y, i + 5) * 0.1)
 				Draw.ellipse(ci, Vector2(cx + T * 0.04, by + T * 0.02), h * 0.38, h * 0.12, Color(0, 0, 0, 0.2), 0.0, 14)
-				ci.draw_rect(Rect2(cx - T * 0.015, by - h * 0.15, T * 0.03, h * 0.18), Color("#4a3420"))
+				ci.draw_rect(Rect2(cx - T * 0.015, by - h * 0.15, T * 0.03, h * 0.18), TRUNK)
 				ci.draw_colored_polygon(PackedVector2Array([Vector2(cx, by - h), Vector2(cx - h * 0.36, by - h * 0.12), Vector2(cx + h * 0.36, by - h * 0.12)]), Color(p.tree))
 				ci.draw_colored_polygon(PackedVector2Array([Vector2(cx, by - h), Vector2(cx - h * 0.05, by - h * 0.12), Vector2(cx + h * 0.36, by - h * 0.12)]), Color(p.tree2))
 		"hill":
@@ -340,36 +393,36 @@ static func _join(parts: Array) -> PackedVector2Array:
 	return out
 
 func _draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, time: float, x: int, y: int) -> void:
-	var facs: Dictionary = Content.theme().factions
-	var fac: Dictionary = facs.get(own, facs.n)
-	var p: Dictionary = Content.terrain(t)
+	var pal := Draw.pal()
+	var fac: Dictionary = pal.factions.get(own, pal.factions.n)
+	var p: Dictionary = pal.terrain[t]
 	var P := func(a: float, b: float) -> Vector2: return Vector2(X + T * a, Y + T * b)
 	if t == "v":
 		Draw.ellipse(ci, P.call(0.52, 0.84), T * 0.34, T * 0.08, Color(0, 0, 0, 0.27))
-		ci.draw_rect(Rect2(P.call(0.26, 0.5), Vector2(T * 0.5, T * 0.32)), Color(p.wall))
-		ci.draw_rect(Rect2(P.call(0.46, 0.62), Vector2(T * 0.1, T * 0.2)), Color("#3a2a1c"))
+		ci.draw_rect(Rect2(P.call(0.26, 0.5), Vector2(T * 0.5, T * 0.32)), p.wall)
+		ci.draw_rect(Rect2(P.call(0.46, 0.62), Vector2(T * 0.1, T * 0.2)), DOOR)
 		# curved roof (đình style)
 		var roof := _join([Draw.quad(P.call(0.12, 0.5), P.call(0.2, 0.46), P.call(0.3, 0.3), 6),
 			Draw.quad(P.call(0.72, 0.3), P.call(0.82, 0.46), P.call(0.92, 0.42), 6),
 			PackedVector2Array([P.call(0.84, 0.54), P.call(0.2, 0.54)])])
-		ci.draw_colored_polygon(roof, Color(fac.roof))
+		ci.draw_colored_polygon(roof, fac.roof)
 		ci.draw_rect(Rect2(P.call(0.2, 0.5), Vector2(T * 0.64, T * 0.04)), Color(0, 0, 0, 0.2))
 		if own != "n":
 			Draw.glow(ci, P.call(0.51, 0.72), T * 0.12, Color(1, 0.85, 0.54, 0.8))
 	elif t == "c":
-		ci.draw_rect(Rect2(P.call(0.12, 0.42), Vector2(T * 0.76, T * 0.46)), Color(p.wall2))
-		ci.draw_rect(Rect2(P.call(0.12, 0.42), Vector2(T * 0.76, T * 0.06)), Color(p.wall))
+		ci.draw_rect(Rect2(P.call(0.12, 0.42), Vector2(T * 0.76, T * 0.46)), p.wall2)
+		ci.draw_rect(Rect2(P.call(0.12, 0.42), Vector2(T * 0.76, T * 0.06)), p.wall)
 		for i in 4:
-			ci.draw_rect(Rect2(P.call(0.12 + 0.21 * i, 0.32), Vector2(T * 0.13, T * 0.12)), Color(p.wall))
+			ci.draw_rect(Rect2(P.call(0.12 + 0.21 * i, 0.32), Vector2(T * 0.13, T * 0.12)), p.wall)
 		# gate tower roof
 		var roof := _join([PackedVector2Array([P.call(0.26, 0.34)]), Draw.quad(P.call(0.26, 0.34), P.call(0.34, 0.3), P.call(0.38, 0.18), 6),
 			Draw.quad(P.call(0.62, 0.18), P.call(0.66, 0.3), P.call(0.74, 0.34), 6)])
-		ci.draw_colored_polygon(roof, Color(fac.roof))
-		ci.draw_colored_polygon(Draw.arc_points(P.call(0.5, 0.88), T * 0.14, T * 0.14, PI, TAU, 0.0, 12), Color("#2d2219"))
+		ci.draw_colored_polygon(roof, fac.roof)
+		ci.draw_colored_polygon(Draw.arc_points(P.call(0.5, 0.88), T * 0.14, T * 0.14, PI, TAU, 0.0, 12), GATE)
 		# flag
 		var wave := sin(time / 260.0 + x + y) * T * 0.03
-		ci.draw_line(P.call(0.5, 0.18), P.call(0.5, -0.06), Color("#3b3026"), maxf(1.0, T / 30.0))
-		var flag_col := Color("#a89b84") if own == "n" else Color(fac.glow)
+		ci.draw_line(P.call(0.5, 0.18), P.call(0.5, -0.06), POLE, maxf(1.0, T / 30.0))
+		var flag_col: Color = FLAG_N if own == "n" else fac.glow
 		var top: Vector2 = P.call(0.5, -0.06)
 		var tip := Vector2(X + T * 0.8, Y + wave * 1.5)
 		var flag := _join([Draw.quad(top, Vector2(X + T * 0.64, Y - T * 0.06 + wave), tip, 6),
@@ -382,23 +435,23 @@ func _draw_goal(ci: CanvasItem, X: float, Y: float, time: float) -> void:
 	ci.draw_rect(Rect2(X + 2, Y + 2, T - 4, T - 4), Color(1, 0.84, 0.4, 0.12 + 0.12 * pulse))
 	ci.draw_rect(Rect2(X + 2, Y + 2, T - 4, T - 4), Color(1, 0.84, 0.4, 0.6 + 0.4 * pulse), false, maxf(2.0, T * 0.06))
 	var wave := sin(time / 240.0) * T * 0.03
-	ci.draw_line(Vector2(X + T * 0.22, Y + T * 0.92), Vector2(X + T * 0.22, Y + T * 0.08), Color("#3b3026"), maxf(1.5, T / 26.0))
+	ci.draw_line(Vector2(X + T * 0.22, Y + T * 0.92), Vector2(X + T * 0.22, Y + T * 0.08), POLE, maxf(1.5, T / 26.0))
 	ci.draw_colored_polygon(PackedVector2Array([Vector2(X + T * 0.22, Y + T * 0.08), Vector2(X + T * 0.5, Y + T * 0.14 + wave),
-		Vector2(X + T * 0.22, Y + T * 0.28)]), Color("#ffd166"))
+		Vector2(X + T * 0.22, Y + T * 0.28)]), GOAL)
 
 ## fallen soldier: spear planted in the ground, dropped round shield, slow breathing red cloth
 func _draw_grave(ci: CanvasItem, X: float, Y: float, time: float) -> void:
 	var P := func(a: float, b: float) -> Vector2: return Vector2(X + T * a, Y + T * b)
 	Draw.ellipse(ci, P.call(0.5, 0.8), T * 0.32, T * 0.1, Color(0, 0, 0, 0.33))
-	ci.draw_line(P.call(0.62, 0.8), P.call(0.7, 0.18), Color("#5e4124"), maxf(1.5, T / 22.0), true)
-	ci.draw_colored_polygon(PackedVector2Array([P.call(0.705, 0.06), P.call(0.745, 0.2), P.call(0.67, 0.19)]), Color("#c9c2b0"))
+	ci.draw_line(P.call(0.62, 0.8), P.call(0.7, 0.18), SPEAR, maxf(1.5, T / 22.0), true)
+	ci.draw_colored_polygon(PackedVector2Array([P.call(0.705, 0.06), P.call(0.745, 0.2), P.call(0.67, 0.19)]), BLADE)
 	var sway := sin(time / 520.0) * T * 0.03
 	var cloth := _join([PackedVector2Array([P.call(0.69, 0.24)]), Draw.quad(P.call(0.69, 0.24), Vector2(X + T * 0.82 + sway, Y + T * 0.28), Vector2(X + T * 0.86 + sway, Y + T * 0.38), 6),
 		PackedVector2Array([P.call(0.68, 0.34)])])
-	ci.draw_colored_polygon(cloth, Color("#b8322a"))
-	Draw.ellipse(ci, P.call(0.4, 0.7), T * 0.2, T * 0.11, Color("#7a5a34"), -0.2)
-	Draw.ellipse_line(ci, P.call(0.4, 0.7), T * 0.13, T * 0.07, Color("#c9a35e"), maxf(1.0, T / 36.0), -0.2, 20)
-	ci.draw_circle(P.call(0.4, 0.7), T * 0.03, Color("#c9a35e"))
+	ci.draw_colored_polygon(cloth, CLOTH)
+	Draw.ellipse(ci, P.call(0.4, 0.7), T * 0.2, T * 0.11, SHIELD, -0.2)
+	Draw.ellipse_line(ci, P.call(0.4, 0.7), T * 0.13, T * 0.07, SHIELD_RIM, maxf(1.0, T / 36.0), -0.2, 20)
+	ci.draw_circle(P.call(0.4, 0.7), T * 0.03, SHIELD_RIM)
 	ci.draw_circle(P.call(0.5, 0.62), T * 0.05, Color(1, 0.86, 0.63, 0.25 + 0.2 * sin(time / 700.0)))
 
 func _cell(ci: CanvasItem, x: int, y: int, fill: Variant, stroke: Variant, lw := 0.07) -> void:
@@ -453,7 +506,7 @@ func _draw_overlays(ci: CanvasItem, time: float) -> void:
 		for r: Dictionary in v.reach.values():
 			_cell(ci, r.x, r.y, Color(0.431, 0.745, 1.0, 0.22 + pulse * 0.08) if mine else Color(1, 1, 1, 0.11), null)
 		if mine:
-			var oc := Color("#bfe4ff")
+			var oc := RING_SEL
 			var lw := maxf(1.5, T / 26.0)
 			for r: Dictionary in v.reach.values():
 				var rx: int = r.x
@@ -463,24 +516,24 @@ func _draw_overlays(ci: CanvasItem, time: float) -> void:
 						continue
 					ci.draw_line(Vector2((rx + e[2]) * T, (ry + e[3]) * T), Vector2((rx + e[4]) * T, (ry + e[5]) * T), oc, lw)
 	for e: Dictionary in v.attackable:
-		_cell(ci, e.x, e.y, Color(0.878, 0.38, 0.298, 0.18 + pulse * 0.14), Color("#ff7a5f"))
+		_cell(ci, e.x, e.y, Color(0.878, 0.38, 0.298, 0.18 + pulse * 0.14), ATTACK)
 	for e: Dictionary in v.targets:
 		var is_t: bool = v.target != null and e.id == v.target
-		_cell(ci, e.x, e.y, Color(0.878, 0.38, 0.298, 0.2 + pulse * 0.15), Color("#ffe08a") if is_t else Color("#ff7a5f"), 0.1 if is_t else 0.07)
+		_cell(ci, e.x, e.y, Color(0.878, 0.38, 0.298, 0.2 + pulse * 0.15), TARGET if is_t else ATTACK, 0.1 if is_t else 0.07)
 	if v.path != null and v.path.size() > 1:
 		var pts := []
 		for p: Array in v.path:
 			pts.append(Vector2((p[0] + 0.5) * T, (p[1] + 0.5) * T))
 		var w := maxf(3.0, T * 0.1)
-		_dashed(ci, pts, Color("#ffe9a8"), w, T * 0.12, T * 0.14, -time / 30.0)
+		_dashed(ci, pts, PATH, w, T * 0.12, T * 0.14, -time / 30.0)
 		for p: Vector2 in pts:
-			ci.draw_circle(p, w * 0.5, Color("#ffe9a8"))
+			ci.draw_circle(p, w * 0.5, PATH)
 	if v.dest != null:
-		_cell(ci, v.dest[0], v.dest[1], Color(1, 0.878, 0.541, 0.16), Color("#ffe08a"))
+		_cell(ci, v.dest[0], v.dest[1], Color(1, 0.878, 0.541, 0.16), TARGET)
 	if v.info != null:
 		_cell(ci, v.info.x, v.info.y, null, Color(0.949, 0.898, 0.788, 0.8), 0.05)
 	if v.buyAt != null:
-		_cell(ci, v.buyAt[0], v.buyAt[1], Color(1, 0.839, 0.4, 0.15 + pulse * 0.15), Color("#ffd166"))
+		_cell(ci, v.buyAt[0], v.buyAt[1], Color(1, 0.839, 0.4, 0.15 + pulse * 0.15), BUY)
 	if v.hover != null and v.dest == null:
 		_cell(ci, v.hover.x, v.hover.y, null, Color(1, 1, 1, 0.33), 0.04)
 	_draw_support_range(ci, pulse)
@@ -545,6 +598,7 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		list.append({ "u": g.u, "x": float(g.u.x), "y": g.u.y - kk * 0.3, "alpha": 1.0 - kk, "scale": 1.0 - kk * 0.3 })
 	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y)
 	var sel_id: int = v.sel.id if v.sel != null else -1
+	var st := ci.get_screen_transform()
 	for it: Dictionary in list:
 		var u: Dictionary = it.u
 		var x: float = it.x
@@ -564,7 +618,11 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		if is_sel:
 			Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * 0.42, T * 0.15, Color(1, 0.878, 0.541, 0.6 + sin(time / 160.0) * 0.4), maxf(2.0, T * 0.06))
 		var alpha: float = it.alpha if it.alpha >= 0 else 1.0
-		Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "bob": bob * 3 if is_sel else bob, "flash": flash, "alpha": alpha })
+		var b := bob * 3 if is_sel else bob
+		if not _atlas.draw(ci, st, c, u.side, u.type, b, it.scale, alpha):
+			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "bob": b, "alpha": alpha })
+		if flash > 0:
+			ci.draw_circle(c - Vector2(0, b), T * it.scale * 0.4, Color(1, 1, 1, minf(1.0, flash) * 0.85))
 		var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
 		if u.get("acted", false) and s.side == u.side and not v.busy:
 			ci.draw_circle(c - Vector2(0, bob), T * 0.41, Color(0.04, 0.024, 0.024, 0.63))
@@ -575,10 +633,10 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			var byy := c.y + T * 0.36
 			if hp < 100:
 				ci.draw_rect(Rect2(bx - 1, byy - 1, w + 2, h + 2), Color(0, 0, 0, 0.73))
-				ci.draw_rect(Rect2(bx, byy, w * maxi(0, hp) / 100.0, h), Color("#8fd16a") if hp > 60 else (Color("#ffd166") if hp > 30 else Color("#ff6b57")))
+				ci.draw_rect(Rect2(bx, byy, w * maxi(0, hp) / 100.0, h), HP_HI if hp > 60 else (HP_MID if hp > 30 else HP_LO))
 				Draw.text_a(ci, Style.xbold, Vector2(c.x + T * 0.48, c.y + T * 0.3), str(maxi(0, hp)), int(round(T * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
 			if u.rank:
-				Draw.text_a(ci, Style.xbold, Vector2(c.x - T * 0.48, c.y - T * 0.5), "★".repeat(u.rank), int(round(T * 0.2)), Color("#ffd166"), 0.0, true, 3, Color("#2a1606"))
+				Draw.text_a(ci, Style.xbold, Vector2(c.x - T * 0.48, c.y - T * 0.5), "★".repeat(u.rank), int(round(T * 0.2)), STAR, 0.0, true, 3, STAR_INK)
 			if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat* below)
 				Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * 0.52), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
 			if it.alpha < 0 and off == null and not v.busy:
@@ -605,7 +663,7 @@ func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time
 		ci.draw_circle(p, r + 1.5, Color(0.06, 0.03, 0.02, 0.9))
 		ci.draw_circle(p, r, pips[k])
 		if pips[k] == BUFF_ATK: # two crossed blades (the ⚔ glyph is not in the fonts at this size)
-			var ink := Color("#2a1206")
+			var ink := BLADE_INK
 			var lw := maxf(1.5, r * 0.26)
 			ci.draw_line(p + Vector2(-r * 0.55, r * 0.55), p + Vector2(r * 0.55, -r * 0.55), ink, lw, true)
 			ci.draw_line(p + Vector2(r * 0.55, r * 0.55), p + Vector2(-r * 0.55, -r * 0.55), ink, lw, true)
@@ -613,7 +671,7 @@ func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time
 			ci.draw_line(p + Vector2(r * 0.62, r * 0.25), p + Vector2(r * 0.25, r * 0.62), ink, lw, true)
 		else:
 			var sh := PackedVector2Array([p + Vector2(-r * 0.55, -r * 0.55), p + Vector2(r * 0.55, -r * 0.55), p + Vector2(r * 0.55, r * 0.05), p + Vector2(0, r * 0.7), p + Vector2(-r * 0.55, r * 0.05)])
-			ci.draw_colored_polygon(sh, Color("#0b2330"))
+			ci.draw_colored_polygon(sh, SHIELD_INK)
 
 ## small ⓘ on the top-right of every token; clicking it opens the unit card (board → info_requested)
 func _draw_info_dot(ci: CanvasItem, u: Dictionary, c: Vector2) -> void:
@@ -625,16 +683,29 @@ func _draw_info_dot(ci: CanvasItem, u: Dictionary, c: Vector2) -> void:
 	Draw.text_c(ci, Style.xbold, p + Vector2(0, r * 0.05), "i", int(round(r * 1.4)), Color(Style.INK, 1.0 if hot else 0.8))
 	_info_spots.append([p, u.id])
 
-func _update_night(time: float) -> void:
+## light holes + torches follow units / owned buildings / graves: rebuilt only when those change (flicker runs on shader TIME)
+func _update_night() -> void:
+	var key: int = int(T * 16.0) * 7919 + s.w * 131 + s.h
+	for u: Dictionary in s.units:
+		if u.side == "p":
+			key = key * 1000003 ^ (u.x * 73856093 + u.y * 19349663 + 1)
+	for k: Vector2i in s.owner:
+		if s.owner[k] == "p":
+			key = key * 1000003 ^ (k.x * 83492791 + k.y * 2654435761 + 2)
+	for g: Dictionary in s.graves:
+		key = key * 1000003 ^ (g.x * 40503 + g.y * 9973 + 3)
+	if key == _night_key:
+		return
+	_night_key = key
 	var lights := PackedVector3Array()
 	var torches := PackedVector2Array()
 	for u: Dictionary in s.units:
 		if u.side == "p":
 			lights.append(Vector3(u.x, u.y, 2.4))
-	for key: Vector2i in s.owner:
-		if s.owner[key] == "p":
-			lights.append(Vector3(key.x, key.y, 1.9))
-			torches.append(Vector2(key))
+	for k: Vector2i in s.owner:
+		if s.owner[k] == "p":
+			lights.append(Vector3(k.x, k.y, 1.9))
+			torches.append(Vector2(k))
 	for g: Dictionary in s.graves:
 		lights.append(Vector3(g.x, g.y, 0.9))
 	lights.resize(mini(lights.size(), 128))
@@ -642,7 +713,6 @@ func _update_night(time: float) -> void:
 	var m: ShaderMaterial = _night.material
 	m.set_shader_parameter("board_px", Vector2(T * s.w, T * s.h))
 	m.set_shader_parameter("tile", T)
-	m.set_shader_parameter("time_ms", fmod(time, 1.0e6))
 	m.set_shader_parameter("n_lights", lights.size())
 	m.set_shader_parameter("lights", lights)
 	m.set_shader_parameter("n_torches", torches.size())
@@ -662,10 +732,16 @@ func _draw_fireflies(ci: CanvasItem) -> void:
 	if s.is_empty() or not s.night:
 		return
 	var time := FX.now()
-	if _motes.size() < 26:
-		_motes.append({ "x": randf() * s.w, "y": randf() * s.h, "p": randf() * 6 })
 	for m: Dictionary in _motes:
-		m.x += sin(time / 900.0 + m.p) * 0.004
-		m.y += cos(time / 1100.0 + m.p) * 0.003
 		var a := (sin(time / 300.0 + m.p * 3) + 1) / 2
 		ci.draw_circle(Vector2(m.x * T, m.y * T), T * 0.035, Color(0.82, 1.0, 0.55, a * 0.8))
+
+## firefly drift, per second (was per drawn frame, so it sped up with the frame rate); tuned to the old 60 fps look
+func _drift_motes(dt: float) -> void:
+	if _motes.size() < 26:
+		_motes.append({ "x": randf() * s.w, "y": randf() * s.h, "p": randf() * 6 })
+	var time := FX.now()
+	var k := minf(dt, 0.1) * 60.0
+	for m: Dictionary in _motes:
+		m.x += sin(time / 900.0 + m.p) * 0.004 * k
+		m.y += cos(time / 1100.0 + m.p) * 0.003 * k

@@ -1,13 +1,17 @@
 class_name Token
 extends Control
 ## unit token: lacquered disc in faction colours + the unit's emoji (or `img` from the theme).
-## The board paints tokens with Token.paint(); menus / panel use a Token control.
+## The board draws tokens from a pre-rendered Token.Atlas; the duel view and menus paint them with Token.paint().
+
+const HERO_GLOW := Color("#ffd76a")
+const HERO_RING := Color("#f3c95c")
 
 var side := "p"
 var type := "soldier"
 var hero_key: Variant = null
 var px := 56.0
 static var _tex := {}
+static var _icon_w := {} # "icon|size" -> width, so the hot path never measures strings
 
 static func make(p_side: String, p_type: String, p_hero: Variant, size := 56.0) -> Token:
 	var t := Token.new()
@@ -20,6 +24,7 @@ static func make(p_side: String, p_type: String, p_hero: Variant, size := 56.0) 
 	return t
 
 func _draw() -> void:
+	Draw.xf = Transform2D.IDENTITY
 	paint(self, Vector2(px / 2.0, px / 2.0 - px * 0.04), px * 0.95, side, type, hero_key, { "mirror": false })
 
 static func image(path: Variant) -> Texture2D:
@@ -29,25 +34,25 @@ static func image(path: Variant) -> Texture2D:
 		_tex[path] = load(path) if ResourceLoader.exists(path) else null
 	return _tex[path]
 
-## o: alpha, bob (px up), glow, flash (0..1), mirror (false = never flip enemy icon)
+## o: alpha, bob (px up), glow, flash (0..1), mirror (false = never flip enemy icon), shadow (false = skip it),
+## halo (false = skip the commander's glow). Composes with the item's current transform (Draw.xf).
 static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: String, p_hero: Variant, o := {}) -> void:
-	var fac: Dictionary = Content.theme().factions[p_side]
+	var fac: Dictionary = Draw.pal().factions[p_side]
 	var look := Content.unit_type_look(p_side, p_type, p_hero)
 	var hero := p_type == "hero"
 	var R := T * 0.4
 	var al: float = o.get("alpha", 1.0)
-	# shadow
-	Draw.ellipse(ci, c + Vector2(0, R * 0.95), R * 0.85, R * 0.28, Color(0, 0, 0, 0.4 * al))
+	if o.get("shadow", true):
+		Draw.ellipse(ci, c + Vector2(0, R * 0.95), R * 0.85, R * 0.28, Color(0, 0, 0, 0.4 * al))
 	var bc := Vector2(c.x, c.y - float(o.get("bob", 0.0)))
-	if hero or o.get("glow", false):
-		var gc := Color("#ffd76a") if hero else Color(fac.glow)
-		Draw.radial(ci, bc, R * 1.5, [[0.0, Color(gc, 0.4 * al)], [0.4, Color(gc, 0.4 * al)], [1.0, Color(gc, 0.0)]], 28)
-	var b1 := Color(fac.body2)
-	var b0 := Color(fac.body)
+	if (hero or o.get("glow", false)) and o.get("halo", true):
+		halo(ci, bc, T, HERO_GLOW if hero else fac.glow, al)
+	var b1: Color = fac.body2
+	var b0: Color = fac.body
 	b1.a *= al
 	b0.a *= al
 	Draw.radial(ci, bc, R, [[0.0, b1], [0.55, b1.lerp(b0, 0.6)], [1.0, b0]], 32, Vector2.ONE, Vector2(-R * 0.35, -R * 0.45))
-	var ring := Color("#f3c95c") if hero else Color(fac.ring)
+	var ring: Color = HERO_RING if hero else fac.ring
 	ring.a *= al
 	ci.draw_arc(bc, R, 0, TAU, 40, ring, maxf(2.5, T * 0.09) if hero else maxf(1.5, T * 0.05), true)
 	if hero:
@@ -59,13 +64,99 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 		ci.draw_texture_rect(tex, Rect2(bc - Vector2(R * 0.85, R * 0.85), Vector2(R * 1.7, R * 1.7)), false, Color(1, 1, 1, al))
 	else:
 		var icon: String = look.get("icon", "?")
-		var fs := int(round(T * 0.46))
-		if p_side == "e" and o.get("mirror", true):
-			ci.draw_set_transform(bc, 0.0, Vector2(-1, 1))
-			Draw.text_c(ci, Style.body, Vector2(0, T * 0.02), icon, fs, Color(1, 1, 1, al))
-			ci.draw_set_transform_matrix(Transform2D.IDENTITY)
-		else:
-			Draw.text_c(ci, Style.body, bc + Vector2(0, T * 0.02), icon, fs, Color(1, 1, 1, al))
+		var fs := Draw.font_size(T * 0.46)
+		var k := T * 0.46 / fs
+		var key := "%s|%d" % [icon, fs]
+		if not _icon_w.has(key):
+			_icon_w[key] = Style.body.get_string_size(icon, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var w: float = _icon_w[key]
+		var dy := (Style.body.get_ascent(fs) - Style.body.get_descent(fs)) / 2.0
+		var flip := -1.0 if p_side == "e" and o.get("mirror", true) else 1.0
+		# icon drawn at a fixed font size, scaled (and mirrored for the enemy) around the disc centre
+		ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(k * flip, k), 0.0, bc + Vector2(0, T * 0.02)))
+		ci.draw_string(Style.body, Vector2(-w / 2.0, dy), icon, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1, 1, 1, al))
+		ci.draw_set_transform_matrix(Draw.xf)
 	var fl: float = o.get("flash", 0.0)
 	if fl > 0:
 		ci.draw_circle(bc, R, Color(1, 1, 1, minf(1.0, fl) * 0.85))
+
+## the commander's soft gold glow behind the disc
+static func halo(ci: CanvasItem, bc: Vector2, T: float, gc: Color, al := 1.0) -> void:
+	var R := T * 0.4
+	Draw.radial(ci, bc, R * 1.5, [[0.0, Color(gc, 0.4 * al)], [0.4, Color(gc, 0.4 * al)], [1.0, Color(gc, 0.0)]], 28)
+
+## every token the board can show (both sides x every unit type, plus the two commanders) rendered once at the
+## board's tile size: a unit then costs one textured quad per frame. Shadow has its own cell (pure black, so the
+## render target's premultiplied alpha draws back exactly); the commander glow stays live (translucent colour).
+class Atlas extends RefCounted:
+	var vp: Baked
+	var T := 0.0
+	var key := ""
+	var cells := {} # "side|type" -> Rect2 in texels
+	var unit := 0.0 # canvas units per cell side
+	var _list := [] # [[cell key, side, type, hero]]
+	var _cpx := 0 # texels per cell side
+	var _cols := 1
+
+	func _init(host: Node) -> void:
+		vp = Baked.new(_paint)
+		host.add_child(vp)
+
+	## (re)render when tile size, screen scale, commanders or chapter changed; cheap no-op otherwise
+	func ensure(p_T: float, scale: float, hero_keys: Dictionary) -> void:
+		var k := "%s|%s|%s|%.3f|%.3f" % [Content.active_chapter, hero_keys.get("p"), hero_keys.get("e"), p_T, scale]
+		if k == key:
+			return
+		key = k
+		T = p_T
+		_list = [["shadow", "p", "", null]]
+		for side: String in ["p", "e"]:
+			for type: String in Content.theme().units[side]:
+				if type != "hero":
+					_list.append(["%s|%s" % [side, type], side, type, null])
+			if hero_keys.get(side) != null:
+				_list.append(["%s|hero" % side, side, "hero", hero_keys[side]])
+		_cpx = ceili(T * 1.04 * scale) + 2
+		unit = (_cpx - 2) / scale
+		_cols = clampi(int(4096.0 / _cpx), 1, 8)
+		var rows := ceili(float(_list.size()) / _cols)
+		cells.clear()
+		for i in _list.size():
+			cells[_list[i][0]] = Rect2((i % _cols) * _cpx + 1, (i / _cols) * _cpx + 1, _cpx - 2, _cpx - 2)
+		vp.bake(Vector2(_cols * _cpx, rows * _cpx) / scale, scale)
+
+	func _paint(ci: CanvasItem) -> void:
+		var scale: float = vp.canvas_transform.get_scale().x
+		for i in _list.size():
+			var it: Array = _list[i]
+			var c := (Vector2(i % _cols, i / _cols) * _cpx + Vector2(_cpx, _cpx) / 2.0) / scale
+			if it[0] == "shadow":
+				var R := T * 0.4
+				Draw.ellipse(ci, c, R * 0.85, R * 0.28, Color(0, 0, 0, 0.4))
+			else:
+				Token.paint(ci, c, T, it[1], it[2], it[3], { "shadow": false, "halo": false })
+
+	func texture() -> Texture2D:
+		return vp.get_texture()
+
+	## shadow at c, disc bobbed up by `bob`; scale / alpha for fading corpses. False when not baked for this unit.
+	## st = ci.get_screen_transform(): unscaled cells land on whole screen pixels, so the texels map 1:1 (no blur)
+	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float) -> bool:
+		var r: Variant = cells.get("%s|%s" % [side, type])
+		if r == null:
+			return false
+		var tex := vp.get_texture()
+		var half := unit * sc / 2.0
+		var R := T * sc * 0.4
+		var bc := c - Vector2(0, bob)
+		var sh := c + Vector2(-half, R * 0.95 - half)
+		var tl := bc - Vector2(half, half)
+		if sc == 1.0:
+			var inv := st.affine_inverse()
+			sh = inv * (st * sh).round()
+			tl = inv * (st * tl).round()
+		ci.draw_texture_rect_region(tex, Rect2(sh, Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
+		if type == "hero":
+			Token.halo(ci, tl + Vector2(half, half), T * sc, Token.HERO_GLOW, alpha)
+		ci.draw_texture_rect_region(tex, Rect2(tl, Vector2(half, half) * 2.0), r, Color(1, 1, 1, alpha))
+		return true

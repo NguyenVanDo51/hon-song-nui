@@ -15,6 +15,8 @@ var rays: Array = []
 var ghosts: Array = []
 var shake_until := 0.0
 var shake_mag := 0.0
+var shake_dur := 1.0
+var _gen := 0 # bumped by clear(): delayed effects of an older scene drop out
 var flash_until := {}
 var offsets := {}
 var _last := 0.0
@@ -29,6 +31,7 @@ func sleep(ms: float) -> void:
 	await get_tree().create_timer(sp(ms) / 1000.0).timeout
 
 func clear() -> void:
+	_gen += 1
 	parts.clear(); projs.clear(); rings.clear(); floats.clear(); rays.clear(); ghosts.clear()
 	flash_until.clear(); offsets.clear(); shake_until = 0.0
 
@@ -56,7 +59,8 @@ func float_text(x: float, y: float, text: String, color: String, dur := 1000.0, 
 
 func shake(mag: float, dur := 260.0) -> void:
 	shake_mag = maxf(shake_mag * 0.5, mag)
-	shake_until = now() + dur
+	shake_dur = maxf(1.0, sp(dur))
+	shake_until = now() + shake_dur
 
 func flash(id: int, dur := 180.0) -> void:
 	flash_until[id] = now() + dur
@@ -130,7 +134,10 @@ func capture(x: int, y: int, side: String) -> void:
 	_play("capture")
 	var c: String = Content.theme().factions[side].glow
 	ring(x, y, c, 700.0, 1.4, 0.12)
-	get_tree().create_timer(sp(150.0) / 1000.0).timeout.connect(func() -> void: ring(x, y, "#ffe39a", 600.0, 1.0, 0.06))
+	var g := _gen
+	get_tree().create_timer(sp(150.0) / 1000.0).timeout.connect(func() -> void:
+		if g == _gen:
+			ring(x, y, "#ffe39a", 600.0, 1.0, 0.06))
 	burst(x, y, 22, { "color": [c, "#ffe39a", "#fff7d6"], "kind": "glow", "vmin": 0.4, "vmax": 1.8, "up": 1.2, "g": -0.4, "lmin": 700.0, "lmax": 1300.0, "smin": 0.03, "smax": 0.06 })
 
 func rank(x: int, y: int) -> void:
@@ -202,7 +209,7 @@ func shake_offset(t: float) -> Vector2:
 	if t > shake_until:
 		shake_mag = 0.0
 		return Vector2.ZERO
-	var m := shake_mag * ((shake_until - t) / 300.0)
+	var m := shake_mag * ((shake_until - t) / shake_dur)
 	return Vector2(randf_range(-m, m), randf_range(-m, m))
 
 func draw_under(ci: CanvasItem, T: float, t: float) -> void:
@@ -222,14 +229,14 @@ func draw_over(ci: CanvasItem, T: float, t: float) -> void:
 		var X := (p + Vector2(0.5, 0.5)) * T
 		if pr.kind == "arrow":
 			var tr := Transform2D((p - q).angle(), X)
-			ci.draw_line(tr * Vector2(-T * 0.3, 0), tr * Vector2(T * 0.12, 0), Color("#3b2a1a"), maxf(1.5, T * 0.04), true)
-			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(T * 0.2, 0), tr * Vector2(T * 0.1, -T * 0.05), tr * Vector2(T * 0.1, T * 0.05)]), Color("#d8d0c0"))
-			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(-T * 0.3, -T * 0.04), tr * Vector2(-T * 0.22, -T * 0.04), tr * Vector2(-T * 0.22, T * 0.04), tr * Vector2(-T * 0.3, T * 0.04)]), Color("#c2412f"))
+			ci.draw_line(tr * Vector2(-T * 0.3, 0), tr * Vector2(T * 0.12, 0), Draw.col("#3b2a1a"), maxf(1.5, T * 0.04), true)
+			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(T * 0.2, 0), tr * Vector2(T * 0.1, -T * 0.05), tr * Vector2(T * 0.1, T * 0.05)]), Draw.col("#d8d0c0"))
+			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(-T * 0.3, -T * 0.04), tr * Vector2(-T * 0.22, -T * 0.04), tr * Vector2(-T * 0.22, T * 0.04), tr * Vector2(-T * 0.3, T * 0.04)]), Draw.col("#c2412f"))
 		elif pr.kind == "rock":
 			var g := Vector2((pr.fx + (pr.tx - pr.fx) * k + 0.5) * T, (pr.fy + (pr.ty - pr.fy) * k + 0.75) * T)
 			Draw.ellipse(ci, g, T * 0.14, T * 0.06, Color(0, 0, 0, 0.33))
-			ci.draw_circle(X, T * 0.13, Color("#8a7a64"))
-			ci.draw_circle(X + Vector2(-T * 0.04, -T * 0.04).rotated(k * 8), T * 0.05, Color("#b3a285"))
+			ci.draw_circle(X, T * 0.13, Draw.col("#8a7a64"))
+			ci.draw_circle(X + Vector2(-T * 0.04, -T * 0.04).rotated(k * 8), T * 0.05, Draw.col("#b3a285"))
 	for p: Dictionary in parts:
 		if p.life < 0 or p.kind in ["glow", "spark"]:
 			continue
@@ -284,7 +291,7 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 		for i in n:
 			var tp: Vector2 = pr.trail[i]
 			ci.draw_circle((tp + Vector2(0.5, 0.5)) * T, maxf(0.5, T * 0.08 * float(i) / n), Color(0.62, 0.48, 1.0, float(i) / n * 0.5))
-		Draw.radial(ci, X, T * 0.22, [[0.0, Color.WHITE], [0.35, Color("#c9a2ff")], [1.0, Color(0.42, 0.24, 1.0, 0.0)]], 20)
+		Draw.radial(ci, X, T * 0.22, [[0.0, Color.WHITE], [0.35, Draw.col("#c9a2ff")], [1.0, Color(0.42, 0.24, 1.0, 0.0)]], 20)
 	for p: Dictionary in parts:
 		if p.life < 0 or not (p.kind in ["glow", "spark"]):
 			continue
@@ -300,6 +307,7 @@ func draw_top(ci: CanvasItem, T: float, t: float) -> void:
 		var pop := 0.6 + (k / 0.15) * 0.7 if k < 0.15 else 1.3 - minf(0.3, (k - 0.15) * 1.5)
 		var col: Color = f.color
 		col.a = 1.0 - (k - 0.7) / 0.3 if k > 0.7 else 1.0
-		var size := int(round(T * (0.46 if f.big else 0.34) * pop))
+		# rasterised once at the pop's peak (1.3) and scaled: an animated font size leaked a glyph cache per size
+		var size := maxi(6, int(round(T * (0.46 if f.big else 0.34) * 1.3)))
 		var pos := Vector2((f.x + 0.5) * T, (f.y + 0.3) * T - k * T * 0.55)
-		Draw.text_c(ci, Style.xbold, pos, f.text, maxi(6, size), col, maxi(3, int(T * 0.08)), Color(0.1, 0.047, 0.024, col.a))
+		Draw.text_c(ci, Style.xbold, pos, f.text, size, col, maxi(3, int(T * 0.08 * 1.3)), Color(0.1, 0.047, 0.024, col.a), pop / 1.3)

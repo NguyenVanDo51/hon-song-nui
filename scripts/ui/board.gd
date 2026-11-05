@@ -644,13 +644,13 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * 0.42, T * 0.15, Color(1, 0.878, 0.541, 0.6 + sin(time / 160.0) * 0.4), maxf(2.0, T * 0.06))
 		var alpha: float = it.alpha if it.alpha >= 0 else 1.0
 		var b := bob * 3 if is_sel else bob
-		if not _atlas.draw(ci, st, c, u.side, u.type, b, it.scale, alpha):
+		var acted: bool = u.get("acted", false) and s.side == u.side and not v.busy
+		var tint := Color(0.42, 0.42, 0.45) if acted else Color.WHITE # done this turn: the piece greys out
+		if flash > 0: # hit: paint live so the piece itself flashes white
+			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "bob": b, "alpha": alpha, "flash": flash })
+		elif not _atlas.draw(ci, st, c, u.side, u.type, b, it.scale, alpha, tint):
 			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "bob": b, "alpha": alpha })
-		if flash > 0:
-			ci.draw_circle(c - Vector2(0, b), T * it.scale * 0.4, Color(1, 1, 1, minf(1.0, flash) * 0.85))
 		var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
-		if u.get("acted", false) and s.side == u.side and not v.busy:
-			ci.draw_circle(c - Vector2(0, bob), T * 0.41, Color(0.04, 0.024, 0.024, 0.63))
 		if it.alpha < 0 or it.alpha > 0.5:
 			var w := T * 0.62
 			var h := maxf(3.0, T * 0.07)

@@ -1,18 +1,19 @@
 extends RefCounted
 ## all names, icons, colors, UI wording. Swap this file to re-skin; scripts/core/rules.gd keeps the numbers.
 ## any unit / hero / terrain may set "img": "res://..." to replace the emoji / procedural drawing.
+## "fig": a white silhouette (SVG) drawn as a standing piece on a small base, in the faction's "fig" colour.
 
 ## the one troop roster, used by both factions (same name + icon; only the faction colour differs)
 const UNITS := {
 	"hero": null,
-	"soldier": { "name": "Bộ binh", "icon": "🗡️", "desc": "Lính cầm giáo. Rẻ, chiếm được làng." },
-	"archer": { "name": "Nỏ thủ", "icon": "🏹", "desc": "Bắn xa 1–2 ô. +20 công khi bắn kỵ binh." },
-	"drum": { "name": "Trống trận", "icon": "🥁", "desc": "Tiếng trống thúc quân: quân đứng cạnh +10 công." },
-	"shaman": { "name": "Thầy lang", "icon": "🌿", "desc": "Tên tẩm thuốc, bỏ qua thủ địa hình. Cứu lính ngã ngay cạnh thành thương binh." },
-	"elephant": { "name": "Voi chiến", "icon": "🐘", "desc": "Thủ dày, đánh mạnh, đi chậm, không lên được núi." },
-	"bird": { "name": "Kỵ binh", "icon": "🐎", "desc": "Ngựa nhẹ: mọi ô chỉ tốn 1, lội được sông. Chạy trống trải nên không được địa hình che." },
-	"catapult": { "name": "Máy bắn đá", "icon": "🪨", "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả." },
-	"ghost": { "name": "Thương binh", "icon": "🩹", "desc": "Lính ngã được thầy lang cứu dậy. Không chiếm được làng." },
+	"soldier": { "name": "Bộ binh", "icon": "🗡️", "fig": "res://assets/units/soldier.svg", "desc": "Lính cầm giáo. Rẻ, chiếm được làng." },
+	"archer": { "name": "Nỏ thủ", "icon": "🏹", "fig": "res://assets/units/archer.svg", "desc": "Bắn xa 1–2 ô. +20 công khi bắn kỵ binh." },
+	"drum": { "name": "Trống trận", "icon": "🥁", "fig": "res://assets/units/drum.svg", "desc": "Tiếng trống thúc quân: quân đứng cạnh +10 công." },
+	"shaman": { "name": "Thầy lang", "icon": "🌿", "fig": "res://assets/units/shaman.svg", "desc": "Tên tẩm thuốc, bỏ qua thủ địa hình. Cứu lính ngã ngay cạnh thành thương binh." },
+	"elephant": { "name": "Voi chiến", "icon": "🐘", "fig": "res://assets/units/elephant.svg", "desc": "Thủ dày, đánh mạnh, đi chậm, không lên được núi." },
+	"bird": { "name": "Kỵ binh", "icon": "🐎", "fig": "res://assets/units/bird.svg", "desc": "Ngựa nhẹ: mọi ô chỉ tốn 1, lội được sông. Chạy trống trải nên không được địa hình che." },
+	"catapult": { "name": "Máy bắn đá", "icon": "🪨", "fig": "res://assets/units/catapult.svg", "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả." },
+	"ghost": { "name": "Thương binh", "icon": "🩹", "fig": "res://assets/units/ghost.svg", "desc": "Lính ngã được thầy lang cứu dậy. Không chiếm được làng." },
 }
 
 const THEME := {
@@ -76,6 +77,7 @@ const THEME := {
 			"ring": "#f0a07c",
 			"glow": "#ff9a6b",
 			"roof": "#c2412f",
+			"fig": "#e0503f", # standing piece silhouette
 		},
 		"e": {
 			"name": "Quân Đông Hán",
@@ -85,6 +87,7 @@ const THEME := {
 			"ring": "#d8c27a",
 			"glow": "#f0d890",
 			"roof": "#3d4a78",
+			"fig": "#5b7bd0",
 		},
 		"n": { "roof": "#7a6a55" },
 	},
@@ -125,12 +128,14 @@ const THEME := {
 			"side": "p",
 			"name": "Anh hùng",
 			"icon": "👑",
+			"fig": "res://assets/units/hero_p.svg",
 			"blurb": "Người cầm quân của ta trong mọi trận. Quen đất trung du: đi đồi núi nhanh, đứng trên đồi, núi +10 thủ.",
 		},
 		"tuonggiac": {
 			"side": "e",
 			"name": "Tướng giặc",
 			"icon": "🪓",
+			"fig": "res://assets/units/hero_e.svg",
 			"blurb": "Kẻ cầm đầu quân giặc trong mọi trận. Có thuyền lầu theo hầu: đi được trên sông.",
 		},
 	},

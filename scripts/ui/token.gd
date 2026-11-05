@@ -43,6 +43,10 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var look := Content.unit_type_look(p_side, p_type, p_hero)
 	var hero := p_type == "hero"
 	var foe := hero and p_side == "e"
+	var fig := image(look.get("fig"))
+	if fig:
+		_standee(ci, c, T, p_side, hero, foe, fac, fig, o)
+		return
 	var R := T * 0.4
 	var al: float = o.get("alpha", 1.0)
 	if o.get("shadow", true):
@@ -82,6 +86,41 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var fl: float = o.get("flash", 0.0)
 	if fl > 0:
 		ci.draw_circle(bc, R, Color(1, 1, 1, minf(1.0, fl) * 0.85))
+
+## standing piece: shadow, small base in faction colours, the silhouette in the faction's figure colour with a dark
+## outline (mirrored for the enemy); the figure stands ~0.66 tile tall so the tile around it stays visible
+const FIG_INK := Color(0.07, 0.04, 0.03)
+static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D, o: Dictionary) -> void:
+	var al: float = o.get("alpha", 1.0)
+	var base := c + Vector2(0, T * 0.30)
+	if o.get("shadow", true):
+		Draw.ellipse(ci, base + Vector2(T * 0.03, T * 0.02), T * 0.32, T * 0.11, Color(0, 0, 0, 0.38 * al))
+	var bob: float = o.get("bob", 0.0)
+	if (hero or o.get("glow", false)) and o.get("halo", true):
+		halo(ci, c - Vector2(0, bob), T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
+	var ring: Color = (FOE_RING if foe else HERO_RING) if hero else fac.ring
+	ring.a *= al
+	var bc: Color = fac.body
+	bc.a *= al
+	Draw.ellipse(ci, base, T * 0.27, T * 0.1, bc)
+	Draw.ellipse_line(ci, base, T * 0.27, T * 0.1, ring, maxf(1.5, T * (0.05 if hero else 0.035)))
+	var h := T * (0.74 if hero else 0.66)
+	var flip := -1.0 if side == "e" and o.get("mirror", true) else 1.0
+	var col: Color = fac.get("fig", fac.body2)
+	col.a *= al
+	var ink := FIG_INK
+	ink.a *= al
+	var foot := base - Vector2(0, bob + T * 0.02)
+	var r := Rect2(-h / 2.0, -h, h, h)
+	ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(flip, 1.0), 0.0, foot))
+	var w := maxf(1.0, T * 0.03)
+	for d: Vector2 in [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7, Vector2(-w, w) * 0.7, Vector2(w, w) * 0.7]:
+		ci.draw_texture_rect(fig, Rect2(r.position + d, r.size), false, ink)
+	ci.draw_texture_rect(fig, r, false, col)
+	var fl: float = o.get("flash", 0.0)
+	if fl > 0:
+		ci.draw_texture_rect(fig, r, false, Color(1, 1, 1, minf(1.0, fl) * 0.85))
+	ci.draw_set_transform_matrix(Draw.xf)
 
 ## the commander's soft gold glow behind the disc
 static func halo(ci: CanvasItem, bc: Vector2, T: float, gc: Color, al := 1.0) -> void:
@@ -144,7 +183,7 @@ class Atlas extends RefCounted:
 
 	## shadow at c, disc bobbed up by `bob`; scale / alpha for fading corpses. False when not baked for this unit.
 	## st = ci.get_screen_transform(): unscaled cells land on whole screen pixels, so the texels map 1:1 (no blur)
-	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float) -> bool:
+	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float, tint := Color.WHITE) -> bool:
 		var r: Variant = cells.get("%s|%s" % [side, type])
 		if r == null:
 			return false
@@ -161,5 +200,5 @@ class Atlas extends RefCounted:
 		ci.draw_texture_rect_region(tex, Rect2(sh, Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
 		if type == "hero":
 			Token.halo(ci, tl + Vector2(half, half), T * sc, Token.FOE_GLOW if side == "e" else Token.HERO_GLOW, alpha)
-		ci.draw_texture_rect_region(tex, Rect2(tl, Vector2(half, half) * 2.0), r, Color(1, 1, 1, alpha))
+		ci.draw_texture_rect_region(tex, Rect2(tl, Vector2(half, half) * 2.0), r, Color(tint, alpha))
 		return true

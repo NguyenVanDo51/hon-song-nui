@@ -34,7 +34,6 @@ var _btn_restart: Button
 ## enemy turn fast-forward: ⏩ pressed for this turn; speed the player chose, restored after
 var _ff := false
 var _user_speed := 1.0
-var _end_armed_until := 0
 var _gear: Button
 var _btn_board: Button
 var _menu: PanelContainer
@@ -761,17 +760,9 @@ func _open_work() -> int:
 				break
 	return n
 
-func end_player_turn(force := false) -> void:
+func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no longer asks twice)
 	if ui.busy or s.side != "p" or s.winner != null:
 		return
-	if not force and Time.get_ticks_msec() > _end_armed_until:
-		var n := _open_work()
-		if n > 0:
-			_end_armed_until = Time.get_ticks_msec() + 4000
-			Style.set_sub(_btn_end, "Còn %d quân đánh / chiếm được · bấm lần nữa" % n)
-			main.audio.play("select")
-			return
-	_end_armed_until = 0
 	var my := gen
 	_clear_sel()
 	var before := _snapshot()

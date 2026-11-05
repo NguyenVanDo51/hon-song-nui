@@ -135,14 +135,9 @@ func _run() -> void:
 	await main.shot("ux_forecast")
 	await process_frame
 	var hp1: int = foe2.hp
-	g._gear.pressed.emit() # ⚙ menu: battle scene toggle cycles Tắt -> Luôn -> Khi ta đánh (menu stays open)
+	g._gear.pressed.emit()
 	await process_frame
 	ok(g._menu.visible, "⚙ opens the menu")
-	press("⚔ Cảnh đánh: Tắt")
-	ok(Store.battle_mode() == "all", "battle toggle: Tắt -> Luôn")
-	press("⚔ Cảnh đánh: Luôn")
-	ok(Store.battle_mode() == "mine", "battle toggle: -> Khi ta đánh")
-	Store.set_battle_mode("off")
 	g._on_tile_clicked(0, 0)
 	ok(not g._menu.visible, "a map click closes the menu")
 	g._on_tile(foe2.x, foe2.y)

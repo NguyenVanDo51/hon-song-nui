@@ -19,6 +19,8 @@ var shake_dur := 1.0
 var _gen := 0 # bumped by clear(): delayed effects of an older scene drop out
 var flash_until := {}
 var offsets := {}
+var knock := {} # unit id -> { dir, t0, dur, mag }: hit reaction the board turns into a shove + lean
+var facing := {} # unit id -> -1 / 1: which way an attacker turned to strike
 var _last := 0.0
 
 static func now() -> float:
@@ -33,7 +35,7 @@ func sleep(ms: float) -> void:
 func clear() -> void:
 	_gen += 1
 	parts.clear(); projs.clear(); rings.clear(); floats.clear(); rays.clear(); ghosts.clear()
-	flash_until.clear(); offsets.clear(); shake_until = 0.0
+	flash_until.clear(); offsets.clear(); knock.clear(); facing.clear(); shake_until = 0.0
 
 func _play(name: String) -> void:
 	if audio:
@@ -90,15 +92,26 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 	var dd := absi(a.x - d.x) + absi(a.y - d.y)
 	var shot: String = st.get("shot", "") if dd > 1 else ""
 	var heavy: bool = st.get("heavy", false) or st.get("siege", false) or a.type == "hero"
+	var dir := Vector2(d.x - a.x, d.y - a.y).normalized()
+	if absf(dir.x) > 0.01:
+		facing[a.id] = signf(dir.x)
 	if shot != "":
+		# draw: lean back, then loose the shot and spring forward
+		await tween(130.0, func(t: float) -> void: offsets[a.id] = -dir * 0.08 * sin(t * PI * 0.5))
 		_play("arrow" if shot == "arrow" else ("orb" if shot == "orb" else "rock"))
+		tween(180.0, func(t: float) -> void:
+			offsets[a.id] = -dir * 0.08 * (1.0 - t) + dir * 0.05 * sin(t * PI)
+			if t >= 1.0:
+				offsets.erase(a.id))
 		await projectile(shot, a.x, a.y, d.x, d.y, 620.0 if shot == "rock" else (420.0 if shot == "orb" else 300.0))
 	else:
-		var ldx: float = (d.x - a.x) * 0.42
-		var ldy: float = (d.y - a.y) * 0.42
-		await tween(120.0, func(t: float) -> void: offsets[a.id] = Vector2(ldx * t * t, ldy * t * t - sin(t * PI) * 0.12))
+		# wind-up (crouch back), then a fast lunge with a little leap
+		await tween(120.0, func(t: float) -> void: offsets[a.id] = -dir * 0.12 * (1.0 - (1.0 - t) * (1.0 - t)))
+		var reach := Vector2(d.x - a.x, d.y - a.y) * 0.42
+		await tween(100.0, func(t: float) -> void: offsets[a.id] = (-dir * 0.12).lerp(reach, t * t) - Vector2(0, sin(t * PI) * 0.14))
 		_play("slash")
 		rays.append({ "kind": "slash", "x": d.x, "y": d.y, "ang": atan2(d.y - a.y, d.x - a.x), "t0": now(), "dur": sp(220.0) })
+	knock[d.id] = { "dir": dir, "t0": now(), "dur": sp(380.0), "mag": 1.4 if (heavy or shot == "rock") else 1.0 }
 	_impact(d, amount, heavy or shot == "rock", shot, opts.get("kill", false))
 	if shot == "":
 		var ldx: float = (d.x - a.x) * 0.42

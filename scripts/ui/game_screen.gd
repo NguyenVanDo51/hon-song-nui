@@ -29,7 +29,6 @@ var _goal: RichTextLabel
 var _btn_hint: Button
 var _btn_speed: Button
 var _btn_sound: Button
-var _btn_battle: Button
 var _btn_ff: Button
 var _btn_restart: Button
 ## enemy turn fast-forward: ⏩ pressed for this turn; speed the player chose, restored after
@@ -54,6 +53,8 @@ var _pop_anchor: Variant = null # [x, y] tile the popup belongs to; null = top c
 var _hover_at := 0
 const POP_W := 290.0
 const HUD_M := 10.0 # HUD distance from the screen edge
+## cut-away duel scene (BattleView) parked for now: every attack plays on the map. Flip to bring the setting back.
+const SCENE_ENABLED := false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -227,7 +228,6 @@ func _build_menu() -> void:
 	_btn_hint = item.call("💬 Gợi ý nước đi", "Gợi ý (phím H)", _on_hint)
 	item.call("📖 Sách lính", "Tính chất từng loại quân", func() -> void: main.menus.open_codex("p"))
 	_btn_speed = item.call("", "Tốc độ hoạt cảnh", _on_speed, false)
-	_btn_battle = item.call("", "Cảnh giao chiến khi đánh: Luôn / Khi ta đánh / Tắt (phím B). Tắt = đánh ngay trên bàn cờ.", _toggle_battle, false)
 	_btn_sound = item.call("", "Âm thanh", func() -> void:
 		main.audio.set_muted(not main.audio.muted)
 		_sound_label(), false)
@@ -287,14 +287,6 @@ func _process(_dt: float) -> void:
 	var held := Input.is_key_pressed(KEY_SPACE) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	FX.speed = maxf(_user_speed, 4.0) if (_ff or held) else _user_speed
 
-func _toggle_battle() -> void:
-	Store.cycle_battle_mode()
-	_battle_label()
-
-func _battle_label() -> void:
-	var m := Store.battle_mode()
-	_btn_battle.text = "⚔ Cảnh đánh: " + Store.BATTLE_MODE_NAMES[m]
-
 func _sound_label() -> void:
 	_btn_sound.text = "🔇 Âm thanh: Tắt" if main.audio.muted else "🔊 Âm thanh: Bật"
 
@@ -351,7 +343,6 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	visible = true
 	_speed_label()
 	_sound_label()
-	_battle_label()
 	_show_menu(false)
 	_fit.call_deferred()
 	board.refresh_terrain()
@@ -645,8 +636,6 @@ func _unhandled_input(ev: InputEvent) -> void:
 			end_player_turn()
 		KEY_H:
 			_on_hint()
-		KEY_B:
-			_toggle_battle()
 		_:
 			return
 	get_viewport().set_input_as_handled()
@@ -942,10 +931,12 @@ func _battle_on(e: Dictionary) -> bool:
 
 ## attacks that play on the map zoom onto the two units (no cut-away scene for this one, not fast-forwarding)
 func _zoom_on(e: Dictionary) -> bool:
-	return not _scene_on(e) and not _ff and not main.flags.has("bot") and not main.flags.has("nozoom")
+	return not _scene_on(e) and not _ff and not main.flags.has("nozoom") and (not main.flags.has("bot") or main.flags.has("zoom"))
 
 ## the battle-scene setting wants the cut-away duel for this attack
 func _scene_on(e: Dictionary) -> bool:
+	if not SCENE_ENABLED:
+		return false
 	var m := Store.battle_mode()
 	if m == "off" or (m == "mine" and e.side != "p") or _ff or main.flags.has("nobattle"):
 		return false

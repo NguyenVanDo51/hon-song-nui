@@ -102,6 +102,7 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 	var h := T * (0.74 if hero else 0.66)
 	var flip := -1.0 if side == "e" and o.get("mirror", true) else 1.0
 	var col: Color = fac.get("fig", fac.body2)
+	col *= o.get("tint", Color.WHITE)
 	col.a *= al
 	var ink := FIG_INK
 	ink.a *= al
@@ -178,7 +179,16 @@ class Atlas extends RefCounted:
 
 	## shadow at c, disc bobbed up by `bob`; scale / alpha for fading corpses. False when not baked for this unit.
 	## st = ci.get_screen_transform(): unscaled cells land on whole screen pixels, so the texels map 1:1 (no blur)
-	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float, tint := Color.WHITE) -> bool:
+	## the ground shadow alone (it stays on the ground while the figure hops / leans); squash < 1 = smaller (figure in the air)
+	func draw_shadow(ci: CanvasItem, c: Vector2, sc: float, alpha: float, squash := 1.0) -> void:
+		if not cells.has("shadow"):
+			return
+		var half := unit * sc / 2.0 * squash
+		var R := T * sc * 0.4
+		ci.draw_texture_rect_region(vp.get_texture(), Rect2(c + Vector2(-half, R * 0.78 - half), Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
+
+	## shadow = false: figure only (drawn under a pose transform); snap = false when that transform is not a pure offset
+	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float, tint := Color.WHITE, shadow := true, snap := true) -> bool:
 		var r: Variant = cells.get("%s|%s" % [side, type])
 		if r == null:
 			return false
@@ -188,11 +198,12 @@ class Atlas extends RefCounted:
 		var bc := c - Vector2(0, bob)
 		var sh := c + Vector2(-half, R * 0.78 - half)
 		var tl := bc - Vector2(half, half)
-		if sc == 1.0:
+		if sc == 1.0 and snap:
 			var inv := st.affine_inverse()
 			sh = inv * (st * sh).round()
 			tl = inv * (st * tl).round()
-		ci.draw_texture_rect_region(tex, Rect2(sh, Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
+		if shadow:
+			ci.draw_texture_rect_region(tex, Rect2(sh, Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
 		if type == "hero":
 			Token.halo(ci, tl + Vector2(half, half), T * sc, Token.FOE_GLOW if side == "e" else Token.HERO_GLOW, alpha)
 		ci.draw_texture_rect_region(tex, Rect2(tl, Vector2(half, half) * 2.0), r, Color(tint, alpha))

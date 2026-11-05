@@ -49,6 +49,7 @@ var _info_spots := [] # [[centre, unit id]] of the ⓘ dots drawn this frame
 var _info_hit_id := -1
 var _stage: Control
 var _terrain: Baked # offscreen render of the static terrain
+var _terrain_hi: Baked # the same at ZOOM x, shown during an attack close-up (the 1x one would blur)
 var _terrain_view: Layer # draws that texture
 var _terrain_dirty := true
 var _scale := 0.0 # screen px per canvas unit the terrain / tokens were baked at
@@ -80,9 +81,11 @@ func _init() -> void:
 	add_child(_stage)
 	_terrain = Baked.new(_draw_terrain)
 	add_child(_terrain)
+	_terrain_hi = Baked.new(_draw_terrain)
+	add_child(_terrain_hi)
 	_terrain_view = _layer(func(ci: CanvasItem) -> void:
 		if not s.is_empty():
-			ci.draw_texture_rect(_terrain.get_texture(), Rect2(Vector2.ZERO, ci.size), false))
+			ci.draw_texture_rect((_terrain_hi if _zoom > 0.0 else _terrain).get_texture(), Rect2(Vector2.ZERO, ci.size), false))
 	_terrain_view.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST # baked 1:1 with screen pixels
 	_atlas = Token.Atlas.new(self)
 	_layers.append(_layer(_draw_dyn))
@@ -155,6 +158,10 @@ func _apply_zoom(shake: Vector2) -> void:
 	_stage.scale = Vector2(sc, sc)
 	_stage.position = p + shake
 	clip_contents = _zoom > 0.0
+	var zoomed := _zoom > 0.0
+	if zoomed != (_terrain_view.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR):
+		_terrain_view.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR if zoomed else CanvasItem.TEXTURE_FILTER_NEAREST
+		_terrain_view.queue_redraw()
 
 ## a tile's rectangle in the parent's coordinates (popup placement; Board3D returns its projected footprint)
 func tile_rect(x: int, y: int) -> Rect2:
@@ -174,6 +181,7 @@ func _process(dt: float) -> void:
 		_terrain_dirty = false
 		_scale = sc
 		_terrain.bake(Vector2(T * s.w, T * s.h), sc)
+		_terrain_hi.bake(Vector2(T * s.w, T * s.h), sc * ZOOM)
 		_terrain_view.queue_redraw()
 	_atlas.ensure(T, sc, s.heroKey)
 	_apply_zoom(fx.shake_offset(t) * T)
@@ -619,8 +627,8 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		if not sp.get("hidden", false):
 			list.append({ "u": sp.u, "x": float(sp.u.x), "y": float(sp.u.y), "alpha": sp.get("alpha", -1.0), "scale": 1.0 })
 	for g: Dictionary in fx.ghosts:
-		var kk: float = (time - g.t0) / g.dur
-		list.append({ "u": g.u, "x": float(g.u.x), "y": g.u.y - kk * 0.3, "alpha": 1.0 - kk, "scale": 1.0 - kk * 0.3 })
+		var kk: float = clampf((time - g.t0) / g.dur, 0.0, 1.0)
+		list.append({ "u": g.u, "x": float(g.u.x), "y": float(g.u.y), "alpha": 1.0 - kk * kk, "scale": 1.0, "die": kk })
 	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y)
 	var sel_id: int = v.sel.id if v.sel != null else -1
 	var st := ci.get_screen_transform()
@@ -638,18 +646,20 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		var c := Vector2((x + 0.5) * T, (y + 0.5) * T)
 		var fl: float = fx.flash_until.get(u.id, 0.0)
 		var flash := (fl - time) / 180.0 if fl > time else 0.0
-		var bob := sin(time / 420.0 + u.id * 1.7) * T * 0.025
 		var is_sel: bool = u.id == sel_id
 		if is_sel:
-			Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * 0.42, T * 0.15, Color(1, 0.878, 0.541, 0.6 + sin(time / 160.0) * 0.4), maxf(2.0, T * 0.06))
+			Draw.ellipse_line(ci, c + Vector2(0, T * 0.32), T * 0.36, T * 0.12, Color(1, 0.878, 0.541, 0.6 + sin(time / 160.0) * 0.4), maxf(2.0, T * 0.05))
 		var alpha: float = it.alpha if it.alpha >= 0 else 1.0
-		var b := bob * 3 if is_sel else bob
-		var acted: bool = u.get("acted", false) and s.side == u.side and not v.busy
-		var tint := Color(0.42, 0.42, 0.45) if acted else Color.WHITE # done this turn: the piece greys out
-		if flash > 0: # hit: paint live so the piece itself flashes white
-			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "bob": b, "alpha": alpha, "flash": flash })
-		elif not _atlas.draw(ci, st, c, u.side, u.type, b, it.scale, alpha, tint):
-			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "bob": b, "alpha": alpha })
+		var acted: bool = u.get("acted", false) and s.side == u.side and not v.busy and not it.has("die")
+		var tint := Color(0.42, 0.42, 0.45) if acted else Color.WHITE # done this turn: the figure greys out
+		var pose := _pose(u, it, x, y, off, time, is_sel)
+		_atlas.draw_shadow(ci, c, it.scale, alpha, pose.shadow)
+		Draw.set_xf(ci, pose.xf)
+		if flash > 0 or _zoom > 0.0: # hit flash / close-up: paint live (white figure; crisp at any scale)
+			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "flash": flash, "shadow": false, "tint": tint })
+		elif not _atlas.draw(ci, st, c, u.side, u.type, 0.0, it.scale, alpha, tint, false, pose.still):
+			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "shadow": false })
+		Draw.set_xf(ci, Transform2D.IDENTITY)
 		var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
 		if it.alpha < 0 or it.alpha > 0.5:
 			var w := T * 0.62
@@ -664,9 +674,80 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 				Draw.text_a(ci, Style.xbold, Vector2(c.x - T * 0.48, c.y - T * 0.5), "★".repeat(u.rank), int(round(T * 0.2)), STAR, 0.0, true, 3, STAR_INK)
 			if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat* below)
 				Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * 0.52), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
-			if it.alpha < 0 and off == null and not v.busy:
+			if it.alpha < 0 and off == null and not v.busy and not it.has("die"):
 				_draw_buffs(ci, u, c, int(round(x)), int(round(y)), time)
 				_draw_info_dot(ci, u, c)
+
+## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
+## striking leans into the blow (fx.offsets), getting hit shoves it back (fx.knock), dying topples it over (ghost),
+## idle breathes, the selected one bounces. shadow = how big its ground shadow is (smaller in the air).
+var _last_xy := {} # unit id -> Vector2 last drawn spot
+var _face := {} # unit id -> -1 / 1 facing (enemies start facing left)
+func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time: float, is_sel: bool) -> Dictionary:
+	var id: int = u.id
+	var home := 1.0 if u.side == "p" else -1.0 # the way the figure is drawn
+	var face: float = _face.get(id, home)
+	var lean := 0.0
+	var sx := 1.0
+	var sy := 1.0 + sin(time / 620.0 + id * 1.3) * 0.018 # breathing
+	var lift := 0.0
+	var shift := Vector2.ZERO
+	var still := true
+	var bx: float = it.x
+	var by: float = it.y
+	var last: Variant = _last_xy.get(id)
+	if not it.has("die"):
+		if last != null and absf(bx - last.x) > 0.001:
+			face = signf(bx - last.x)
+		_last_xy[id] = Vector2(bx, by)
+	# walking: one hop per tile, a little sway and stretch while in the air
+	var p := fposmod(bx, 1.0) + fposmod(by, 1.0)
+	if p > 0.001 and p < 0.999:
+		still = false
+		var air := sin(p * PI)
+		lift += air * 0.14 * T
+		sy *= 1.0 + air * 0.07
+		sx *= 1.0 - air * 0.05
+		lean += sin(p * TAU) * 0.09
+	# striking: lean into the blow, stretch along it
+	if off != null:
+		still = false
+		var o: Vector2 = off
+		if fx.facing.has(id):
+			face = fx.facing[id]
+		lean += clampf(o.x * 1.5, -0.55, 0.55)
+		sx *= 1.0 + absf(o.x) * 0.45
+		sy *= 1.0 - absf(o.x) * 0.2 + maxf(0.0, -o.y) * 0.5
+	# hit: shoved back along the blow, leaning away, squashed
+	var kn: Variant = fx.knock.get(id)
+	if kn != null:
+		var k: float = (time - kn.t0) / kn.dur
+		if k >= 1.0:
+			fx.knock.erase(id)
+		else:
+			still = false
+			var a := (1.0 - k) * (1.0 - k) * float(kn.mag)
+			shift += kn.dir * 0.13 * T * a
+			lean += kn.dir.x * 0.32 * a - (0.0 if absf(kn.dir.x) > 0.3 else 0.12 * a)
+			sy *= 1.0 - 0.12 * a
+			sx *= 1.0 + 0.08 * a
+	# dying: topple backwards and sink a little
+	if it.has("die"):
+		still = false
+		var kk: float = it.die
+		var fall := kk * kk * (3.0 - 2.0 * kk)
+		lean += -face * fall * 1.45
+		shift.y += fall * 0.06 * T
+		sy *= 1.0 - fall * 0.1
+	if is_sel and off == null:
+		still = false
+		lift += absf(sin(time / 230.0)) * 0.07 * T
+	_face[id] = face
+	if face != home:
+		still = false
+	var foot := Vector2((x + 0.5) * T, (y + 0.5) * T + T * 0.30)
+	var xf := Transform2D(lean, Vector2(sx * face * home, sy), 0.0, foot + shift - Vector2(0, lift)) * Transform2D(0.0, Vector2.ONE, 0.0, -foot)
+	return { "xf": xf, "still": still and is_equal_approx(sy, 1.0), "shadow": clampf(1.0 - lift / T * 1.6, 0.6, 1.0) }
 
 ## ⚔ / 🛡 pips + a soft ring for units that stand next to a drum / aura hero (+10 atk) or a guard hero (+10 def).
 ## Uses Game.buffs_at, i.e. the very test damage() uses, so what you see is what the forecast counts.

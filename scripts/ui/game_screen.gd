@@ -604,6 +604,11 @@ func _on_tile(x: int, y: int) -> void:
 	_clear_sel()
 	if clicked != null:
 		ui.sel = clicked.id
+		# standing on a village/castle to take (or a ruin to repair): orders open on the first click
+		if my_turn and clicked.side == "p" and not clicked.acted \
+				and (Game.can_capture(s, clicked, x, y) or Game.can_repair(s, clicked, x, y)):
+			_set_dest(x, y)
+			return
 		main.audio.play("select")
 		refresh()
 		return

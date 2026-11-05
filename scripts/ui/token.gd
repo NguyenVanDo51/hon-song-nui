@@ -25,6 +25,9 @@ static func make(p_side: String, p_type: String, p_hero: Variant, size := 56.0) 
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return t
 
+func _enter_tree() -> void:
+	add_to_group("token_icon")
+
 func _draw() -> void:
 	Draw.xf = Transform2D.IDENTITY
 	paint(self, Vector2(px / 2.0, px / 2.0 - px * 0.04), px * 0.95, side, type, hero_key, { "mirror": false })
@@ -33,21 +36,35 @@ func _draw() -> void:
 ## (raw SVG, importer "keep", rasterised at runtime). "" = old silhouettes + procedural terrain
 static var fig_style := "chibi"
 static var _rast := {} # "path@px" -> ImageTexture
+static var _rast_old := {}
+const RAST_GEN := 192
 static var _has := {} # path -> bool
 
 ## SVG rasterised at the exact on-screen size (8 px steps): no mipmap blur from downscaling a big import
+## 2-generation cache: full -> current gen becomes old, old gen freed. Hits in old gen move to current, so a texture used
+## this frame is never freed mid-frame (freed RID = white square in a one-shot bake / an icon not redrawn).
+## Rotation redraws every Token icon so its texture moves into the new gen.
 static func raster(path: String, px: float) -> Texture2D:
 	var b := maxi(16, ceili(px / 8.0) * 8)
 	var key := "%s@%d" % [path, b]
-	if not _rast.has(key):
-		if _rast.size() > 192:
-			_rast.clear()
+	var tex: Texture2D = _rast.get(key)
+	if tex != null:
+		return tex
+	tex = _rast_old.get(key)
+	if tex == null:
 		var img := Image.new()
 		var src := FileAccess.get_file_as_string(path)
 		if src == "" or img.load_svg_from_string(src, b / 256.0) != OK:
 			return null
-		_rast[key] = ImageTexture.create_from_image(img)
-	return _rast[key]
+		tex = ImageTexture.create_from_image(img)
+	if _rast.size() >= RAST_GEN:
+		_rast_old = _rast
+		_rast = {}
+		var tree := Engine.get_main_loop() as SceneTree
+		if tree:
+			tree.call_group.call_deferred("token_icon", "queue_redraw")
+	_rast[key] = tex
+	return tex
 
 static func exists(path: String) -> bool:
 	if not _has.has(path):

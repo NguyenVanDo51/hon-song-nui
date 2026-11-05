@@ -145,7 +145,7 @@ const THEME := {
 		"bamanthien": { "name": "Bà Man Thiện", "icon": "👵" },
 		"lactuong": { "name": "Lạc tướng", "icon": "🧔" },
 		"danlang": { "name": "Dân làng", "icon": "👨" },
-		"truyenthuyet": { "name": "Sử tích", "icon": "📖" },
+		"truyenthuyet": { "name": "Lời kể", "icon": "📖" },
 		"thamtu": { "name": "Thám tử", "icon": "🕵️" },
 	},
 }

@@ -11,7 +11,7 @@ signal hover_changed(tile: Variant)
 signal cancel_requested
 signal info_requested(id: int)
 
-const PITCH := 36.0 # camera tilt below the horizon, degrees (fixed: no free camera)
+const PITCH := 45.0 # camera tilt below the horizon, degrees (fixed: no free camera)
 const OT := 40.0 # overlay texture px per tile
 const FXH := 0.32 # height of the plane fx (sparks, arrows, rocks) are drawn on: mid-body
 const TF := 48.0 # nominal tile size fx is painted at (then mapped onto the board)
@@ -36,7 +36,7 @@ const ROSTER := {
 	"hero_e": ["Skeleton_Warrior.glb", [["handslot.r", W + "Skeleton_Axe.gltf"], ["handslot.l", W + "Skeleton_Shield_Large_A.gltf"]], "Melee_1H_Attack_Chop", 1.2],
 }
 const SITE_COLOR := { "p": "red", "e": "blue", "n": "yellow" }
-const SITE_BACK := 0.24 # villages / castles sit at the back of their tile, the unit stands in front
+const SITE_BACK := 0.1 # villages / castles sit at the back of their tile, the unit stands in front
 const WOOD_TABLE := Color("#5b3a22")
 const WOOD_TABLE2 := Color("#6e4a2c")
 const EARTH := Color("#4a3a28")
@@ -429,14 +429,20 @@ func _tile_mesh(k: Kit, water: Kit, t: String, x: int, y: int, ter: Dictionary) 
 	var base: Color = KK_GRASS
 	base = base.lightened(j) if j > 0 else base.darkened(-j)
 	var wet := t == "~" or t == "="
+	# sides buried against an equal-or-taller neighbour are dropped: they z-fight through the shared edge (1 px seams)
+	var skip := []
+	for d: Vector3 in [Vector3.BACK, Vector3.FORWARD, Vector3.RIGHT, Vector3.LEFT]:
+		var nt: Variant = Game.tile_at(s, x + int(d.x), y + int(d.z))
+		if nt != null and (nt == "~" or nt == "=") == wet and (wet or _top_at(x + int(d.x), y + int(d.z)) >= top):
+			skip.append(d)
 	if wet:
-		k.box(Vector3(X, (-0.16 - 0.4) / 2.0, Z), Vector3(1, 0.24, 1), KK_WATER_DEEP.darkened(0.3), KK_WATER_DEEP, false)
+		k.box(Vector3(X, (-0.16 - 0.4) / 2.0, Z), Vector3(1, 0.24, 1), KK_WATER_DEEP.darkened(0.3), KK_WATER_DEEP, false, skip)
 		for i in 2:
 			for jj in 2:
 				var a := Vector3(x + i * 0.5, WATER_Y, y + jj * 0.5)
 				water.quad(a, a + Vector3(0, 0, 0.5), a + Vector3(0.5, 0, 0.5), a + Vector3(0.5, 0, 0), KK_WATER, Vector3.UP)
 	else:
-		k.box(Vector3(X, (top - 0.4) / 2.0, Z), Vector3(1, top + 0.4, 1), KK_GRASS_SIDE, base, false)
+		k.box(Vector3(X, (top - 0.4) / 2.0, Z), Vector3(1, top + 0.4, 1), KK_GRASS_SIDE, base, false, skip)
 		_shore(k, x, y, top)
 	match t:
 		".", "v", "c":
@@ -454,20 +460,23 @@ func _place_prop(t: String, x: int, y: int, top: float) -> void:
 	var ab := "A" if r.call(1) < 0.5 else "B"
 	var path := ""
 	var fit := 1.0
+	var max_h := 0.0 # height cap, tiles: tall scenery must not hide the row behind
 	match t:
 		"f":
 			path = "hex/decoration/nature/trees_%s_%s.gltf" % [ab, "large" if r.call(2) < 0.5 else "medium"]
 			fit = 1.05
+			max_h = 0.55
 		"h":
 			path = "hex/decoration/nature/hills_%s%s.gltf" % [["A", "B", "C"][int(r.call(3) * 3.0) % 3], "_trees" if r.call(4) < 0.35 else ""]
 			fit = 1.0
 		"m":
 			path = "hex/decoration/nature/mountain_%s_grass%s.gltf" % [["A", "B", "C"][int(r.call(5) * 3.0) % 3], "_trees" if r.call(6) < 0.4 else ""]
 			fit = 1.05
+			max_h = 0.7
 		"=":
 			path = "hex/buildings/neutral/building_bridge_A.gltf"
 			fit = 1.0
-	var n := KK.prop(path, fit)
+	var n := KK.prop(path, fit, max_h)
 	n.position = Vector3(x + 0.5, top, y + 0.5)
 	if t == "=":
 		var horiz: bool = (Game.tile_at(s, x - 1, y) != "~" or Game.tile_at(s, x + 1, y) != "~") and Game.tile_at(s, x, y - 1) == "~"
@@ -523,7 +532,7 @@ func _sync_sites(time: float) -> void:
 				var col: String = SITE_COLOR.get(own, "yellow")
 				var path := ("hex/buildings/%s/building_home_%s_%s.gltf" % [col, "A" if Board.hash01(x, y, 3) < 0.5 else "B", col]) if t == "v" \
 					else ("hex/buildings/%s/building_castle_%s.gltf" % [col, col])
-				var mi := KK.prop(path, 0.62 if t == "v" else 0.78)
+				var mi := KK.prop(path, 0.62 if t == "v" else 0.78, 0.5 if t == "v" else 0.75)
 				mi.position = Vector3(x + 0.5, 0.0, y + 0.5 - SITE_BACK)
 				_world.add_child(mi)
 				site = { "mi": mi, "own": own, "flag": null }

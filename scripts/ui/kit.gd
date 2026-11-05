@@ -38,18 +38,22 @@ func quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color, out: Vecto
 	tri(a, b, c, col, out)
 	tri(a, c, d, col, out)
 
-## axis-aligned box centred on c; `top` colours the upward face
-func box(c: Vector3, s: Vector3, col: Color, top: Variant = null, bottom := true) -> void:
+## axis-aligned box centred on c; `top` colours the upward face; `skip` = side directions to leave out (hidden by a neighbour)
+func box(c: Vector3, s: Vector3, col: Color, top: Variant = null, bottom := true, skip: Array = []) -> void:
 	var h := s / 2.0
 	var p := func(x: float, y: float, z: float) -> Vector3: return c + Vector3(h.x * x, h.y * y, h.z * z)
 	var tc: Color = top if top != null else col
 	quad(p.call(-1, 1, -1), p.call(1, 1, -1), p.call(1, 1, 1), p.call(-1, 1, 1), tc, Vector3.UP)
 	if bottom:
 		quad(p.call(-1, -1, -1), p.call(1, -1, -1), p.call(1, -1, 1), p.call(-1, -1, 1), col.darkened(0.3), Vector3.DOWN)
-	quad(p.call(-1, -1, 1), p.call(1, -1, 1), p.call(1, 1, 1), p.call(-1, 1, 1), col, Vector3.BACK)
-	quad(p.call(-1, -1, -1), p.call(1, -1, -1), p.call(1, 1, -1), p.call(-1, 1, -1), col, Vector3.FORWARD)
-	quad(p.call(1, -1, -1), p.call(1, -1, 1), p.call(1, 1, 1), p.call(1, 1, -1), col, Vector3.RIGHT)
-	quad(p.call(-1, -1, -1), p.call(-1, -1, 1), p.call(-1, 1, 1), p.call(-1, 1, -1), col, Vector3.LEFT)
+	if not skip.has(Vector3.BACK):
+		quad(p.call(-1, -1, 1), p.call(1, -1, 1), p.call(1, 1, 1), p.call(-1, 1, 1), col, Vector3.BACK)
+	if not skip.has(Vector3.FORWARD):
+		quad(p.call(-1, -1, -1), p.call(1, -1, -1), p.call(1, 1, -1), p.call(-1, 1, -1), col, Vector3.FORWARD)
+	if not skip.has(Vector3.RIGHT):
+		quad(p.call(1, -1, -1), p.call(1, -1, 1), p.call(1, 1, 1), p.call(1, 1, -1), col, Vector3.RIGHT)
+	if not skip.has(Vector3.LEFT):
+		quad(p.call(-1, -1, -1), p.call(-1, -1, 1), p.call(-1, 1, 1), p.call(-1, 1, -1), col, Vector3.LEFT)
 
 ## frustum along +y from the base centre b (r1 = 0: cone); caps optional
 func cyl(b: Vector3, r0: float, r1: float, h: float, col: Color, seg := 10, top: Variant = null, cap_bottom := false) -> void:

@@ -34,15 +34,16 @@ static func aabb(n: Node3D) -> AABB:
 		first = false
 	return out
 
-## a static model scaled so its footprint is `fit` tiles wide (its base stays at y = 0)
-static func prop(path: String, fit: float) -> Node3D:
+## a static model scaled so its footprint is `fit` tiles wide (its base stays at y = 0); max_h > 0 squashes it to that height
+static func prop(path: String, fit: float, max_h := 0.0) -> Node3D:
 	var n: Node3D = scene(ROOT + path).instantiate()
 	var b := aabb(n)
 	var s := fit / maxf(0.001, maxf(b.size.x, b.size.z))
+	var sy := minf(s, max_h / maxf(0.001, b.end.y)) if max_h > 0.0 else s
 	var holder := Node3D.new()
 	holder.add_child(n)
-	n.scale = Vector3.ONE * s
-	n.position = Vector3(-(b.position.x + b.size.x / 2.0) * s, -b.position.y * s if b.position.y > -0.05 else 0.0, -(b.position.z + b.size.z / 2.0) * s)
+	n.scale = Vector3(s, sy, s)
+	n.position = Vector3(-(b.position.x + b.size.x / 2.0) * s, -b.position.y * sy if b.position.y > -0.05 else 0.0, -(b.position.z + b.size.z / 2.0) * s)
 	return holder
 
 static func anims() -> AnimationLibrary:

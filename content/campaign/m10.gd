@@ -7,7 +7,7 @@ const DEF := {
 	"place": "An Biên · Hải Phòng",
 	"region": "An Biên", "pos": [80, 44],
 	"history": "Nữ tướng Lê Chân lập trang An Biên, luyện thủy binh ở cửa biển. Thành phố Hải Phòng ngày nay thờ bà như người mở đất.",
-	"hero": "trungtrac", "enemyHero": "mavien",
+	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": ["soldier", "archer", "elephant"] },
 	"gold": { "p": 500, "e": 250 }, "incomeMul": { "e": 0.85 },

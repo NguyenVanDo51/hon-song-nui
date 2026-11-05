@@ -255,6 +255,16 @@ static func tile_note(t: String) -> String:
 const STATE_V := 2 # Game.new_game writes "v"; bump both when the saved state shape changes
 const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
 
+## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
+const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
+static func migrate_save(v: Dictionary) -> void:
+	var hk: Variant = v.get("state", {}).get("heroKey") if v.get("state") is Dictionary else null
+	if hk is Dictionary:
+		for side: String in hk:
+			hk[side] = OLD_HEROES.get(hk[side], hk[side])
+	if v.get("ctx") is Dictionary and v.ctx.has("hero"):
+		v.ctx.hero = OLD_HEROES.get(v.ctx.hero, v.ctx.hero)
+
 ## a save still matches the shipped content: same state version + shape, known win type / unit types, its mission
 ## still exists, every commander key is still a hero in theme and rules, every tile is known
 static func save_fits(v: Dictionary) -> bool:

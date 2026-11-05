@@ -83,6 +83,7 @@ static func load_game() -> Variant:
 		return null
 	var v: Variant = str_to_var(FileAccess.get_file_as_string(SAVE))
 	if v is Dictionary and v.has("state") and v.state is Dictionary and v.state.get("winner") == null:
+		Content.migrate_save(v)
 		if fits_content(v):
 			return v
 		clear_game() # written by an older content set (removed mission / commander): drop it instead of crashing

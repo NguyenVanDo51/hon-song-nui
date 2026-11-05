@@ -7,7 +7,7 @@ const DEF := {
 	"place": "Từ Lãng Bạc về chân núi Ba Vì",
 	"region": "Rút quân", "pos": [36, 42],
 	"history": "Sau Lãng Bạc, quân Hai Bà rút về Cấm Khê, vùng núi thuộc Ba Vì ngày nay, để giữ lực lượng. Mã Viện bám theo không rời.",
-	"hero": "trungtrac", "enemyHero": "mavien",
+	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum"], "e": [] },
 	"gold": { "p": 300, "e": 0 },

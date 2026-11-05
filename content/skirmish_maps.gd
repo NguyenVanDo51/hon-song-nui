@@ -1,6 +1,6 @@
 extends RefCounted
 ## free-play maps (pick any hero). Built into a def by Content.skirmish_def(map_id, hero, easy).
-## Optional per map: "chapter" (enemy skin / wording, default c1), "enemyHero" (default: first enemy hero in the theme).
+## Optional per map: "chapter" (enemy skin / wording, default c1).
 ## New maps are 180° rotations of themselves so both sides start equal.
 
 const MAPS := {
@@ -26,7 +26,7 @@ const MAPS := {
 	"cua_bien": {
 		"name": "Cửa biển Lãng Bạc",
 		"blurb": "Lạch nước chia cắt, cầu hẹp, đối đầu Mã Viện.",
-		"chapter": "c2", "enemyHero": "mavien",
+		"chapter": "c2",
 		"rows": [
 			"~~~h.v.....rc.",
 			"~~.f.rrrrrrvr.",
@@ -46,7 +46,7 @@ const MAPS := {
 	"nui_rung": {
 		"name": "Núi rừng Cửu Chân",
 		"blurb": "Đèo núi, rừng rậm, quân Đông Hán của Tô Định chặn ải.",
-		"chapter": "c1", "enemyHero": "todinh",
+		"chapter": "c1",
 		"rows": [
 			"..........vrc.",
 			".rrrvrrrrrr.h.",

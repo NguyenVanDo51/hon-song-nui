@@ -22,7 +22,7 @@ const THEME := {
 	"text": {
 		"enemyTurn": "Lượt quân Hán",
 		"skirmishTitle": "Đấu tự do · Đồng bằng sông Hồng",
-		"skirmishBlurb": "Trưng Trắc đấu với Tô Định",
+		"skirmishBlurb": "Anh hùng đấu với Tướng giặc",
 		"raiseVerb": "cứu thương",
 		"raiseButton": "🩹 Cứu thương",
 		"graveNote": "Lính ngã: thầy lang đứng cạnh có thể cứu dậy thành thương binh. Sau 2 vòng thì mất.",
@@ -120,18 +120,25 @@ const THEME := {
 		"e": UNITS,
 	},
 	"heroes": {
-		# one commander for the whole game; the enemy commander looks the same in every chapter, only the name changes
-		"trungtrac": {
+		# exactly two commanders for every campaign: same look + stats everywhere. Story names live in "people".
+		"anhhung": {
 			"side": "p",
-			"name": "Trưng Trắc",
+			"name": "Anh hùng",
 			"icon": "👑",
-			"blurb": "Con gái Lạc tướng Mê Linh, quen đất trung du: đi đồi núi nhanh, đứng trên đồi, núi +10 thủ.",
+			"blurb": "Người cầm quân của ta trong mọi trận. Quen đất trung du: đi đồi núi nhanh, đứng trên đồi, núi +10 thủ.",
 		},
-		"todinh": { "side": "e", "name": "Tô Định", "icon": "🎖️", "blurb": "Thái thú Giao Chỉ, có thuyền lầu theo hầu: đi được trên sông." },
-		"mavien": { "side": "e", "name": "Mã Viện", "icon": "🎖️", "blurb": "Phục Ba tướng quân nhà Hán, có thuyền lầu theo hầu: đi được trên sông." },
+		"tuonggiac": {
+			"side": "e",
+			"name": "Tướng giặc",
+			"icon": "🪓",
+			"blurb": "Kẻ cầm đầu quân giặc trong mọi trận. Có thuyền lầu theo hầu: đi được trên sông.",
+		},
 	},
 	"people": {
 		# story voices (dialogue only); side "e" = speaks for the enemy
+		"trungtrac": { "name": "Trưng Trắc", "icon": "👑" },
+		"todinh": { "name": "Tô Định", "icon": "🎖️", "side": "e" },
+		"mavien": { "name": "Mã Viện", "icon": "🎖️", "side": "e" },
 		"trungnhi": { "name": "Trưng Nhị", "icon": "⚔️" },
 		"lechan": { "name": "Lê Chân", "icon": "⛵" },
 		"thanhthien": { "name": "Thánh Thiên", "icon": "🔥" },

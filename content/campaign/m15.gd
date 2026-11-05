@@ -7,7 +7,7 @@ const DEF := {
 	"place": "Cấm Khê · Ba Vì, Hà Nội",
 	"region": "Cấm Khê", "pos": [14, 50],
 	"history": "Quân Hai Bà giữ Cấm Khê qua mùa đông năm 42. Mã Viện vây đánh nhiều lần, có cả máy bắn đá.",
-	"hero": "trungtrac", "enemyHero": "mavien",
+	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": [] },
 	"gold": { "p": 150, "e": 0 },

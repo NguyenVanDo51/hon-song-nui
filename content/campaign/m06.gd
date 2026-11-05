@@ -9,8 +9,8 @@ const DEF := {
 	"region": "Hai Bà Trưng",
 	"pos": [57, 54],
 	"history": "Đền Hai Bà Trưng ở Đồng Nhân nằm trong quận Hai Bà Trưng, quận mang tên Hai Bà.",
-	"hero": "trungtrac",
-	"enemyHero": "todinh",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
 	"newUnits": ["bird"],
 	"allowed": {
 		"p": ["soldier", "archer", "drum", "elephant", "shaman", "bird"],

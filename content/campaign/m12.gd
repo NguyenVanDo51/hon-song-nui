@@ -7,7 +7,7 @@ const DEF := {
 	"place": "Lãng Bạc · Tiên Du, Bắc Ninh (có thuyết là Hồ Tây)",
 	"region": "Lãng Bạc", "pos": [56, 32],
 	"history": "Năm 42, quân Hai Bà và quân Mã Viện đánh lớn ở Lãng Bạc. Sách cũ chép trận này rất ác liệt, hai bên tổn thất nặng.",
-	"hero": "trungtrac", "enemyHero": "mavien",
+	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"], "e": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"] },
 	"gold": { "p": 900, "e": 300 }, "incomeMul": { "e": 0.55 },

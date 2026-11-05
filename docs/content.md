@@ -15,7 +15,7 @@
 Theo lối bản đồ chiến thuật cổ điển: **đường mòn** (`r`) nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi lõi, đồi quanh, rừng mép), khoảng 30% đất; chừa vòng trống quanh thành; voi và máy bắn đá (không qua núi) phải đi được giữa các thành. Vẽ tay xong có thể cho `sim/mapgen.gd` sắp lại địa hình (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích): chạy nó, rồi chép các dòng `MAP` vào file màn.
 
 ## Quân và chỉ huy
-Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ khác màu). Chỉ huy ta duy nhất là `trungtrac`; chỉ huy địch mỗi chương một tên (`todinh`, `mavien`), cùng hình và chỉ số. Nhân vật khác nói trong thoại khai báo ở `people` (thêm `"side": "e"` nếu là người phe địch). Lối chơi từng loại quân: `content/guide.gd`.
+Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ khác màu). Chỉ có 2 tướng cho mọi chiến dịch: `anhhung` (Anh hùng, phe ta) và `tuonggiac` (Tướng giặc, phe địch). Hình và chỉ số không bao giờ đổi; chỉ lời thoại mở đầu đổi theo trận (tên người trong truyện như Trưng Trắc, Tô Định, Mã Viện nằm ở `people`). Nhân vật khác nói trong thoại khai báo ở `people` (thêm `"side": "e"` nếu là người phe địch). Lối chơi từng loại quân: `content/guide.gd`.
 
 ## Thêm màn chiến dịch
 Tạo `content/campaign/mNN.gd` (game tự gom mọi file trong thư mục, xếp theo `order`; `"chapter": "c2"` gắn màn vào chương, mặc định c1):
@@ -28,8 +28,8 @@ const DEF := {
 	"title": "Tên màn", "place": "Địa danh",
 	"region": "Tên vùng", "pos": [x, y],   # điểm trên bản đồ chiến dịch (khung 100 x 70)
 	"history": "Một câu sử tích",         # hiện ở màn giới thiệu
-	"hero": "trungtrac",                  # luôn là trungtrac (một chỉ huy cả game)
-	"enemyHero": "todinh",                # chương 1: todinh, chương 2: mavien (cùng hình, cùng chỉ số); null = không có tướng
+	"hero": "anhhung",                    # luôn là anhhung
+	"enemyHero": "tuonggiac",             # luôn là tuonggiac; null = địch không có tướng
 	"newUnits": ["bird"],                 # thẻ "Lính mới" ở màn giới thiệu
 	"allowed": { "p": [...], "e": [...] },  # lính được mua mỗi phe
 	"gold": { "p": 300, "e": 400 }, "incomeMul": { "e": 1.2 },   # độ khó

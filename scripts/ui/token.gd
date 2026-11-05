@@ -5,6 +5,8 @@ extends Control
 
 const HERO_GLOW := Color("#ffd76a")
 const HERO_RING := Color("#f3c95c")
+const FOE_GLOW := Color("#ff4a36") # the enemy commander (villain): red glow + crimson ring instead of gold
+const FOE_RING := Color("#d23a2c")
 
 var side := "p"
 var type := "soldier"
@@ -40,23 +42,24 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var fac: Dictionary = Draw.pal().factions[p_side]
 	var look := Content.unit_type_look(p_side, p_type, p_hero)
 	var hero := p_type == "hero"
+	var foe := hero and p_side == "e"
 	var R := T * 0.4
 	var al: float = o.get("alpha", 1.0)
 	if o.get("shadow", true):
 		Draw.ellipse(ci, c + Vector2(0, R * 0.95), R * 0.85, R * 0.28, Color(0, 0, 0, 0.4 * al))
 	var bc := Vector2(c.x, c.y - float(o.get("bob", 0.0)))
 	if (hero or o.get("glow", false)) and o.get("halo", true):
-		halo(ci, bc, T, HERO_GLOW if hero else fac.glow, al)
+		halo(ci, bc, T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
 	var b1: Color = fac.body2
 	var b0: Color = fac.body
 	b1.a *= al
 	b0.a *= al
 	Draw.radial(ci, bc, R, [[0.0, b1], [0.55, b1.lerp(b0, 0.6)], [1.0, b0]], 32, Vector2.ONE, Vector2(-R * 0.35, -R * 0.45))
-	var ring: Color = HERO_RING if hero else fac.ring
+	var ring: Color = (FOE_RING if foe else HERO_RING) if hero else fac.ring
 	ring.a *= al
 	ci.draw_arc(bc, R, 0, TAU, 40, ring, maxf(2.5, T * 0.09) if hero else maxf(1.5, T * 0.05), true)
 	if hero:
-		ci.draw_arc(bc, R - T * 0.06, 0, TAU, 40, Color(1, 0.953, 0.753, al), 1.0, true)
+		ci.draw_arc(bc, R - T * 0.06, 0, TAU, 40, Color(0.1, 0.02, 0.02, al) if foe else Color(1, 0.953, 0.753, al), 1.0, true)
 	# gloss
 	Draw.ellipse(ci, bc + Vector2(-R * 0.2, -R * 0.5), R * 0.55, R * 0.25, Color(1, 1, 1, 0.13 * al), -0.3, 20)
 	var tex := image(look.get("img"))
@@ -157,6 +160,6 @@ class Atlas extends RefCounted:
 			tl = inv * (st * tl).round()
 		ci.draw_texture_rect_region(tex, Rect2(sh, Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
 		if type == "hero":
-			Token.halo(ci, tl + Vector2(half, half), T * sc, Token.HERO_GLOW, alpha)
+			Token.halo(ci, tl + Vector2(half, half), T * sc, Token.FOE_GLOW if side == "e" else Token.HERO_GLOW, alpha)
 		ci.draw_texture_rect_region(tex, Rect2(tl, Vector2(half, half) * 2.0), r, Color(1, 1, 1, alpha))
 		return true

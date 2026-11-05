@@ -7,7 +7,7 @@ const DEF := {
 	"place": "Tiên Phong · Phú Thọ",
 	"region": "Phú Thọ", "pos": [14, 20],
 	"history": "Bát Nàn, quê ở Tiên Phong (Phú Thọ), là nữ tướng của Hai Bà. Tương truyền bà giỏi cung nỏ, giữ các ải núi phía tây.",
-	"hero": "trungtrac", "enemyHero": "mavien",
+	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": ["soldier", "archer", "drum", "elephant"] },
 	"gold": { "p": 500, "e": 250 }, "incomeMul": { "e": 0.8 },

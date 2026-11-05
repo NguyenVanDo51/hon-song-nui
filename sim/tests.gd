@@ -102,13 +102,15 @@ func content_tests() -> void:
 				eq(Content.unit_type_look("e", ty, null).name, Content.unit_type_look("p", ty, null).name, ty)
 				eq(Content.unit_type_look("e", ty, null).icon, Content.unit_type_look("p", ty, null).icon, ty)
 		Content.use_chapter("c1")
-		eq(Content.heroes_of("p"), ["trungtrac"])
+		# exactly two commanders across every campaign + skirmish: one look + one stat line per side
+		eq(Content.heroes_of("p"), ["anhhung"])
+		eq(Content.heroes_of("e"), ["tuonggiac"])
+		eq(Rules.HEROES.keys(), ["anhhung", "tuonggiac"])
 		for m: Dictionary in Content.campaign():
-			eq(m.hero, "trungtrac", m.id)
-			if m.enemyHero != null:
-				eq(m.enemyHero, "todinh" if Content.chapter_of(m) == "c1" else "mavien", m.id)
-		eq(Content.hero_look("todinh").icon, Content.hero_look("mavien").icon)
-		eq(Rules.HEROES.todinh, Rules.HEROES.mavien)
+			eq(m.hero, "anhhung", m.id)
+			check(m.enemyHero == null or m.enemyHero == "tuonggiac", m.id + " enemy commander")
+		for mid: String in Content.SKIRMISH.MAPS:
+			eq(Content.skirmish_def(mid, "anhhung", false).enemyHero, "tuonggiac", mid)
 	)
 	run("reach: hero on the goal wins, time runs out loses", func() -> void:
 		var s := Game.new_game(Content.mission("m13"))
@@ -208,7 +210,7 @@ func content_tests() -> void:
 
 # ---------- rules ----------
 func blank(units: Array) -> Dictionary:
-	var s := Game.new_game(Content.skirmish_def("dong_bang", "trungnhi", false))
+	var s := Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false))
 	s.tiles = []
 	for y in 6:
 		s.tiles.append([".", ".", ".", ".", ".", "."])
@@ -282,7 +284,10 @@ func rule_tests() -> void:
 	)
 	run("buffs_at (UI) agrees with damage(): drum aura +10 atk, guard hero +10 def, only when adjacent", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["p", "drum", 1, 2], ["e", "soldier", 2, 1], ["e", "hero", 3, 1]])
-		s.heroKey.e = "lucdan" # guard 10
+		var heroes: Dictionary = Rules.HEROES.duplicate(true)
+		heroes["guard_test"] = { "atk": 60, "def": 20, "mv": 5, "move": "foot", "guard": 10 } # rule still supported, no live commander uses it
+		Game.use_tables(Rules.UNITS, heroes, Rules.RULES, Rules.TERRAIN)
+		s.heroKey.e = "guard_test"
 		var a: Dictionary = s.units[0]
 		var d: Dictionary = s.units[2]
 		var ba := Game.buffs_at(s, a, 1, 1)
@@ -295,6 +300,7 @@ func rule_tests() -> void:
 		eq(Game.buffs_at(s, a, 0, 0).atk, 0) # (0,0) is not next to the drum at (1,2)
 		eq(Content.traits("drum", null).any(func(t: String) -> bool: return "+10 công" in t), true)
 		eq(Content.how_to_play("archer") != "", true)
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
 	)
 	run("path_for walks through an ally (the drawn route used to lose its start there)", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["p", "archer", 2, 1], ["e", "soldier", 5, 4]])
@@ -368,9 +374,9 @@ func rule_tests() -> void:
 	)
 	run("goal / end texts: every win type has copy, unknown types fall back", func() -> void:
 		for t: String in Content.WIN_TYPES:
-			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "brief", { "p": "trungtrac", "e": "todinh" }) != t, "brief copy " + t)
-			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "bar", { "p": "trungtrac", "e": "todinh" }, { "n": 1, "left": 2 }) != t, "bar copy " + t)
-		eq(Content.goal_text({ "type": "teleport" }, "brief", { "p": "trungtrac", "e": null }), "teleport")
+			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "brief", { "p": "anhhung", "e": "tuonggiac" }) != t, "brief copy " + t)
+			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "bar", { "p": "anhhung", "e": "tuonggiac" }, { "n": 1, "left": 2 }) != t, "bar copy " + t)
+		eq(Content.goal_text({ "type": "teleport" }, "brief", { "p": "anhhung", "e": null }), "teleport")
 		check(Content.tile_note("c").find("tướng") >= 0, "castle note names who captures")
 	)
 	run("save round-trip keeps types", func() -> void:
@@ -384,8 +390,14 @@ func rule_tests() -> void:
 		var s := Game.new_game(Content.mission("m03"))
 		check(Content.save_fits({ "state": s, "ctx": { "kind": "campaign", "id": "m03" } }), "current save fits")
 		var old: Dictionary = s.duplicate(true)
-		old.heroKey.p = "trungnhi" # m03's commander before the one-commander change
-		check(not Content.save_fits({ "state": old, "ctx": { "kind": "campaign", "id": "m03" } }), "old commander refused")
+		old.heroKey.p = "trungnhi" # unknown commander key
+		check(not Content.save_fits({ "state": old, "ctx": { "kind": "campaign", "id": "m03" } }), "unknown commander refused")
+		# saves from before the two-commander change: named commanders map onto the fixed ones (same stats)
+		var named: Dictionary = { "state": s.duplicate(true), "ctx": { "kind": "skirmish", "hero": "trungtrac", "easy": false } }
+		named.state.heroKey = { "p": "trungtrac", "e": "mavien" }
+		Content.migrate_save(named)
+		eq([named.state.heroKey.p, named.state.heroKey.e, named.ctx.hero], ["anhhung", "tuonggiac", "anhhung"])
+		check(Content.save_fits(named), "migrated save fits")
 		check(not Content.save_fits({ "state": s, "ctx": { "kind": "campaign", "id": "m20" } }), "removed mission refused")
 		check(not Content.save_fits({ "state": s, "ctx": { "kind": "skirmish", "hero": "lechan", "easy": false } }), "old skirmish hero refused")
 		eq(Content.hero_look("lechan").name, "lechan") # stale key: placeholder, no crash

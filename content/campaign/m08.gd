@@ -9,8 +9,8 @@ const DEF := {
 	"region": "Luy Lâu",
 	"pos": [88, 45],
 	"history": "Luy Lâu (Thuận Thành, Bắc Ninh), sát phía đông Hà Nội ngày nay, là trị sở quận Giao Chỉ thời Hán.",
-	"hero": "trungtrac",
-	"enemyHero": "todinh",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": {
 		"p": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"],

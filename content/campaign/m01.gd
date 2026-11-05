@@ -9,7 +9,7 @@ const DEF := {
 	"region": "Phúc Thọ",
 	"pos": [16, 30],
 	"history": "Mùa xuân năm 40, Hai Bà Trưng dựng cờ khởi nghĩa chống nhà Đông Hán. Tương truyền lễ thề diễn ra ở Hát Môn, nay thuộc Phúc Thọ, Hà Nội.",
-	"hero": "trungtrac",
+	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["hero", "soldier"],
 	"allowed": { "p": [], "e": [] },

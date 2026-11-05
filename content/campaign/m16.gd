@@ -7,7 +7,7 @@ const DEF := {
 	"place": "Hát Môn · Phúc Thọ, Hà Nội",
 	"region": "Hát Giang", "pos": [26, 34],
 	"history": "Năm 43, Hai Bà thua trận cuối ở Cấm Khê, lui về Hát Môn. Tương truyền Hai Bà gieo mình xuống sông Hát chứ không chịu để giặc bắt.",
-	"hero": "trungtrac", "enemyHero": "mavien",
+	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": [] },
 	"gold": { "p": 0, "e": 0 },

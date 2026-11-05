@@ -9,7 +9,7 @@ const DEF := {
 	"region": "Hạ Lôi",
 	"pos": [41, 13],
 	"history": "Đền Hạ Lôi (Mê Linh) thờ Hai Bà Trưng. Tương truyền Hai Bà sinh ra ở làng này, mẹ là bà Man Thiện.",
-	"hero": "trungtrac",
+	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["drum"],
 	"allowed": { "p": ["soldier", "archer", "drum"], "e": [] },

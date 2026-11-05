@@ -9,8 +9,8 @@ const DEF := {
 	"region": "Tây Hồ",
 	"pos": [45, 46],
 	"history": "Một thuyết cho rằng hồ Lãng Bạc, nơi Hai Bà sau này đánh quân Mã Viện năm 42, chính là Hồ Tây.",
-	"hero": "trungtrac",
-	"enemyHero": "todinh",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
 	"newUnits": ["shaman"],
 	"allowed": {
 		"p": ["soldier", "archer", "drum", "elephant", "shaman"],

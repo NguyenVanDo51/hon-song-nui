@@ -31,23 +31,11 @@ const UNITS := {
 }
 const BUY_ORDER := ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"]
 
-## hero stat overrides (merged over UNITS.hero). tBonus = extra def on terrain, guard = +def to adjacent allies
+## the two commanders, same in every campaign (merged over UNITS.hero). Only intro dialogue changes per mission.
+## tBonus = extra def on terrain, guard = +def to adjacent allies, aura = +atk to adjacent allies
 const HEROES := {
-	"trungtrac": { "atk": 60, "def": 20, "mv": 5, "move": "mount", "tBonus": { "h": 10, "m": 10 } },
-	"trungnhi": { "atk": 70, "def": 15, "mv": 6, "move": "foot" },
-	"lechan": { "atk": 60, "def": 20, "mv": 5, "move": "water", "guard": 10 },
-	"todinh": { "atk": 65, "def": 20, "mv": 5, "move": "water" },
-	"huyenlenh": { "atk": 55, "def": 15, "mv": 5, "move": "water" },
-	"douy": { "atk": 55, "def": 25, "mv": 4, "move": "foot", "tBonus": { "f": 15 } },
-	"hieuuy": { "atk": 65, "def": 15, "mv": 6, "move": "foot" },
-	# chapter 2–3 (aura = +10 atk to adjacent allies, rmax 2 = shoots like an archer)
-	"thanhthien": { "atk": 60, "def": 20, "mv": 5, "move": "foot", "aura": 10 },
-	"batnan": { "atk": 55, "def": 15, "mv": 5, "move": "mount", "rmin": 1, "rmax": 2, "antiAir": 20 },
-	"phungthichinh": { "atk": 60, "def": 20, "mv": 5, "move": "foot", "tBonus": { "f": 10, "h": 10 } },
-	"mavien": { "atk": 65, "def": 20, "mv": 5, "move": "water" }, # same commander profile as todinh (one enemy commander look)
-	"luulong": { "atk": 62, "def": 18, "mv": 6, "move": "foot" },
-	"doanchi": { "atk": 58, "def": 20, "mv": 5, "move": "water" },
-	"lucdan": { "atk": 66, "def": 24, "mv": 5, "move": "foot", "guard": 10 },
+	"anhhung": { "atk": 60, "def": 20, "mv": 5, "move": "mount", "tBonus": { "h": 10, "m": 10 } }, # ours: the hero
+	"tuonggiac": { "atk": 65, "def": 20, "mv": 5, "move": "water" }, # theirs: the villain
 }
 
 const RULES := {

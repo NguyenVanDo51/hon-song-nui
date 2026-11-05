@@ -9,8 +9,8 @@ const DEF := {
 	"region": "Long Biên",
 	"pos": [70, 44],
 	"history": "Long Biên là tên một huyện của quận Giao Chỉ thời Hán. Quận Long Biên ngày nay mang tên ấy.",
-	"hero": "trungtrac",
-	"enemyHero": "todinh",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
 	"newUnits": ["catapult"],
 	"allowed": {
 		"p": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"],

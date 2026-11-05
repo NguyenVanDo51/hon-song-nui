@@ -7,7 +7,7 @@ const DEF := {
 	"place": "Lãng Bạc · Bắc Ninh",
 	"region": "Phá vây", "pos": [64, 46],
 	"history": "Tương truyền nữ tướng Phùng Thị Chính sinh con ngay giữa trận Lãng Bạc, rồi địu con sau lưng, cầm gươm mở đường thoát vây.",
-	"hero": "trungtrac", "enemyHero": null,
+	"hero": "anhhung", "enemyHero": null,
 	"newUnits": [],
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },

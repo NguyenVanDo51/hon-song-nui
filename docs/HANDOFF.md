@@ -42,3 +42,9 @@ Người chơi (chủ repo) góp ý, đã làm:
 - Không còn "đi tại chỗ". Sửa đường đi bị mất đoạn khi đi xuyên quân ta (`Game.path_for`).
 - Theo lối Ancient Empires (repo tham khảo: AncientTree/project_aeii): một bộ lính chung hai phe, một chỉ huy ta (Trưng Trắc) cả game, chỉ huy địch một tên mỗi chương cùng hình; bỏ chương 3; bản đồ có đường mòn `r` và địa hình gom khối (`sim/mapgen.gd`).
 - Kiểm tra luật khớp JS chuyển sang nội dung đóng băng `sim/legacy/`.
+
+## 2026-11-05 — cảnh giao chiến (máy macOS)
+- Người dùng muốn "đánh thì chuyển màn khác giống game gốc (bật/tắt được)" + nhiều hiệu ứng hơn.
+- `scripts/ui/battle_view.gd`: mỗi đòn đánh (kèm đánh trả) -> cảnh cắt ngang hai nửa, nền theo ô địa hình, đội hình theo máu, xông lên / bắn, lính ngã, số sát thương, thanh máu tụt. `game_screen.play()` gom cặp hit + counter rồi `await battle.run(d)`. Store `battle_scene` (mặc định bật), nút ⚔ trên thanh trên; bot tắt trừ khi có cờ `battle`.
+- macOS: `tools/run_guarded.sh` thay cho run_guarded.ps1. Đã chạy: tests 43/43, click_driver 35/35, bot có cửa sổ m05 (đêm) / m07 / m12 / m15 chụp màn hình. Chưa thử bản web (web_smoke cần Edge trên Windows).
+- Máy này không có remote: người dùng tự đẩy từ máy khác.

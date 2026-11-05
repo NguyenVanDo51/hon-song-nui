@@ -19,6 +19,7 @@ var ui := {}
 var stats := { "kills": 0, "losses": 0 }
 var fx: FX
 var board: Board
+var battle: BattleView
 
 var _turn: Label
 var _gold_box: Control
@@ -28,6 +29,7 @@ var _goal: RichTextLabel
 var _btn_hint: Button
 var _btn_speed: Button
 var _btn_sound: Button
+var _btn_battle: Button
 var _coach: PanelContainer
 var _coach_n: Label
 var _coach_text: RichTextLabel
@@ -54,6 +56,12 @@ func _ready() -> void:
 	FX.speed = float(Store.get_v("speed", 1.0)) if not main.flags.has("speed") else FX.speed
 	_reset_ui()
 	_build()
+	var bl := CanvasLayer.new() # above the top bar and the Hết lượt button
+	bl.layer = 20
+	add_child(bl)
+	battle = BattleView.new()
+	battle.main = main
+	bl.add_child(battle)
 
 func _reset_ui() -> void:
 	ui = { "sel": null, "dest": null, "mode": "idle", "target": null, "info": null, "buyAt": null, "busy": false, "hint": null,
@@ -102,6 +110,11 @@ func _build() -> void:
 	bh.add_child(_ibtn("Sách lính", "Sách lính", func() -> void: main.menus.open_codex("p")))
 	_btn_speed = _ibtn("x1", "Tốc độ hiệu ứng", _on_speed)
 	bh.add_child(_btn_speed)
+	_btn_battle = _ibtn("⚔", "Cảnh giao chiến khi đánh: bật / tắt", func() -> void:
+		BattleView.set_enabled(not BattleView.enabled())
+		_battle_label())
+	bh.add_child(_btn_battle)
+	_battle_label()
 	_btn_sound = _ibtn("🔊", "Âm thanh", func() -> void:
 		main.audio.set_muted(not main.audio.muted)
 		_sound_label())
@@ -213,6 +226,11 @@ func _on_speed() -> void:
 	FX.speed = 2.0 if FX.speed == 1.0 else (3.0 if FX.speed == 2.0 else 1.0)
 	Store.set_v("speed", FX.speed)
 	_speed_label()
+
+func _battle_label() -> void:
+	var on := BattleView.enabled()
+	_btn_battle.add_theme_color_override("font_color", Style.INK if on else Style.MUTED)
+	_btn_battle.text = "⚔ Cảnh đánh" if on else "⚔ Tắt cảnh"
 
 func _sound_label() -> void:
 	_btn_sound.add_theme_color_override("font_color", Style.MUTED if main.audio.muted else Style.INK)
@@ -711,9 +729,16 @@ func play(events: Array, before: Dictionary) -> void:
 			v.sprites.append(sp)
 		if e.t == "raise" or e.t == "spawn":
 			v.hide[e.id] = true
-	for e: Dictionary in events:
+	var done_ev := {}
+	for ei in events.size():
+		var e: Dictionary = events[ei]
 		if gen != my:
 			return
+		if done_ev.has(ei):
+			continue
+		if e.t == "hit" and not e.get("counter", false) and _battle_on():
+			await _duel(events, ei, before, hp, done_ev)
+			continue
 		match e.t:
 			"move":
 				var ds: Variant = dying.get(e.id)
@@ -785,6 +810,47 @@ func play(events: Array, before: Dictionary) -> void:
 	v.sprites = v.sprites.filter(func(sp: Dictionary) -> bool: return not dying.has(sp.u.id))
 	if gen == my:
 		await _intro_new_units() # reinforcements / raised units of a kind never met before
+
+## cut-away duel for the attack at events[i] (+ its counter); marks both hits handled and applies their damage to the shown hp
+func _battle_on() -> bool:
+	return BattleView.enabled() and not main.flags.has("nobattle") and (not main.flags.has("bot") or main.flags.has("battle"))
+
+func _duel(events: Array, i: int, before: Dictionary, hp: Dictionary, done_ev: Dictionary) -> void:
+	var e: Dictionary = events[i]
+	var counter: Variant = null
+	for j in range(i + 1, events.size()):
+		var o: Dictionary = events[j]
+		if o.t == "hit":
+			if o.get("counter", false) and o.from == e.id and o.id == e.from:
+				counter = o
+				done_ev[j] = true
+			break
+	var dies := {}
+	for o: Dictionary in events:
+		if o.t == "die":
+			dies[o.id] = true
+	var au: Dictionary = before.get(e.from, Game.unit_by_id(s, e.from)).duplicate()
+	var du: Dictionary = before.get(e.id, Game.unit_by_id(s, e.id)).duplicate()
+	au.x = e.fx; au.y = e.fy
+	var side_unit := func(u: Dictionary) -> Dictionary:
+		var t: String = Game.tile_at(s, u.x, u.y)
+		return { "side": u.side, "type": u.type, "hero": s.heroKey[u.side] if u.type == "hero" else null, "hp0": float(hp.get(u.id, u.hp)),
+			"tile": t, "owner": s.owner.get(Vector2i(u.x, u.y)), "rank": u.get("rank", 0), "def": Game.terrain_def(s, u, u.x, u.y) }
+	var shot_of := func(u: Dictionary, d: Dictionary) -> String:
+		var dd: int = absi(u.x - d.x) + absi(u.y - d.y)
+		return Rules.UNITS.get(u.type, {}).get("shot", "") if dd > 1 else ""
+	var d := { "night": s.get("night", false), "att": e.side, "counter": null,
+		"first": { "amount": e.amount, "kill": dies.has(e.id), "shot": shot_of.call(au, du) } }
+	d[au.side] = side_unit.call(au)
+	d[du.side] = side_unit.call(du)
+	if counter != null:
+		d.counter = { "amount": counter.amount, "kill": dies.has(e.from), "shot": shot_of.call(du, au) }
+	await battle.run(d)
+	hp[e.id] = hp.get(e.id, 100) - e.amount
+	if counter != null:
+		hp[e.from] = hp.get(e.from, 100) - counter.amount
+	fx.flash(e.id)
+	board.queue_redraw()
 
 # ---------- new unit intro ----------
 signal _intro_closed

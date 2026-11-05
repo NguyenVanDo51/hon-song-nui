@@ -30,6 +30,12 @@ func find_btn(n: Node, text: String) -> Button:
 			return b
 	return null
 
+func _click() -> InputEventMouseButton:
+	var e := InputEventMouseButton.new()
+	e.button_index = MOUSE_BUTTON_LEFT
+	e.pressed = true
+	return e
+
 func press(text: String, where: Node = null) -> bool:
 	var b := find_btn(where if where else main, text)
 	ok(b != null and not b.disabled, "button '%s'" % text)
@@ -102,7 +108,22 @@ func _run() -> void:
 	await process_frame
 	ok(g.ui.mode == "target", "click enemy -> target mode with preview")
 	var hp0: int = foe.hp
+	BattleView.set_enabled(true)
 	press("⚔ Đánh")
+	var seen := false
+	for i in 60:
+		await process_frame
+		if g.battle.visible:
+			seen = true
+			break
+	ok(seen, "battle scene opens on attack")
+	await wait(0.6)
+	await main.shot("ux_battle")
+	g.battle._gui_input(_click())
+	var t0 := Time.get_ticks_msec()
+	while g.battle.visible and Time.get_ticks_msec() - t0 < 3000:
+		await process_frame
+	ok(not g.battle.visible and Time.get_ticks_msec() - t0 < 1500, "click skips the battle scene (%d ms)" % (Time.get_ticks_msec() - t0))
 	await idle(g)
 	ok(foe.hp < hp0 or Game.unit_by_id(s, foe.id) == null, "attack resolved")
 	# mouse path: rest the pointer on an enemy -> board shows the forecast -> one click attacks
@@ -121,8 +142,16 @@ func _run() -> void:
 	await main.shot("ux_forecast")
 	await process_frame
 	var hp1: int = foe2.hp
+	press("⚔ Cảnh đánh") # top-bar toggle: off
+	ok(not BattleView.enabled(), "battle toggle turns the scene off")
 	g._on_tile(foe2.x, foe2.y)
+	var opened := false
+	for i in 20:
+		await process_frame
+		opened = opened or g.battle.visible
+	ok(not opened, "no battle scene when off")
 	await idle(g)
+	BattleView.set_enabled(true)
 	ok(arch.acted and (foe2.hp < hp1 or Game.unit_by_id(s, foe2.id) == null), "one click attack after hover")
 	g.ui.hover = null
 	# terrain info, hint, codex, speed

@@ -97,11 +97,12 @@ Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục c�
 
 ## Kiến trúc
 - `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom chương + màn và trả theme đã gộp theo chương đang mở.
-- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, giới thiệu màn, đấu tự do, Sách lính), `battle_view.gd` (cảnh giao chiến, lớp CanvasLayer trên cùng), `game_screen.gd` (thanh trên, mẹo, popup lệnh cạnh ô, nút Hết lượt cạnh bàn cờ, giới thiệu quân mới, ⓘ, phát lại sự kiện, lượt địch, gợi ý, kết thúc), `board.gd` (bàn cờ: lớp địa hình cache, lớp động, FX, đêm, nhãn dự báo), `fx.gd`, `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh tổng hợp + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
-- `shaders/`: nền menu, logo ánh kim, vignette, màn đêm.
+- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, giới thiệu màn, đấu tự do, Sách lính), `battle_view.gd` (cảnh giao chiến, lớp CanvasLayer trên cùng), `game_screen.gd` (thanh trên, mẹo, popup lệnh cạnh ô, nút Hết lượt cạnh bàn cờ, giới thiệu quân mới, ⓘ, phát lại sự kiện, lượt địch, gợi ý, kết thúc), `board.gd` (bàn 2D: địa hình bake 1 texture, quân vẽ từ atlas, FX, đêm, nhãn dự báo), `board3d.gd` + `kit.gd` + `pieces.gd` (sa bàn 3D thử nghiệm: cùng giao diện với `board.gd`, mô hình low-poly dựng bằng code, máy quay sà xuống khi giao chiến), `fx.gd`, `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh dựng sẵn thành wav trong `assets/sfx`, tạo lại: `godot --headless --path . -s tools/bake_sfx.gd`; + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
+- `shaders/`: nền menu, logo ánh kim, vignette, màn đêm, mặt nước 3D.
 - Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 
 ## Giới hạn đã biết
 - Bố cục ngang (khung gốc 1280x720). Màn nhỏ: giao diện không thu dưới 0.8 lần, trang menu cuộn được (điện thoại nằm ngang đọc được). Điện thoại dọc: màn "Xoay ngang màn hình để chơi".
-- Âm thanh dựng sẵn thành sample lúc khởi động (22 kHz); trên web chỉ phát sau cú bấm đầu tiên (quy định trình duyệt).
+- Âm thanh là wav dựng sẵn (22 kHz); trên web chỉ phát sau cú bấm đầu tiên (quy định trình duyệt).
+- Bàn 3D: mới thử trên m01 (máy Mac), chưa thử bản web.
 - Sử tích trong game theo truyền thuyết và sách sử phổ thông, có lược bớt cho hợp lối chơi.

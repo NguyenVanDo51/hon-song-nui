@@ -135,6 +135,10 @@ func fit(avail: Vector2) -> void:
 func refresh_terrain() -> void:
 	_terrain_dirty = true
 
+## a tile's rectangle in the parent's coordinates (popup placement; Board3D returns its projected footprint)
+func tile_rect(x: int, y: int) -> Rect2:
+	return Rect2(position + Vector2(x * T, y * T), Vector2(T, T))
+
 func _process(dt: float) -> void:
 	if s.is_empty() or not is_visible_in_tree():
 		return

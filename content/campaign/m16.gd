@@ -52,7 +52,7 @@ const DEF := {
 		],
 	},
 	"tips": [
-		"Trận cuối của chương: [b]giữ 8 lượt[/b] cho dân qua sông. Trưng Trắc ngã là thua.",
+		"Trận cuối của chương: [b]giữ 8 lượt[/b] cho dân qua sông. Anh hùng ngã là thua.",
 		"Đêm tối, giặc đến từ cả phía đông lẫn phía tây. Giữ đội hình quanh thành, đừng đuổi theo địch.",
 		"Thầy lang cứu thương binh từ lính ngã: thêm quân miễn phí giữa trận dài.",
 	],

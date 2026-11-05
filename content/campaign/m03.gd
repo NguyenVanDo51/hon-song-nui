@@ -58,6 +58,6 @@ const DEF := {
 		"Mục tiêu: [b]giữ vững 10 lượt[/b]. Địch đổ bộ từ sông ở các lượt 2, 4, 6, 8.",
 		"[b]Trống đồng[/b] đánh yếu, nhưng lính ta đứng sát bên được [b]+10 công[/b]. Đặt trống giữa đội hình.",
 		"Đứng trên làng, thành, đồi, rừng để được thêm thủ khi địch tràn lên.",
-		"Trưng Trắc ngã là thua. Đừng để tướng một mình phía trước.",
+		"Anh hùng ngã là thua. Đừng để tướng một mình phía trước.",
 	],
 }

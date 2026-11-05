@@ -23,7 +23,7 @@ var gen := 0
 var ui := {}
 var stats := { "kills": 0, "losses": 0 }
 var fx: FX
-var board: Board
+var board: Control # Board (2D) or Board3D: same surface (signals, view, fit, set_state, tile_rect)
 var battle: BattleView
 
 var _turn: Label
@@ -184,16 +184,7 @@ func _build() -> void:
 	_frame.add_theme_stylebox_override("panel", fs)
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wrap.add_child(_frame)
-	board = Board.new()
-	board.fx = fx
-	board.tile_clicked.connect(_on_tile_clicked)
-	board.hover_changed.connect(func(t: Variant) -> void:
-		ui.hover = t
-		_hover_at = Time.get_ticks_msec()
-		_build_view())
-	board.cancel_requested.connect(cancel)
-	board.info_requested.connect(_on_info_requested)
-	_wrap.add_child(board)
+	_make_board(Store.board_3d())
 	_banner = Banner.new()
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_wrap.add_child(_banner)
@@ -229,6 +220,36 @@ func _build() -> void:
 	_end.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_end.visible = false
 	add_child(_end)
+
+## 2D map or 3D tabletop; swapping keeps the game, only the renderer changes
+func _make_board(three_d: bool) -> void:
+	var at := -1
+	if board != null:
+		at = board.get_index()
+		board.queue_free()
+	board = Board3D.new() if three_d else Board.new()
+	board.fx = fx
+	board.tile_clicked.connect(_on_tile_clicked)
+	board.hover_changed.connect(func(t: Variant) -> void:
+		ui.hover = t
+		_hover_at = Time.get_ticks_msec()
+		_build_view())
+	board.cancel_requested.connect(cancel)
+	board.info_requested.connect(_on_info_requested)
+	_wrap.add_child(board)
+	if at >= 0:
+		_wrap.move_child(board, at)
+	_frame.visible = not three_d # the 3D board sits on its own table
+
+func _toggle_3d() -> void:
+	if ui.busy:
+		return
+	Store.set_board_3d(not (board is Board3D))
+	_make_board(Store.board_3d())
+	board.set_state(s)
+	board.refresh_terrain()
+	_fit()
+	_build_view()
 
 func _ibtn(text: String, tip: String, fn: Callable) -> Button:
 	var b := Style.button(text, "IconBtn")
@@ -292,7 +313,7 @@ func _fit() -> void:
 func _place_end() -> void:
 	var eb := _btn_end.get_combined_minimum_size()
 	_btn_end.size = eb
-	var br := board.position + board.size
+	var br: Vector2 = board.position + board.size
 	if (_wrap.size.x - board.size.x) / 2.0 >= eb.x + 24:
 		_btn_end.position = Vector2(br.x + 14, br.y - eb.y)
 	else:
@@ -330,6 +351,8 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	ctx = c
 	def = _def_for(c)
 	Content.use_chapter(Content.chapter_of(def)) # enemy skin + wording of this chapter
+	if (board is Board3D) != Store.board_3d():
+		_make_board(Store.board_3d())
 	_reset_ui()
 	stats = { "kills": 0, "losses": 0 }
 	board.view.hide.clear()
@@ -422,7 +445,7 @@ func _reach(u: Dictionary) -> Dictionary:
 func _build_view() -> void:
 	if s.is_empty():
 		return
-	var v := board.view
+	var v: Dictionary = board.view
 	var u: Variant = _sel_unit()
 	var my_turn: bool = s.side == "p" and not ui.busy and s.winner == null
 	v.busy = ui.busy
@@ -646,6 +669,8 @@ func _unhandled_input(ev: InputEvent) -> void:
 			_on_hint()
 		KEY_B:
 			_toggle_battle()
+		KEY_V:
+			_toggle_3d()
 		_:
 			return
 	get_viewport().set_input_as_handled()
@@ -827,7 +852,7 @@ func _snapshot() -> Dictionary:
 
 func play(events: Array, before: Dictionary) -> void:
 	var my := gen
-	var v := board.view
+	var v: Dictionary = board.view
 	var hp := {}
 	for id: int in before:
 		hp[id] = before[id].hp
@@ -844,12 +869,19 @@ func play(events: Array, before: Dictionary) -> void:
 		if e.t == "raise" or e.t == "spawn":
 			v.hide[e.id] = true
 	var done_ev := {}
+	var dived := false
 	for ei in events.size():
 		var e: Dictionary = events[ei]
 		if gen != my:
 			return
 		if done_ev.has(ei):
 			continue
+		if dived and e.t != "hit" and e.t != "die":
+			dived = false
+			await board.unfocus()
+		if e.t == "hit" and not dived and board is Board3D and not e.get("counter", false) and _scene_on(e):
+			dived = true
+			await board.focus(Vector2i(e.fx, e.fy), Vector2i(e.x, e.y))
 		if e.t == "hit" and not e.get("counter", false) and _battle_on(e):
 			await _duel(events, ei, before, hp, done_ev)
 			continue
@@ -922,6 +954,8 @@ func play(events: Array, before: Dictionary) -> void:
 			"income":
 				if e.side == "p" and e.amount:
 					_bump_gold()
+	if dived and gen == my:
+		await board.unfocus()
 	v.hp = null
 	v.sprites = v.sprites.filter(func(sp: Dictionary) -> bool: return not dying.has(sp.u.id))
 	if gen == my:
@@ -929,6 +963,10 @@ func play(events: Array, before: Dictionary) -> void:
 
 ## cut-away duel for the attack at events[i] (+ its counter); marks both hits handled and applies their damage to the shown hp
 func _battle_on(e: Dictionary) -> bool:
+	return _scene_on(e) and not (board is Board3D)
+
+## the battle-scene setting allows a close-up of this attack (cut-away duel in 2D, camera dive on the 3D board)
+func _scene_on(e: Dictionary) -> bool:
 	var m := Store.battle_mode()
 	if m == "off" or (m == "mine" and e.side != "p") or _ff or main.flags.has("nobattle"):
 		return false
@@ -1541,17 +1579,18 @@ func _place_pop() -> void:
 	if _pop_anchor == null:
 		_pop.position = Vector2(((lim.x - sz.x) / 2.0), board.position.y + 10).floor()
 		return
-	var T := board.T
-	var tile := board.position + Vector2(_pop_anchor[0] * T, _pop_anchor[1] * T)
-	var keep: Array[Rect2] = [Rect2(tile, Vector2(T, T)), Rect2(_btn_end.position, _btn_end.size)]
+	var tr: Rect2 = board.tile_rect(_pop_anchor[0], _pop_anchor[1])
+	var tile := tr.position
+	var tw := tr.size
+	var keep: Array[Rect2] = [tr, Rect2(_btn_end.position, _btn_end.size)]
 	if ui.mode == M_TARGET and ui.target != null:
 		var tg: Variant = Game.unit_by_id(s, ui.target)
 		if tg != null:
-			keep.append(Rect2(board.position + Vector2(tg.x * T, tg.y * T), Vector2(T, T)))
+			keep.append(board.tile_rect(tg.x, tg.y))
 	var gap := 10.0
 	var cands: Array[Vector2] = [
-		tile + Vector2(T + gap, (T - sz.y) / 2), tile + Vector2(-sz.x - gap, (T - sz.y) / 2),
-		tile + Vector2((T - sz.x) / 2, T + gap), tile + Vector2((T - sz.x) / 2, -sz.y - gap),
+		tile + Vector2(tw.x + gap, (tw.y - sz.y) / 2), tile + Vector2(-sz.x - gap, (tw.y - sz.y) / 2),
+		tile + Vector2((tw.x - sz.x) / 2, tw.y + gap), tile + Vector2((tw.x - sz.x) / 2, -sz.y - gap),
 	]
 	var best := cands[0]
 	var best_cost := INF
@@ -1567,7 +1606,8 @@ func _place_pop() -> void:
 		for o: Dictionary in s.units:
 			if o.id == ui.sel:
 				continue
-			if r.intersects(Rect2(board.position + Vector2(o.x * T, o.y * T), Vector2(T, T)).grow(-T * 0.2)):
+			var orr: Rect2 = board.tile_rect(o.x, o.y)
+			if r.intersects(orr.grow(-orr.size.x * 0.2)):
 				cost += 3.0 if o.side != "p" else 1.0
 		if cost < best_cost:
 			best_cost = cost

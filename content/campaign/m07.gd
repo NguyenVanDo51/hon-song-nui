@@ -58,6 +58,6 @@ const DEF := {
 	"tips": [
 		"[b]Nỏ liên châu[/b] bắn 2–4 ô nhưng [b]đã đi thì không bắn[/b] trong lượt đó, và không đánh trả. Đặt chỗ an toàn rồi bắn liên tục.",
 		"Địch có 2 thành: phải chiếm cả hai mới thắng.",
-		"Đứng trên đồi, núi Trưng Trắc được +10 thủ.",
+		"Đứng trên đồi, núi, Anh hùng được +10 thủ.",
 	],
 }

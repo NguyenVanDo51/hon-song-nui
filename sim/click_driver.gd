@@ -6,6 +6,7 @@ var fails := 0
 
 func _init() -> void:
 	Store.use_profile("driver") # never touch the player's save / progress / settings
+	Store.board3d_flag = 0 # this driver walks the 2D board
 	main = load("res://main.tscn").instantiate()
 	root.add_child(main)
 	_run.call_deferred()

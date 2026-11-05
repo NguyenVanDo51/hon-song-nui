@@ -44,6 +44,6 @@ const DEF := {
 	"tips": [
 		"Mục tiêu: [b]giữ vững 9 lượt[/b]. Giặc đổ bộ từ biển ở các lượt 2, 3, 5, 7.",
 		"Giữ đội hình sát nhau quanh thành, để [b]Trống trận[/b] đứng giữa: lính đứng sát được +10 công.",
-		"Trưng Trắc ngã là thua. Đừng để bà đứng ở mép biển.",
+		"Anh hùng ngã là thua. Đừng để tướng đứng ở mép biển.",
 	],
 }

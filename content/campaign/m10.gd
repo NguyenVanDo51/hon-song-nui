@@ -38,8 +38,8 @@ const DEF := {
 		"outro": [["lechan", "Mã Viện trúng thương, phải lui thuyền về Hợp Phố."]],
 	},
 	"tips": [
-		"Mục tiêu: [b]hạ Mã Viện[/b]. Hắn đứng gác gần thành địch phía đông nam.",
+		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn đứng gác gần thành địch phía đông nam.",
 		"Bộ binh và voi phải qua [b]cầu[/b]; chỉ kỵ binh lội được sông.",
-		"Mã Viện đi được trên sông. Đừng để Trưng Trắc một mình đầu cầu.",
+		"Tướng giặc đi được trên sông. Đừng để Anh hùng một mình đầu cầu.",
 	],
 }

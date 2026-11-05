@@ -51,8 +51,8 @@ const DEF := {
 		"outro": [["lechan", "Tô Định trúng thương, bỏ đồn mà chạy. Cổ Loa lại về tay người Việt."]],
 	},
 	"tips": [
-		"Mục tiêu: [b]hạ Tô Định[/b]. Hắn đích thân giữ đồn giữa rừng: dụ hắn ra chỗ trống rồi hãy đánh.",
+		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn đích thân giữ đồn giữa rừng: dụ hắn ra chỗ trống rồi hãy đánh.",
 		"[b]Voi chiến[/b] thủ 25, công 65 nhưng chỉ đi 3 ô và không lên núi. Cho voi đi đầu hút đòn.",
-		"Trưng Trắc đi đồi núi chỉ tốn 1 bước, đứng trên đồi, núi +10 thủ.",
+		"Anh hùng đi đồi núi chỉ tốn 1 bước, đứng trên đồi, núi +10 thủ.",
 	],
 }

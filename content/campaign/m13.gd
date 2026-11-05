@@ -45,7 +45,7 @@ const DEF := {
 		"outro": [["phungthichinh", "Mẹ con ta đã về tới làng. Con trai ta sinh ra giữa trận, lớn lên sẽ không biết sợ."]],
 	},
 	"tips": [
-		"Mục tiêu: đưa [b]Trưng Trắc[/b] tới [b]ô cờ vàng[/b] (làng góc đông bắc) trong 14 lượt, mở đường cho Phùng Thị Chính. Không cần diệt địch.",
+		"Mục tiêu: đưa [b]Anh hùng[/b] tới [b]ô cờ vàng[/b] (làng góc đông bắc) trong 14 lượt, mở đường cho Phùng Thị Chính. Không cần diệt địch.",
 		"Bà ngã là thua. Cho voi và lính đi trước hút đòn, bà đi sau.",
 		"Đứng trong rừng, trên đồi bà được +10 thủ. Giặc từ phía sau đuổi tới ở lượt 3, 5, 9.",
 	],

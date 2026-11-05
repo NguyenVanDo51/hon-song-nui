@@ -42,6 +42,15 @@ static func set_battle_mode(m: String) -> void:
 static func cycle_battle_mode() -> void:
 	set_battle_mode(BATTLE_MODES[(BATTLE_MODES.find(battle_mode()) + 1) % BATTLE_MODES.size()])
 
+## 3D tabletop board (prototype); `board3d_flag` (debug flag 3d=1/0) overrides the saved choice for this run
+static var board3d_flag := -1
+static func board_3d() -> bool:
+	return bool(get_v("board3d", false)) if board3d_flag < 0 else board3d_flag == 1
+
+static func set_board_3d(on: bool) -> void:
+	board3d_flag = -1
+	set_v("board3d", on)
+
 # ---------- campaign progress ----------
 static func done_list() -> Array:
 	return get_v("campaign_done", [])

@@ -65,7 +65,7 @@ const DEF := {
 		],
 	},
 	"tips": [
-		"Trận cuối: Tô Định có 2 thành, nhiều vàng hơn. Chiếm thành trống giữa bản đồ để tăng thu nhập.",
+		"Trận cuối: Tướng giặc có 2 thành, nhiều vàng hơn. Chiếm thành trống giữa bản đồ để tăng thu nhập.",
 		"Phối hợp: voi đi đầu, trống đồng ở giữa, nỏ thủ và nỏ liên châu phía sau.",
 	],
 }

@@ -45,8 +45,8 @@ const DEF := {
 		"outro": [["trungnhi", "Đã về tới Cấm Khê. Ở đây có núi làm thành, ta còn đánh được lâu."]],
 	},
 	"tips": [
-		"Mục tiêu: đưa [b]Trưng Trắc[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 10 lượt.",
+		"Mục tiêu: đưa [b]Anh hùng[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 10 lượt.",
 		"Chỉ có 3 cây cầu qua sông. Cầu hẹp: một lính đứng chặn là cả đoàn phải chờ.",
-		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Trưng Trắc chờ quá lâu.",
+		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Anh hùng chờ quá lâu.",
 	],
 }

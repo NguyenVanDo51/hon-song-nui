@@ -44,7 +44,7 @@ const DEF := {
 	},
 	"tips": [
 		"Trận lớn: được mua mọi loại quân. Địch có [b]2 thành[/b], phải lấy cả hai.",
-		"[b]Mã Viện[/b] đánh rất đau. Đánh lính lẻ trước, đừng lao vào giữa đội hình hắn.",
+		"[b]Tướng giặc[/b] đánh rất đau. Đánh lính lẻ trước, đừng lao vào giữa đội hình hắn.",
 		"Thành trống phía tây hồ: chiếm sớm để có thêm vàng và chỗ mua lính.",
 	],
 }

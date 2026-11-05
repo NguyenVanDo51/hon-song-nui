@@ -25,6 +25,7 @@ func run(name: String, fn: Callable) -> void:
 		print("FAIL " + name)
 
 func _init() -> void:
+	parity_tests()
 	content_tests()
 	rule_tests()
 	mission_tests()
@@ -151,6 +152,23 @@ func content_tests() -> void:
 			for w: Dictionary in def.get("waves", []):
 				for wu: Array in w.units:
 					check(Game.tile_at(s, wu[1], wu[2]) != null, "wave off map %d,%d" % [wu[1], wu[2]])
+					check(Rules.UNITS.has(wu[0]), "wave unit type " + str(wu[0]))
+					var wst := Game.stat(s, { "type": wu[0], "side": "e" })
+					check(Game.move_cost(wst.move, Game.tile_at(s, wu[1], wu[2])) != INF, "wave %s on impassable %d,%d" % [wu[0], wu[1], wu[2]])
+			# win schema
+			check(Content.WIN_TYPES.has(s.win.type), "win type " + str(s.win.type))
+			if s.win.type == "survive":
+				check(s.win.get("turns") is int and s.win.turns > 0, "survive needs turns")
+			if s.win.type == "hero":
+				check(s.heroKey.e != null, "hero win needs an enemy commander")
+			if s.win.type == "reach":
+				check(s.win.get("at", []).size() > 0, "reach needs at")
+				var hst := Game.stat(s, { "type": "hero", "side": "p" })
+				for g: Array in s.win.get("at", []):
+					check(Game.move_cost(hst.move, Game.tile_at(s, g[0], g[1])) != INF, "reach tile %s impassable" % [g])
+			for side: String in ["p", "e"]:
+				for t: String in s.allowed[side]:
+					check(AI.WEIGHTS.has(t), "AI has no buy weight for " + t)
 			for t: String in def.get("newUnits", []):
 				check(Rules.UNITS.has(t), "newUnits " + t)
 			for side: String in ["p", "e"]:
@@ -208,6 +226,42 @@ func blank(units: Array) -> Dictionary:
 	return s
 
 func rule_tests() -> void:
+	run("illegal capture / raise changes nothing (unit stays, can still act)", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
+		var u: Dictionary = s.units[0]
+		var n: int = s.units.size()
+		Game.do_action(s, { "id": u.id, "to": [2, 2], "kind": "capture" }) # plain field: nothing to capture
+		eq([u.x, u.y], [1, 1], "position")
+		check(not u.acted, "still can act")
+		Game.do_action(s, { "id": u.id, "to": [2, 1], "kind": "raise", "target": [3, 1] }) # soldier cannot raise, no grave
+		eq([u.x, u.y], [1, 1], "position after bad raise")
+		eq(s.units.size(), n, "no unit spawned")
+	)
+	run("raising respects the unit cap", func() -> void:
+		var s := blank([["p", "shaman", 1, 1], ["e", "soldier", 4, 4]])
+		s.graves = [{ "x": 2, "y": 1, "ttl": 2 }]
+		s.unitCap = 1
+		eq(Game.raisable_graves(s, s.units[0], 1, 1).size(), 0, "at cap")
+		s.unitCap = 5
+		eq(Game.raisable_graves(s, s.units[0], 1, 1).size(), 1, "under cap")
+	)
+	run("graves expire after graveRounds full rounds", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
+		s.graves = [{ "x": 3, "y": 3, "ttl": Rules.RULES.graveRounds }]
+		for i in Rules.RULES.graveRounds * 2:
+			check(s.graves.size() == 1, "grave still there after %d half-turns" % i)
+			Game.end_turn(s)
+		eq(s.graves.size(), 0, "grave gone")
+	)
+	run("income uses incomeMul, rounded to 10", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
+		s.incomeMul = { "p": 1, "e": 0.55 }
+		s.tiles[0][3] = "v"
+		s.owner[Vector2i(3, 0)] = "e"
+		var base: int = Rules.RULES.incomeCastle + Rules.RULES.incomeVillage
+		eq(Game.income(s, "e"), int(round(base * 0.55 / 10.0)) * 10, "e income")
+		eq(Game.income(s, "p"), Rules.RULES.incomeCastle, "p income untouched")
+	)
 	run("damage = (atk - def - terrain) scaled by attacker hp", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1]])
 		var a: Dictionary = s.units[0]
@@ -294,6 +348,31 @@ func rule_tests() -> void:
 		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
 		eq(s.units[0].rank, 1) # 50 dmg (capped at hp) + 50 kill = 100
 	)
+	run("mission order values are unique", func() -> void:
+		var seen := {}
+		for m: Dictionary in Content.campaign():
+			check(not seen.has(m.order), "duplicate order %s (%s)" % [m.order, m.id])
+			seen[m.order] = true
+	)
+	run("saves of an older state version / unknown unit type are refused", func() -> void:
+		var s := Game.new_game(Content.mission("m03"))
+		var old: Dictionary = s.duplicate(true)
+		old.v = 1
+		check(not Content.save_fits({ "state": old, "ctx": { "kind": "campaign", "id": "m03" } }), "old version refused")
+		var bad: Dictionary = s.duplicate(true)
+		bad.units[0].type = "wizard"
+		check(not Content.save_fits({ "state": bad, "ctx": { "kind": "campaign", "id": "m03" } }), "unknown unit refused")
+		var nowin: Dictionary = s.duplicate(true)
+		nowin.win = { "type": "teleport" }
+		check(not Content.save_fits({ "state": nowin, "ctx": { "kind": "campaign", "id": "m03" } }), "unknown win type refused")
+	)
+	run("goal / end texts: every win type has copy, unknown types fall back", func() -> void:
+		for t: String in Content.WIN_TYPES:
+			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "brief", { "p": "trungtrac", "e": "todinh" }) != t, "brief copy " + t)
+			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "bar", { "p": "trungtrac", "e": "todinh" }, { "n": 1, "left": 2 }) != t, "bar copy " + t)
+		eq(Content.goal_text({ "type": "teleport" }, "brief", { "p": "trungtrac", "e": null }), "teleport")
+		check(Content.tile_note("c").find("tướng") >= 0, "castle note names who captures")
+	)
 	run("save round-trip keeps types", func() -> void:
 		var s := Game.new_game(Content.mission("m02"))
 		var back: Dictionary = str_to_var(var_to_str(s))
@@ -303,12 +382,12 @@ func rule_tests() -> void:
 	)
 	run("saves from older content are refused (removed commander / mission), current ones kept", func() -> void:
 		var s := Game.new_game(Content.mission("m03"))
-		check(Store.fits_content({ "state": s, "ctx": { "kind": "campaign", "id": "m03" } }), "current save fits")
+		check(Content.save_fits({ "state": s, "ctx": { "kind": "campaign", "id": "m03" } }), "current save fits")
 		var old: Dictionary = s.duplicate(true)
 		old.heroKey.p = "trungnhi" # m03's commander before the one-commander change
-		check(not Store.fits_content({ "state": old, "ctx": { "kind": "campaign", "id": "m03" } }), "old commander refused")
-		check(not Store.fits_content({ "state": s, "ctx": { "kind": "campaign", "id": "m20" } }), "removed mission refused")
-		check(not Store.fits_content({ "state": s, "ctx": { "kind": "skirmish", "hero": "lechan", "easy": false } }), "old skirmish hero refused")
+		check(not Content.save_fits({ "state": old, "ctx": { "kind": "campaign", "id": "m03" } }), "old commander refused")
+		check(not Content.save_fits({ "state": s, "ctx": { "kind": "campaign", "id": "m20" } }), "removed mission refused")
+		check(not Content.save_fits({ "state": s, "ctx": { "kind": "skirmish", "hero": "lechan", "easy": false } }), "old skirmish hero refused")
 		eq(Content.hero_look("lechan").name, "lechan") # stale key: placeholder, no crash
 	)
 
@@ -402,4 +481,20 @@ func mission_tests() -> void:
 		var s := Game.new_game(Content.mission("m02"))
 		s.units = s.units.filter(func(u: Dictionary) -> bool: return not (u.x == 1 and u.y == 2))
 		eq(Game.buy_options(s, "p", 1, 2).map(func(o: Dictionary) -> String: return o.type), ["soldier", "archer"])
+	)
+
+
+# ---------- chapter-1 parity (golden traces = JS original) ----------
+## replays a few legacy games through sim/trace.gd's own player and compares with sim/legacy/golden.txt
+func parity_tests() -> void:
+	run("chapter-1 rules + AI still play the golden games (m01 x2, m03, naive)", func() -> void:
+		var golden := {}
+		for line: String in FileAccess.get_file_as_string("res://sim/legacy/golden.txt").split("\n", false):
+			var p := line.split(" ", false, 2)
+			golden[p[0] + " " + p[1]] = p[2]
+		var tr: RefCounted = load("res://sim/parity.gd").new()
+		tr.apply()
+		for key: String in ["m01 0", "m01 1", "m03 0", "naive 0"]:
+			eq(tr.replay(key), golden.get(key, "?"), key)
+		tr.restore()
 	)

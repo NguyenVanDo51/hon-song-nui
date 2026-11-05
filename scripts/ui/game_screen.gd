@@ -680,6 +680,7 @@ func end_player_turn() -> void:
 
 func enemy_turn() -> void:
 	var my := gen
+	AI.seed_game(int(s.get("seed", 0)) * 1000 + s.turn) # same game + turn -> same enemy choices after a reload
 	ui.busy = true
 	refresh()
 	await fx.sleep(900.0)

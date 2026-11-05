@@ -7,8 +7,12 @@ missions=$1; games=${2:-12}; jobs=${3:-4}
 out="${TEMP:-/tmp}/hsn_bal"; mkdir -p "$out"
 outw=$(cygpath -m "$out" 2>/dev/null || echo "$out")
 run() {
-	powershell -NoProfile -File tools/run_guarded.ps1 -Log "$outw/$1.log" -MaxMB 1200 -MaxSec 2400 \
-		-GArgs "--headless --path . -s sim/sim.gd -- mission $1 $games" > /dev/null
+	if command -v powershell > /dev/null; then # Windows
+		powershell -NoProfile -File tools/run_guarded.ps1 -Log "$outw/$1.log" -MaxMB 1200 -MaxSec 2400 \
+			-GArgs "--headless --path . -s sim/sim.gd -- mission $1 $games" > /dev/null
+	else # macOS / Linux
+		MAX_MB=1200 MAX_SEC=2400 tools/run_guarded.sh "$out/$1.log" -- --headless --path . -s sim/sim.gd -- mission "$1" "$games" > /dev/null
+	fi
 }
 n=0
 for m in $missions; do

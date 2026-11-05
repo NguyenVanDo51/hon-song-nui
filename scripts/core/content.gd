@@ -24,7 +24,8 @@ static func _defs(dir: String) -> Array:
 			continue
 		seen[f] = true
 		out.append(load(dir + "/" + f).DEF)
-	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.order < b.order)
+	# sort_custom is not stable: break ties by id so equal `order` values never shuffle (tests flag duplicates)
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.order < b.order or (a.order == b.order and str(a.get("id", "")) < str(b.get("id", ""))))
 	return out
 
 static func theme() -> Dictionary:
@@ -247,3 +248,42 @@ static func tile_note(t: String) -> String:
 			var all := ", ".join([crossers] + water_heroes) if crossers != "" else ", ".join(water_heroes)
 			return text("tileWater").format({ "water": all }) if all != "" else ""
 	return ""
+
+
+# ---------- saves ----------
+const STATE_V := 2 # Game.new_game writes "v"; bump both when the saved state shape changes
+const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
+
+## a save still matches the shipped content: same state version + shape, known win type / unit types, its mission
+## still exists, every commander key is still a hero in theme and rules, every tile is known
+static func save_fits(v: Dictionary) -> bool:
+	var st: Variant = v.get("state")
+	if not (st is Dictionary) or int(st.get("v", 0)) != STATE_V:
+		return false
+	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead"]:
+		if not st.has(k):
+			return false
+	if not WIN_TYPES.has(str(st.win.get("type", ""))):
+		return false
+	for u: Variant in st.units:
+		if not (u is Dictionary) or not Rules.UNITS.has(u.get("type")):
+			return false
+	for side: String in st.allowed:
+		for t: Variant in st.allowed[side]:
+			if not Rules.UNITS.has(t):
+				return false
+	var ctx: Dictionary = v.get("ctx", {}) if v.get("ctx") is Dictionary else {}
+	if ctx.get("kind") == "campaign" and mission(str(ctx.get("id", ""))) == null:
+		return false
+	if ctx.get("kind") == "skirmish" and not heroes_of("p").has(ctx.get("hero")):
+		return false
+	var hk: Variant = st.get("heroKey")
+	if hk is Dictionary:
+		for side: String in hk:
+			if hk[side] != null and not (theme().heroes.has(hk[side]) and Rules.HEROES.has(hk[side])):
+				return false
+	for row: Variant in st.get("tiles", []):
+		for t: String in row:
+			if not Rules.TERRAIN.has(t):
+				return false
+	return true

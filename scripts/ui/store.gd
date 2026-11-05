@@ -4,8 +4,6 @@ extends RefCounted
 
 static var CFG := "user://hsn.cfg"
 static var SAVE := "user://hsn_save_v1.txt"
-const STATE_V := 2 # Game.new_game writes "v"; bump both when the saved state shape changes
-const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
 static var _cfg: ConfigFile
 
 ## test runs (click driver, tests) keep their settings / progress / save apart from the player's
@@ -73,38 +71,9 @@ static func load_game() -> Variant:
 		clear_game() # written by an older content set (removed mission / commander): drop it instead of crashing
 	return null
 
-## a save still matches the shipped content: its mission exists and every commander key is still a hero in the theme
+## a save still matches the shipped content (logic lives in core: Content.save_fits)
 static func fits_content(v: Dictionary) -> bool:
-	var st: Dictionary = v.state
-	if int(st.get("v", 0)) != STATE_V:
-		return false
-	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead"]:
-		if not st.has(k):
-			return false
-	if not WIN_TYPES.has(str(st.win.get("type", ""))):
-		return false
-	for u: Variant in st.units:
-		if not (u is Dictionary) or not Rules.UNITS.has(u.get("type")):
-			return false
-	for side: String in st.allowed:
-		for t: Variant in st.allowed[side]:
-			if not Rules.UNITS.has(t):
-				return false
-	var ctx: Dictionary = v.get("ctx", {}) if v.get("ctx") is Dictionary else {}
-	if ctx.get("kind") == "campaign" and Content.mission(str(ctx.get("id", ""))) == null:
-		return false
-	if ctx.get("kind") == "skirmish" and not Content.heroes_of("p").has(ctx.get("hero")):
-		return false
-	var hk: Variant = v.state.get("heroKey")
-	if hk is Dictionary:
-		for side: String in hk:
-			if hk[side] != null and not (Content.theme().heroes.has(hk[side]) and Rules.HEROES.has(hk[side])):
-				return false
-	for row: Variant in v.state.get("tiles", []):
-		for t: String in row:
-			if not Rules.TERRAIN.has(t):
-				return false
-	return true
+	return Content.save_fits(v)
 
 static func clear_game() -> void:
 	if FileAccess.file_exists(SAVE):

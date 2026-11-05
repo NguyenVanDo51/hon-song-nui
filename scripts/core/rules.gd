@@ -44,8 +44,6 @@ const HEROES := {
 	"thanhthien": { "atk": 60, "def": 20, "mv": 5, "move": "foot", "aura": 10 },
 	"batnan": { "atk": 55, "def": 15, "mv": 5, "move": "mount", "rmin": 1, "rmax": 2, "antiAir": 20 },
 	"phungthichinh": { "atk": 60, "def": 20, "mv": 5, "move": "foot", "tBonus": { "f": 10, "h": 10 } },
-	"batrieu": { "atk": 72, "def": 22, "mv": 5, "move": "foot" },
-	"trieuquocdat": { "atk": 60, "def": 20, "mv": 5, "move": "mount", "guard": 10 },
 	"mavien": { "atk": 65, "def": 20, "mv": 5, "move": "water" }, # same commander profile as todinh (one enemy commander look)
 	"luulong": { "atk": 62, "def": 18, "mv": 6, "move": "foot" },
 	"doanchi": { "atk": 58, "def": 20, "mv": 5, "move": "water" },
@@ -55,4 +53,7 @@ const HEROES := {
 const RULES := {
 	"startGold": 300, "incomeVillage": 50, "incomeCastle": 100, "heal": 20, "graveRounds": 2,
 	"xpLevels": [100, 250, 450], "killXp": 50, "rankBonus": 5, "minDmgFrac": 0.15, "unitCap": 15,
+	# raiseCap: raising from a grave respects unitCap (off in the frozen chapter-1 rules). Waves ignore the cap on purpose:
+	# scripted reinforcements are part of a mission's design.
+	"raiseCap": true,
 }

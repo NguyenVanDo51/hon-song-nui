@@ -3,13 +3,17 @@ extends RefCounted
 ## enemy AI (also the hint button and the sim's player side). Port of src/core/ai.js.
 ## One step at a time so the UI can animate: next_step() -> {kind:'act', act} | {kind:'buy', x, y, type} | null (= end turn).
 
-## sim swaps in a seeded rng
-static var rng: Callable = randf
+## own stream (UI effects draw from the global randf); seeded per game by the screen, swapped by the sims
+static var _gen := RandomNumberGenerator.new()
+static var rng: Callable = _gen.randf
+
+static func seed_game(v: int) -> void:
+	_gen.seed = v
 
 const WEIGHTS := { "soldier": 3, "archer": 2, "drum": 0.5, "shaman": 0.7, "elephant": 1.6, "bird": 1, "catapult": 0.7 }
 
 static func value(_s: Dictionary, u: Dictionary) -> float:
-	return (900 if u.type == "hero" else Rules.UNITS[u.type].cost) * (1 + 0.2 * u.rank)
+	return (900 if u.type == "hero" else Game.UNITS[u.type].cost) * (1 + 0.2 * u.rank)
 
 ## multi-source terrain distance (ignores units)
 static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dictionary:
@@ -39,7 +43,7 @@ static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dic
 	return d
 
 ## tile -> list of enemy attackers that could hit it next turn
-static func threat_map(s: Dictionary, side: String) -> Dictionary:
+static func threat_map(s: Dictionary, side: String, reach_of := {}) -> Dictionary:
 	var m := {}
 	for e: Dictionary in s.units:
 		if e.side == side:
@@ -49,7 +53,7 @@ static func threat_map(s: Dictionary, side: String) -> Dictionary:
 		if st.get("siege", false):
 			from = [[e.x, e.y]]
 		else:
-			for r: Dictionary in Game.reachable(s, e).values():
+			for r: Dictionary in _reach_of(s, e, reach_of).values():
 				from.append([r.x, r.y])
 		var hit := {}
 		var rmax: int = st.rmax
@@ -66,6 +70,21 @@ static func threat_map(s: Dictionary, side: String) -> Dictionary:
 				m[key] = []
 			m[key].append(e)
 	return m
+
+## enemy reach shared by threat_map + endangered_castles within one step (state does not change between them)
+static func _reach_of(s: Dictionary, e: Dictionary, cache: Dictionary) -> Dictionary:
+	if not cache.has(e.id):
+		cache[e.id] = Game.reachable(s, e)
+	return cache[e.id]
+
+## dist_field depends only on terrain, move class and goals: memoised for the turn in mem.df
+static func _dist_cached(s: Dictionary, mc: String, goals: Array, mem: Dictionary) -> Dictionary:
+	if not mem.has("df"):
+		mem.df = {}
+	var key := mc + str(goals)
+	if not mem.df.has(key):
+		mem.df[key] = dist_field(s, mc, goals)
+	return mem.df[key]
 
 static func expected_hit(s: Dictionary, u: Dictionary, x: int, y: int, attackers: Variant) -> float:
 	if attackers == null:
@@ -108,12 +127,12 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 	return out
 
 ## own castles an enemy castle-capturer could step on next turn
-static func endangered_castles(s: Dictionary, side: String) -> Dictionary:
+static func endangered_castles(s: Dictionary, side: String, reach_of := {}) -> Dictionary:
 	var out := {}
 	for e: Dictionary in s.units:
 		if e.side == side or not Game.stat(s, e).get("capC", false):
 			continue
-		var reach := Game.reachable(s, e)
+		var reach := _reach_of(s, e, reach_of)
 		for key: Vector2i in Game.castle_tiles(s, side):
 			if Game.unit_at(s, key.x, key.y) != null:
 				continue
@@ -121,11 +140,11 @@ static func endangered_castles(s: Dictionary, side: String) -> Dictionary:
 				out[key] = true
 	return out
 
-static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary) -> Variant:
+static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary, mem := {}) -> Variant:
 	var st := Game.stat(s, u)
 	var reach := Game.reachable(s, u)
 	var mc: String = st.move if st.move in ["heavy", "fly", "water", "mount"] else "foot"
-	var df := dist_field(s, mc, goals_for(s, u, claims))
+	var df := _dist_cached(s, mc, goals_for(s, u, claims), mem)
 	var val := value(s, u)
 	var caution := (2.5 if s.heroMustLive and u.side == "p" else 1.3) if u.type == "hero" else 0.6
 	var has_df := df.size() > 0
@@ -142,7 +161,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var key := Vector2i(rx, ry)
 		var t: String = s.tiles[ry][rx]
 		var gd: float = df.get(key, 30.0) if has_df else 0.0
-		var tdef: int = Rules.TERRAIN[t].def
+		var tdef: int = Game.TERRAIN[t].def
 		var pos := -gd * 12 + tdef * 0.8
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key))
 		pos -= (hurt / 100.0) * val * caution
@@ -190,7 +209,7 @@ static func choose_buy(s: Dictionary, side: String) -> Variant:
 	for u: Dictionary in s.units:
 		if u.side == side:
 			counts[u.type] = counts.get(u.type, 0) + 1
-		elif Rules.UNITS[u.type].move == "fly":
+		elif Game.UNITS[u.type].move == "fly":
 			enemy_fly = true
 	var open := 0
 	for y in s.h:
@@ -199,7 +218,7 @@ static func choose_buy(s: Dictionary, side: String) -> Variant:
 				open += 1
 	var best: Variant = null
 	for type: String in s.allowed[side]:
-		var cost: int = Rules.UNITS[type].cost
+		var cost: int = Game.UNITS[type].cost
 		if cost > s.gold[side]:
 			continue
 		var w: float = WEIGHTS[type]
@@ -254,11 +273,12 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 		else:
 			return { "kind": "act", "act": { "id": u.id, "to": [u.x, u.y], "kind": "wait" } }
 	if mine.size():
-		var threat := threat_map(s, side)
-		var danger := endangered_castles(s, side)
+		var reach_of := {}
+		var threat := threat_map(s, side, reach_of)
+		var danger := endangered_castles(s, side, reach_of)
 		var best: Variant = null
 		for u: Dictionary in mine:
-			var b: Variant = best_for_unit(s, u, threat, mem.claims, danger)
+			var b: Variant = best_for_unit(s, u, threat, mem.claims, danger, mem)
 			if b != null and (best == null or b.score > best.score):
 				best = b
 		_claim_nearest(s, best.act, mem.claims)
@@ -269,9 +289,9 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 		if Game.unit_at(s, key.x, key.y) != null:
 			continue
 		var want_hero: bool = s.heroDead[side] and s.heroKey[side] != null
-		if want_hero and s.gold[side] >= Rules.UNITS.hero.cost:
+		if want_hero and s.gold[side] >= Game.UNITS.hero.cost:
 			return { "kind": "buy", "x": key.x, "y": key.y, "type": "hero" }
-		if want_hero and s.gold[side] < Rules.UNITS.hero.cost and Game.unit_count(s, side) >= 4:
+		if want_hero and s.gold[side] < Game.UNITS.hero.cost and Game.unit_count(s, side) >= 4:
 			return null
 		var type: Variant = choose_buy(s, side)
 		if type != null:

@@ -75,7 +75,7 @@ func _build_rotate_hint() -> void:
 	var c := CenterContainer.new()
 	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var v := Style.vbox(14)
-	var icon := Style.lbl("⟳", 64, Style.GOLD, Style.display_x)
+	var icon := Style.lbl("🔄", 64, Style.GOLD, Style.display_x)
 	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(icon)
 	var t := Style.lbl("Xoay ngang màn hình để chơi", 22, Style.INK, Style.display)

@@ -47,7 +47,7 @@ var _wrap: Control
 var _frame: Panel
 var _banner: Banner
 var _info: VBoxContainer
-var _actions: HFlowContainer
+var _actions: GridContainer
 var _btn_end: Button
 var _end_pulse: Tween = null
 var _end: Control
@@ -183,7 +183,7 @@ func _build() -> void:
 	_pop.add_child(pv)
 	_info = Style.vbox(6)
 	pv.add_child(_info)
-	_actions = HFlowContainer.new()
+	_actions = GridContainer.new() # columns set per content in refresh(): 2 -> 1 row, 3 -> 1 row, 4 -> 2x2
 	_actions.add_theme_constant_override("h_separation", 6)
 	_actions.add_theme_constant_override("v_separation", 6)
 	pv.add_child(_actions)
@@ -1569,7 +1569,7 @@ func refresh() -> void:
 	elif peek != null:
 		_pop_anchor = [peek.x, peek.y]
 		_unit_info(peek, true)
-		_actions.add_child(_act("Đóng", func() -> void:
+		_actions.add_child(_act("✖ Đóng", func() -> void:
 			ui.peek = null
 			refresh()))
 	elif u != null:
@@ -1591,7 +1591,7 @@ func refresh() -> void:
 					_actions.add_child(_act("⚔ Đánh", func() -> void: commit({ "kind": "attack", "target": tid }), { "hot": true, "go": true }))
 				else:
 					_info.add_child(_note("Bấm vào kẻ địch viền đỏ để chọn mục tiêu."))
-				_actions.add_child(_act("Quay lại", func() -> void:
+				_actions.add_child(_act("↩ Quay lại", func() -> void:
 					ui.mode = M_MOVED
 					ui.target = null
 					refresh()))
@@ -1626,8 +1626,8 @@ func refresh() -> void:
 					var g0: Dictionary = graves[0]
 					_actions.add_child(_act(Content.text("raiseButton"), func() -> void: commit({ "kind": "raise", "target": [g0.x, g0.y] }), { "hot": hk == "raise" }))
 				if dx != u.x or dy != u.y: # no "wait" on its own tile
-					_actions.add_child(_act("Chờ", func() -> void: commit({ "kind": "wait" }), { "hot": hk == "wait" }))
-				_actions.add_child(_act("Hủy", cancel))
+					_actions.add_child(_act("⏳ Chờ", func() -> void: commit({ "kind": "wait" }), { "hot": hk == "wait" }))
+				_actions.add_child(_act("✖ Hủy", cancel))
 		else:
 			pass # stats live in the corner card; choosing where to go = the board (blue tiles, red-ringed enemies)
 	elif ui.buyAt != null:
@@ -1665,10 +1665,15 @@ func refresh() -> void:
 			b.add_child(row)
 			grid.add_child(b)
 		_actions.add_child(grid)
-		_actions.add_child(_act("Đóng", cancel))
+		_actions.add_child(_act("✖ Đóng", cancel))
 	if ui.hint != null:
 		_info.add_child(Style.rich(ui.hint, 14, Style.GOLD, Style.GOLD_HI))
 	_pop.visible = _info.get_child_count() + _actions.get_child_count() > 0
+	var na := _actions.get_child_count()
+	var all_btn := _actions.get_children().all(func(c: Node) -> bool: return c is Button)
+	_actions.columns = (2 if na == 4 else mini(na, 3)) if all_btn and na > 0 else 1
+	for c: Node in _actions.get_children():
+		(c as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	(_info.get_parent() as Control).custom_minimum_size.x = POP_W if _info.get_child_count() > 0 or _actions.get_child_count() > 3 else 0.0
 	if _pop.visible:
 		_place_pop.call_deferred()

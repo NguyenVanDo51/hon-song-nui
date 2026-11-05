@@ -200,7 +200,7 @@ func show_title() -> void:
 	var mus := Style.button("", "ChipBtn")
 	var spd := Style.button("", "ChipBtn")
 	var b3 := Style.button("", "ChipBtn")
-	b3.tooltip_text = "Sa bàn 3D hoặc bản đồ phẳng 2D (trong trận: ⚙ → Bàn cờ)"
+	b3.tooltip_text = "Sa bàn 3D hoặc bản đồ phẳng 2D (trong trận: menu cài đặt › Bàn cờ)"
 	spd.tooltip_text = "Tốc độ hoạt cảnh x1 / x2 / x3"
 	var sync := func() -> void:
 		var a: Variant = main.get("audio") if main else null

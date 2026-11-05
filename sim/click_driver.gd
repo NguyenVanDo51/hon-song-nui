@@ -72,7 +72,7 @@ func _run() -> void:
 	ok(g.board.view.path != null, "hover draws path")
 	g._on_tile(dest.x, dest.y)
 	await process_frame
-	press("Hủy")
+	press("✖ Hủy")
 	await process_frame
 	g._on_tile(hero.x, hero.y)
 	g._on_tile(dest.x, dest.y)

@@ -39,6 +39,7 @@ var _btn_board: Button
 var _menu: PanelContainer
 var _hud_tr: Control
 var _hud_tl: Control
+var _pop_box: StyleBox # popup panel; dropped when the popup holds only buttons
 var _side := true # layout: true = left sidebar, false = top / bottom bands
 var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _card: PanelContainer
@@ -174,6 +175,7 @@ func _build() -> void:
 	_pop = PanelContainer.new()
 	var ps := Style.box(Color(0.075, 0.045, 0.03, 0.96), Style.BRONZE_2, 12, 12)
 	ps.shadow_color = Color(0, 0, 0, 0.55); ps.shadow_size = 14; ps.shadow_offset = Vector2(0, 6)
+	_pop_box = ps
 	_pop.add_theme_stylebox_override("panel", ps)
 	_pop.z_index = 50 # above board tokens / FX and the HUD
 	_pop.visible = false
@@ -1674,6 +1676,8 @@ func refresh() -> void:
 	_actions.columns = (2 if na == 4 else mini(na, 3)) if all_btn and na > 0 else 1
 	for c: Node in _actions.get_children():
 		(c as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var bare := all_btn and _info.get_child_count() == 0 # buttons only: no panel behind them
+	_pop.add_theme_stylebox_override("panel", StyleBoxEmpty.new() if bare else _pop_box)
 	(_info.get_parent() as Control).custom_minimum_size.x = POP_W if _info.get_child_count() > 0 or _actions.get_child_count() > 3 else 0.0
 	if _pop.visible:
 		_place_pop.call_deferred()

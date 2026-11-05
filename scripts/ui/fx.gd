@@ -168,8 +168,13 @@ func buy_fx(x: int, y: int) -> void:
 	ring(x, y, "#ffd166", 500.0, 0.9, 0.08)
 	burst(x, y, 12, { "color": ["#ffd166", "#fff0b3", "#e0a43a"], "kind": "coin", "vmin": 0.8, "vmax": 2.0, "up": 2.0, "g": 6.0, "lmin": 500.0, "lmax": 800.0, "smin": 0.05, "smax": 0.07 })
 
+## dust kicked up at a walker's feet: a low puff that spreads sideways and fades
 func dust(x: float, y: float) -> void:
-	burst(x, y + 0.32, 3, { "color": ["#c9b48a", "#a8936b"], "kind": "smoke", "vmin": 0.1, "vmax": 0.5, "up": 0.2, "g": -0.1, "lmin": 300.0, "lmax": 500.0, "smin": 0.06, "smax": 0.1, "drag": 0.9 })
+	for i in 7:
+		var side := -1.0 if i % 2 else 1.0
+		parts.append({ "x": x + randf_range(-0.12, 0.12), "y": y + 0.3 + randf_range(-0.03, 0.03),
+			"vx": side * randf_range(0.25, 0.7), "vy": -randf_range(0.05, 0.3), "g": -0.15, "drag": 0.9, "life": 0.0,
+			"max": randf_range(380.0, 650.0), "size": randf_range(0.07, 0.12), "color": Color(["#cdb98f", "#b39f76", "#e0d2ae"][i % 3]), "kind": "smoke" })
 
 # ---------- update + draw ----------
 func update(t: float) -> void:

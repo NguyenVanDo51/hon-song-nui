@@ -871,6 +871,8 @@ func play(events: Array, before: Dictionary) -> void:
 				var sp := { "u": copy }
 				v.sprites.append(sp)
 				main.audio.play("move")
+				if e.path.size() > 1:
+					fx.dust(e.path[0][0], e.path[0][1]) # the first step kicks up dust where it starts
 				for i in range(1, e.path.size()):
 					var a: Array = e.path[i - 1]
 					var b: Array = e.path[i]

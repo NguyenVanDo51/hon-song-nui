@@ -87,30 +87,25 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	if fl > 0:
 		ci.draw_circle(bc, R, Color(1, 1, 1, minf(1.0, fl) * 0.85))
 
-## standing piece: shadow, small base in faction colours, the silhouette in the faction's figure colour with a dark
-## outline (mirrored for the enemy); the figure stands ~0.66 tile tall so the tile around it stays visible
+## standing figure: soft ground shadow + the silhouette in the faction's figure colour with a dark outline (mirrored for
+## the enemy); no base, so it reads as standing on the ground. ~0.66 tile tall, so the tile around it stays visible.
+## Commanders keep their gold / crimson glow behind them.
 const FIG_INK := Color(0.07, 0.04, 0.03)
 static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D, o: Dictionary) -> void:
 	var al: float = o.get("alpha", 1.0)
 	var base := c + Vector2(0, T * 0.30)
 	if o.get("shadow", true):
-		Draw.ellipse(ci, base + Vector2(T * 0.03, T * 0.02), T * 0.32, T * 0.11, Color(0, 0, 0, 0.38 * al))
+		Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24, T * 0.075, Color(0, 0, 0, 0.42 * al))
 	var bob: float = o.get("bob", 0.0)
 	if (hero or o.get("glow", false)) and o.get("halo", true):
 		halo(ci, c - Vector2(0, bob), T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
-	var ring: Color = (FOE_RING if foe else HERO_RING) if hero else fac.ring
-	ring.a *= al
-	var bc: Color = fac.body
-	bc.a *= al
-	Draw.ellipse(ci, base, T * 0.27, T * 0.1, bc)
-	Draw.ellipse_line(ci, base, T * 0.27, T * 0.1, ring, maxf(1.5, T * (0.05 if hero else 0.035)))
 	var h := T * (0.74 if hero else 0.66)
 	var flip := -1.0 if side == "e" and o.get("mirror", true) else 1.0
 	var col: Color = fac.get("fig", fac.body2)
 	col.a *= al
 	var ink := FIG_INK
 	ink.a *= al
-	var foot := base - Vector2(0, bob + T * 0.02)
+	var foot := base - Vector2(0, bob)
 	var r := Rect2(-h / 2.0, -h, h, h)
 	ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(flip, 1.0), 0.0, foot))
 	var w := maxf(1.0, T * 0.03)
@@ -174,7 +169,7 @@ class Atlas extends RefCounted:
 			var c := (Vector2(i % _cols, i / _cols) * _cpx + Vector2(_cpx, _cpx) / 2.0) / scale
 			if it[0] == "shadow":
 				var R := T * 0.4
-				Draw.ellipse(ci, c, R * 0.85, R * 0.28, Color(0, 0, 0, 0.4))
+				Draw.ellipse(ci, c, R * 0.62, R * 0.2, Color(0, 0, 0, 0.42))
 			else:
 				Token.paint(ci, c, T, it[1], it[2], it[3], { "shadow": false, "halo": false })
 
@@ -191,7 +186,7 @@ class Atlas extends RefCounted:
 		var half := unit * sc / 2.0
 		var R := T * sc * 0.4
 		var bc := c - Vector2(0, bob)
-		var sh := c + Vector2(-half, R * 0.95 - half)
+		var sh := c + Vector2(-half, R * 0.78 - half)
 		var tl := bc - Vector2(half, half)
 		if sc == 1.0:
 			var inv := st.affine_inverse()

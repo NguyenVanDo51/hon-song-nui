@@ -18,7 +18,7 @@ var gen := 0
 var ui := {}
 var stats := { "kills": 0, "losses": 0 }
 var fx: FX
-var board: Board
+var board: Control # Board (2D) or Board3D: same surface (signals, view, fit, set_state, tile_rect, focus)
 var battle: BattleView
 
 var _turn: Label
@@ -36,6 +36,7 @@ var _ff := false
 var _user_speed := 1.0
 var _end_armed_until := 0
 var _gear: Button
+var _btn_board: Button
 var _menu: PanelContainer
 var _hud_tr: Control
 var _card: PanelContainer
@@ -95,16 +96,7 @@ func _build() -> void:
 	_frame.add_theme_stylebox_override("panel", fs)
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wrap.add_child(_frame)
-	board = Board.new()
-	board.fx = fx
-	board.tile_clicked.connect(_on_tile_clicked)
-	board.hover_changed.connect(func(t: Variant) -> void:
-		ui.hover = t
-		_hover_at = Time.get_ticks_msec()
-		_build_view())
-	board.cancel_requested.connect(cancel)
-	board.info_requested.connect(_on_info_requested)
-	_wrap.add_child(board)
+	_make_board(Store.board_3d())
 	_banner = Banner.new()
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_wrap.add_child(_banner)
@@ -200,6 +192,40 @@ func _build() -> void:
 	add_child(_end)
 	resized.connect(_place_hud)
 
+## 3D tabletop or 2D map; swapping keeps the game, only the renderer changes
+func _make_board(three_d: bool) -> void:
+	var at := -1
+	if board != null:
+		at = board.get_index()
+		board.queue_free()
+	board = Board3D.new() if three_d else Board.new()
+	board.fx = fx
+	board.tile_clicked.connect(_on_tile_clicked)
+	board.hover_changed.connect(func(t: Variant) -> void:
+		ui.hover = t
+		_hover_at = Time.get_ticks_msec()
+		_build_view())
+	board.cancel_requested.connect(cancel)
+	board.info_requested.connect(_on_info_requested)
+	_wrap.add_child(board)
+	if at >= 0:
+		_wrap.move_child(board, at)
+	_frame.visible = not three_d # the 3D board sits on its own table
+
+func _toggle_3d() -> void:
+	if ui.busy:
+		return
+	Store.set_board_3d(not (board is Board3D))
+	_make_board(Store.board_3d())
+	board.set_state(s)
+	board.refresh_terrain()
+	_fit()
+	_board_label()
+	refresh()
+
+func _board_label() -> void:
+	_btn_board.text = "⛰ Bàn cờ: " + ("3D" if board is Board3D else "2D")
+
 func _hud_box() -> StyleBoxFlat:
 	var b := Style.box(Color(0.075, 0.045, 0.03, 0.86), Color(Style.BRONZE_2, 0.7), 10, 10)
 	b.content_margin_top = 7; b.content_margin_bottom = 7
@@ -231,6 +257,7 @@ func _build_menu() -> void:
 	_btn_sound = item.call("", "Âm thanh", func() -> void:
 		main.audio.set_muted(not main.audio.muted)
 		_sound_label(), false)
+	_btn_board = item.call("", "Sa bàn 3D hoặc bản đồ phẳng 2D", _toggle_3d, false)
 	_btn_restart = item.call("↩ Đánh lại màn này", "Chơi lại màn này từ đầu", _confirm_restart)
 	item.call("🏠 Về menu chính", "Lưu ván và về menu", func() -> void:
 		save()
@@ -332,6 +359,8 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	ctx = c
 	def = _def_for(c)
 	Content.use_chapter(Content.chapter_of(def)) # enemy skin + wording of this chapter
+	if (board is Board3D) != Store.board_3d():
+		_make_board(Store.board_3d())
 	_reset_ui()
 	stats = { "kills": 0, "losses": 0 }
 	board.view.hide.clear()
@@ -344,6 +373,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	_speed_label()
 	_sound_label()
 	_show_menu(false)
+	_board_label()
 	_fit.call_deferred()
 	board.refresh_terrain()
 	save()

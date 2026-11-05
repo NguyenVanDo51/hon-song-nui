@@ -6,6 +6,7 @@ var fails := 0
 
 func _init() -> void:
 	Store.use_profile("driver") # never touch the player's save / progress / settings
+	Store.board3d_flag = 0 # this driver walks the 2D board
 	Store.set_battle_mode("off") # cut-away scene off + no zoom: the driver runs fast
 	main = load("res://main.tscn").instantiate()
 	main.flags["nozoom"] = "1"

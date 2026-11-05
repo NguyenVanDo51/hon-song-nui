@@ -19,12 +19,35 @@ const MARGIN := 0.55 # table border around the map, tiles
 ## top of each terrain kind (tiles); figures stand on it
 const TOP := { ".": 0.0, "r": 0.0, "v": 0.0, "c": 0.0, "f": 0.0, "h": 0.12, "m": 0.22, "~": -0.1, "=": 0.0 }
 const WATER_Y := -0.05
-const FIG := 1.3 # figurine scale (tile = 1): tall enough to read as a statue at this tilt
+const FIG := 1.3 # code-built figurine scale (only units KayKit has no model for, e.g. the catapult)
+const CHAR := 0.33 # KayKit character scale (~2.4 units tall -> ~0.8 tile)
+const W := "assets/kaykit/weapons/"
+## unit type -> [KayKit character, [[hand bone, model]], attack clip, scale]. Both sides field the same troops
+## (cloth recoloured red / blue); the two commanders differ. Types not listed use the code-built piece.
+const ROSTER := {
+	"soldier": ["Rogue_Hooded.glb", [["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_round_color.gltf"]], "Melee_1H_Attack_Chop", 1.0],
+	"archer": ["Ranger.glb", [["handslot.l", W + "bow_withString.gltf"]], "Ranged_Bow_Release", 1.0],
+	"drum": ["Rogue.glb", [["handslot.r", "assets/kaykit/hex/decoration/props/flag_%s.gltf"]], "Melee_1H_Attack_Stab", 1.0],
+	"shaman": ["Mage.glb", [["handslot.r", W + "staff.gltf"]], "Ranged_Magic_Shoot", 1.0],
+	"elephant": ["Barbarian.glb", [["handslot.r", W + "axe_2handed.gltf"]], "Melee_2H_Attack_Chop", 1.12],
+	"bird": ["Rogue.glb", [["handslot.r", W + "dagger.gltf"], ["handslot.l", W + "dagger.gltf"]], "Melee_Dualwield_Attack_Chop", 1.0],
+	"ghost": ["Skeleton_Minion.glb", [], "Melee_Unarmed_Attack_Punch_A", 0.95],
+	"hero_p": ["Knight.glb", [["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_badge_color.gltf"]], "Melee_1H_Attack_Chop", 1.15],
+	"hero_e": ["Skeleton_Warrior.glb", [["handslot.r", W + "Skeleton_Axe.gltf"], ["handslot.l", W + "Skeleton_Shield_Large_A.gltf"]], "Melee_1H_Attack_Chop", 1.2],
+}
+const SITE_COLOR := { "p": "red", "e": "blue", "n": "yellow" }
 const SITE_BACK := 0.24 # villages / castles sit at the back of their tile, the unit stands in front
 const WOOD_TABLE := Color("#5b3a22")
 const WOOD_TABLE2 := Color("#6e4a2c")
 const EARTH := Color("#4a3a28")
-const SAND := Color("#c9b78a")
+const SAND := Color("#e0b98a")
+## KayKit hexagon texture colours, so the square tiles match the models standing on them
+const KK_GRASS := Color("#c0c537")
+const KK_GRASS_SIDE := Color("#8a8e0f")
+const KK_WATER := Color("#2583c1")
+const KK_WATER_DEEP := Color("#1f3d86")
+const KK_ROAD := Color("#dfb787")
+const KK_ROAD2 := Color("#d4a471")
 
 var s: Dictionary = {}
 var fx: FX
@@ -50,7 +73,11 @@ var _sites := {} # Vector2i -> { "mi", "own", "flag" }
 var _graves_key := ""
 var _graves := []
 var _lights := []
-var _pieces := {} # key -> MeshInstance3D
+var _pieces := {} # key -> MeshInstance3D (code-built piece) or Node3D (KayKit actor)
+var _props := [] # [tile, x, y, top] waiting for their KayKit model (forest, hill, mountain, bridge)
+var _anim := {} # key -> { cur, lock, attacking, knock } animation state of a KayKit actor
+var _ov_flash: StandardMaterial3D
+var _ov_dim: StandardMaterial3D
 var _facing := {} # unit id -> yaw
 var _last_pos := {} # unit id -> Vector2 (to face the way it walks)
 var _shown := [] # this frame's figures: { key, u, x, y, h, ghost_k, off }
@@ -77,12 +104,18 @@ func _init() -> void:
 	_mat.roughness = 0.9
 	_mat_dim = _mat.duplicate()
 	_mat_dim.albedo_color = Color(0.45, 0.45, 0.48)
+	_ov_flash = StandardMaterial3D.new()
+	_ov_flash.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	_ov_flash.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	_ov_flash.albedo_color = Color(1, 0.97, 0.9, 0.75)
+	_ov_dim = _ov_flash.duplicate()
+	_ov_dim.albedo_color = Color(0.05, 0.05, 0.08, 0.5)
 	_mat_flash = StandardMaterial3D.new()
 	_mat_flash.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	_mat_flash.albedo_color = Color(1, 0.97, 0.9)
 	_vp = SubViewport.new()
 	_vp.own_world_3d = true
-	_vp.transparent_bg = true
+	_vp.transparent_bg = false # a transparent 3D viewport skips the linear -> sRGB step in Compatibility (washed-out colours)
 	_vp.msaa_3d = Viewport.MSAA_4X
 	_vp.gui_disable_input = true
 	_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
@@ -105,8 +138,11 @@ func _init() -> void:
 	_vp.add_child(_sun)
 	var we := WorldEnvironment.new()
 	_env = Environment.new()
-	_env.background_mode = Environment.BG_CLEAR_COLOR
+	_env.background_mode = Environment.BG_COLOR
+	_env.background_color = Color("#1a0f0b") # the game screen's backdrop around the table
 	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	_env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	_env.tonemap_exposure = 0.95
 	we.environment = _env
 	_vp.add_child(we)
 	_day_light()
@@ -142,16 +178,16 @@ func _layer(fn: Callable) -> Control:
 	return l
 
 func _day_light() -> void:
-	_sun.light_color = Color("#fff0d8")
-	_sun.light_energy = 1.0
-	_env.ambient_light_color = Color("#c9d2e6")
-	_env.ambient_light_energy = 0.42
+	_sun.light_color = Color("#fff3e0")
+	_sun.light_energy = 0.3
+	_env.ambient_light_color = Color("#b8c6e0")
+	_env.ambient_light_energy = 0.22
 
 func _night_light() -> void:
 	_sun.light_color = Color("#9fb4ff")
-	_sun.light_energy = 0.28
+	_sun.light_energy = 0.1
 	_env.ambient_light_color = Color("#27304f")
-	_env.ambient_light_energy = 0.5
+	_env.ambient_light_energy = 0.25
 
 # ---------- Board surface ----------
 func set_state(state: Dictionary) -> void:
@@ -251,7 +287,7 @@ func _stand(x: int, y: int) -> float:
 	if t == "~":
 		return WATER_Y - 0.02
 	if t == "=":
-		return 0.05
+		return 0.12
 	return _top_at(x, y)
 
 # ---------- input ----------
@@ -342,11 +378,14 @@ func _build_world() -> void:
 	var cx: float = s.w / 2.0
 	var cz: float = s.h / 2.0
 	k.box(Vector3(cx, -0.46, cz), Vector3(s.w + MARGIN * 2.0, 0.12, s.h + MARGIN * 2.0), WOOD_TABLE, WOOD_TABLE2)
-	k.box(Vector3(cx, -0.28, cz), Vector3(s.w + 0.06, 0.24, s.h + 0.06), EARTH)
+	k.box(Vector3(cx, -0.28, cz), Vector3(s.w + 0.06, 0.24, s.h + 0.06), KK_GRASS_SIDE.darkened(0.2))
 	var water := Kit.new()
 	for y in s.h:
 		for x in s.w:
 			_tile_mesh(k, water, s.tiles[y][x], x, y, pal.terrain)
+	for pr: Array in _props:
+		_place_prop(pr[0], pr[1], pr[2], pr[3])
+	_props.clear()
 	_static = _mi(k.commit(), _mat)
 	_static.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	var wm := ShaderMaterial.new()
@@ -360,7 +399,7 @@ func _build_world() -> void:
 	for y in s.h:
 		for x in s.w:
 			var t: String = s.tiles[y][x]
-			var h := (WATER_Y + 0.025) if t == "~" else (0.085 if t == "=" else _top_at(x, y) + 0.008)
+			var h := (WATER_Y + 0.025) if t == "~" else (0.135 if t == "=" else _top_at(x, y) + 0.008)
 			var u0 := Vector2(float(x) / s.w, float(y) / s.h)
 			var u1 := Vector2(float(x + 1) / s.w, float(y + 1) / s.h)
 			ok.uv_quad(Vector3(x, h, y), Vector3(x, h, y + 1), Vector3(x + 1, h, y + 1), Vector3(x + 1, h, y),
@@ -386,56 +425,57 @@ func _tile_mesh(k: Kit, water: Kit, t: String, x: int, y: int, ter: Dictionary) 
 	var top := _top_at(x, y)
 	var X := x + 0.5
 	var Z := y + 0.5
-	var j := (Board.hash01(x, y, 7) - 0.5) * 0.06
-	var base: Color = p.base
+	var j := (Board.hash01(x, y, 7) - 0.5) * 0.05
+	var base: Color = KK_GRASS
 	base = base.lightened(j) if j > 0 else base.darkened(-j)
 	var wet := t == "~" or t == "="
 	if wet:
-		k.box(Vector3(X, (-0.16 - 0.4) / 2.0, Z), Vector3(1, 0.24, 1), Color(p.deep).darkened(0.3), Color(p.deep).darkened(0.15), false)
+		k.box(Vector3(X, (-0.16 - 0.4) / 2.0, Z), Vector3(1, 0.24, 1), KK_WATER_DEEP.darkened(0.3), KK_WATER_DEEP, false)
 		for i in 2:
 			for jj in 2:
 				var a := Vector3(x + i * 0.5, WATER_Y, y + jj * 0.5)
-				water.quad(a, a + Vector3(0, 0, 0.5), a + Vector3(0.5, 0, 0.5), a + Vector3(0.5, 0, 0), p.base, Vector3.UP)
+				water.quad(a, a + Vector3(0, 0, 0.5), a + Vector3(0.5, 0, 0.5), a + Vector3(0.5, 0, 0), KK_WATER, Vector3.UP)
 	else:
-		k.box(Vector3(X, (top - 0.4) / 2.0, Z), Vector3(1, top + 0.4, 1), base.darkened(0.25), base, false)
+		k.box(Vector3(X, (top - 0.4) / 2.0, Z), Vector3(1, top + 0.4, 1), KK_GRASS_SIDE, base, false)
 		_shore(k, x, y, top)
 	match t:
 		".", "v", "c":
 			for i in 5:
 				var q := Vector3(x + 0.1 + Board.hash01(x, y, i) * 0.8, top, y + 0.1 + Board.hash01(x, y, i + 20) * 0.8)
-				k.cone(q, 0.025, 0.06 + Board.hash01(x, y, i + 9) * 0.04, Board.GRASS_A if Board.hash01(x, y, i + 9) > 0.5 else Board.GRASS_B, 4)
+				k.cone(q, 0.022, 0.05 + Board.hash01(x, y, i + 9) * 0.04, KK_GRASS_SIDE if Board.hash01(x, y, i + 9) > 0.5 else KK_GRASS.darkened(0.15), 4)
 		"r":
 			_road(k, x, y, ter.r)
+		"f", "h", "m", "=":
+			_props.append([t, x, y, top])
+
+## KayKit scenery: tree clumps, rolling hills, grassy peaks, a plank bridge across the river
+func _place_prop(t: String, x: int, y: int, top: float) -> void:
+	var r := func(n: int) -> float: return Board.hash01(x, y, n)
+	var ab := "A" if r.call(1) < 0.5 else "B"
+	var path := ""
+	var fit := 1.0
+	match t:
 		"f":
-			var trees := [[0.25, 0.3], [0.72, 0.28], [0.5, 0.62], [0.22, 0.8], [0.8, 0.78]]
-			for i in trees.size():
-				var q := Vector3(x + trees[i][0] + (Board.hash01(x, y, i) - 0.5) * 0.08, top, y + trees[i][1])
-				var h := 0.32 + Board.hash01(x, y, i + 5) * 0.12
-				k.cyl(q, 0.03, 0.025, 0.08, Board.TRUNK, 5)
-				k.cone(q + Vector3(0, 0.06, 0), 0.15, h * 0.7, p.tree, 7)
-				k.cone(q + Vector3(0, 0.06 + h * 0.35, 0), 0.11, h * 0.6, p.tree2, 7)
+			path = "hex/decoration/nature/trees_%s_%s.gltf" % [ab, "large" if r.call(2) < 0.5 else "medium"]
+			fit = 1.05
 		"h":
-			k.xf = Transform3D(Basis().scaled(Vector3(1, 0.32, 1)), Vector3(X - 0.08, top, Z + 0.05))
-			k.ball(Vector3.ZERO, 0.32, p.hill, 10, 4)
-			k.xf = Transform3D(Basis().scaled(Vector3(1, 0.4, 1)), Vector3(X + 0.2, top, Z - 0.15))
-			k.ball(Vector3.ZERO, 0.2, p.hill2, 8, 4)
-			k.xf = Transform3D.IDENTITY
+			path = "hex/decoration/nature/hills_%s%s.gltf" % [["A", "B", "C"][int(r.call(3) * 3.0) % 3], "_trees" if r.call(4) < 0.35 else ""]
+			fit = 1.0
 		"m":
-			for pk: Array in [[-0.16, -0.05, 0.3, 0.55], [0.17, 0.08, 0.24, 0.42]]:
-				var q := Vector3(X + pk[0], top, Z + pk[1])
-				k.cone(q, pk[2], pk[3], p.rock, 6)
-				k.cone(q + Vector3(0, pk[3] * 0.7, 0), pk[2] * 0.3, pk[3] * 0.3, p.snow, 6)
+			path = "hex/decoration/nature/mountain_%s_grass%s.gltf" % [["A", "B", "C"][int(r.call(5) * 3.0) % 3], "_trees" if r.call(6) < 0.4 else ""]
+			fit = 1.05
 		"=":
-			var horiz: bool = (Game.tile_at(s, x - 1, y) != "~" or Game.tile_at(s, x + 1, y) != "~") and Game.tile_at(s, x, y - 1) == "~"
-			var sz := Vector3(1.0, 0.05, 0.62) if horiz else Vector3(0.62, 0.05, 1.0)
-			k.box(Vector3(X, 0.02, Z), sz, p.plank, p.plank)
-			for i in 6:
-				var o := -0.42 + i * 0.17
-				var bs := Vector3(0.025, 0.012, 0.6) if horiz else Vector3(0.6, 0.012, 0.025)
-				k.box(Vector3(X + (o if horiz else 0.0), 0.05, Z + (0.0 if horiz else o)), bs, p.plank2)
-			for c: Vector2 in [Vector2(-0.4, -0.33), Vector2(0.4, -0.33), Vector2(-0.4, 0.33), Vector2(0.4, 0.33)]:
-				var cc := c if horiz else Vector2(c.y, c.x)
-				k.cyl(Vector3(X + cc.x, -0.16, Z + cc.y), 0.03, 0.03, 0.3, p.plank2, 5)
+			path = "hex/buildings/neutral/building_bridge_A.gltf"
+			fit = 1.0
+	var n := KK.prop(path, fit)
+	n.position = Vector3(x + 0.5, top, y + 0.5)
+	if t == "=":
+		var horiz: bool = (Game.tile_at(s, x - 1, y) != "~" or Game.tile_at(s, x + 1, y) != "~") and Game.tile_at(s, x, y - 1) == "~"
+		n.rotation.y = PI / 2.0 if horiz else 0.0
+		n.position.y = -0.02
+	else:
+		n.rotation.y = floorf(r.call(7) * 6.0) * PI / 3.0
+	_world.add_child(n)
 
 ## sand rim where land meets water
 func _shore(k: Kit, x: int, y: int, top: float) -> void:
@@ -452,7 +492,7 @@ func _road(k: Kit, x: int, y: int, p: Dictionary) -> void:
 	var links := { "r": 0.5, "v": 0.5, "c": 0.5, "=": 0.5 }
 	var w := 0.3
 	var c := Vector3(x + 0.5, 0.006, y + 0.5)
-	k.box(c, Vector3(w, 0.012, w), p.dirt2, p.dirt, false)
+	k.box(c, Vector3(w, 0.012, w), KK_ROAD2, KK_ROAD, false)
 	for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
 		var nt: Variant = Game.tile_at(s, x + d.x, y + d.y)
 		if nt == null or not links.has(nt):
@@ -460,14 +500,13 @@ func _road(k: Kit, x: int, y: int, p: Dictionary) -> void:
 		var len: float = links[nt]
 		var m := c + Vector3(d.x, 0, d.y) * len / 2.0
 		var sz := Vector3(len, 0.012, w) if d.x != 0 else Vector3(w, 0.012, len)
-		k.box(m, sz, p.dirt2, p.dirt, false)
+		k.box(m, sz, KK_ROAD2, KK_ROAD, false)
 	for i in 4:
 		var q := Vector3(x + 0.35 + Board.hash01(x, y, i + 40) * 0.3, 0.014, y + 0.35 + Board.hash01(x, y, i + 50) * 0.3)
-		k.box(q, Vector3(0.03, 0.012, 0.03), p.pebble, p.pebble, false)
+		k.box(q, Vector3(0.03, 0.012, 0.03), KK_ROAD2, KK_ROAD2, false)
 
 # ---------- buildings / graves / night lights (rebuilt only when they change) ----------
 func _sync_sites(time: float) -> void:
-	var pal := Draw.pal()
 	for y in s.h:
 		for x in s.w:
 			var t: String = s.tiles[y][x]
@@ -481,18 +520,13 @@ func _sync_sites(time: float) -> void:
 					site.mi.queue_free()
 					if site.flag != null:
 						site.flag.queue_free()
-				var fac: Dictionary = pal.factions.get(own, pal.factions.n)
-				var tp: Dictionary = pal.terrain[t]
-				var mesh := Pieces.village(fac.roof, tp.wall) if t == "v" else Pieces.castle(fac.roof, tp.wall, tp.wall2)
-				var mi := _mi(mesh, _mat)
+				var col: String = SITE_COLOR.get(own, "yellow")
+				var path := ("hex/buildings/%s/building_home_%s_%s.gltf" % [col, "A" if Board.hash01(x, y, 3) < 0.5 else "B", col]) if t == "v" \
+					else ("hex/buildings/%s/building_castle_%s.gltf" % [col, col])
+				var mi := KK.prop(path, 0.62 if t == "v" else 0.78)
 				mi.position = Vector3(x + 0.5, 0.0, y + 0.5 - SITE_BACK)
-				mi.scale = Vector3.ONE * (0.9 if t == "v" else 0.85)
-				var fl: MeshInstance3D = null
-				if t == "c":
-					fl = _mi(Pieces.flag(Board.FLAG_N if own == "n" else fac.glow), _mat)
-					fl.position = Vector3(x + 0.5, 0.8 * 0.8, y + 0.5 - SITE_BACK + 0.34 * 0.8)
-					fl.scale = Vector3.ONE * 0.8
-				site = { "mi": mi, "own": own, "flag": fl }
+				_world.add_child(mi)
+				site = { "mi": mi, "own": own, "flag": null }
 				_sites[at] = site
 			if site.flag != null:
 				site.flag.rotation.y = sin(time / 300.0 + x + y) * 0.35
@@ -523,7 +557,7 @@ func _sync_lights() -> void:
 	while _lights.size() < want.size():
 		var l := OmniLight3D.new()
 		l.light_color = Color("#ffc27a")
-		l.light_energy = 1.6
+		l.light_energy = 0.6
 		l.omni_range = 2.6
 		_world.add_child(l)
 		_lights.append(l)
@@ -567,9 +601,24 @@ func _collect(time: float, _dt: float) -> void:
 		var h0 := _stand(x0, y0)
 		var h1 := _stand(x0 + (1 if fxr > 0.001 else 0), y0 + (1 if fyr > 0.001 else 0))
 		var frac := fxr + fyr
-		it.h = lerpf(h0, h1, frac) + sin(frac * PI) * 0.16
-		if off != null:
-			it.h += (off as Vector2).length() * 0.25
+		it.h = lerpf(h0, h1, frac)
+		it.moving = frac > 0.001 and frac < 0.999
+
+func _roster_key(u: Dictionary) -> String:
+	return ("hero_" + u.side) if u.type == "hero" else u.type
+
+## a KayKit actor for this unit (or null: no model for its type -> code-built piece)
+func _make_actor(u: Dictionary) -> Node3D:
+	var r: Variant = ROSTER.get(_roster_key(u))
+	if r == null:
+		return null
+	var weapons := []
+	for w: Array in r[1]:
+		weapons.append([w[0], (w[1] % SITE_COLOR[u.side]) if "%s" in w[1] else w[1]])
+	var a := KK.actor(r[0], weapons, u.side, not (u.type == "hero" and u.side == "e"))
+	a.set_meta("scale", CHAR * float(r[3]))
+	a.set_meta("attack", r[2])
+	return a
 
 func _sync_pieces(time: float) -> void:
 	var used := {}
@@ -577,48 +626,57 @@ func _sync_pieces(time: float) -> void:
 	for it: Dictionary in _shown:
 		var u: Dictionary = it.u
 		var key: String = it.key
-		var mi: MeshInstance3D = _pieces.get(key)
-		if mi == null:
-			mi = MeshInstance3D.new()
-			_world.add_child(mi)
-			_pieces[key] = mi
-		mi.mesh = Pieces.unit(u.side, u.type)
-		mi.visible = true
+		var node: Node3D = _pieces.get(key)
+		if node == null:
+			node = _make_actor(u)
+			if node == null:
+				var mi := MeshInstance3D.new()
+				mi.mesh = Pieces.unit(u.side, u.type)
+				node = mi
+			_world.add_child(node)
+			_pieces[key] = node
+			_anim[key] = { "cur": "", "lock": 0.0, "attacking": false, "knock": 0.0 }
+		node.visible = true
 		used[key] = true
-		# facing: walk direction, lunge direction, else last facing (pieces start facing the other side)
+		# facing: walk direction, strike direction, else last facing (both sides start facing each other)
 		var id: int = u.id
 		var yaw: float = _facing.get(id, 0.0 if u.side == "p" else PI)
 		var cur := Vector2(it.x, it.y)
 		var last: Variant = _last_pos.get(id)
-		if it.off != null and (it.off as Vector2).length() > 0.02:
-			yaw = atan2(-it.off.y, it.off.x)
+		if it.off != null and fx.aim.has(id):
+			var ad: Vector2 = fx.aim[id]
+			yaw = atan2(-ad.y, ad.x)
 		elif last != null and cur.distance_to(last) > 0.01 and it.ghost < 0:
 			var d: Vector2 = cur - last
 			yaw = atan2(-d.y, d.x)
 		_last_pos[id] = cur
 		var cyaw: float = _facing.get(id, yaw)
-		cyaw = lerp_angle(cyaw, yaw, 0.35)
+		cyaw = lerp_angle(cyaw, yaw, 0.3)
 		_facing[id] = cyaw
-		var bas := Basis(Vector3.UP, cyaw)
 		var pos := Vector3(it.x + 0.5, it.h, it.y + 0.5)
-		var sc := FIG * (1.12 if u.type == "hero" else 1.0)
-		if it.ghost >= 0: # dying: topple sideways and sink
-			var k: float = it.ghost
-			bas = Basis(Vector3.UP, cyaw) * Basis(Vector3.RIGHT, -k * k * 1.45)
-			pos.y -= k * 0.22
-			sc *= 1.0 - k * 0.25
-		elif it.off != null:
-			bas = bas * Basis(Vector3.BACK, -(it.off as Vector2).length() * 1.1) # lean into the blow
 		var fl: float = fx.flash_until.get(id, 0.0)
 		var flash: bool = fl > time and it.ghost < 0
-		if flash:
-			bas = bas * Basis(Vector3.BACK, 0.18) # recoil
-		var breathe := 1.0 + sin(time / 420.0 + id * 1.7) * 0.015
-		if id == sel_id and it.ghost < 0:
-			pos.y += 0.06 + sin(time / 160.0) * 0.03
-		mi.transform = Transform3D(bas.scaled(Vector3(sc, sc * breathe, sc)), pos)
 		var acted: bool = u.get("acted", false) and s.side == u.side and not view.busy and it.ghost < 0
-		mi.material_override = _mat_flash if flash else (_mat_dim if acted else _mat)
+		if node.has_meta("ap"):
+			var sc: float = node.get_meta("scale")
+			node.transform = Transform3D(Basis(Vector3.UP, cyaw).scaled(Vector3.ONE * sc), pos)
+			_animate(key, node, u, it, time, id == sel_id)
+			var ov: Material = _ov_flash if flash else (_ov_dim if acted else null)
+			for mi: MeshInstance3D in node.get_meta("meshes"):
+				mi.material_overlay = ov
+		else:
+			var bas := Basis(Vector3.UP, cyaw)
+			var sc2 := FIG
+			if it.ghost >= 0: # dying: topple sideways and sink
+				var k: float = it.ghost
+				bas = bas * Basis(Vector3.RIGHT, -k * k * 1.45)
+				pos.y -= k * 0.22
+			elif it.off != null:
+				bas = bas * Basis(Vector3.BACK, -(it.off as Vector2).length() * 1.1)
+			if id == sel_id and it.ghost < 0:
+				pos.y += 0.06 + sin(time / 160.0) * 0.03
+			node.transform = Transform3D(bas.scaled(Vector3.ONE * sc2), pos)
+			(node as MeshInstance3D).material_override = _mat_flash if flash else (_mat_dim if acted else _mat)
 	for key: String in _pieces.keys():
 		if used.has(key):
 			continue
@@ -627,6 +685,38 @@ func _sync_pieces(time: float) -> void:
 		else:
 			_pieces[key].queue_free()
 			_pieces.erase(key)
+			_anim.erase(key)
+
+## pick the clip: death (corpse), strike (when the lunge starts), hit (new knock), run (moving), else idle.
+## One-shot clips hold the actor until they finish (sped up with the playback speed).
+func _animate(key: String, node: Node3D, u: Dictionary, it: Dictionary, time: float, selected: bool) -> void:
+	var ap: AnimationPlayer = node.get_meta("ap")
+	var st: Dictionary = _anim[key]
+	var sp := FX.speed
+	var play := func(clip: String, speed: float, blend := 0.12) -> void:
+		ap.play(clip, blend, speed * sp)
+		st.cur = clip
+		var a := ap.get_animation(clip)
+		st.lock = time + (a.length / (speed * sp)) * 1000.0 if a.loop_mode == Animation.LOOP_NONE else 0.0
+	if it.ghost >= 0:
+		if st.cur != "Death_A":
+			play.call("Death_A", 1.4, 0.05)
+		return
+	if it.off != null:
+		if not st.attacking:
+			st.attacking = true
+			play.call(node.get_meta("attack"), 1.7, 0.05)
+	else:
+		st.attacking = false
+	var kn: Variant = fx.knock.get(u.id)
+	if kn != null and float(kn.t0) != float(st.knock):
+		st.knock = kn.t0
+		play.call("Hit_A", 1.5, 0.05)
+	if time < float(st.lock):
+		return
+	var want := "Running_A" if it.get("moving", false) else ("Idle_B" if selected else "Idle_A")
+	if st.cur != want:
+		play.call(want, 1.25 if want == "Running_A" else 1.0)
 
 # ---------- overlay texture (flat on the tiles) ----------
 func _paint_overlay(ci: CanvasItem) -> void:

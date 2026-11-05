@@ -21,6 +21,7 @@ var flash_until := {}
 var offsets := {}
 var knock := {} # unit id -> { dir, t0, dur, mag }: hit reaction the board turns into a shove + lean
 var facing := {} # unit id -> -1 / 1: which way an attacker turned to strike
+var aim := {} # unit id -> Vector2 direction of its current strike (3D board turns the figure to it)
 var _last := 0.0
 
 static func now() -> float:
@@ -35,7 +36,7 @@ func sleep(ms: float) -> void:
 func clear() -> void:
 	_gen += 1
 	parts.clear(); projs.clear(); rings.clear(); floats.clear(); rays.clear(); ghosts.clear()
-	flash_until.clear(); offsets.clear(); knock.clear(); facing.clear(); shake_until = 0.0
+	flash_until.clear(); offsets.clear(); knock.clear(); facing.clear(); aim.clear(); shake_until = 0.0
 
 func _play(name: String) -> void:
 	if audio:
@@ -95,6 +96,7 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 	var dir := Vector2(d.x - a.x, d.y - a.y).normalized()
 	if absf(dir.x) > 0.01:
 		facing[a.id] = signf(dir.x)
+	aim[a.id] = dir
 	if shot != "":
 		# draw: lean back, then loose the shot and spring forward
 		await tween(130.0, func(t: float) -> void: offsets[a.id] = -dir * 0.08 * sin(t * PI * 0.5))
@@ -139,7 +141,7 @@ func _impact(d: Dictionary, amount: int, heavy: bool, shot: String, kill: bool) 
 ## corpse fades + smoke; u = copy of the dying unit
 func death(u: Dictionary) -> void:
 	_play("die")
-	ghosts.append({ "u": u, "t0": now(), "dur": sp(650.0) })
+	ghosts.append({ "u": u, "t0": now(), "dur": sp(1000.0) })
 	burst(u.x, u.y, 16, { "color": ["#3a3430", "#6b625a", "#8d837a"], "kind": "smoke", "vmin": 0.2, "vmax": 1.1, "up": 0.6, "g": -0.5, "lmin": 600.0, "lmax": 1200.0, "smin": 0.1, "smax": 0.22, "drag": 0.94 })
 	burst(u.x, u.y, 6, { "color": "#ffb38a" if u.side == "p" else "#8ff0e8", "kind": "glow", "vmin": 0.1, "vmax": 0.4, "up": 1.2, "g": -0.6, "lmin": 900.0, "lmax": 1400.0, "smin": 0.04, "smax": 0.07 })
 

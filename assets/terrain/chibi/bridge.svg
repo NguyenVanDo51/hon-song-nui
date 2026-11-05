@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<rect x="0" y="0" width="256" height="256" fill="#6aa6cf"/>
+<rect x="43" y="-10" width="170" height="276" fill="#4f8bb8" opacity="0.5"/>
+<g fill="none" stroke="#9cc8e4" stroke-width="6" stroke-linecap="round">
+<path d="M14 92 q6 -5 12 0 q6 5 12 0"/>
+<path d="M218 180 q6 -5 12 0 q6 5 12 0"/>
+</g>
+<rect x="51" y="-10" width="154" height="276" fill="#a87a4c" stroke="#2b2220" stroke-width="5"/>
+<g stroke="#2b2220" stroke-width="3" stroke-linecap="butt">
+<path d="M51 0 H205 M51 32 H205 M51 64 H205 M51 96 H205 M51 128 H205 M51 160 H205 M51 192 H205 M51 224 H205 M51 256 H205"/>
+</g>
+<g stroke="#6b4a2e" stroke-width="3" stroke-linecap="round" opacity="0.55">
+<path d="M84 16 H118 M140 48 H178 M92 80 H124 M150 112 H172 M80 144 H110 M134 176 H170 M96 208 H130 M150 240 H176"/>
+</g>
+<g stroke-linecap="butt">
+<line x1="60" y1="-10" x2="60" y2="266" stroke="#2b2220" stroke-width="19"/>
+<line x1="60" y1="-10" x2="60" y2="266" stroke="#d2b07a" stroke-width="11"/>
+<line x1="196" y1="-10" x2="196" y2="266" stroke="#2b2220" stroke-width="19"/>
+<line x1="196" y1="-10" x2="196" y2="266" stroke="#d2b07a" stroke-width="11"/>
+<path d="M55 96 H65 M55 224 H65 M191 96 H201 M191 224 H201 M55 0 H65 M55 256 H65 M191 0 H201 M191 256 H201" stroke="#b48e58" stroke-width="4"/>
+</g>
+<g fill="#b48e58" stroke="#2b2220" stroke-width="5">
+<circle cx="60" cy="32" r="9"/>
+<circle cx="60" cy="160" r="9"/>
+<circle cx="196" cy="32" r="9"/>
+<circle cx="196" cy="160" r="9"/>
+</g>
+</svg>

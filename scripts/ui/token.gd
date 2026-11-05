@@ -29,8 +29,9 @@ func _draw() -> void:
 	Draw.xf = Transform2D.IDENTITY
 	paint(self, Vector2(px / 2.0, px / 2.0 - px * 0.04), px * 0.95, side, type, hero_key, { "mirror": false })
 
-## art preview: full-colour per-side figures, assets/units/styles/<fig_style>/<type>_<side>.svg (falls back to the silhouette)
-static var fig_style := ""
+## art set: full-colour per-side figures assets/units/styles/<fig_style>/<type>_<side>.svg + terrain assets/terrain/<fig_style>/
+## (raw SVG, importer "keep", rasterised at runtime). "" = old silhouettes + procedural terrain
+static var fig_style := "chibi"
 static var _rast := {} # "path@px" -> ImageTexture
 static var _has := {} # path -> bool
 
@@ -39,7 +40,7 @@ static func raster(path: String, px: float) -> Texture2D:
 	var b := maxi(16, ceili(px / 8.0) * 8)
 	var key := "%s@%d" % [path, b]
 	if not _rast.has(key):
-		if _rast.size() > 96:
+		if _rast.size() > 192:
 			_rast.clear()
 		var img := Image.new()
 		var src := FileAccess.get_file_as_string(path)
@@ -48,7 +49,7 @@ static func raster(path: String, px: float) -> Texture2D:
 		_rast[key] = ImageTexture.create_from_image(img)
 	return _rast[key]
 
-static func _exists(path: String) -> bool:
+static func exists(path: String) -> bool:
 	if not _has.has(path):
 		_has[path] = FileAccess.file_exists(path)
 	return _has[path]
@@ -69,7 +70,7 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var foe := hero and p_side == "e"
 	if fig_style != "":
 		var alt := "res://assets/units/styles/%s/%s_%s.svg" % [fig_style, p_type, p_side]
-		if _exists(alt):
+		if exists(alt):
 			_standee(ci, c, T, p_side, hero, foe, fac, null, o.merged({ "color": true, "svg": alt }))
 			return
 	var fig := image(look.get("fig"))

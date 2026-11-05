@@ -237,13 +237,49 @@ func _notification(what: int) -> void:
 		hover_changed.emit(null)
 
 # ---------- terrain (cached) ----------
+## art set (Token.fig_style, e.g. chibi): SVG tiles in assets/terrain/<style>/ replace the procedural terrain
+func _art(name: String) -> String:
+	if Token.fig_style == "":
+		return ""
+	var p := "res://assets/terrain/%s/%s.svg" % [Token.fig_style, name]
+	return p if Token.exists(p) else ""
+
+## tile x, y -> its art file (two looks per kind, picked by position); "" = no art for it
+func _tile_art(t: String, x: int, y: int) -> String:
+	var ab := "_a" if hash01(x, y, 11) < 0.5 else "_b"
+	var base: String = { ".": "grass", "r": "grass", "v": "grass", "c": "grass", "f": "forest", "h": "hill", "m": "mountain" }.get(t, "")
+	if base != "":
+		var p := _art(base + ab)
+		return p if p != "" else _art(base + "_a")
+	return _art({ "~": "water", "=": "bridge" }.get(t, "-"))
+
+## an SVG drawn over tile x, y (rasterised at the on-screen size), turned by rot around the tile centre
+func _art_draw(ci: CanvasItem, path: String, x: int, y: int, rot := 0.0) -> bool:
+	var tex := Token.raster(path, T * Baked.screen_scale(ci))
+	if tex == null:
+		return false
+	if rot == 0.0:
+		ci.draw_texture_rect(tex, Rect2(x * T, y * T, T, T), false)
+	else:
+		ci.draw_set_transform(Vector2((x + 0.5) * T, (y + 0.5) * T), rot)
+		ci.draw_texture_rect(tex, Rect2(-T / 2.0, -T / 2.0, T, T), false)
+		ci.draw_set_transform_matrix(Draw.xf)
+	return true
+
+func _bridge_horiz(x: int, y: int) -> bool:
+	return (Game.tile_at(s, x - 1, y) != "~" or Game.tile_at(s, x + 1, y) != "~") and Game.tile_at(s, x, y - 1) == "~"
+
 func _draw_terrain(ci: CanvasItem) -> void:
 	if s.is_empty():
 		return
+	var art := _art("grass_a") != ""
 	for y in s.h:
 		for x in s.w:
 			var t: String = s.tiles[y][x]
 			var p: Dictionary = Content.terrain(t)
+			var ap := _tile_art(t, x, y) if art else ""
+			if ap != "" and _art_draw(ci, ap, x, y, PI / 2.0 if t == "=" and _bridge_horiz(x, y) else 0.0):
+				continue
 			var tex := Token.image(p.get("img"))
 			if tex:
 				ci.draw_texture_rect(tex, Rect2(x * T, y * T, T, T), false)
@@ -259,7 +295,7 @@ func _draw_terrain(ci: CanvasItem) -> void:
 			var X: float = x * T
 			var Y: float = y * T
 			var w := T * 0.12
-			var sand := Color(0.788, 0.718, 0.541, 0.53)
+			var sand := Color("#e3cf9a", 0.85) if art else Color(0.788, 0.718, 0.541, 0.53)
 			if Game.tile_at(s, x + 1, y) == "~": ci.draw_rect(Rect2(X + T - w, Y, w, T), sand)
 			if Game.tile_at(s, x - 1, y) == "~": ci.draw_rect(Rect2(X, Y, w, T), sand)
 			if Game.tile_at(s, x, y + 1) == "~": ci.draw_rect(Rect2(X, Y + T - w, T, w), sand)
@@ -275,6 +311,8 @@ func _draw_terrain(ci: CanvasItem) -> void:
 ## pebbles), so the roads read as one network leading to the buildings and over the bridges
 func _draw_roads(ci: CanvasItem) -> void:
 	var p: Dictionary = Content.terrain("r")
+	if _art("grass_a") != "":
+		p = p.merged({ "dirt": Color("#d2b07a"), "dirt2": Color("#b48e58"), "pebble": Color("#e9d9ad") }, true)
 	# how far from this tile's centre the band runs toward each kind of neighbour (tile units):
 	# path -> the shared edge (the neighbour draws its own half), village / castle -> up to the building, bridge -> onto the planks
 	var links := { "r": 0.5, "v": 1.0, "c": 1.0, "=": 0.62 }
@@ -426,6 +464,9 @@ static func _join(parts: Array) -> PackedVector2Array:
 	return out
 
 func _draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, time: float, x: int, y: int) -> void:
+	var ap := _art("%s_%s" % ["village" if t == "v" else "castle", own])
+	if ap != "" and _art_draw(ci, ap, x, y):
+		return
 	var pal := Draw.pal()
 	var fac: Dictionary = pal.factions.get(own, pal.factions.n)
 	var p: Dictionary = pal.terrain[t]

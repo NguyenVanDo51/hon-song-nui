@@ -93,6 +93,7 @@ AI một nước (GDScript, máy bàn Mac, trung bình): m01 ~5 ms, m08 ~22 ms, 
 | Bản đồ đấu tự do | `content/skirmish_maps.gd` |
 | Chỉ số lính, tướng, địa hình, kinh tế | `scripts/core/rules.gd` |
 | Ảnh thật thay emoji / hình vẽ | thêm `"img": "res://…png"` vào lính / tướng / địa hình trong theme |
+| Bộ hình chibi (mặc định) | `assets/units/styles/chibi/<loại>_<p\|e>.svg` + `assets/terrain/chibi/*.svg` (SVG thô, importer "keep", vẽ lại đúng cỡ màn hình lúc chạy). Cờ `figstyle=off` = bóng người + địa hình vẽ code cũ |
 Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục có NotoSansSymbols2.ttf>` để tải PNG Noto tương ứng.
 
 ## Kiến trúc

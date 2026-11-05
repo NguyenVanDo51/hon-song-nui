@@ -56,3 +56,9 @@ Người chơi (chủ repo) góp ý, đã làm:
 - UX: khung 1280x720 + tỉ lệ tối thiểu 0.8 + màn xoay ngang; Đánh tiếp lên đầu; hỏi trước khi ghi đè ván; cảnh đánh 3 chế độ; tua lượt địch; Space giữ chỗ; Hết lượt nhắc khi còn việc; Đánh lại; số liệu ta/địch rõ; mẹo khi thua; Sách lính có Địa hình.
 - Vẽ: agent riêng (bake địa hình, cache token, cỡ chữ cố định, âm thanh dựng sẵn, sửa icon mất trong cảnh đánh, màn dọc cho cảnh đánh) — xem commit sau.
 Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo "→ còn X" (đụng file vẽ, làm sau khi agent vẽ xong).
+
+## 2026-11-05 — bộ hình chibi 2D (máy macOS)
+- 2D mặc định (`Store.board_3d` = false); 3D vẫn bật được ở ⚙. 3D: camera 45°, hạ chiều cao thành / núi / cây.
+- Bộ chibi tự vẽ (SVG tay, 15 sub-agent theo `scratchpad/chibi_style.md`): 9 loại quân x 2 phe + 2 tướng, địa hình đồng / sông / cầu / rừng / đồi / núi, làng + thành x 3 chủ (n/p/e).
+- Vẽ: `Token.raster(path, px)` dựng SVG đúng cỡ điểm ảnh (bậc 8 px, cache) -> không mờ mipmap, kể cả lúc zoom đánh. `Board._tile_art`: 2 biến thể / loại theo hash ô, cầu xoay 90° khi qua sông ngang; đường mòn + bờ cát + sóng vẫn vẽ code.
+- Đã chạy: tests 51/51, click_driver fails=0, bot m02 có zoom chụp màn hình.

@@ -26,8 +26,8 @@ func _ready() -> void:
 		Store.use_profile(str(flags.profile))
 	if flags.has("3d"): # 3d=1 / 3d=0: board renderer for this run
 		Store.board3d_flag = 0 if str(flags["3d"]) == "0" else 1
-	if flags.has("figstyle"): # figstyle=<dir>: full-colour figures from assets/units/styles/<dir> (art preview)
-		Token.fig_style = str(flags.figstyle)
+	if flags.has("figstyle"): # figstyle=<dir> art set; figstyle=off -> silhouettes + procedural terrain
+		Token.fig_style = "" if str(flags.figstyle) == "off" else str(flags.figstyle)
 	EmojiFont.attach([Style.body, Style.semi, Style.bold, Style.xbold, Style.display, Style.display_x])
 	theme = Style.make_theme()
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

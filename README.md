@@ -30,8 +30,10 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 ### Điều khiển
 - Bấm lính để thấy ô đi được. **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
 - Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Không có "đi tại chỗ": bấm lại lính đang đứng là bỏ chọn (trừ khi chiếm / cứu thương được ngay tại đó). Không có bảng bên: mọi lệnh (⚔ Đánh / 🏠 Chiếm / 🩹 / Chờ / Hủy), dự báo trận, mua lính, thông tin lính và ô đất hiện trong một popup ngay cạnh ô trên bàn cờ, tự né không che quân.
-- **Cảnh giao chiến**: mỗi lần đánh, màn hình tách đôi, hai đội đứng trên địa hình ô của mình (đồng, đường, rừng, đồi, núi, sông, cầu, làng, thành, ban đêm), số người theo máu (5 lính / 3 voi, máy bắn đá / 1 tướng), xông lên chém hoặc bắn tên / phép / đá, lính ngã, đánh trả, rồi về bàn cờ. Bấm chuột hoặc phím bất kỳ để bỏ qua; bật / tắt bằng nút **⚔ Cảnh đánh** trên thanh trên, phím `B`, hoặc nút **Cảnh đánh** ở màn tiêu đề (nhớ giữa các lần chơi). Tắt thì đánh ngay trên bàn cờ như cũ (nhanh, hợp lúc thử nghiệm). Theo tốc độ x1/x2/x3.
-- Phím: `Space`/`Enter` hành động mặc định · `Tab` lính kế chưa đi · `E` hết lượt · `H` gợi ý · `B` bật/tắt cảnh đánh · `Esc`/chuột phải hủy.
+- **Cảnh giao chiến**: mỗi lần đánh, màn hình tách đôi, hai đội đứng trên địa hình ô của mình (đồng, đường, rừng, đồi, núi, sông, cầu, làng, thành, ban đêm), số người theo máu (5 lính / 3 voi, máy bắn đá / 1 tướng), xông lên chém hoặc bắn tên / phép / đá, lính ngã, đánh trả, rồi về bàn cờ. Bấm chuột hoặc phím bất kỳ để bỏ qua; 3 chế độ **Luôn / Khi ta đánh / Tắt** đổi bằng nút **⚔** trên thanh trên, phím `B`, hoặc chip **Cảnh đánh** ở màn tiêu đề (nhớ giữa các lần chơi). Tắt thì đánh ngay trên bàn cờ như cũ. Theo tốc độ x1/x2/x3.
+- **Lượt địch**: giữ `Space` hoặc chuột để chạy x4; nút **⏩ Tua lượt địch** tua hết lượt đó và bỏ qua cảnh đánh.
+- **Giữ chỗ**: chọn lính rồi `Space` = lính đứng yên, xong lượt (không đi). **Hết lượt** khi vẫn còn quân đánh / chiếm được: lần bấm đầu chỉ nhắc, bấm lần nữa mới hết lượt. **Đánh lại** trên thanh trên (có hỏi lại). Bắt đầu ván mới khi đang có ván dở: game hỏi trước (chỉ có một chỗ lưu).
+- Phím: `Space`/`Enter` hành động mặc định · `Tab` lính kế chưa đi · `E` hết lượt · `H` gợi ý · `B` đổi chế độ cảnh đánh · `Esc`/chuột phải hủy.
 - Bấm thành trống của ta để mua lính (popup cạnh thành). Nút **Hết lượt** nằm ở góc dưới bên phải bàn cờ, sáng nhịp khi mọi quân đã ra lệnh.
 - **ⓘ** ở góc mỗi quân: thẻ thông tin (chỉ số, buff đang có, đặc tính, cách dùng). Quân đứng cạnh Trống trận / tướng hào quang có chấm ⚔ cam (+10 công), cạnh tướng che chắn có chấm 🛡 xanh (+10 thủ); rê chuột lên nguồn buff để thấy 4 ô nó phủ. Lần đầu gặp một loại quân, game dừng lại giới thiệu nó.
 
@@ -40,8 +42,8 @@ Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m
 ## Kiểm tra
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (macOS / Linux: `MAX_SEC=120 tools/run_guarded.sh out.log -- --headless --path . -s sim/tests.gd`) (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
 ```
-powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # 43 test: luật, 16 màn hợp lệ, tướng tới được mục tiêu, chương, lưu ván
-powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # 35 bước bấm chuột qua UI thật (có mở / bỏ qua / tắt cảnh giao chiến) (popup lệnh, ⓘ, giới thiệu quân)
+powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # 51 test: luật, 16 màn hợp lệ (kiểu thắng, đợt quân, thứ tự), tướng tới được mục tiêu, chương, lưu ván, 4 ván vàng chương 1
+powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # ~38 bước bấm chuột qua UI thật (popup lệnh, ⓘ, giới thiệu quân, cảnh giao chiến 3 chế độ, thắng rồi thoát ngay vẫn giữ kết quả); dùng hồ sơ lưu riêng `driver`, không đụng ván thật
 bash tools/sim_many.sh "m09 m10 m11" 12 4                                                        # cân bằng: AI chơi cả hai phe
 python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70                           # chạy bản web trong Edge headless, in console + chụp
 powershell -File tools/run_guarded.ps1 -Log p.log -GArgs "--headless --path . -s sim/path_check.gd"   # mọi đường đi vẽ trên bàn cờ liền mạch (2365 đường)
@@ -77,7 +79,9 @@ Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src
 
 Từ khi đổi bản đồ và chỉ huy, `trace.gd` chạy trên **bản sao đóng băng** của nội dung chương 1 lúc port (`sim/legacy/`: 8 màn + bản đồ đấu tự do), còn luật và AI là code hiện tại. Nhờ vậy vẫn kiểm được luật khớp bản JS dù nội dung đã khác: m01, m04, đấu tự do 52/52 giống hệt (2026-11-05). Đo lại: `node sim/trace_js.cjs ../hon-song-nui > js.txt`, `godot --headless --path . -s sim/trace.gd -- only=m01 > gd.txt`, `diff`.
 
-AI một nước (GDScript, máy bàn): ~9 ms ở bản đồ nhỏ, ~26 ms ở bản đồ lớn.
+Từ 2026-11-05: chỉ số chương 1 cũng đóng băng (`sim/legacy/rules.gd`, nạp qua `Game.use_tables`), nên đổi cân bằng trong `rules.gd` không làm hỏng phép đo. Kết quả 194 ván của bản code đã khớp JS được lưu ở `sim/legacy/golden.txt`; `sim/tests.gd` chơi lại 4 ván trong đó mỗi lần chạy, còn kiểm đủ: `godot --headless --path . -s sim/trace.gd > gd.txt; diff <(sort sim/legacy/golden.txt) <(sort gd.txt)` (máy không cần bản JS). Luật mới chỉ bật ở `rules.gd` hiện tại (vd `raiseCap`: gọi hồn không vượt trần quân) không chạm bản đóng băng.
+
+AI một nước (GDScript, máy bàn Mac, trung bình): m01 ~5 ms, m08 ~22 ms, m12 ~30 ms (trước tối ưu 9 / 51 / 39 ms). Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch; nước đi không đổi (194/194 ván vàng giống hệt).
 
 ## Thay nội dung (không đụng code)
 | Muốn đổi | Sửa ở |
@@ -98,6 +102,6 @@ Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục c�
 - Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 
 ## Giới hạn đã biết
-- Bố cục ngang, tối ưu cho máy tính / máy tính bảng nằm ngang; điện thoại dọc chơi được nhưng chữ nhỏ.
+- Bố cục ngang (khung gốc 1280x720). Màn nhỏ: giao diện không thu dưới 0.8 lần, trang menu cuộn được (điện thoại nằm ngang đọc được). Điện thoại dọc: màn "Xoay ngang màn hình để chơi".
 - Âm thanh dựng sẵn thành sample lúc khởi động (22 kHz); trên web chỉ phát sau cú bấm đầu tiên (quy định trình duyệt).
 - Sử tích trong game theo truyền thuyết và sách sử phổ thông, có lược bớt cho hợp lối chơi.

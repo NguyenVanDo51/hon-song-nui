@@ -48,3 +48,11 @@ Người chơi (chủ repo) góp ý, đã làm:
 - `scripts/ui/battle_view.gd`: mỗi đòn đánh (kèm đánh trả) -> cảnh cắt ngang hai nửa, nền theo ô địa hình, đội hình theo máu, xông lên / bắn, lính ngã, số sát thương, thanh máu tụt. `game_screen.play()` gom cặp hit + counter rồi `await battle.run(d)`. Store `battle_scene` (mặc định bật), nút ⚔ trên thanh trên; bot tắt trừ khi có cờ `battle`.
 - macOS: `tools/run_guarded.sh` thay cho run_guarded.ps1. Đã chạy: tests 43/43, click_driver 35/35, bot có cửa sổ m05 (đêm) / m07 / m12 / m15 chụp màn hình. Chưa thử bản web (web_smoke cần Edge trên Windows).
 - Máy này không có remote: người dùng tự đẩy từ máy khác.
+
+## 2026-11-05 — review 4 mảng + sửa (máy macOS)
+4 agent review (lõi/AI, vẽ/hiệu năng, cấu trúc UI, luồng/UX). Đã sửa + commit:
+- UI: thắng rồi thoát ngay vẫn giữ kết quả; đầu lượt input chỉ mở sau hoạt cảnh; lưu ngay sau mỗi lệnh / bước AI; `_clear_sel`; chữ giao diện + kiểu thắng / kết thúc / ghi chú ô từ theme; kiểm bản lưu theo phiên bản + loại quân; driver dùng hồ sơ `driver`.
+- Lõi: `Game.use_tables` + `sim/legacy/rules.gd` + `sim/legacy/golden.txt` (194 ván) + `sim/parity.gd`; `do_action` không làm dở; AI nhớ bản đồ khoảng cách (nhanh ~25–55%, nước đi y hệt); RNG riêng cho AI theo ván/lượt; `raiseCap`.
+- UX: khung 1280x720 + tỉ lệ tối thiểu 0.8 + màn xoay ngang; Đánh tiếp lên đầu; hỏi trước khi ghi đè ván; cảnh đánh 3 chế độ; tua lượt địch; Space giữ chỗ; Hết lượt nhắc khi còn việc; Đánh lại; số liệu ta/địch rõ; mẹo khi thua; Sách lính có Địa hình.
+- Vẽ: agent riêng (bake địa hình, cache token, cỡ chữ cố định, âm thanh dựng sẵn, sửa icon mất trong cảnh đánh, màn dọc cho cảnh đánh) — xem commit sau.
+Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo "→ còn X" (đụng file vẽ, làm sau khi agent vẽ xong).

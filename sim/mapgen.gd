@@ -50,11 +50,11 @@ static func relayout(id: String, m: Dictionary) -> Array:
 	for y in h:
 		for x in w:
 			var t: String = g[y][x]
-			if t in ["c", "v", "~", "="]:
+			if t in ["c", "v", "x", "~", "="]:
 				fixed[Vector2i(x, y)] = true
 			if t == "c":
 				castles.append(Vector2i(x, y))
-			if t == "v":
+			if t == "v" or t == "x":
 				villages.append(Vector2i(x, y))
 	for u: Array in m.get("units", []):
 		keep[Vector2i(u[2], u[3])] = true
@@ -234,7 +234,7 @@ static func _route(g: Array, w: int, h: int, a: Vector2i, targets: Array, road: 
 			var step := 1.0
 			if road.has(n) or t == "=":
 				step = 0.35
-			elif t == "c" or t == "v":
+			elif t == "c" or t == "v" or t == "x":
 				step = 0.8 if tset.has(n) else 3.0 # do not run through other villages / castles
 			if prev.has(k) and (k - prev[k]) != d:
 				step += 0.45 # prefer straight runs

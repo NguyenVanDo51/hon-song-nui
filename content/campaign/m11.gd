@@ -19,7 +19,7 @@ const DEF := {
 		"h.rh......vrrf",
 		"m.rmm..f...rmm",
 		"mrvmmmfhmmhrmm",
-		"mr.hmmh.mmmvhm",
+		"mr.hmmh.mmmxhm",
 		".r..mmf.mf..fm",
 		".crv.mmmmh...m",
 		"...hmmmmhf..hm",

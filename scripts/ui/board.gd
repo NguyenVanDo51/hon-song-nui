@@ -29,6 +29,7 @@ const SHIELD := Color("#7a5a34")
 const SHIELD_RIM := Color("#c9a35e")
 const RING_SEL := Color("#bfe4ff")
 const ATTACK := Color("#ff7a5f")
+const RAZE := Color("#ff9a3c") # villages a catapult can wreck
 const TARGET := Color("#ffe08a")
 const PATH := Color("#ffe9a8")
 const BUY := Color("#ffd166")
@@ -44,7 +45,7 @@ var s: Dictionary = {}
 var fx: FX
 var T := 48.0
 ## what the game screen wants shown (see GameScreen.build_view)
-var view := { "hide": {}, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
+var view := { "hide": {}, "hold": {}, "razable": [], "razeAt": null, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
 	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null, "preview": null }
 var hover: Variant = null
 var _info_spots := [] # [[centre, unit id]] of the ⓘ dots drawn this frame
@@ -249,7 +250,7 @@ func _art(name: String) -> String:
 ## tile x, y -> its art file (two looks per kind, picked by position); "" = no art for it
 func _tile_art(t: String, x: int, y: int) -> String:
 	var ab := "_a" if hash01(x, y, 11) < 0.5 else "_b"
-	var base: String = { ".": "grass", "r": "grass", "v": "grass", "c": "grass", "f": "forest", "h": "hill", "m": "mountain" }.get(t, "")
+	var base: String = { ".": "grass", "r": "grass", "v": "grass", "c": "grass", "x": "grass", "f": "forest", "h": "hill", "m": "mountain" }.get(t, "")
 	if base != "":
 		var p := _art(base + ab)
 		return p if p != "" else _art(base + "_a")
@@ -317,7 +318,7 @@ func _draw_roads(ci: CanvasItem) -> void:
 		p = p.merged({ "dirt": Color("#d2b07a"), "dirt2": Color("#b48e58"), "pebble": Color("#e9d9ad") }, true)
 	# how far from this tile's centre the band runs toward each kind of neighbour (tile units):
 	# path -> the shared edge (the neighbour draws its own half), village / castle -> up to the building, bridge -> onto the planks
-	var links := { "r": 0.5, "v": 1.0, "c": 1.0, "=": 0.62 }
+	var links := { "r": 0.5, "v": 1.0, "c": 1.0, "x": 1.0, "=": 0.62 }
 	var w := T * 0.30
 	for pass_i in 2:
 		var col := Color(p.dirt2) if pass_i == 0 else Color(p.dirt)
@@ -426,8 +427,13 @@ func _draw_dyn(ci: CanvasItem) -> void:
 	for y in s.h:
 		for x in s.w:
 			var t: String = s.tiles[y][x]
-			if t == "v" or t == "c":
-				_draw_building(ci, t, x * T, y * T, s.owner.get(Vector2i(x, y), "n"), time, x, y)
+			var own: String = s.owner.get(Vector2i(x, y), "n")
+			var held: Variant = view.hold.get(Vector2i(x, y)) # [tile, owner] shown until its event plays (raze / repair)
+			if held != null:
+				t = held[0]
+				own = held[1] if held[1] != null else "n"
+			if t == "v" or t == "c" or t == "x":
+				_draw_building(ci, t, x * T, y * T, own, time, x, y)
 	for g: Dictionary in s.graves:
 		_draw_grave(ci, g.x * T, g.y * T, time)
 	if s.win.type == "reach":
@@ -466,13 +472,20 @@ static func _join(parts: Array) -> PackedVector2Array:
 	return out
 
 func _draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, time: float, x: int, y: int) -> void:
-	var ap := _art("%s_%s" % ["village" if t == "v" else "castle", own])
+	var ap := _art("village_x" if t == "x" else "%s_%s" % ["village" if t == "v" else "castle", own])
 	if ap != "" and _art_draw(ci, ap, x, y):
 		return
 	var pal := Draw.pal()
 	var fac: Dictionary = pal.factions.get(own, pal.factions.n)
 	var p: Dictionary = pal.terrain[t]
 	var P := func(a: float, b: float) -> Vector2: return Vector2(X + T * a, Y + T * b)
+	if t == "x": # ruined village (no art set): broken wall stubs + rubble
+		Draw.ellipse(ci, P.call(0.52, 0.84), T * 0.34, T * 0.08, Color(0, 0, 0, 0.22))
+		ci.draw_rect(Rect2(P.call(0.26, 0.62), Vector2(T * 0.14, T * 0.2)), p.wall)
+		ci.draw_rect(Rect2(P.call(0.6, 0.68), Vector2(T * 0.16, T * 0.14)), p.wall)
+		for i in 5:
+			ci.draw_circle(P.call(0.3 + hash01(x, y, i) * 0.45, 0.78 + hash01(x, y, i + 9) * 0.1), T * 0.035, Color("#8a8073"))
+		return
 	if t == "v":
 		Draw.ellipse(ci, P.call(0.52, 0.84), T * 0.34, T * 0.08, Color(0, 0, 0, 0.27))
 		ci.draw_rect(Rect2(P.call(0.26, 0.5), Vector2(T * 0.5, T * 0.32)), p.wall)
@@ -593,6 +606,9 @@ func _draw_overlays(ci: CanvasItem, time: float) -> void:
 					ci.draw_line(Vector2((rx + e[2]) * T, (ry + e[3]) * T), Vector2((rx + e[4]) * T, (ry + e[5]) * T), oc, lw)
 	for e: Dictionary in v.attackable:
 		_cell(ci, e.x, e.y, Color(0.878, 0.38, 0.298, 0.18 + pulse * 0.14), ATTACK)
+	for t: Array in v.razable:
+		var aimed: bool = v.razeAt != null and v.razeAt[0] == t[0] and v.razeAt[1] == t[1]
+		_cell(ci, t[0], t[1], Color(1, 0.6, 0.24, 0.16 + pulse * 0.14), TARGET if aimed else RAZE, 0.1 if aimed else 0.07)
 	for e: Dictionary in v.targets:
 		var is_t: bool = v.target != null and e.id == v.target
 		_cell(ci, e.x, e.y, Color(0.878, 0.38, 0.298, 0.2 + pulse * 0.15), TARGET if is_t else ATTACK, 0.1 if is_t else 0.07)

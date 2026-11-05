@@ -18,7 +18,7 @@ const DEF := {
 		"....f...~~..hmm.",
 		".c.hmm..==...hm.",
 		".r..hm..~~....f.",
-		".rrv.hf.~~rrrvr.",
+		".rrv.hf.~~rrrxr.",
 		"mmrrrrrr==r.f.r.",
 		"fhr...mm~~f...r.",
 		"..v...hm==mmm.r.",

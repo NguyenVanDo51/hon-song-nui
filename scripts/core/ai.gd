@@ -114,7 +114,7 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 				var key := Vector2i(x, y)
 				if s.owner.get(key) == u.side or claims.has(key):
 					continue
-				if (t == "v" and cap_v) or (t == "c" and cap_c):
+				if (t == "v" and cap_v) or (t == "c" and cap_c) or (t == "x" and cap_v):
 					out.append([x, y])
 	if not out.size() or u.type != "soldier":
 		for e: Dictionary in s.units:
@@ -186,6 +186,12 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			if t == "c" and own == Game.other(u.side) and enemy_castles == 1:
 				c += 10000
 			consider.call(pos + c + gd * 12, { "id": u.id, "to": [rx, ry], "kind": "capture" })
+		if Game.can_repair(s, u, rx, ry):
+			consider.call(pos + 180 + gd * 12, { "id": u.id, "to": [rx, ry], "kind": "repair" })
+		for v: Array in Game.razable_from(s, u, rx, ry):
+			# only enemy villages (their income + healing); unowned ones are worth more captured than wrecked
+			if s.owner.get(Vector2i(v[0], v[1])) != null:
+				consider.call(pos + 260, { "id": u.id, "to": [rx, ry], "kind": "raze", "target": v })
 		for g: Dictionary in Game.raisable_graves(s, u, rx, ry):
 			consider.call(pos + 250, { "id": u.id, "to": [rx, ry], "kind": "raise", "target": [g.x, g.y] })
 
@@ -236,7 +242,7 @@ static func choose_buy(s: Dictionary, side: String) -> Variant:
 static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -> void:
 	var u: Dictionary = Game.unit_by_id(s, act.id)
 	var st := Game.stat(s, u)
-	if not st.get("capV", false) or act.kind == "capture":
+	if not st.get("capV", false) or act.kind == "capture" or act.kind == "repair":
 		return
 	var best: Variant = null
 	for y in s.h:
@@ -245,7 +251,7 @@ static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -
 			var key := Vector2i(x, y)
 			if s.owner.get(key) == u.side or claims.has(key):
 				continue
-			if not (t == "v" or (t == "c" and st.get("capC", false))):
+			if not (t == "v" or t == "x" or (t == "c" and st.get("capC", false))):
 				continue
 			var d := absi(x - act.to[0]) + absi(y - act.to[1])
 			if best == null or d < best.d:
@@ -321,6 +327,10 @@ static func random_step(s: Dictionary, r: Callable) -> Variant:
 			acts.append({ "id": u.id, "to": [rr.x, rr.y], "kind": "capture" })
 		for d: Dictionary in Game.targets_from(s, u, rr.x, rr.y):
 			acts.append({ "id": u.id, "to": [rr.x, rr.y], "kind": "attack", "target": d.id })
+		if Game.can_repair(s, u, rr.x, rr.y):
+			acts.append({ "id": u.id, "to": [rr.x, rr.y], "kind": "repair" })
+		for v: Array in Game.razable_from(s, u, rr.x, rr.y):
+			acts.append({ "id": u.id, "to": [rr.x, rr.y], "kind": "raze", "target": v })
 	return { "kind": "act", "act": acts[int(floor(r.call() * acts.size()))] }
 
 static func apply_step(s: Dictionary, step: Dictionary) -> Array:

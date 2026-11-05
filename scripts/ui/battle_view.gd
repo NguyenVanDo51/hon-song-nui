@@ -432,7 +432,7 @@ func _paint_half(ci: Control, side: String) -> void:
 		_:
 			Draw.gradient_rect(ci, Rect2(0, gy, w, H - gy), [[0.0, base.lightened(0.08)], [1.0, base.darkened(0.35)]])
 	match t:
-		".", "v", "r":
+		".", "v", "x", "r":
 			var line := Color(th.get("line", "#6d8f44"))
 			for i in 9: # rice rows running to the horizon
 				var yy := gy + (H - gy) * pow(float(i + 1) / 10.0, 1.6)

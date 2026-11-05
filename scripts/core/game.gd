@@ -286,6 +286,24 @@ static func can_capture(s: Dictionary, u: Dictionary, x: int, y: int) -> bool:
 		return false
 	return (t == "v" and st.get("capV", false)) or (t == "c" and st.get("capC", false))
 
+## villages a raze unit can wreck from (fx, fy): siege, so only from where it stands; enemy or unowned, in range, empty
+static func razable_from(s: Dictionary, u: Dictionary, fx: int, fy: int) -> Array:
+	var st := stat(s, u)
+	if not st.get("raze", false) or fx != u.x or fy != u.y:
+		return []
+	var out := []
+	var r: int = st.rmax
+	for y in range(fy - r, fy + r + 1):
+		for x in range(fx - r, fx + r + 1):
+			if tile_at(s, x, y) == "v" and s.owner.get(Vector2i(x, y)) != u.side and in_range(st, dist(fx, fy, x, y)) \
+					and unit_at(s, x, y) == null:
+				out.append([x, y])
+	return out
+
+## a ruined village is repaired (back to an unowned village) by a unit that can capture villages, standing on it
+static func can_repair(s: Dictionary, u: Dictionary, x: int, y: int) -> bool:
+	return tile_at(s, x, y) == "x" and stat(s, u).get("capV", false)
+
 static func raisable_graves(s: Dictionary, u: Dictionary, x: int, y: int) -> Array:
 	if not stat(s, u).get("raise", false):
 		return []
@@ -313,7 +331,7 @@ static func _kill(s: Dictionary, u: Dictionary, ev: Array) -> void:
 		s.graves.append({ "x": u.x, "y": u.y, "ttl": RULES.graveRounds })
 	ev.append({ "t": "die", "id": u.id, "x": u.x, "y": u.y, "side": u.side, "type": u.type })
 
-## act = {id, to:[x,y], kind:'attack'|'capture'|'raise'|'wait', target?: unit id | [x,y]}; returns events
+## act = {id, to:[x,y], kind:'attack'|'capture'|'raise'|'repair'|'raze'|'wait', target?: unit id | [x,y]}; returns events
 static func do_action(s: Dictionary, act: Dictionary) -> Array:
 	if s.winner != null:
 		push_error("game over"); return []
@@ -330,14 +348,16 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		d = unit_by_id(s, act.target)
 		if d == null or not targets_from(s, u, tx, ty).has(d):
 			push_error("out of range %s" % act); return []
-	if act.kind == "capture" or act.kind == "raise":
+	if act.kind == "raze" and not razable_from(s, u, tx, ty).has(act.get("target")):
+		push_error("cannot raze %s" % act); return []
+	if act.kind == "capture" or act.kind == "raise" or act.kind == "repair":
 		# judged as if already standing on (tx, ty) — exactly what the checks below the move used to see
 		var ox: int = u.x
 		var oy: int = u.y
 		u.x = tx
 		u.y = ty
-		var ok := can_capture(s, u, tx, ty) if act.kind == "capture" \
-			else raisable_graves(s, u, tx, ty).any(func(g: Dictionary) -> bool: return g.x == act.target[0] and g.y == act.target[1])
+		var ok := can_capture(s, u, tx, ty) if act.kind == "capture" else (can_repair(s, u, tx, ty) if act.kind == "repair" \
+			else raisable_graves(s, u, tx, ty).any(func(g: Dictionary) -> bool: return g.x == act.target[0] and g.y == act.target[1]))
 		u.x = ox
 		u.y = oy
 		if not ok:
@@ -374,6 +394,15 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		var prev: Variant = s.owner.get(key)
 		s.owner[key] = u.side
 		ev.append({ "t": "capture", "x": tx, "y": ty, "side": u.side, "prev": prev, "tile": tile_at(s, tx, ty) })
+	elif act.kind == "raze":
+		var key := Vector2i(act.target[0], act.target[1])
+		var prev: Variant = s.owner.get(key)
+		s.owner.erase(key)
+		s.tiles[key.y][key.x] = "x"
+		ev.append({ "t": "raze", "from": u.id, "fx": tx, "fy": ty, "x": key.x, "y": key.y, "prev": prev, "type": u.type, "side": u.side })
+	elif act.kind == "repair":
+		s.tiles[ty][tx] = "v"
+		ev.append({ "t": "repair", "id": u.id, "x": tx, "y": ty, "side": u.side })
 	elif act.kind == "raise":
 		var gx: int = act.target[0]
 		var gy: int = act.target[1]

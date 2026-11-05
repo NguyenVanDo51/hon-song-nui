@@ -21,7 +21,7 @@ const DEF := {
 		".h..c..r.....~",
 		".frvr.rrrvrrr.",
 		".fr...rfhhf.r.",
-		"..r...vffhf.r.",
+		"..r...xffhf.r.",
 		"f.r....hff..r.",
 		"..v....hf...v.",
 		".f..h..f...f..",

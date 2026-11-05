@@ -237,6 +237,9 @@ static func tile_note(t: String) -> String:
 	match t:
 		"v":
 			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.RULES.incomeVillage })
+		"x":
+			return text("tileRuin").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)),
+				"raze": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("raze", false)) })
 		"c":
 			var cc: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false))
 			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.RULES.incomeCastle })

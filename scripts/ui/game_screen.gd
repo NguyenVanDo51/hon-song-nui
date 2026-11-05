@@ -75,7 +75,7 @@ func _ready() -> void:
 
 func _reset_ui() -> void:
 	ui = { "sel": null, "dest": null, "mode": M_IDLE, "target": null, "info": null, "buyAt": null, "busy": false, "hint": null,
-		"hotBuy": null, "hover": ui.get("hover"), "tip": ui.get("tip", 0), "hintKind": null, "peek": null }
+		"hotBuy": null, "hover": ui.get("hover"), "tip": ui.get("tip", 0), "hintKind": null, "peek": null, "raze": null }
 
 # ---------- layout ----------
 ## the map fills the screen; everything else floats over it: turn / gold / goal (top-left), ⚙ menu (top-right),
@@ -364,6 +364,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	_reset_ui()
 	stats = { "kills": 0, "losses": 0 }
 	board.view.hide.clear()
+	board.view.hold.clear()
 	board.view.sprites = []
 	board.view.hp = null
 	fx.clear()
@@ -449,6 +450,9 @@ func _build_view() -> void:
 	v.dest = ui.dest if u != null and not ui.busy and ui.mode != M_IDLE else null
 	v.targets = Game.targets_from(s, u, ui.dest[0], ui.dest[1]) if ui.mode == M_TARGET and u != null else []
 	v.target = ui.target
+	var stays: bool = ui.mode == M_IDLE or (ui.mode == M_MOVED and ui.dest != null and u != null and ui.dest[0] == u.x and ui.dest[1] == u.y)
+	v.razable = Game.razable_from(s, u, u.x, u.y) if v.selMine and stays else []
+	v.razeAt = ui.raze
 	v.path = null
 	v.preview = null
 	var plan: Variant = _hover_attack() if v.selMine else null
@@ -570,6 +574,16 @@ func _on_tile(x: int, y: int) -> void:
 				main.audio.play("select")
 				refresh()
 				return
+		# catapult: click a village ringed orange = aim at it (orders popup on the catapult); click it again = wreck it
+		if clicked == null and Game.razable_from(s, u, u.x, u.y).has([x, y]):
+			if ui.raze == [x, y] and ui.mode != M_IDLE:
+				ui.dest = [u.x, u.y]
+				commit({ "kind": "raze", "target": [x, y] })
+				return
+			ui.dest = [u.x, u.y]; ui.mode = M_MOVED; ui.target = null; ui.buyAt = null; ui.info = null; ui.raze = [x, y]
+			main.audio.play("select")
+			refresh()
+			return
 		# clicking the chosen tile again = default action (capture if possible, else wait)
 		if ui.mode != M_IDLE and ui.dest != null and ui.dest[0] == x and ui.dest[1] == y:
 			default_action()
@@ -604,11 +618,24 @@ func _on_tile(x: int, y: int) -> void:
 
 ## something worth doing without moving: capture the tile it stands on, or raise a grave next to it
 func _in_place_work(u: Dictionary) -> bool:
-	return Game.can_capture(s, u, u.x, u.y) or Game.raisable_graves(s, u, u.x, u.y).size() > 0
+	return Game.can_capture(s, u, u.x, u.y) or Game.raisable_graves(s, u, u.x, u.y).size() > 0 or Game.can_repair(s, u, u.x, u.y) \
+		or Game.razable_from(s, u, u.x, u.y).size() > 0
 
 ## true when the mouse has rested on (x,y) long enough that the board preview was visible
 func _hover_settled(x: int, y: int) -> bool:
 	return ui.hover != null and ui.hover == Vector2i(x, y) and Time.get_ticks_msec() - _hover_at >= 150
+
+## the village a catapult would wreck when none is aimed: an enemy one first, then the nearest
+func _best_raze(list: Array) -> Array:
+	var u: Dictionary = _sel_unit()
+	var best: Array = list[0]
+	var best_sc := -INF
+	for t: Array in list:
+		var sc := (100.0 if s.owner.get(Vector2i(t[0], t[1])) == "e" else 0.0) - Game.dist(u.x, u.y, t[0], t[1])
+		if sc > best_sc:
+			best_sc = sc
+			best = t
+	return best
 
 ## Space / Enter / clicking the chosen tile again: attack the aimed target, else capture, else wait
 func default_action() -> void:
@@ -623,8 +650,12 @@ func default_action() -> void:
 			return
 	if ui.mode == M_TARGET and ui.target != null:
 		commit({ "kind": "attack", "target": ui.target })
+	elif ui.raze != null and ui.dest[0] == u.x and ui.dest[1] == u.y:
+		commit({ "kind": "raze", "target": ui.raze })
 	elif Game.can_capture(s, u, ui.dest[0], ui.dest[1]):
 		commit({ "kind": "capture" })
+	elif Game.can_repair(s, u, ui.dest[0], ui.dest[1]):
+		commit({ "kind": "repair" })
 	elif ui.dest[0] == u.x and ui.dest[1] == u.y and Game.raisable_graves(s, u, u.x, u.y).size():
 		var g0: Dictionary = Game.raisable_graves(s, u, u.x, u.y)[0]
 		commit({ "kind": "raise", "target": [g0.x, g0.y] })
@@ -672,11 +703,11 @@ func _unhandled_input(ev: InputEvent) -> void:
 
 ## drop the selection and everything hanging off it (destination, aim, buy / info popups, hint, unit card)
 func _clear_sel() -> void:
-	ui.sel = null; ui.dest = null; ui.mode = M_IDLE; ui.target = null; ui.buyAt = null; ui.info = null
+	ui.sel = null; ui.dest = null; ui.mode = M_IDLE; ui.target = null; ui.buyAt = null; ui.info = null; ui.raze = null
 	ui.hint = null; ui.hotBuy = null; ui.hintKind = null; ui.peek = null
 
 func _set_dest(x: int, y: int) -> void:
-	ui.dest = [x, y]; ui.mode = M_MOVED; ui.target = null; ui.buyAt = null; ui.info = null
+	ui.dest = [x, y]; ui.mode = M_MOVED; ui.target = null; ui.buyAt = null; ui.info = null; ui.raze = null
 	main.audio.play("select")
 	refresh()
 
@@ -719,7 +750,8 @@ func _open_work() -> int:
 			continue
 		var reach := _reach(u)
 		for r: Dictionary in reach.values():
-			if Game.can_capture(s, u, r.x, r.y) or Game.targets_from(s, u, r.x, r.y).size():
+			if Game.can_capture(s, u, r.x, r.y) or Game.targets_from(s, u, r.x, r.y).size() or Game.can_repair(s, u, r.x, r.y) \
+					or Game.razable_from(s, u, r.x, r.y).size():
 				n += 1
 				break
 	return n
@@ -862,6 +894,10 @@ func play(events: Array, before: Dictionary) -> void:
 			v.sprites.append(sp)
 		if e.t == "raise" or e.t == "spawn":
 			v.hide[e.id] = true
+		if e.t == "raze": # keep the village standing until the rock lands
+			v.hold[Vector2i(e.x, e.y)] = ["v", e.prev]
+		if e.t == "repair":
+			v.hold[Vector2i(e.x, e.y)] = ["x", null]
 	var done_ev := {}
 	var dived := false
 	for ei in events.size():
@@ -927,6 +963,18 @@ func play(events: Array, before: Dictionary) -> void:
 				fx.capture(e.x, e.y, e.side)
 				fx.float_text(e.x, e.y - 0.3, Content.text("captureCastle") if e.tile == "c" else Content.text("captureVillage"), "#ffe08a", 1300.0, e.tile == "c")
 				await fx.sleep(700.0 if e.tile == "c" else 450.0)
+			"raze":
+				await fx.raze({ "x": e.fx, "y": e.fy, "id": e.from }, e.x, e.y)
+				v.hold.erase(Vector2i(e.x, e.y))
+				board.refresh_terrain()
+				fx.float_text(e.x, e.y - 0.3, Content.text("razeText"), "#ffb36b", 1300.0, true)
+				await fx.sleep(600.0)
+			"repair":
+				fx.repair(e.x, e.y)
+				v.hold.erase(Vector2i(e.x, e.y))
+				board.refresh_terrain()
+				fx.float_text(e.x, e.y - 0.3, Content.text("repairText"), "#ffe08a", 1300.0)
+				await fx.sleep(450.0)
 			"rank":
 				var u: Variant = Game.unit_by_id(s, e.id)
 				if u != null:
@@ -953,6 +1001,7 @@ func play(events: Array, before: Dictionary) -> void:
 	if dived and gen == my:
 		await board.unfocus()
 	v.hp = null
+	v.hold.clear()
 	v.sprites = v.sprites.filter(func(sp: Dictionary) -> bool: return not dying.has(sp.u.id))
 
 ## cut-away duel for the attack at events[i] (+ its counter); marks both hits handled and applies their damage to the shown hp
@@ -1306,6 +1355,7 @@ func _on_hint() -> void:
 		ui.target = a.target
 	else:
 		ui.mode = M_MOVED
+	ui.raze = a.target if a.kind == "raze" else null
 	var verb: String = Content.text("raiseVerb") if a.kind == "raise" else Content.text("hint_" + a.kind)
 	ui.hint = "Gợi ý: [b]%s[/b] %s. Bấm nút sáng để làm theo." % [_name_of(u), verb]
 	ui.hintKind = a.kind
@@ -1526,6 +1576,15 @@ func refresh() -> void:
 				if Game.can_capture(s, u, dx, dy):
 					_actions.add_child(_act("🏯 Chiếm thành" if s.tiles[dy][dx] == "c" else "🏠 Chiếm làng", func() -> void: commit({ "kind": "capture" }),
 						{ "hot": hk == "capture" or hk == null, "go": true }))
+				if Game.can_repair(s, u, dx, dy):
+					_info.add_child(_note("Làng hỏng: sửa xong thành làng chưa ai chiếm, lượt sau mới chiếm được."))
+					_actions.add_child(_act("🔨 Sửa làng", func() -> void: commit({ "kind": "repair" }), { "hot": hk == "repair" or hk == null, "go": true }))
+				var razes := Game.razable_from(s, u, dx, dy)
+				if razes.size():
+					var rt: Array = ui.raze if ui.raze != null and razes.has(ui.raze) else _best_raze(razes)
+					if ui.raze != null:
+						_info.add_child(_note("Phá làng viền vàng: thành [b]làng hỏng[/b], ai muốn chiếm phải cho lính sửa trước."))
+					_actions.add_child(_act("💥 Phá làng", func() -> void: commit({ "kind": "raze", "target": rt }), { "hot": ui.raze != null or hk == "raze", "go": true }))
 				var graves := Game.raisable_graves(s, u, dx, dy)
 				if graves.size():
 					var g0: Dictionary = graves[0]

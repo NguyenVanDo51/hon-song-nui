@@ -37,7 +37,7 @@ const DEF := {
 	"heroMustLive": false,                # true = tướng ta ngã là thua
 	"unitCap": 15,                        # trần quân mỗi phe (mặc định Rules.RULES.unitCap)
 	"night": false,                       # phủ màn đêm
-	"map": { "rows": ["..f~..", ...] },   # . đồng  r đường mòn  f rừng  h đồi  m núi  ~ sông  = cầu  v làng  c thành
+	"map": { "rows": ["..f~..", ...] },   # . đồng  r đường mòn  f rừng  h đồi  m núi  ~ sông  = cầu  v làng  x làng hỏng  c thành
 	"owner": [[x, y, "p"], ...],          # làng/thành có chủ lúc đầu
 	"units": [["p", "hero", x, y], ["e", "soldier", x, y, { "guard": true, "hp": 70, "rank": 1 }], ...],
 	"graves": [[x, y]],

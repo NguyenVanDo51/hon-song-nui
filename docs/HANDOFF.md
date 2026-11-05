@@ -62,3 +62,12 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Bộ chibi tự vẽ (SVG tay, 15 sub-agent theo `scratchpad/chibi_style.md`): 9 loại quân x 2 phe + 2 tướng, địa hình đồng / sông / cầu / rừng / đồi / núi, làng + thành x 3 chủ (n/p/e).
 - Vẽ: `Token.raster(path, px)` dựng SVG đúng cỡ điểm ảnh (bậc 8 px, cache) -> không mờ mipmap, kể cả lúc zoom đánh. `Board._tile_art`: 2 biến thể / loại theo hash ô, cầu xoay 90° khi qua sông ngang; đường mòn + bờ cát + sóng vẫn vẽ code.
 - Đã chạy: tests 51/51, click_driver fails=0, bot m02 có zoom chụp màn hình.
+
+## 2026-11-05 — làng hỏng (theo AE2 bản Java)
+- Ô `x` = làng hỏng: không chủ, không vàng, không hồi máu, thủ 15 như làng. Đặt sẵn: m10 (2), m11, m12 (2), m14, m16, skirmish dong_bang (cặp đối xứng).
+- Máy bắn đá (`raze`): chưa đi trong lượt, phá làng địch / chưa ai chiếm trong tầm 2–4, không có quân đứng -> `x`. Thành không phá được.
+- Bộ binh / tướng (`capV`) đứng trên `x` -> "Sửa làng" (hết lượt) -> làng chưa ai chiếm, lượt sau mới chiếm.
+- AI: máy bắn đá chỉ phá làng của đối phương khi không có đòn tốt hơn; lính coi làng hỏng là đích, sửa rồi chiếm.
+- UI: chọn máy bắn đá -> làng phá được viền cam; bấm làng = nhắm (viền vàng) + popup "💥 Phá làng"; bấm lần nữa = phá. Đá bay, làng chỉ đổ khi đá rơi (`view.hold`).
+- Kiểm: tests 54/54, click_driver fails=0, kịch bản bấm phá + sửa (scratchpad p_raze.gd) 0 lỗi, AI-vs-AI m07/m08/m10/m12/m16 có raze + repair, trace 160 ván chiến dịch y hệt trước khi đổi.
+- Báo cáo (scratchpad, local): `rules_compare.html` (56 khác biệt với AE2), `ip_review.html` (rủi ro bản quyền).

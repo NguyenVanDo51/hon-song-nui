@@ -17,7 +17,7 @@ const FXH := 0.32 # height of the plane fx (sparks, arrows, rocks) are drawn on:
 const TF := 48.0 # nominal tile size fx is painted at (then mapped onto the board)
 const MARGIN := 0.55 # table border around the map, tiles
 ## top of each terrain kind (tiles); figures stand on it
-const TOP := { ".": 0.0, "r": 0.0, "v": 0.0, "c": 0.0, "f": 0.0, "h": 0.12, "m": 0.22, "~": -0.1, "=": 0.0 }
+const TOP := { ".": 0.0, "r": 0.0, "v": 0.0, "c": 0.0, "x": 0.0, "f": 0.0, "h": 0.12, "m": 0.22, "~": -0.1, "=": 0.0 }
 const WATER_Y := -0.05
 const FIG := 1.3 # code-built figurine scale (only units KayKit has no model for, e.g. the catapult)
 const CHAR := 0.33 # KayKit character scale (~2.4 units tall -> ~0.8 tile)
@@ -52,7 +52,7 @@ const KK_ROAD2 := Color("#d4a471")
 var s: Dictionary = {}
 var fx: FX
 var T := 48.0 # screen px per tile at the whole-board view
-var view := { "hide": {}, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
+var view := { "hide": {}, "hold": {}, "razable": [], "razeAt": null, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
 	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null, "preview": null }
 var hover: Variant = null
 
@@ -445,7 +445,7 @@ func _tile_mesh(k: Kit, water: Kit, t: String, x: int, y: int, ter: Dictionary) 
 		k.box(Vector3(X, (top - 0.4) / 2.0, Z), Vector3(1, top + 0.4, 1), KK_GRASS_SIDE, base, false, skip)
 		_shore(k, x, y, top)
 	match t:
-		".", "v", "c":
+		".", "v", "c", "x":
 			for i in 5:
 				var q := Vector3(x + 0.1 + Board.hash01(x, y, i) * 0.8, top, y + 0.1 + Board.hash01(x, y, i + 20) * 0.8)
 				k.cone(q, 0.022, 0.05 + Board.hash01(x, y, i + 9) * 0.04, KK_GRASS_SIDE if Board.hash01(x, y, i + 9) > 0.5 else KK_GRASS.darkened(0.15), 4)
@@ -498,7 +498,7 @@ func _shore(k: Kit, x: int, y: int, top: float) -> void:
 
 ## dirt track joining path / village / castle / bridge neighbours (same links as the 2D board)
 func _road(k: Kit, x: int, y: int, p: Dictionary) -> void:
-	var links := { "r": 0.5, "v": 0.5, "c": 0.5, "=": 0.5 }
+	var links := { "r": 0.5, "v": 0.5, "c": 0.5, "x": 0.5, "=": 0.5 }
 	var w := 0.3
 	var c := Vector3(x + 0.5, 0.006, y + 0.5)
 	k.box(c, Vector3(w, 0.012, w), KK_ROAD2, KK_ROAD, false)
@@ -519,23 +519,28 @@ func _sync_sites(time: float) -> void:
 	for y in s.h:
 		for x in s.w:
 			var t: String = s.tiles[y][x]
-			if t != "v" and t != "c":
+			if t != "v" and t != "c" and t != "x":
 				continue
 			var at := Vector2i(x, y)
 			var own: String = s.owner.get(at, "n")
+			var held: Variant = view.hold.get(at) # [tile, owner] until its raze / repair event plays
+			if held != null:
+				t = held[0]
+				own = held[1] if held[1] != null else "n"
 			var site: Variant = _sites.get(at)
-			if site == null or site.own != own:
+			if site == null or site.own != own or site.t != t:
 				if site != null:
 					site.mi.queue_free()
 					if site.flag != null:
 						site.flag.queue_free()
 				var col: String = SITE_COLOR.get(own, "yellow")
-				var path := ("hex/buildings/%s/building_home_%s_%s.gltf" % [col, "A" if Board.hash01(x, y, 3) < 0.5 else "B", col]) if t == "v" \
+				var path := "hex/buildings/neutral/building_destroyed.gltf" if t == "x" \
+					else ("hex/buildings/%s/building_home_%s_%s.gltf" % [col, "A" if Board.hash01(x, y, 3) < 0.5 else "B", col]) if t == "v" \
 					else ("hex/buildings/%s/building_castle_%s.gltf" % [col, col])
-				var mi := KK.prop(path, 0.62 if t == "v" else 0.78, 0.5 if t == "v" else 0.75)
+				var mi := KK.prop(path, 0.62 if t != "c" else 0.78, 0.5 if t != "c" else 0.75)
 				mi.position = Vector3(x + 0.5, 0.0, y + 0.5 - SITE_BACK)
 				_world.add_child(mi)
-				site = { "mi": mi, "own": own, "flag": null }
+				site = { "mi": mi, "own": own, "flag": null, "t": t }
 				_sites[at] = site
 			if site.flag != null:
 				site.flag.rotation.y = sin(time / 300.0 + x + y) * 0.35

@@ -13,11 +13,13 @@ const TERRAIN := {
 	"r": { "def": 0, "cost": 1 }, # path: same as open field, drawn as a dirt track that links villages, castles, bridges
 	"v": { "def": 15, "cost": 1, "building": "village" },
 	"c": { "def": 20, "cost": 1, "building": "castle" },
+	"x": { "def": 15, "cost": 1, "ruin": true }, # ruined village: no owner / income / heal; a capV unit repairs it -> "v"
 }
 
 ## move classes: foot, heavy (no mountain), fly (all cost 1, no terrain def), water (river ok), mount (hill/mountain cost 1)
 ## flags: capV/capC capture village/castle, antiAir bonus, aura (+atk adjacent allies), magic (ignores terrain def),
-##        raise (graves -> ghost), siege (no move+attack, no counter), noGrave, buyable=false
+##        raise (graves -> ghost), siege (no move+attack, no counter), raze (wreck an enemy / unowned village in range -> "x"),
+##        noGrave, buyable=false
 const UNITS := {
 	"hero": { "cost": 400, "atk": 60, "def": 20, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "capC": true },
 	"soldier": { "cost": 150, "atk": 50, "def": 10, "mv": 4, "rmin": 1, "rmax": 1, "move": "foot", "capV": true },
@@ -26,7 +28,7 @@ const UNITS := {
 	"shaman": { "cost": 400, "atk": 40, "def": 10, "mv": 4, "rmin": 1, "rmax": 2, "move": "foot", "magic": true, "raise": true, "shot": "orb" },
 	"elephant": { "cost": 500, "atk": 65, "def": 25, "mv": 3, "rmin": 1, "rmax": 1, "move": "heavy", "heavy": true },
 	"bird": { "cost": 600, "atk": 60, "def": 15, "mv": 7, "rmin": 1, "rmax": 1, "move": "fly" },
-	"catapult": { "cost": 700, "atk": 70, "def": 5, "mv": 3, "rmin": 2, "rmax": 4, "move": "heavy", "siege": true, "shot": "rock" },
+	"catapult": { "cost": 700, "atk": 70, "def": 5, "mv": 3, "rmin": 2, "rmax": 4, "move": "heavy", "siege": true, "raze": true, "shot": "rock" },
 	"ghost": { "cost": 150, "atk": 40, "def": 5, "mv": 4, "rmin": 1, "rmax": 1, "move": "foot", "noGrave": true, "buyable": false },
 }
 const BUY_ORDER := ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"]

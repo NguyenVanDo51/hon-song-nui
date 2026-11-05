@@ -6,13 +6,13 @@ extends RefCounted
 ## the one troop roster, used by both factions (same name + icon; only the faction colour differs)
 const UNITS := {
 	"hero": null,
-	"soldier": { "name": "Bộ binh", "icon": "🗡️", "fig": "res://assets/units/soldier.svg", "desc": "Lính cầm giáo. Rẻ, chiếm được làng." },
+	"soldier": { "name": "Bộ binh", "icon": "🗡️", "fig": "res://assets/units/soldier.svg", "desc": "Lính cầm giáo. Rẻ, chiếm được làng, sửa được làng hỏng." },
 	"archer": { "name": "Nỏ thủ", "icon": "🏹", "fig": "res://assets/units/archer.svg", "desc": "Bắn xa 1–2 ô. +20 công khi bắn kỵ binh." },
 	"drum": { "name": "Trống trận", "icon": "🥁", "fig": "res://assets/units/drum.svg", "desc": "Tiếng trống thúc quân: quân đứng cạnh +10 công." },
 	"shaman": { "name": "Thầy lang", "icon": "🌿", "fig": "res://assets/units/shaman.svg", "desc": "Tên tẩm thuốc, bỏ qua thủ địa hình. Cứu lính ngã ngay cạnh thành thương binh." },
 	"elephant": { "name": "Voi chiến", "icon": "🐘", "fig": "res://assets/units/elephant.svg", "desc": "Thủ dày, đánh mạnh, đi chậm, không lên được núi." },
 	"bird": { "name": "Kỵ binh", "icon": "🐎", "fig": "res://assets/units/bird.svg", "desc": "Ngựa nhẹ: mọi ô chỉ tốn 1, lội được sông. Chạy trống trải nên không được địa hình che." },
-	"catapult": { "name": "Máy bắn đá", "icon": "🪨", "fig": "res://assets/units/catapult.svg", "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả." },
+	"catapult": { "name": "Máy bắn đá", "icon": "🪨", "fig": "res://assets/units/catapult.svg", "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng hỏng)." },
 	"ghost": { "name": "Thương binh", "icon": "🩹", "fig": "res://assets/units/ghost.svg", "desc": "Lính ngã được thầy lang cứu dậy. Không chiếm được làng." },
 }
 
@@ -39,12 +39,17 @@ const THEME := {
 		"introUnitE": "QUÂN ĐỊCH MỚI",
 		"hint_attack": "đánh mục tiêu viền vàng",
 		"hint_capture": "chiếm",
+		"hint_repair": "sửa",
+		"hint_raze": "phá làng viền vàng",
+		"razeText": "Phá làng!",
+		"repairText": "Sửa xong làng",
 		"hint_wait": "đi tới ô sáng rồi chờ",
 		"buyTitle": "Mộ quân",
 		"noEnemyHero": "quân địch",
 		"mustLiveBrief": " {hero} ngã là thua.",
 		"mustLiveBar": " · giữ {hero}",
 		"tileVillage": "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta.",
+		"tileRuin": "Làng bị {raze} phá. {capV} đứng vào rồi bấm Sửa làng; lượt sau mới chiếm được.",
 		"tileCastle": "Chỉ {capC_l} chiếm được thành. Thành: +{income} vàng/lượt, mua lính, hồi máu. Có quân đứng trên thành thì không mua lính ở đó được.",
 		"tileWater": "Chỉ {water} qua được.",
 		"loseTip_heroFell": "Mẹo: giữ tướng sau hàng bộ binh; đứng trên đồi, làng, thành được thêm thủ.",
@@ -116,6 +121,7 @@ const THEME := {
 		},
 		"v": { "name": "Làng", "paint": "village", "base": "#5a7a3a", "line": "#6d8f44", "wall": "#dcc6a0" },
 		"c": { "name": "Thành", "paint": "castle", "base": "#5d6a3c", "wall": "#b0a48c", "wall2": "#8c816c" },
+		"x": { "name": "Làng hỏng", "paint": "village", "base": "#5a7a3a", "line": "#6d8f44", "wall": "#a89c88" },
 	},
 	"units": {
 		# both sides field the same troops (same name, same icon); only the faction colour tells them apart

@@ -138,6 +138,31 @@ func _impact(d: Dictionary, amount: int, heavy: bool, shot: String, kill: bool) 
 		shake(0.16 if shot == "rock" else 0.09, 380.0 if shot == "rock" else 240.0)
 	float_text(d.x, d.y - 0.2, "−" + str(amount), "#ffd166" if kill else "#ff6b57", 1000.0, big or kill)
 
+## catapult wrecks a village: wind-up, rock in a high arc, then rubble smoke + dust ring + shake (no damage number)
+func raze(a: Dictionary, x: int, y: int) -> void:
+	var dir := Vector2(x - a.x, y - a.y).normalized()
+	if absf(dir.x) > 0.01:
+		facing[a.id] = signf(dir.x)
+	aim[a.id] = dir
+	await tween(130.0, func(t: float) -> void: offsets[a.id] = -dir * 0.08 * sin(t * PI * 0.5))
+	_play("rock")
+	tween(180.0, func(t: float) -> void:
+		offsets[a.id] = -dir * 0.08 * (1.0 - t)
+		if t >= 1.0:
+			offsets.erase(a.id))
+	await projectile("rock", a.x, a.y, x, y, 620.0)
+	_play("heavy")
+	burst(x, y + 0.1, 22, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c", "#9a948a"], "kind": "smoke", "vmin": 0.3, "vmax": 1.4, "up": 0.6, "g": -0.3, "lmin": 700.0, "lmax": 1300.0, "smin": 0.14, "smax": 0.3, "drag": 0.95 })
+	burst(x, y, 16, { "color": ["#c9b79a", "#8a7560", "#ddd5c4"], "vmin": 1.0, "vmax": 3.2, "lmin": 300.0, "lmax": 650.0, "smin": 0.03, "smax": 0.07, "g": 5.0 })
+	ring(x, y, "#e8c27a", 500.0, 1.3, 0.1)
+	shake(0.18, 400.0)
+
+## a soldier puts a ruined village back up: hammer sparks + warm ring
+func repair(x: int, y: int) -> void:
+	_play("capture")
+	ring(x, y, "#ffe39a", 600.0, 1.1, 0.08)
+	burst(x, y, 14, { "color": ["#d2b07a", "#fff3c4", "#a87a4c"], "vmin": 0.6, "vmax": 2.0, "up": 1.0, "g": 2.0, "lmin": 400.0, "lmax": 800.0, "smin": 0.03, "smax": 0.06 })
+
 ## corpse fades + smoke; u = copy of the dying unit
 func death(u: Dictionary) -> void:
 	_play("die")

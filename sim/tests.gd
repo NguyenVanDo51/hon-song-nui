@@ -228,6 +228,56 @@ func blank(units: Array) -> Dictionary:
 	return s
 
 func rule_tests() -> void:
+	run("catapult razes an enemy / unowned village in range from where it stands; not own, not occupied, not after moving", func() -> void:
+		var s := blank([["p", "catapult", 1, 1], ["e", "soldier", 4, 4]])
+		var c: Dictionary = s.units[0]
+		s.tiles[1][4] = "v"; s.owner[Vector2i(4, 1)] = "e" # dist 3: in range
+		s.tiles[3][1] = "v" # unowned, dist 2
+		s.tiles[1][2] = "v"; s.owner[Vector2i(2, 1)] = "p" # own: never
+		s.tiles[4][4] = "v" # occupied by the enemy soldier: no
+		s.tiles[1][1] = "." 
+		var opts := Game.razable_from(s, c, 1, 1)
+		check(opts.has([4, 1]) and opts.has([3, 1]) == false and opts.has([1, 3]), "options %s" % [opts])
+		check(not opts.has([2, 1]) and not opts.has([4, 4]), "own / occupied excluded %s" % [opts])
+		eq(Game.razable_from(s, c, 1, 2).size(), 0, "siege: not from another tile")
+		var ev := Game.do_action(s, { "id": c.id, "to": [1, 1], "kind": "raze", "target": [4, 1] })
+		eq(s.tiles[1][4], "x", "village ruined")
+		check(not s.owner.has(Vector2i(4, 1)), "owner cleared")
+		check(ev.any(func(e: Dictionary) -> bool: return e.t == "raze" and e.prev == "e"), "raze event with prev owner")
+		check(c.acted, "catapult done for the turn")
+		eq(Game.income(s, "e"), Rules.RULES.incomeCastle, "enemy lost the village income")
+	)
+	run("ruined village: no capture; capV unit repairs -> unowned village, capture on a later turn", func() -> void:
+		var s := blank([["p", "soldier", 2, 2], ["p", "archer", 3, 3], ["e", "soldier", 5, 4]])
+		var sol: Dictionary = s.units[0]
+		s.tiles[2][2] = "x"
+		check(not Game.can_capture(s, sol, 2, 2), "cannot capture a ruin")
+		check(not Game.can_repair(s, s.units[1], 2, 2), "archer cannot repair")
+		check(Game.can_repair(s, sol, 2, 2), "soldier can repair")
+		Game.do_action(s, { "id": sol.id, "to": [2, 2], "kind": "repair" })
+		eq(s.tiles[2][2], "v", "repaired")
+		check(not s.owner.has(Vector2i(2, 2)), "still unowned")
+		check(sol.acted, "repair takes the turn")
+		Game.end_turn(s); Game.end_turn(s)
+		check(Game.can_capture(s, sol, 2, 2), "capturable next turn")
+		eq(Game.TERRAIN["x"].def, Game.TERRAIN["v"].def, "ruin keeps the village cover (as the original)")
+	)
+	run("AI catapult wrecks an enemy village when it has nothing to hit; AI soldier repairs a ruin", func() -> void:
+		var s := blank([["e", "catapult", 4, 4], ["p", "soldier", 0, 1]])
+		s.side = "e"
+		s.tiles[1][4] = "v"; s.owner[Vector2i(4, 1)] = "p"
+		var step: Variant = AI.next_step(s, {})
+		eq(step.act.kind, "raze", "catapult razes")
+		eq(step.act.target, [4, 1])
+		var s2 := blank([["e", "soldier", 3, 3], ["p", "soldier", 0, 1]])
+		s2.side = "e"
+		s2.tiles[3][4] = "x"
+		var acts := []
+		var mem := {}
+		var st2: Variant = AI.next_step(s2, mem)
+		AI.apply_step(s2, st2)
+		eq(s2.tiles[3][4], "v", "AI soldier repaired the adjacent ruin (got %s)" % [st2.act])
+	)
 	run("illegal capture / raise changes nothing (unit stays, can still act)", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
 		var u: Dictionary = s.units[0]

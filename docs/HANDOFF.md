@@ -71,3 +71,8 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - UI: chọn máy bắn đá -> làng phá được viền cam; bấm làng = nhắm (viền vàng) + popup "💥 Phá làng"; bấm lần nữa = phá. Đá bay, làng chỉ đổ khi đá rơi (`view.hold`).
 - Kiểm: tests 54/54, click_driver fails=0, kịch bản bấm phá + sửa (scratchpad p_raze.gd) 0 lỗi, AI-vs-AI m07/m08/m10/m12/m16 có raze + repair, trace 160 ván chiến dịch y hệt trước khi đổi.
 - Báo cáo (scratchpad, local): `rules_compare.html` (56 khác biệt với AE2), `ip_review.html` (rủi ro bản quyền).
+
+## Bố cục HUD không che bản đồ
+- `game_screen._layout()`: màn ngang -> cột trái (⚙, lượt/vàng/mục tiêu, thẻ lính, Hết lượt), bản đồ ở phần còn lại; màn dọc -> dải trên + dải dưới (giữ `CARD_RESERVE` cho thẻ). Chọn kiểu cho ô to hơn.
+- Chỉ popup lệnh + menu ⚙ còn nổi trên bản đồ. 1280x720: ô 64–68px (trước ~71).
+- Kiểm: 1280x720 / 1500x675 (điện thoại ngang) / dọc, 2D + 3D: 0 ô HUD đè bản đồ; tests 54/54, click_driver fails=0.

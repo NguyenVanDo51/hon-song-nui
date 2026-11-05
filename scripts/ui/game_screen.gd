@@ -38,6 +38,9 @@ var _gear: Button
 var _btn_board: Button
 var _menu: PanelContainer
 var _hud_tr: Control
+var _hud_tl: Control
+var _side := true # layout: true = left sidebar, false = top / bottom bands
+var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _card: PanelContainer
 var _card_box: VBoxContainer
 var _wrap: Control
@@ -53,6 +56,7 @@ var _pop_anchor: Variant = null # [x, y] tile the popup belongs to; null = top c
 var _hover_at := 0
 const POP_W := 290.0
 const HUD_M := 10.0 # HUD distance from the screen edge
+const CARD_RESERVE := 250.0 # bottom band height kept for the unit card (tall-screen layout)
 ## cut-away duel scene (BattleView) parked for now: every attack plays on the map. Flip to bring the setting back.
 const SCENE_ENABLED := false
 
@@ -77,8 +81,9 @@ func _reset_ui() -> void:
 		"hotBuy": null, "hover": ui.get("hover"), "tip": ui.get("tip", 0), "hintKind": null, "peek": null, "raze": null }
 
 # ---------- layout ----------
-## the map fills the screen; everything else floats over it: turn / gold / goal (top-left), ⚙ menu (top-right),
-## selected unit card (bottom-left), Hết lượt (bottom-right), one orders popup beside the selected tile
+## HUD never covers the map: wide screen -> left sidebar (⚙ + turn/gold/goal on top, unit card, Hết lượt at the bottom),
+## tall screen -> top band (turn/gold/goal, ⚙) + bottom band (card left, Hết lượt right). Whichever gives bigger tiles.
+## Only the orders popup (beside the selected tile) and the ⚙ menu float over the map.
 func _build() -> void:
 	var bg := BgPaint.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -103,9 +108,9 @@ func _build() -> void:
 	var tl := PanelContainer.new()
 	tl.add_theme_stylebox_override("panel", _hud_box())
 	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tl.position = Vector2(HUD_M, HUD_M)
 	tl.z_index = 40
 	add_child(tl)
+	_hud_tl = tl
 	var tv := Style.vbox(2)
 	tl.add_child(tv)
 	var th := Style.hbox(10)
@@ -127,9 +132,7 @@ func _build() -> void:
 	# top-right: ⏩ (enemy turn) + ⚙
 	var tr := Style.hbox(8)
 	tr.z_index = 40
-	tr.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	tr.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	tr.position = Vector2(-HUD_M, HUD_M)
+	tr.minimum_size_changed.connect(func() -> void: _place_hud.call_deferred()) # ⏩ shown / hidden
 	add_child(tr)
 	_hud_tr = tr
 	_btn_ff = _ibtn("» Tua lượt địch", "Chạy nhanh lượt địch, bỏ qua cảnh đánh (giữ Space / chuột cũng tua)", func() -> void:
@@ -269,19 +272,55 @@ func _show_menu(on: bool) -> void:
 		_place_hud()
 
 ## HUD corners follow the window (the map under them fills the screen)
+## inner width of the sidebar = the unit card's width
+func _side_w() -> float:
+	return maxf(_card.get_combined_minimum_size().x, 210.0)
+
 func _place_hud() -> void:
 	if _btn_end == null:
 		return
+	var M := HUD_M
+	var sw := _side_w()
+	_hud_tr.reset_size()
+	var trs := _hud_tr.get_combined_minimum_size()
+	if _side:
+		_hud_tr.position = Vector2(M + sw - trs.x, M)
+		_hud_tl.custom_minimum_size.x = sw
+		_btn_end.custom_minimum_size.x = sw
+	else:
+		_hud_tr.position = Vector2(size.x - trs.x - M, M)
+		_hud_tl.custom_minimum_size.x = 0
+		_btn_end.custom_minimum_size.x = 190
+	# wrap the goal only inside the fixed-width sidebar (a wrapping label with no width would collapse)
+	_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if _side else TextServer.AUTOWRAP_OFF
+	_hud_tl.reset_size()
+	_hud_tl.position = Vector2(M, M + trs.y + 6) if _side else Vector2(M, M)
 	var eb := _btn_end.get_combined_minimum_size()
 	_btn_end.size = eb
-	_btn_end.position = size - eb - Vector2(HUD_M, HUD_M)
+	_btn_end.position = Vector2(M, size.y - eb.y - M) if _side else size - eb - Vector2(M, M)
 	if _card.visible:
 		_card.reset_size()
 		var cs := _card.get_combined_minimum_size()
-		_card.position = Vector2(HUD_M, size.y - cs.y - HUD_M)
+		var bottom := _btn_end.position.y - 8 if _side else size.y - M
+		_card.position = Vector2(M, maxf(_hud_tl.position.y + _hud_tl.size.y + 8, bottom - cs.y) if _side else bottom - cs.y)
 	if _menu.visible:
 		var ms := _menu.get_combined_minimum_size()
-		_menu.position = Vector2(size.x - ms.x - HUD_M, HUD_M + 48)
+		_menu.position = Vector2(M, M + trs.y + 6) if _side else Vector2(size.x - ms.x - M, M + 48)
+
+## map area free of the HUD for the current layout; picks sidebar vs bands by the bigger tile size
+func _layout() -> void:
+	var W := _wrap.size
+	var M := HUD_M
+	var trh := _hud_tr.get_combined_minimum_size().y
+	var tl_h := _hud_tl.get_combined_minimum_size().y
+	var eh := _btn_end.get_combined_minimum_size().y
+	var side := Rect2(Vector2(_side_w() + 2 * M, 0), Vector2(W.x - _side_w() - 2 * M, W.y))
+	var top := maxf(tl_h, trh) + 2 * M
+	var bot := maxf(CARD_RESERVE, eh) + 2 * M
+	var band := Rect2(Vector2(0, top), Vector2(W.x, W.y - top - bot))
+	var k := func(r: Rect2) -> float: return minf((r.size.x - 8) / s.w, (r.size.y - 8) / s.h)
+	_side = k.call(side) >= k.call(band)
+	_safe = side if _side else band
 
 func _ibtn(text: String, tip: String, fn: Callable) -> Button:
 	var b := Style.button(text, "IconBtn")
@@ -319,8 +358,9 @@ func _sound_label() -> void:
 func _fit() -> void:
 	if s.is_empty():
 		return
-	board.fit(_wrap.size - Vector2(8, 8))
-	board.position = ((_wrap.size - board.size) / 2.0).floor()
+	_layout()
+	board.fit(_safe.size - Vector2(8, 8))
+	board.position = (_safe.position + (_safe.size - board.size) / 2.0).floor()
 	_frame.position = board.position
 	_frame.size = board.size
 	_place_hud()

@@ -1456,7 +1456,6 @@ func refresh() -> void:
 		_actions.add_child(_act("Đóng", func() -> void:
 			ui.peek = null
 			refresh()))
-		_actions.add_child(_act("Sách lính ›", func() -> void: main.menus.open_codex(peek.side)))
 	elif u != null:
 		if my_turn and u.side == "p" and not u.acted and ui.mode != M_IDLE:
 			_pop_anchor = ui.dest

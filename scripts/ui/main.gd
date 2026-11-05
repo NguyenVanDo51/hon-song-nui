@@ -41,7 +41,48 @@ func _ready() -> void:
 		FX.speed = float(flags.speed)
 	if flags.has("fresh"):
 		Store.clear_game()
+	_build_rotate_hint()
+	get_window().size_changed.connect(_fit_scale)
+	_fit_scale()
 	_boot()
+
+# ---------- screen scale ----------
+## canvas_items stretch scales the 1280x720 base by min(w/1280, h/720); on small windows that makes 13 px text ~6 px.
+## Never let the UI shrink below MIN_SCALE: the layout gets a smaller logical area instead (menus scroll, board fits).
+const BASE := Vector2(1280, 720)
+const MIN_SCALE := 0.8
+var _rotate: Control
+
+func _fit_scale() -> void:
+	var w := get_window()
+	var px := Vector2(w.size)
+	var auto := minf(px.x / BASE.x, px.y / BASE.y)
+	w.content_scale_factor = maxf(1.0, MIN_SCALE / maxf(auto, 0.01))
+	if _rotate:
+		_rotate.visible = px.y > px.x * 1.1 # portrait phone: ask to turn the screen
+
+func _build_rotate_hint() -> void:
+	_rotate = ColorRect.new()
+	(_rotate as ColorRect).color = Style.LACQUER
+	_rotate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_rotate.mouse_filter = Control.MOUSE_FILTER_STOP
+	_rotate.z_index = 200
+	_rotate.visible = false
+	var c := CenterContainer.new()
+	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var v := Style.vbox(14)
+	var icon := Style.lbl("⟳", 64, Style.GOLD, Style.display_x)
+	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(icon)
+	var t := Style.lbl("Xoay ngang màn hình để chơi", 22, Style.INK, Style.display)
+	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(t)
+	var sub := Style.lbl("Bàn cờ cần khổ ngang.", 15, Style.MUTED)
+	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	v.add_child(sub)
+	c.add_child(v)
+	_rotate.add_child(c)
+	add_child(_rotate)
 
 func _boot() -> void:
 	if flags.has("mission"):

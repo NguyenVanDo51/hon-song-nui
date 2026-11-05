@@ -35,6 +35,12 @@ var _btn_hint: Button
 var _btn_speed: Button
 var _btn_sound: Button
 var _btn_battle: Button
+var _btn_ff: Button
+var _btn_restart: Button
+## enemy turn fast-forward: ⏩ pressed for this turn; speed the player chose, restored after
+var _ff := false
+var _user_speed := 1.0
+var _end_armed_until := 0
 var _coach: PanelContainer
 var _coach_n: Label
 var _coach_text: RichTextLabel
@@ -115,13 +121,22 @@ func _build() -> void:
 	bh.add_child(_ibtn("Sách lính", "Sách lính", func() -> void: main.menus.open_codex("p")))
 	_btn_speed = _ibtn("x1", "Tốc độ hiệu ứng", _on_speed)
 	bh.add_child(_btn_speed)
-	_btn_battle = _ibtn("⚔", "Cảnh giao chiến khi đánh: bật / tắt (phím B). Tắt = đánh ngay trên bàn cờ.", _toggle_battle)
+	_btn_ff = _ibtn("⏩ Tua lượt địch", "Chạy nhanh lượt địch, bỏ qua cảnh đánh (giữ Space / chuột cũng tua)", func() -> void:
+		_ff = true
+		if battle.visible:
+			battle.skip()
+		_btn_ff.visible = false)
+	_btn_ff.visible = false
+	bh.add_child(_btn_ff)
+	_btn_battle = _ibtn("⚔", "Cảnh giao chiến khi đánh: Luôn / Khi ta đánh / Tắt (phím B). Tắt = đánh ngay trên bàn cờ.", _toggle_battle)
 	bh.add_child(_btn_battle)
 	_battle_label()
 	_btn_sound = _ibtn("🔊", "Âm thanh", func() -> void:
 		main.audio.set_muted(not main.audio.muted)
 		_sound_label())
 	bh.add_child(_btn_sound)
+	_btn_restart = _ibtn("Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart)
+	bh.add_child(_btn_restart)
 	bh.add_child(_ibtn("Menu", "Về menu", func() -> void:
 		save()
 		main.show_title()))
@@ -231,14 +246,28 @@ func _on_speed() -> void:
 	Store.set_v("speed", FX.speed)
 	_speed_label()
 
+func _confirm_restart() -> void:
+	if s.is_empty() or ui.busy:
+		return
+	main.menus.confirm("Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất." % def.get("title", ""), "Đánh lại", func() -> void:
+		var c := ctx.duplicate()
+		main.start_game(Game.new_game(_def_for(c)), c))
+
+## while the enemy moves: hold Space or a mouse button (or ⏩) to run x4
+func _process(_dt: float) -> void:
+	if not visible or s.is_empty() or s.side != "e" or not ui.busy:
+		return
+	var held := Input.is_key_pressed(KEY_SPACE) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	FX.speed = maxf(_user_speed, 4.0) if (_ff or held) else _user_speed
+
 func _toggle_battle() -> void:
-	BattleView.set_enabled(not BattleView.enabled())
+	Store.cycle_battle_mode()
 	_battle_label()
 
 func _battle_label() -> void:
-	var on := BattleView.enabled()
-	_btn_battle.add_theme_color_override("font_color", Style.INK if on else Style.MUTED)
-	_btn_battle.text = "⚔ Cảnh đánh" if on else "⚔ Tắt cảnh"
+	var m := Store.battle_mode()
+	_btn_battle.add_theme_color_override("font_color", Style.MUTED if m == "off" else Style.INK)
+	_btn_battle.text = "⚔ " + Store.BATTLE_MODE_NAMES[m]
 
 func _sound_label() -> void:
 	_btn_sound.add_theme_color_override("font_color", Style.MUTED if main.audio.muted else Style.INK)
@@ -275,7 +304,7 @@ func _refresh_end_button(my_turn: bool) -> void:
 	_btn_end.disabled = not my_turn
 	(_btn_end.get_meta("title") as Label).text = "Lượt địch" if enemy_busy else "Hết lượt"
 	var sub := ("%s đang ra quân…" % Content.theme().factions.e.short) if enemy_busy else (
-		("Còn %d quân chưa đi" % left) if left > 0 else "Mọi quân đã ra lệnh")
+		("Còn %d quân chưa đi · Space: giữ chỗ" % left) if left > 0 else "Mọi quân đã ra lệnh")
 	Style.set_sub(_btn_end, sub if (my_turn or enemy_busy) else "")
 	# everyone has moved: the button breathes so the next step is obvious
 	var hot := my_turn and left == 0
@@ -330,6 +359,9 @@ func _turn_banner() -> String:
 	return Content.text("turnBanner").format({ "turn": s.turn })
 
 func leave() -> void:
+	if not s.is_empty() and s.side == "e":
+		FX.speed = _user_speed
+	_btn_ff.visible = false
 	gen += 1
 	battle.skip()
 	if _intro_layer != null:
@@ -562,10 +594,11 @@ func default_action() -> void:
 	if ui.busy or u == null or u.side != "p" or u.acted or s.side != "p" or s.winner != null:
 		return
 	if ui.mode == M_IDLE:
-		if not _in_place_work(u): # no "wait in place" from the keyboard either
-			return
 		ui.dest = [u.x, u.y]
 		ui.mode = M_MOVED
+		if not _in_place_work(u): # Space on a unit that stays: "giữ chỗ" = done for this turn, no move
+			commit({ "kind": "wait" })
+			return
 	if ui.mode == M_TARGET and ui.target != null:
 		commit({ "kind": "attack", "target": ui.target })
 	elif Game.can_capture(s, u, ui.dest[0], ui.dest[1]):
@@ -659,9 +692,30 @@ func buy_unit(type: String) -> void:
 	refresh()
 	_intro_new_units()
 
-func end_player_turn() -> void:
+## units of ours that could still attack or capture this turn
+func _open_work() -> int:
+	var n := 0
+	for u: Dictionary in s.units:
+		if u.side != "p" or u.acted:
+			continue
+		var reach := _reach(u)
+		for r: Dictionary in reach.values():
+			if Game.can_capture(s, u, r.x, r.y) or Game.targets_from(s, u, r.x, r.y).size():
+				n += 1
+				break
+	return n
+
+func end_player_turn(force := false) -> void:
 	if ui.busy or s.side != "p" or s.winner != null:
 		return
+	if not force and Time.get_ticks_msec() > _end_armed_until:
+		var n := _open_work()
+		if n > 0:
+			_end_armed_until = Time.get_ticks_msec() + 4000
+			Style.set_sub(_btn_end, "Còn %d quân đánh / chiếm được · bấm lần nữa" % n)
+			main.audio.play("select")
+			return
+	_end_armed_until = 0
 	var my := gen
 	_clear_sel()
 	var before := _snapshot()
@@ -681,6 +735,9 @@ func end_player_turn() -> void:
 func enemy_turn() -> void:
 	var my := gen
 	AI.seed_game(int(s.get("seed", 0)) * 1000 + s.turn) # same game + turn -> same enemy choices after a reload
+	_user_speed = FX.speed
+	_ff = false
+	_btn_ff.visible = not main.flags.has("bot")
 	ui.busy = true
 	refresh()
 	await fx.sleep(900.0)
@@ -699,6 +756,8 @@ func enemy_turn() -> void:
 		await fx.sleep(90.0)
 		if gen != my:
 			return
+	_btn_ff.visible = false
+	FX.speed = _user_speed
 	if s.winner != null:
 		ui.busy = false
 		finish()
@@ -710,6 +769,9 @@ func enemy_turn() -> void:
 		ui.busy = false
 		finish()
 		return
+	_btn_ff.visible = false
+	_ff = false
+	FX.speed = _user_speed
 	banner(_turn_banner())
 	refresh()
 	await play(ev, before) # income, heal, reinforcements: input stays closed until they finish
@@ -743,7 +805,7 @@ func _bot_turn() -> void:
 		rest.erase("to")
 		await commit(rest)
 	if gen == my and s.winner == null:
-		await end_player_turn()
+		await end_player_turn(true)
 
 func _bump_gold() -> void:
 	var tw := _gold_num.create_tween()
@@ -788,7 +850,7 @@ func play(events: Array, before: Dictionary) -> void:
 			return
 		if done_ev.has(ei):
 			continue
-		if e.t == "hit" and not e.get("counter", false) and _battle_on():
+		if e.t == "hit" and not e.get("counter", false) and _battle_on(e):
 			await _duel(events, ei, before, hp, done_ev)
 			continue
 		match e.t:
@@ -866,8 +928,11 @@ func play(events: Array, before: Dictionary) -> void:
 		await _intro_new_units() # reinforcements / raised units of a kind never met before
 
 ## cut-away duel for the attack at events[i] (+ its counter); marks both hits handled and applies their damage to the shown hp
-func _battle_on() -> bool:
-	return BattleView.enabled() and not main.flags.has("nobattle") and (not main.flags.has("bot") or main.flags.has("battle"))
+func _battle_on(e: Dictionary) -> bool:
+	var m := Store.battle_mode()
+	if m == "off" or (m == "mine" and e.side != "p") or _ff or main.flags.has("nobattle"):
+		return false
+	return not main.flags.has("bot") or main.flags.has("battle")
 
 func _duel(events: Array, i: int, before: Dictionary, hp: Dictionary, done_ev: Dictionary) -> void:
 	var e: Dictionary = events[i]
@@ -1068,6 +1133,10 @@ func finish() -> void:
 	refresh()
 	var my := gen
 	var reason_text := Content.end_text(s.winner, str(s.reason), s.heroKey)
+	if not win:
+		var tip := Content.text("loseTip_" + str(s.reason))
+		if not tip.begins_with("loseTip_"):
+			reason_text += "\n" + tip
 	await get_tree().create_timer(0.6).timeout
 	if gen != my:
 		return
@@ -1237,9 +1306,11 @@ func _goal_line() -> String:
 	var obj := Content.goal_text(s.win, "bar", s.heroKey, {
 		"n": ec if s.win.type == "castles" else Game.unit_count(s, "e"), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) }, s.heroMustLive)
 	var pc := Game.castles(s, "p")
-	var castle_txt := " · Thành [b]%d/%d[/b]" % [pc, ec] if pc or ec else ""
-	return "[b][color=#%s]%s[/color][/b]%s · Làng [b]%d/%d[/b] · Quân [b]%d/%d[/b]" % [Style.GOLD.to_html(false), obj, castle_txt,
-		Game.villages(s, "p"), Game.villages(s, "e"), Game.unit_count(s, "p"), s.unitCap]
+	var vs := func(label: String, a: int, b: int) -> String:
+		return " · %s: ta [b]%d[/b] – địch [b]%d[/b]" % [label, a, b]
+	var castle_txt: String = vs.call("Thành", pc, ec) if pc or ec else ""
+	return "[b][color=#%s]%s[/color][/b]%s%s · Quân [b]%d[/b] (tối đa %d)" % [Style.GOLD.to_html(false), obj, castle_txt,
+		vs.call("Làng", Game.villages(s, "p"), Game.villages(s, "e")), Game.unit_count(s, "p"), s.unitCap]
 
 ## compact unit card for the popup: token + name + side/HP/XP, HP bar, one stat line; full = also the unit's description
 func _unit_info(u: Dictionary, full := false) -> void:

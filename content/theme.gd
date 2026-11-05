@@ -43,9 +43,14 @@ const THEME := {
 		"noEnemyHero": "quân địch",
 		"mustLiveBrief": " {hero} ngã là thua.",
 		"mustLiveBar": " · giữ {hero}",
-		"tileVillage": "{capV} đứng vào rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta.",
-		"tileCastle": "Chỉ {capC} chiếm được thành. Thành: +{income} vàng/lượt, mua lính, hồi máu. Có quân đứng trên thành thì không mua lính ở đó được.",
+		"tileVillage": "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta.",
+		"tileCastle": "Chỉ {capC_l} chiếm được thành. Thành: +{income} vàng/lượt, mua lính, hồi máu. Có quân đứng trên thành thì không mua lính ở đó được.",
 		"tileWater": "Chỉ {water} qua được.",
+		"loseTip_heroFell": "Mẹo: giữ tướng sau hàng bộ binh; đứng trên đồi, làng, thành được thêm thủ.",
+		"loseTip_castlesLost": "Mẹo: luôn để một quân đứng chặn trên thành khi địch có tướng ở gần.",
+		"loseTip_routed": "Mẹo: chiếm làng sớm để có vàng mua quân; đừng đem lính lẻ ra đánh.",
+		"loseTip_timeUp": "Mẹo: đi đường mòn cho nhanh, để bộ binh chặn đường đuổi phía sau.",
+		"loseTip_heroKilled": "",
 	},
 	## win types: brief = briefing card, bar = top bar. {eh} enemy commander, {hero} ours, {n} count, {turns} limit, {left} turns left
 	"goals": {

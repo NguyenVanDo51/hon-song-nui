@@ -25,6 +25,23 @@ static func set_v(key: String, v: Variant) -> void:
 	_c().set_value("hsn", key, v)
 	_c().save(CFG)
 
+# ---------- settings ----------
+## cut-away battle scene: every attack / only attacks by our side / never (attacks play on the board)
+const BATTLE_MODES := ["all", "mine", "off"]
+const BATTLE_MODE_NAMES := { "all": "Luôn", "mine": "Khi ta đánh", "off": "Tắt" }
+
+static func battle_mode() -> String:
+	var m: Variant = get_v("battle_mode", "") # ConfigFile treats a null default as "no default" and logs an error
+	if m == "": # older settings stored an on/off flag
+		return "all" if bool(get_v("battle_scene", true)) else "off"
+	return m if BATTLE_MODES.has(m) else "all"
+
+static func set_battle_mode(m: String) -> void:
+	set_v("battle_mode", m)
+
+static func cycle_battle_mode() -> void:
+	set_battle_mode(BATTLE_MODES[(BATTLE_MODES.find(battle_mode()) + 1) % BATTLE_MODES.size()])
+
 # ---------- campaign progress ----------
 static func done_list() -> Array:
 	return get_v("campaign_done", [])

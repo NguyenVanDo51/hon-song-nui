@@ -109,7 +109,7 @@ func _run() -> void:
 	await process_frame
 	ok(g.ui.mode == "target", "click enemy -> target mode with preview")
 	var hp0: int = foe.hp
-	BattleView.set_enabled(true)
+	Store.set_battle_mode("all")
 	press("⚔ Đánh")
 	var seen := false
 	for i in 60:
@@ -143,8 +143,10 @@ func _run() -> void:
 	await main.shot("ux_forecast")
 	await process_frame
 	var hp1: int = foe2.hp
-	press("⚔ Cảnh đánh") # top-bar toggle: off
-	ok(not BattleView.enabled(), "battle toggle turns the scene off")
+	press("⚔ Luôn") # top-bar toggle cycles Luôn -> Khi ta đánh -> Tắt
+	ok(Store.battle_mode() == "mine", "battle toggle: Luôn -> Khi ta đánh")
+	press("⚔ Khi ta đánh")
+	ok(Store.battle_mode() == "off", "battle toggle: -> Tắt")
 	g._on_tile(foe2.x, foe2.y)
 	var opened := false
 	for i in 20:
@@ -152,7 +154,7 @@ func _run() -> void:
 		opened = opened or g.battle.visible
 	ok(not opened, "no battle scene when off")
 	await idle(g)
-	BattleView.set_enabled(true)
+	Store.set_battle_mode("all")
 	ok(arch.acted and (foe2.hp < hp1 or Game.unit_by_id(s, foe2.id) == null), "one click attack after hover")
 	g.ui.hover = null
 	# terrain info, hint, codex, speed

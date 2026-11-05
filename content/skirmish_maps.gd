@@ -45,7 +45,7 @@ const MAPS := {
 	},
 	"nui_rung": {
 		"name": "Núi rừng Cửu Chân",
-		"blurb": "Đèo núi, rừng rậm, quân Đông Ngô của Lục Dận.",
+		"blurb": "Đèo núi, rừng rậm, quân Đông Hán của Tô Định chặn ải.",
 		"chapter": "c1", "enemyHero": "todinh",
 		"rows": [
 			"..........vrc.",

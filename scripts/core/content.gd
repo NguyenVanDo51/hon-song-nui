@@ -232,13 +232,14 @@ static func tile_note(t: String) -> String:
 		for type: String in Rules.UNITS:
 			var st: Dictionary = Rules.UNITS[type]
 			if st.get("buyable", true) and pred.call(st, type):
-				names.append(theme().units.p[type].name if type != "hero" else "tướng")
-		return ", ".join(names)
+				names.append(theme().units.p[type].name if type != "hero" else "Tướng")
+		return " hoặc ".join(names)
 	match t:
 		"v":
 			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.RULES.incomeVillage })
 		"c":
-			return text("tileCastle").format({ "capC": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false)), "income": Rules.RULES.incomeCastle })
+			var cc: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false))
+			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.RULES.incomeCastle })
 		"~":
 			var crossers: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.move == "fly" or st.move == "water")
 			var water_heroes := []

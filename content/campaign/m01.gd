@@ -51,7 +51,7 @@ const DEF := {
 	},
 	"tips": [
 		"Bấm [b]Trưng Trắc[/b] (viền vàng): ô xanh là chỗ đi được, kẻ địch viền đỏ là đánh được.",
-		"Bấm thẳng vào lính Hán viền đỏ để xem trước [b]gây[/b] bao nhiêu, [b]nhận[/b] bao nhiêu, rồi bấm [b]Đánh[/b].",
+		"Rê chuột lên lính Hán viền đỏ: bàn cờ hiện đường đi và [b]⚔ gây · ↩ nhận[/b]. [b]Bấm là đánh.[/b] Muốn chọn chỗ đứng: bấm ô xanh trước rồi bấm địch.",
 		"Lính đứng trên làng rồi bấm [b]Chiếm[/b]: làng của ta hồi 20 máu mỗi lượt.",
 		"Trưng Trắc ngã là thua. Ra lệnh xong cho cả đội thì bấm [b]Hết lượt[/b].",
 	],

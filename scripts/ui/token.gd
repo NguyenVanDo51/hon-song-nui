@@ -145,17 +145,29 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 ## the enemy); no base, so it reads as standing on the ground. ~0.66 tile tall, so the tile around it stays visible.
 ## Commanders keep their gold / crimson glow behind them.
 const FIG_INK := Color(0.07, 0.04, 0.03)
+const FOOT := 0.30 # figure's feet below the tile centre, tiles (rig feet + board pose pivot match it)
+const ART := 1.12 # full-colour art is drawn this much taller than a silhouette
+
+## standing figure height, px (the 256 SVG square's side); colour = full-colour art
+static func fig_h(type: String, T: float, colour := true) -> float:
+	var h := T * (0.74 if type == "hero" else 0.66)
+	return h * ART if colour else h
+
+## ground shadow under a standing figure whose feet are at `base`; squash < 1 = smaller (in the air)
+static func draw_shadow(ci: CanvasItem, base: Vector2, T: float, al := 1.0, squash := 1.0) -> void:
+	Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24 * squash, T * 0.075 * squash, Color(0, 0, 0, 0.42 * al))
+
 static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D, o: Dictionary) -> void:
 	var al: float = o.get("alpha", 1.0)
-	var base := c + Vector2(0, T * 0.30)
+	var base := c + Vector2(0, T * FOOT)
 	if o.get("shadow", true):
-		Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24, T * 0.075, Color(0, 0, 0, 0.42 * al))
+		draw_shadow(ci, base, T, al)
 	var bob: float = o.get("bob", 0.0)
 	if (hero or o.get("glow", false)) and o.get("halo", true):
 		halo(ci, c - Vector2(0, bob), T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
-	var h := T * (0.74 if hero else 0.66)
-	var flip := -1.0 if side == "e" and o.get("mirror", true) else 1.0
 	var colour: bool = o.get("color", false) # full-colour art: drawn as is, no faction fill / ink outline
+	var h := fig_h("hero" if hero else "", T, colour)
+	var flip := -1.0 if side == "e" and o.get("mirror", true) else 1.0
 	var col: Color = Color.WHITE if colour else fac.get("fig", fac.body2)
 	col *= o.get("tint", Color.WHITE)
 	col.a *= al
@@ -163,7 +175,6 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 	ink.a *= al
 	var foot := base - Vector2(0, bob)
 	if colour:
-		h *= 1.12
 		# y scale too: an edge-on turn (x ~ 0) must not rasterise a tiny texture per frame
 		fig = raster(o.svg, h * Baked.screen_scale(ci) * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y)))
 		if fig == null:

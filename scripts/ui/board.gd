@@ -882,7 +882,7 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 			face = Rig.thin(lerpf(tn.from, tn.to, smoothstep(0.0, 1.0, k)))
 	if face != home:
 		still = false
-	var foot := Vector2((x + 0.5) * T, (y + 0.5) * T + T * 0.30)
+	var foot := Vector2((x + 0.5) * T, (y + 0.5) * T + T * Token.FOOT)
 	var xf := Transform2D(lean, Vector2(sx * face * home, sy), 0.0, foot + shift - Vector2(0, lift)) * Transform2D(0.0, Vector2.ONE, 0.0, -foot)
 	return { "xf": xf, "still": still and is_equal_approx(sy, 1.0), "shadow": clampf(1.0 - lift / T * 1.6, 0.6, 1.0), "flash": rflash }
 

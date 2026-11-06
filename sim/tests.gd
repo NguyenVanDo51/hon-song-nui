@@ -577,6 +577,39 @@ func rule_tests() -> void:
 		var st2: Variant = AI.next_step(c, {})
 		check(st2 != null and st2.kind == "buy", "buys under an enemy on its castle (got %s)" % [st2])
 	)
+	run("AI commander: healthy -> advances through one unit's threat (no retreat to a safe rear tile); hurt -> never ends where it can die", func() -> void:
+		var wide := func(units: Array) -> Dictionary:
+			var s := blank(units)
+			s.w = 12
+			s.h = 7
+			s.tiles = []
+			for y in 7:
+				var row := []
+				row.resize(12)
+				row.fill(".")
+				s.tiles.append(row)
+			s.tiles[0][0] = "c"
+			s.tiles[6][11] = "c"
+			s.owner = { Vector2i(0, 0): "p", Vector2i(11, 6): "e" }
+			s.side = "e"
+			return s
+		AI.rng = func() -> float: return 0.5
+		# user report (m07): commander backed off to a tile nobody threatens instead of heading for the fight
+		var a: Dictionary = wide.call([["e", "hero", 8, 3], ["p", "soldier", 0, 3]])
+		var st: Variant = AI.next_step(a, {})
+		var gd := mini(Game.dist(st.act.to[0], st.act.to[1], 0, 3), Game.dist(st.act.to[0], st.act.to[1], 0, 0))
+		check(gd <= 4, "commander closes in (dist to nearest goal %d, start 8, got %s)" % [gd, st.act])
+		var b: Dictionary = wide.call([["e", "hero", 8, 3, 35], ["p", "soldier", 1, 2], ["p", "soldier", 1, 4], ["p", "archer", 0, 3]])
+		var st2: Variant = AI.next_step(b, {})
+		var h: Dictionary = b.units[0]
+		h.x = st2.act.to[0]
+		h.y = st2.act.to[1]
+		var worst := 0
+		for e: Dictionary in AI.threat_map(b, "e").get(Vector2i(h.x, h.y), []):
+			worst += Game.damage(b, e, e.x, e.y, e.hp, h, Game.ROLL_TOP)
+		check(worst < h.hp, "hurt commander out of lethal reach (max incoming %d vs hp %d at %s)" % [worst, h.hp, st2.act.to])
+		AI.rng = AI._gen.randf
+	)
 	run("AE2 levels: xp = dmg x (victim atk+atkMax+def); 1 level per fight max, leftover carries, +2 atk/+2 def", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1]])
 		var a: Dictionary = s.units[0]

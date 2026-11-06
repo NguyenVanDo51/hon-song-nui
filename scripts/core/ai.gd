@@ -145,6 +145,10 @@ static func endangered_castles(s: Dictionary, side: String, reach_of := {}) -> D
 				out[key] = true
 	return out
 
+## hp loss + death risk on the full attacker sum (hurt / 0.6): 0 at <= 0.6 hp -> 1 at 1.4 hp, smooth so 1 hp never flips the pick
+static func _risk(hurt: float, hp: float, hp_val: float, die_val: float) -> float:
+	return hurt * hp_val + clampf((hurt / 0.6 / hp - 0.6) / 0.8, 0.0, 1.0) * die_val
+
 static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary, mem := {}) -> Variant:
 	var st := Game.stat(s, u)
 	var reach := Game.reachable(s, u)
@@ -152,6 +156,9 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var df := _dist_cached(s, mc, goals_for(s, u, claims), mem)
 	var val := value(s, u)
 	var caution := 1.3 if u.type == "hero" else 0.6
+	# hp heals: every hp costs the same (soldier price); the unit's full value only as death risk -> a healthy commander advances
+	var hp_val := minf(val, 150.0) * 0.6 / 100.0
+	var die_val := maxf(0.0, val - 150.0) * caution # soldier-priced hp already covers a soldier's death
 	var has_df := df.size() > 0
 	var enemy_castles := Game.castles(s, Game.other(u.side))
 	var best: Array = [null] # [ {score, act} ]
@@ -169,10 +176,10 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var tdef: int = Game.TERRAIN[t].def
 		var pos := -gd * 12 + tdef * 0.8
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key))
-		pos -= (hurt / 100.0) * val * caution
+		pos -= _risk(hurt, u.hp, hp_val, die_val)
 		var own: Variant = s.owner.get(key)
 		if (own == u.side or Game.TERRAIN[t].get("temple", false)) and u.hp < 70:
-			pos += (100 - u.hp) * val * 0.004
+			pos += (100 - u.hp) * minf(val, 300.0) * 0.004 # capped: a 60-hp commander must not glue to a village
 		if st.get("aura", 0): # drum: allies within 2 get +atk after it acts
 			for o: Dictionary in s.units:
 				if o.side == u.side and o.id != u.id and not o.acted and Game.dist(o.x, o.y, rx, ry) <= 2:
@@ -222,7 +229,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 				sc -= val * 0.5
 			# after counter, remaining exposure scales with remaining hp
 			var left := maxi(0, u.hp - p.counter)
-			var exposure := minf(left, hurt) / 100.0 * val * caution
+			var exposure := _risk(minf(left, hurt), left, hp_val, die_val) if left > 0 else 0.0
 			consider.call(sc + (-gd * 12 + tdef * 0.8) * 0.3 - exposure + 40, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
 	return best[0]
 

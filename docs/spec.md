@@ -22,6 +22,7 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 ## Tướng
 - Hai tướng cùng chỉ số (55–65 / 20 / 5 / 1), chiếm được làng + thành.
 - Chết -> mua lại ở thành: 200 + 200 × số lần đã chết (tối đa 1000), giữ cấp + KN.
+- AI né đòn: máu mất = giá bộ binh / máu (mọi quân, máu hồi được); giá trị đầy đủ của quân chỉ tính theo nguy cơ chết (tổng đòn địch tới ô: ≤ 0.6 máu -> 0, = máu -> ½, ≥ 1.4 máu -> đủ) -> tướng khoẻ tiến lên đánh, không lùi về ô an toàn; tướng yếu tránh ô có thể chết. Thưởng đứng làng hồi máu tính tối đa giá 300 (tướng 60 máu không bám làng).
 
 ## Thắng / thua
 - Một phe bị loại khi: hết thành **và** tướng đã chết; hoặc hết quân **và** hết thành. Phe chưa từng có thành (một số màn) chỉ thua khi hết quân.

@@ -23,6 +23,7 @@ var clock := 0.0
 var playing := true # engine act != null
 var shown := true # character drawn (false once the token is back)
 var time_scale := 1.0 # extra speed on top of FX.speed (counters)
+var counter := false # this rig is the defender's counter-attack
 var hitstop := 0.0
 var flash_t := 0.0
 var flash_dur := 1.0
@@ -398,6 +399,9 @@ func draw_char(ci: CanvasItem) -> void:
 	Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24 * ls, T * 0.075 * ls, Color(0, 0, 0, 0.42))
 	if a_type == "hero":
 		Token.halo(ci, base - Vector2(0.0, T * 0.30), T, Token.FOE_GLOW if swap or data.name.ends_with("_e") else Token.HERO_GLOW)
+	if playing:
+		spec.draw_char_under(_ctx(ci), cam, self)
+		ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	var R := bones_of(p)
 	var X := cam.char_xf(p.x, p.y)
 	var px := 256.0 * cam.ca * Baked.screen_scale(ci)
@@ -434,10 +438,21 @@ func _draw_smear(ci: CanvasItem) -> void:
 	var tips := PackedVector2Array()
 	var mids := PackedVector2Array()
 	var inner := PackedVector2Array()
+	var qt: Array = data.points[sm.tip]
+	var qb: Array = data.points[sm.base]
+	_update_cam()
+	# past samples in the CURRENT frame, root travel turned onto the art's forward axis (demo look): on a vertical attack
+	# line the lunge would otherwise shift each sample across the blade and fill the band into a blob
+	var X := cam.char_xf(pose.x, pose.y)
+	var r0 := cam.root(pose.x, pose.y)
 	for k in n + 1:
 		var pp := pose_at(maxf(from, t - k * step))
-		var tp := point_px(sm.tip, pp)
-		var md := point_px(sm.base, pp)
+		var R := bones_of(pp)
+		var dy: float = (pp.y - pose.y) * cam.ca
+		var along := (cam.root(pp.x, pp.y) - r0 - Vector2(0.0, dy)).dot(cam.u)
+		var d := Vector2(cam.f * along, dy) # board px; = the old mapping on horizontal attacks
+		var tp: Vector2 = X * (R[qt[0]] * qt[1]) + d
+		var md: Vector2 = X * (R[qb[0]] * qb[1]) + d
 		tips.append(tp)
 		mids.append(md)
 		inner.append(tp.lerp(md, 0.35))

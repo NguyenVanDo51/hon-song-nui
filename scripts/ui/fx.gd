@@ -62,10 +62,13 @@ func ring(x: float, y: float, color: String, dur := 600.0, max_r := 0.9, width :
 func float_text(x: float, y: float, text: String, color: String, dur := 1000.0, big := false) -> void:
 	floats.append({ "x": x, "y": y, "text": text, "color": Color(color), "t0": now(), "dur": sp(dur), "big": big })
 
+## new envelope = max(running amp left, mag) decaying to the later end: a weaker shake never cuts a stronger one
 func shake(mag: float, dur := 260.0) -> void:
-	shake_mag = maxf(shake_mag * 0.5, mag)
-	shake_dur = maxf(1.0, sp(dur))
-	shake_until = now() + shake_dur
+	var t := now()
+	var left := shake_mag * (shake_until - t) / shake_dur if t < shake_until else 0.0
+	shake_mag = maxf(left, mag)
+	shake_until = maxf(shake_until, t + maxf(1.0, sp(dur)))
+	shake_dur = shake_until - t
 
 func flash(id: int, dur := 180.0) -> void:
 	flash_until[id] = now() + dur
@@ -131,8 +134,14 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 ## the target token takes the rig's knock / lift / squash / flash. opts.on_hit fires once, at the rig's one big HIT
 ## (or at the end if it never got there). Returns at the end of the timeline; leftover sparks keep fading after.
 func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
-	var dx: int = d.x - a.x
-	var f: float = signf(dx) if dx != 0 else board.face_of(a.id, a.side)
+	var f := rig_face(board, a, d)
+	var g := _gen
+	await turn_to(board, a.id, a.side, f)
+	if g != _gen or not is_inside_tree(): # scene cleared mid-turn: no rig on a wiped board, damage still lands
+		var cb: Callable = opts.get("on_hit", Callable())
+		if cb.is_valid():
+			cb.call()
+		return
 	r.fxh = self
 	r.a_id = a.id
 	r.d_id = d.id
@@ -140,13 +149,12 @@ func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: in
 	r.amount = amount
 	r.kill = opts.get("kill", false)
 	r.on_hit = opts.get("on_hit", Callable())
-	if opts.get("counter", false):
+	r.counter = opts.get("counter", false)
+	if r.counter:
 		r.time_scale = Rigs.COUNTER_SPEED
 	r.place(board, Vector2i(a.x, a.y), Vector2i(d.x, d.y), f)
-	board.set_face(a.id, f)
 	aim[a.id] = Vector2(d.x - a.x, d.y - a.y).normalized()
 	rigs.append(r)
-	var g := _gen
 	var t0 := now()
 	var limit: float = float(r.A.dur) * 1.5 + 2500.0 # wall-time bail: the board only ticks rigs while it is visible
 	while r.playing and g == _gen and is_inside_tree() and now() - t0 < limit:
@@ -157,6 +165,21 @@ func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: in
 		r.hit_done = true
 		if r.on_hit.is_valid():
 			r.on_hit.call()
+
+## the way a rig attacker faces: toward the target; pure up / down keeps the token's facing
+static func rig_face(board: Control, a: Dictionary, d: Dictionary) -> float:
+	var dx: int = d.x - a.x
+	return signf(dx) if dx != 0 else board.face_of(a.id, a.side)
+
+const TURN_MS := 110.0
+## token flips to face f (squash through edge-on) so the rig that replaces it starts with the same facing
+func turn_to(board: Control, id: int, side: String, f: float) -> void:
+	var f0: float = board.face_of(id, side)
+	board.set_face(id, f)
+	if f0 == f:
+		return
+	board.turn(id, f0, f, sp(TURN_MS))
+	await sleep(TURN_MS)
 
 func rig_of_attacker(id: int) -> Rig:
 	for r: Rig in rigs:

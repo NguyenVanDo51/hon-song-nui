@@ -38,9 +38,6 @@ func events(_r: Rig) -> Array:
 		[t_hit, func(a: Rig) -> void:
 			var tg := a.target()
 			a.hit(Rig.with(Rig.HIT, { "dmg": 65 }))
-			# engine shake() keeps the stronger decayed slam shake; FX.shake would drop to the HIT's amp
-			var left := 440.0 - (t_hit - t_slam)
-			a.shake(16.0 * left / 440.0, left)
 			a.shockwave(tg.x, ground, { "r": 110.0, "ms": 300.0 })
 			a.dust(tg.x - 50, ground, 3, 1)],
 	]

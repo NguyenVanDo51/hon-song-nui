@@ -96,15 +96,22 @@ static func glyph(ctx: RigCtx, k: int, s: float) -> void:
 
 # ---------- attack draw: glyph ring at the feet + rising wisps + spirit gathering on the bronze bird ----------
 ## stateless (pure function of t). Hero-attached: every point in the hero frame (w = 0).
+## near half = front layer; far half (JS mid) under the shaman itself, so it never covers its feet (dir=down)
 func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
+	if layer == "front":
+		_ring(ctx, cam, r, t, true)
+
+func draw_char_under(ctx: RigCtx, cam: RigCam, r: Rig) -> void:
+	_ring(ctx, cam, r, r.t, false)
+
+func _ring(ctx: RigCtx, cam: RigCam, r: Rig, t: float, front: bool) -> void:
 	var c := data.consts
 	var ring: Dictionary = c.RING
 	var t0: float = ring.t0
 	var t1: float = ring.t1
 	var t_thrust: float = c.T_THRUST
-	if layer == "back" or t < t0 or t > t1:
+	if t < t0 or t > t1:
 		return
-	var front := layer == "front"
 	var RX: float = ring.x
 	var RY: float = ring.y
 	var g := RigData.ease_i(5, clampf((t - t0) / 200.0, 0.0, 1.0))

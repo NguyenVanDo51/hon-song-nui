@@ -31,6 +31,11 @@ func draw(_ctx: RigCtx, _cam: RigCam, _r: Rig, _layer: String, _t: float) -> voi
 func channels(_p: Dictionary, _t: float, _attack: String) -> void:
 	pass
 
+## attacker-pinned fx under the character (after its shadow, before the parts): stays under the attacker on every
+## board direction, where `mid` (over the target) can land on top of it when the target is drawn after the attacker
+func draw_char_under(_ctx: RigCtx, _cam: RigCam, _r: Rig) -> void:
+	pass
+
 ## extra drawing in the character frame after the parts (rarely needed)
 func draw_char_extra(_ctx: RigCtx, _cam: RigCam, _r: Rig) -> void:
 	pass

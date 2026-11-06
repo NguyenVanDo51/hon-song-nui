@@ -702,14 +702,38 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 	for g: Dictionary in fx.ghosts:
 		var kk: float = clampf((time - g.t0) / g.dur, 0.0, 1.0)
 		list.append({ "u": g.u, "x": float(g.u.x), "y": float(g.u.y), "alpha": 1.0 - kk * kk, "scale": 1.0, "die": kk })
-	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y)
-	var sel_id: int = v.sel.id if v.sel != null else -1
-	var st := ci.get_screen_transform()
 	var rig_t := {} # target id -> live attack rig: its back / mid fx wrap that token (tornado halves)
+	var z := {} # unit id -> same-row rank: rig target 0, others 1, rig attacker 2 (demo: back, target, mid, attacker)
 	for r: Rig in fx.rigs:
 		rig_t[r.d_id] = fx.rig_of_target(r.d_id)
+		z[r.d_id] = 0
+	for r: Rig in fx.rigs:
+		if r.shown:
+			z[r.a_id] = 2
+	# deterministic: sort_custom is not stable
+	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if a.y != b.y:
+			return a.y < b.y
+		var za: int = z.get(a.u.id, 1)
+		var zb: int = z.get(b.u.id, 1)
+		if za != zb:
+			return za < zb
+		if a.x != b.x:
+			return a.x < b.x
+		return a.u.id < b.u.id)
+	var sel_id: int = v.sel.id if v.sel != null else -1
+	var st := ci.get_screen_transform()
+	var back_at := {} # list index -> rigs whose back layer goes there: before the first drawn of attacker / target
+	for r: Rig in rig_t.values():
+		for i in list.size():
+			var lu: Dictionary = list[i].u
+			if lu.id == r.d_id or (lu.id == r.a_id and r.shown and not list[i].has("die")):
+				back_at[i] = back_at.get(i, []) + [r]
+				break
+	var back_done := {}
 	var rig_done := {}
-	for it: Dictionary in list:
+	for i in list.size():
+		var it: Dictionary = list[i]
 		var u: Dictionary = it.u
 		var x: float = it.x
 		var y: float = it.y
@@ -732,8 +756,9 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		var tint := Color(0.42, 0.42, 0.45) if acted else Color.WHITE # done this turn: the figure greys out
 		var pose := _pose(u, it, x, y, off, time, is_sel)
 		flash = maxf(flash, pose.flash)
-		if rt != null:
-			rt.draw_layer(ci, "back")
+		for rb: Rig in back_at.get(i, []):
+			rb.draw_layer(ci, "back")
+			back_done[rb] = true
 		var rg: Rig = fx.rig_of_attacker(u.id) if not it.has("die") else null
 		if rg != null: # mid-attack: the rig stands in for the token (same size, same feet)
 			rg.draw_char(ci)
@@ -766,7 +791,8 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 				_draw_buffs(ci, u, c, int(round(x)), int(round(y)), time)
 	for r: Rig in fx.rigs:
 		if not rig_done.has(r.d_id) or rig_t.get(r.d_id) != r: # target not drawn, or an older rig on the same target
-			r.draw_layer(ci, "back")
+			if not back_done.has(r):
+				r.draw_layer(ci, "back")
 			r.draw_layer(ci, "mid")
 
 ## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
@@ -844,6 +870,13 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 		still = false
 		lift += absf(sin(time / 230.0)) * 0.07 * T
 	_face[id] = face
+	var tn: Variant = _turn.get(id)
+	if tn != null: # turning to face a rig target: the drawn facing sweeps through edge-on
+		var k: float = (time - tn.t0) / tn.dur
+		if k >= 1.0:
+			_turn.erase(id)
+		else:
+			face = Rig.thin(lerpf(tn.from, tn.to, smoothstep(0.0, 1.0, k)))
 	if face != home:
 		still = false
 	var foot := Vector2((x + 0.5) * T, (y + 0.5) * T + T * 0.30)
@@ -854,8 +887,15 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 func face_of(id: int, side: String) -> float:
 	return _face.get(id, 1.0 if side == "p" else -1.0)
 
+## also drops the last drawn spot: a stale one (hidden while it moved) would re-face it by movement on the next frame
 func set_face(id: int, f: float) -> void:
 	_face[id] = f
+	_last_xy.erase(id)
+
+var _turn := {} # unit id -> { from, to, t0, dur }: drawn facing animating to _face
+func turn(id: int, from: float, to: float, dur: float) -> void:
+	set_face(id, to)
+	_turn[id] = { "from": from, "to": to, "t0": FX.now(), "dur": maxf(1.0, dur) }
 
 ## live buffs from Game.buffs_at (what the forecast counts): green up arrow per bonus (drum aura, water),
 ## red down arrow when bitten (-atk / -def), plus a soft ground ring in the dominant colour

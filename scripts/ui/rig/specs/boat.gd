@@ -115,25 +115,6 @@ class WaveFx extends RefCounted:
 			var v := (age - RISE) / FALL
 			var e := RigFx.out(v)
 			draw_wave(ctx, cam, x0 + 44.0 + 30.0 * e, HMAX * (1.0 - 0.7 * e), 1.0 + 0.9 * e, 0.25 + 0.25 * e, 1.0 if v < 0.45 else 1.0 - (v - 0.45) / 0.55)
-		# demo z-order = back, target, mid, hero: same row the board may draw the hero first -> paddle back over the wave
-		if r.shown and r.a_tile.y == r.d_tile.y:
-			_redraw_parts(ctx.ci, r, ["paddle", "arm"])
-
-	## the named character parts again, exactly as Rig.draw_char paints them
-	static func _redraw_parts(ci: CanvasItem, rg: Rig, names: Array) -> void:
-		var p := rg.pose
-		var R := rg.bones_of(p)
-		var X := rg.cam.char_xf(p.x, p.y)
-		var px := 256.0 * rg.cam.ca * Baked.screen_scale(ci)
-		for e: Array in rg.data.draw:
-			if not e[0] in names:
-				continue
-			var tex := Token.raster_svg("%s|%s|%s" % [rg.part_id, e[0], rg.swap], rg.data.part_svg.bind(e[0], rg.swap), px)
-			if tex == null:
-				continue
-			ci.draw_set_transform_matrix(X * R[e[1]])
-			ci.draw_texture_rect(tex, Rect2(0, 0, 256, 256), false)
-		ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 	## curling wave, base on the ground at X, height H; c = curl 0..2 (1 = full barrel, 2 = lip slammed down), k = forward
 	## lean. JS draws in world coords; here an upright frame at (X, ground) with P() as local offsets, so the wave stays

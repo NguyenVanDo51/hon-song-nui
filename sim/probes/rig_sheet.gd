@@ -29,7 +29,7 @@ func _initialize() -> void:
 
 func _process(dt: float) -> bool:
 	t += dt
-	if Time.get_ticks_msec() > 45000: # never hang a guarded run on a script error
+	if Time.get_ticks_msec() > 120000: # never hang a guarded run on a script error
 		printerr("[rig_sheet] timeout")
 		quit(1)
 	if main.game == null or main.game.s.is_empty() or t < 1.5:
@@ -89,7 +89,8 @@ func _frame(g: Node) -> void:
 	var at: float = times[i]
 	g.fx.rigs.clear()
 	label.text = "token" if at < 0.0 else "%d ms" % int(at)
-	if at < 0.0: # the plain token, to check the token -> rig swap is seamless
+	if at < 0.0: # the plain token right before the swap (after FX.rig_attack's turn), to check it is seamless
+		await g.fx.turn_to(g.board, a.id, a.side, FX.rig_face(g.board, a, d))
 		await _grab(g)
 		_frame(g)
 		return
@@ -102,8 +103,7 @@ func _frame(g: Node) -> void:
 	r.d_id = d.id
 	r.d_type = d.type
 	r.amount = 42
-	var dxi: int = d.x - a.x
-	r.place(g.board, Vector2i(a.x, a.y), Vector2i(d.x, d.y), signf(dxi) if dxi != 0 else g.board.face_of(a.id, a.side))
+	r.place(g.board, Vector2i(a.x, a.y), Vector2i(d.x, d.y), FX.rig_face(g.board, a, d))
 	r.seek(at)
 	r.time_scale = 0.0 # frozen at `at`
 	g.fx.rigs.append(r)

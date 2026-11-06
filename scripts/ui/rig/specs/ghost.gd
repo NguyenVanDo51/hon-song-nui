@@ -50,10 +50,10 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 	p.arm = 2.0 * b
 	p.wrist = -1.5 * b
 
-## afterimage echoes trailing the drift (stateless: from the X track)
-func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
-	if layer != "mid":
-		return
+## afterimage echoes trailing the drift (stateless: from the X track). JS mid layer; drawn under the ghost itself so
+## they stay behind its body when the target is drawn after it (dir=down)
+func draw_char_under(ctx: RigCtx, cam: RigCam, r: Rig) -> void:
+	var t := r.t
 	if t < 250.0 or t > 420.0: # forward drift only (rest-pose echoes clash with the faded body on the way back)
 		return
 	if _x_keys.is_empty():

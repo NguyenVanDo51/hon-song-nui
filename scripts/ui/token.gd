@@ -44,13 +44,14 @@ static var _has := {} # path -> bool
 ## 2-generation cache: full -> current gen becomes old, old gen freed. Hits in old gen move to current, so a texture used
 ## this frame is never freed mid-frame (freed RID = white square in a one-shot bake / an icon not redrawn).
 ## Rotation redraws every Token icon so its texture moves into the new gen.
-static func raster(path: String, px: float) -> Texture2D:
-	return raster_svg(path, func() -> String: return FileAccess.get_file_as_string(path), px)
+## white = solid white silhouette (hit flash, like the demo's targetWhite)
+static func raster(path: String, px: float, white := false) -> Texture2D:
+	return raster_svg(path, func() -> String: return FileAccess.get_file_as_string(path), px, white)
 
 ## same cache for SVG markup built in code (rig parts): `src` returns the 256-viewBox SVG text, only called on a miss
-static func raster_svg(id: String, src: Callable, px: float) -> Texture2D:
+static func raster_svg(id: String, src: Callable, px: float, white := false) -> Texture2D:
 	var b := maxi(16, ceili(px / 8.0) * 8)
-	var key := "%s@%d" % [id, b]
+	var key := "%s@%d%s" % [id, b, "|w" if white else ""]
 	var tex: Texture2D = _rast.get(key)
 	if tex != null:
 		return tex
@@ -60,6 +61,8 @@ static func raster_svg(id: String, src: Callable, px: float) -> Texture2D:
 		var svg: String = src.call()
 		if svg == "" or img.load_svg_from_string(svg, b / 256.0) != OK:
 			return null
+		if white:
+			img.adjust_bcs(0.0, -1.0, 1.0) # brightness 0 then contrast -1 -> rgb = 1, alpha kept
 		tex = ImageTexture.create_from_image(img)
 	if _rast.size() >= RAST_GEN:
 		_rast_old = _rast
@@ -161,7 +164,8 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 	var foot := base - Vector2(0, bob)
 	if colour:
 		h *= 1.12
-		fig = raster(o.svg, h * Baked.screen_scale(ci) * absf(Draw.xf.get_scale().x))
+		# y scale too: an edge-on turn (x ~ 0) must not rasterise a tiny texture per frame
+		fig = raster(o.svg, h * Baked.screen_scale(ci) * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y)))
 		if fig == null:
 			return
 	var r := Rect2(-h / 2.0, -h, h, h)
@@ -171,8 +175,9 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 		ci.draw_texture_rect(fig, Rect2(r.position + d, r.size), false, ink)
 	ci.draw_texture_rect(fig, r, false, col)
 	var fl: float = o.get("flash", 0.0)
-	if fl > 0:
-		ci.draw_texture_rect(fig, r, false, Color(1, 1, 1, minf(1.0, fl) * 0.85))
+	if fl > 0: # white silhouette at alpha = flash (engine.js drawTarget)
+		var wt: Texture2D = raster(o.svg, h * Baked.screen_scale(ci) * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y)), true) if colour else fig
+		ci.draw_texture_rect(wt if wt != null else fig, r, false, Color(1, 1, 1, minf(1.0, fl) * al))
 	ci.draw_set_transform_matrix(Draw.xf)
 
 ## the commander's soft gold glow behind the disc

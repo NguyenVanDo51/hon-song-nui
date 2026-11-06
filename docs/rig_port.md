@@ -1,6 +1,6 @@
 # Rig port guide (Phase B: one unit per agent)
 
-Status 2026-11-06: all 11 types ported (hero + 10) (`scripts/ui/rig/specs/*.gd`). Known shared-runtime gaps: smear widens on dir=down; same-row `mid` layer can draw over attacker (boat repaints paddle); `back` ring of shaman over feet on dir=down; token frame −1 faces default before turn-to-target; target white flash weaker than demo.
+Status 2026-11-06: all 11 types ported (hero + 10) (`scripts/ui/rig/specs/*.gd`). Shared-runtime gaps fixed: smear on vertical attacks (root travel mapped onto art x), deterministic same-row z-order + `back` before attacker/target, `draw_char_under` hook (shaman far ring, ghost echoes), token turns to face target before the swap, white-silhouette hit flash, `FX.shake` keeps the stronger envelope, `r.counter`.
 
 Attack demos `docs/anim_demo/<unit>.spec.js` -> real-time skeletal rig on the 2D board. Reference port = commander (`hero_p` / `hero_e`): `scripts/ui/rig/specs/hero.gd`.
 Never edit `docs/anim_demo/*` or `assets/units/styles/*`.
@@ -29,6 +29,7 @@ Never edit `docs/anim_demo/*` or `assets/units/styles/*`.
    - `idle` -> `func idle(p, b, clock)` (rest checks only; game shows the token between attacks)
    - `order(p, list)` -> `func order(p, list) -> Array` (only called when JSON `hooks.order` is true)
    - attack `draw(ctx, cam, api, layer, t)` -> `func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float)`
+   - attacker-pinned `mid` stuff (ring far half, afterimages) -> `func draw_char_under(ctx, cam, r)`: drawn after the attacker's shadow, before its parts (only while playing; read `r.t`). Stays under the attacker on every direction; `mid` lands over it when the target is drawn after the attacker (dir=down).
    - module-level helper fx (`function fooFx(api){ return api.add({upd, draw}) }`) -> a static func or inner class in the same file; `r.add({ "upd": func(s, ms) -> bool: ..., "draw": func(ctx, cam, layer) -> void: ... })` or an object with `upd(s, ms) -> bool` + `draw(ctx, cam, layer)`.
    - channels listed in JSON `attacks[].sampled` (JS `track + wobble` combos) are exported as 5 ms linear samples: fine as is; override `channels(p, t, attack)` only if it must be exact.
    - numbers/colours/timings: read `data.consts` (every plain top-level JS const, evaluated, incl. `bake()` results; tracks as `{track: keys}`, sample with `RigData.sample(RigData.keys_of(c.X.track), t)`).
@@ -45,6 +46,7 @@ Never edit `docs/anim_demo/*` or `assets/units/styles/*`.
 | `api.point(name)` -> `{x, y}` | `a.point(name)` -> `Vector2` (world). Board px exactly as drawn: `a.point_px(name)` |
 | `api.hero()`, `api.target()` | Dictionaries, same keys (`target().front` = real `T_FRONT`) |
 | `api.t`, `api.clock`, `api.pose` | `a.t`, `a.clock`, `a.pose` |
+| (new) counter-attack? | `a.counter` (bool; counters also play at `Rigs.COUNTER_SPEED`) |
 | sound (new) | `a.sound("slash" / "arrow" / "rock" / "orb" / "hit" / "heavy")` at the swing / release; hits play their own |
 | `ctx.setTransform(cam.translate(x, y).rotate(deg).scale(s))` | `ctx.set_xf(cam.frame(x, y).rotated_local(deg_to_rad(deg)).scaled_local(Vector2(s, s)))` |
 | `ctx.setTransform(cam)` + world coords | `ctx.set_world()` (per-point weight) or `ctx.set_world(0.0)` hero-attached / `ctx.set_world(1.0)` target-attached |
@@ -67,7 +69,11 @@ Never edit `docs/anim_demo/*` or `assets/units/styles/*`.
 
 ## Layers / z-order
 - character + smear: in `Board._draw_units` y-order, replacing the attacker's token (hp bar, stars kept).
-- `back`: just before the target token; `mid`: just after it (tornado halves wrap the target); `front`: fx over-layer (above all units). Flash: full board, top layer. All under the night overlay, like every other unit/FX.
+- Units sort by row, then same-row rank: rig target < others < rig attacker (then x, id; deterministic) -> same row = demo order back, target, mid, attacker.
+- `back`: just before the first drawn of attacker / target (under both); `mid`: just after the target token (tornado halves wrap the target); `front`: fx over-layer (above all units). Flash: full board, top layer. All under the night overlay, like every other unit/FX.
+- Target below the attacker (dir=down): the target (and `mid`) must cover the attacker by depth -> attacker-pinned fx go in `draw_char_under`.
+- Facing: `FX.rig_attack` first turns the token (`FX.turn_to`, 110 ms flip) when it faces away; rig starts with the same facing, token keeps it after.
+- Hit flash: target token gets a white silhouette at alpha = `tgt.flash` (1 -> 0 in 150 ms), like engine.js `targetWhite`.
 
 ## Damage rule (game)
 - Exactly ONE non-small HIT per attack (SHARED.md `HIT`). That hit shows the REAL `amount` (gold on kill), plays hit/heavy, calls `on_hit` (hp bar drops). `HIT_SMALL` ticks: no number. Spec `dmg` values are ignored.

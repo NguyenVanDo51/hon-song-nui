@@ -7,13 +7,27 @@ const HERO_GLOW := Color("#ffd76a")
 const HERO_RING := Color("#f3c95c")
 const FOE_GLOW := Color("#ff4a36") # the enemy commander (villain): red glow + crimson ring instead of gold
 const FOE_RING := Color("#d23a2c")
+const RAST_GEN := 192
+## standing figure: soft ground shadow + the silhouette in the faction's figure colour with a dark outline (mirrored for
+## the enemy); no base, so it reads as standing on the ground. ~0.66 tile tall, so the tile around it stays visible.
+## Commanders keep their gold / crimson glow behind them.
+const FIG_INK := Color(0.07, 0.04, 0.03)
+const FOOT := 0.30 # figure's feet below the tile centre, tiles (rig feet + board pose pivot match it)
+const ART := 1.12 # full-colour art is drawn this much taller than a silhouette
+
+## art set: full-colour per-side figures assets/units/styles/<fig_style>/<type>_<side>.svg + terrain assets/terrain/<fig_style>/
+## (raw SVG, importer "keep", rasterised at runtime). "" = old silhouettes + procedural terrain
+static var fig_style := "chibi"
+static var _rast := {} # "path@px" -> ImageTexture
+static var _rast_old := {}
+static var _has := {} # path -> bool
+static var _tex := {}
+static var _icon_w := {} # "icon|size" -> width, so the hot path never measures strings
 
 var side := "p"
 var type := "soldier"
 var hero_key: Variant = null
 var px := 56.0
-static var _tex := {}
-static var _icon_w := {} # "icon|size" -> width, so the hot path never measures strings
 
 static func make(p_side: String, p_type: String, p_hero: Variant, sz := 56.0) -> Token:
 	var t := Token.new()
@@ -31,14 +45,6 @@ func _enter_tree() -> void:
 func _draw() -> void:
 	Draw.xf = Transform2D.IDENTITY
 	paint(self, Vector2(px / 2.0, px / 2.0 - px * 0.04), px * 0.95, side, type, hero_key, { "mirror": false })
-
-## art set: full-colour per-side figures assets/units/styles/<fig_style>/<type>_<side>.svg + terrain assets/terrain/<fig_style>/
-## (raw SVG, importer "keep", rasterised at runtime). "" = old silhouettes + procedural terrain
-static var fig_style := "chibi"
-static var _rast := {} # "path@px" -> ImageTexture
-static var _rast_old := {}
-const RAST_GEN := 192
-static var _has := {} # path -> bool
 
 ## SVG rasterised at the exact on-screen size (8 px steps): no mipmap blur from downscaling a big import
 ## 2-generation cache: full -> current gen becomes old, old gen freed. Hits in old gen move to current, so a texture used
@@ -85,8 +91,9 @@ static func exists(path: String) -> bool:
 static func image(path: Variant) -> Texture2D:
 	if path == null or path == "":
 		return null
-	if not _tex.has(path):
-		_tex[path] = load(path) if ResourceLoader.exists(path) else null
+	var p: String = path
+	if not _tex.has(p):
+		_tex[p] = load(p) if ResourceLoader.exists(p) else null
 	return _tex[path]
 
 ## o: alpha, bob (px up), glow, flash (0..1), mirror (false = never flip enemy icon), shadow (false = skip it),
@@ -110,9 +117,11 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var al: float = o.get("alpha", 1.0)
 	if o.get("shadow", true):
 		Draw.ellipse(ci, c + Vector2(0, R * 0.95), R * 0.85, R * 0.28, Color(0, 0, 0, 0.4 * al))
-	var bc := Vector2(c.x, c.y - float(o.get("bob", 0.0)))
+	var bob: float = o.get("bob", 0.0)
+	var bc := Vector2(c.x, c.y - bob)
 	if (hero or o.get("glow", false)) and o.get("halo", true):
-		halo(ci, bc, T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
+		var gc: Color = (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow
+		halo(ci, bc, T, gc, al)
 	var b1: Color = fac.body2
 	var b0: Color = fac.body
 	b1.a *= al
@@ -146,13 +155,6 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	if fl > 0:
 		ci.draw_circle(bc, R, Color(1, 1, 1, minf(1.0, fl) * 0.85))
 
-## standing figure: soft ground shadow + the silhouette in the faction's figure colour with a dark outline (mirrored for
-## the enemy); no base, so it reads as standing on the ground. ~0.66 tile tall, so the tile around it stays visible.
-## Commanders keep their gold / crimson glow behind them.
-const FIG_INK := Color(0.07, 0.04, 0.03)
-const FOOT := 0.30 # figure's feet below the tile centre, tiles (rig feet + board pose pivot match it)
-const ART := 1.12 # full-colour art is drawn this much taller than a silhouette
-
 ## standing figure height, px (the 256 SVG square's side); colour = full-colour art
 static func fig_h(utype: String, T: float, colour := true) -> float:
 	var h := T * (0.74 if utype == "hero" else 0.66)
@@ -162,14 +164,16 @@ static func fig_h(utype: String, T: float, colour := true) -> float:
 static func draw_shadow(ci: CanvasItem, base: Vector2, T: float, al := 1.0, squash := 1.0) -> void:
 	Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24 * squash, T * 0.075 * squash, Color(0, 0, 0, 0.42 * al))
 
-static func _standee(ci: CanvasItem, c: Vector2, T: float, fac_side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D, o: Dictionary) -> void:
+static func _standee(ci: CanvasItem, c: Vector2, T: float, fac_side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D,
+	o: Dictionary) -> void:
 	var al: float = o.get("alpha", 1.0)
 	var base := c + Vector2(0, T * FOOT)
 	if o.get("shadow", true):
 		draw_shadow(ci, base, T, al)
 	var bob: float = o.get("bob", 0.0)
 	if (hero or o.get("glow", false)) and o.get("halo", true):
-		halo(ci, c - Vector2(0, bob), T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
+		var gc: Color = (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow
+		halo(ci, c - Vector2(0, bob), T, gc, al)
 	var colour: bool = o.get("color", false) # full-colour art: drawn as is, no faction fill / ink outline
 	var h := fig_h("hero" if hero else "", T, colour)
 	var flip := -1.0 if fac_side == "e" and o.get("mirror", true) else 1.0
@@ -180,22 +184,24 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, fac_side: String, her
 	ink.a *= al
 	var foot := base - Vector2(0, bob)
 	var rpx := 0.0
+	var svg: String = o.get("svg", "") # set with color
 	if colour:
 		# y scale too: an edge-on turn (x ~ 0) must not rasterise a tiny texture per frame
-		rpx = h * float(o.get("rs", Baked.screen_scale(ci))) * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y))
-		fig = raster(o.svg, rpx)
+		var rs: float = o.get("rs", Baked.screen_scale(ci))
+		rpx = h * rs * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y))
+		fig = raster(svg, rpx)
 		if fig == null:
 			return
 	var r := Rect2(-h / 2.0, -h, h, h)
 	ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(flip, 1.0), 0.0, foot))
 	var w := maxf(1.0, T * 0.03)
-	for d: Vector2 in ([] if colour else [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7, Vector2(-w, w) * 0.7,
-		Vector2(w, w) * 0.7]):
+	for d: Vector2 in ([] if colour else [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7,
+		Vector2(-w, w) * 0.7, Vector2(w, w) * 0.7]):
 		ci.draw_texture_rect(fig, Rect2(r.position + d, r.size), false, ink)
 	ci.draw_texture_rect(fig, r, false, col)
 	var fl: float = o.get("flash", 0.0)
 	if fl > 0: # white silhouette at alpha = flash (engine.js drawTarget)
-		var wt: Texture2D = raster(o.svg, rpx, true) if colour else fig
+		var wt: Texture2D = raster(svg, rpx, true) if colour else fig
 		ci.draw_texture_rect(wt if wt != null else fig, r, false, Color(1, 1, 1, minf(1.0, fl) * al))
 	ci.draw_set_transform_matrix(Draw.xf)
 
@@ -264,7 +270,9 @@ class Atlas extends RefCounted:
 				var R := T * 0.4
 				Draw.ellipse(ci, c, R * 0.62, R * 0.2, Color(0, 0, 0, 0.42))
 			else:
-				Token.paint(ci, c, T, it[1], it[2], it[3], { "shadow": false, "halo": false })
+				var side: String = it[1]
+				var type: String = it[2]
+				Token.paint(ci, c, T, side, type, it[3], { "shadow": false, "halo": false })
 
 	func texture() -> Texture2D:
 		return vp.get_texture()
@@ -277,13 +285,16 @@ class Atlas extends RefCounted:
 			return
 		var half := unit * sc / 2.0 * squash
 		var R := T * sc * 0.4
-		ci.draw_texture_rect_region(vp.get_texture(), Rect2(c + Vector2(-half, R * 0.78 - half), Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
+		var cell: Rect2 = cells.shadow
+		ci.draw_texture_rect_region(vp.get_texture(), Rect2(c + Vector2(-half, R * 0.78 - half), Vector2(half, half) * 2.0), cell, Color(1, 1, 1, alpha))
 
 	## shadow = false: figure only (drawn under a pose transform); snap = false when that transform is not a pure offset
-	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float, tint := Color.WHITE, shadow := true, snap := true) -> bool:
-		var r: Variant = cells.get("%s|%s" % [side, type])
-		if r == null:
+	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float, tint := Color.WHITE,
+		shadow := true, snap := true) -> bool:
+		var cell: Variant = cells.get("%s|%s" % [side, type])
+		if cell == null:
 			return false
+		var r: Rect2 = cell
 		var tex := vp.get_texture()
 		var half := unit * sc / 2.0
 		var R := T * sc * 0.4
@@ -295,7 +306,8 @@ class Atlas extends RefCounted:
 			sh = inv * (st * sh).round()
 			tl = inv * (st * tl).round()
 		if shadow:
-			ci.draw_texture_rect_region(tex, Rect2(sh, Vector2(half, half) * 2.0), cells.shadow, Color(1, 1, 1, alpha))
+			var shc: Rect2 = cells.shadow
+			ci.draw_texture_rect_region(tex, Rect2(sh, Vector2(half, half) * 2.0), shc, Color(1, 1, 1, alpha))
 		if type == "hero":
 			Token.halo(ci, tl + Vector2(half, half), T * sc, Token.FOE_GLOW if side == "e" else Token.HERO_GLOW, alpha)
 		ci.draw_texture_rect_region(tex, Rect2(tl, Vector2(half, half) * 2.0), r, Color(tint, alpha))

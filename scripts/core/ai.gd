@@ -178,7 +178,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 				if o.side == u.side and o.id != u.id and not o.acted and Game.dist(o.x, o.y, rx, ry) <= 2:
 					pos += 15
 		if t == "c" and own == u.side:
-			pos -= 400 if s.heroDead[u.side] else (40 if u.type == "hero" else 150)
+			pos -= 40 # AE2 sells under one unit: only a nudge to keep moving (it also guards the castle)
 		elif t == "c" and own != null and not st.get("capC", false):
 			pos -= 600 # parked on an enemy castle it cannot take: blocks our commander
 
@@ -226,7 +226,8 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			consider.call(sc + (-gd * 12 + tdef * 0.8) * 0.3 - exposure + 40, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
 	return best[0]
 
-static func choose_buy(s: Dictionary, side: String) -> Variant:
+## ok: types buy_options allows at the chosen castle (gold, cap, step-off); null = any allowed type within gold
+static func choose_buy(s: Dictionary, side: String, ok: Variant = null) -> Variant:
 	var counts := {}
 	var enemy_fly := false
 	for u: Dictionary in s.units:
@@ -245,8 +246,10 @@ static func choose_buy(s: Dictionary, side: String) -> Variant:
 	var best: Variant = null
 	for type: String in s.allowed[side]:
 		var cost: int = Game.UNITS[type].cost
-		if cost > s.gold[side]:
+		if cost > s.gold[side] or (ok != null and not ok.has(type)):
 			continue
+		if type == "boat" and water == 0:
+			continue # no river: a boat is a soldier at twice the price
 		var w: float = WEIGHTS[type]
 		if type == "archer" and enemy_fly:
 			w += 2
@@ -315,15 +318,20 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 		return { "kind": "act", "act": best.act }
 	if Game.cap_count(s, side) >= s.unitCap:
 		return null
+	# AE2: a castle with one unit on it (ours or theirs) still sells; buy_options folds in gold, cap and step-off room
 	for key: Vector2i in Game.castle_tiles(s, side):
-		if Game.unit_at(s, key.x, key.y) != null:
+		var ok := {}
+		for o: Dictionary in Game.buy_options(s, side, key.x, key.y):
+			if o.ok:
+				ok[o.type] = true
+		if ok.is_empty():
 			continue
-		var want_hero: bool = s.heroDead[side] and s.heroKey[side] != null
-		if want_hero and s.gold[side] >= Game.hero_cost(s, side):
+		if ok.has("hero"):
 			return { "kind": "buy", "x": key.x, "y": key.y, "type": "hero" }
+		var want_hero: bool = s.heroDead[side] and s.heroKey[side] != null
 		if want_hero and s.gold[side] < Game.hero_cost(s, side) and Game.unit_count(s, side) >= 4:
-			return null
-		var type: Variant = choose_buy(s, side)
+			return null # save up: the commander is the only castle taker
+		var type: Variant = choose_buy(s, side, ok)
 		if type != null:
 			return { "kind": "buy", "x": key.x, "y": key.y, "type": type }
 	return null

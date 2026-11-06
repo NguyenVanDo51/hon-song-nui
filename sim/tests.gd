@@ -540,6 +540,21 @@ func rule_tests() -> void:
 		check(bought and nu.size() == 1, "AI bought")
 		check(nu.size() == 1 and nu[0].acted, "bought unit acted this turn")
 	)
+	run("AI buys under a unit on its castle (own acted / enemy), never a boat without water", func() -> void:
+		var s := blank([["p", "soldier", 0, 0], ["e", "hero", 5, 5]])
+		s.side = "e"
+		s.gold.e = 300
+		s.units[1].acted = true
+		var st: Variant = AI.next_step(s, {})
+		check(st != null and st.kind == "buy" and st.x == 5 and st.y == 5, "buys under own acted hero (got %s)" % [st])
+		check(st == null or st.type != "boat", "no boat on a dry map")
+		var c := blank([["p", "soldier", 0, 0], ["p", "soldier", 5, 5], ["e", "hero", 3, 0]])
+		c.side = "e"
+		c.gold.e = 150
+		c.units[2].acted = true
+		var st2: Variant = AI.next_step(c, {})
+		check(st2 != null and st2.kind == "buy", "buys under an enemy on its castle (got %s)" % [st2])
+	)
 	run("AE2 levels: xp = dmg x (victim atk+atkMax+def); 1 level per fight max, leftover carries, +2 atk/+2 def", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1]])
 		var a: Dictionary = s.units[0]

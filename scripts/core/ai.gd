@@ -11,7 +11,8 @@ const DEFAULT_WEIGHT := 1.0
 const PRESETS := {
 	"easy": { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }, # reckless
 	"normal": {},
-	"hard": { "hp_cap": 81.2937, "kill_hero": 552.335 }, # sim/tuned_params.txt: ~55% vs normal
+	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2")
+	"hard": { "hp_cap": 81.2937, "kill_hero": 552.335, "planner": 2 },
 }
 
 const DEFAULT := {
@@ -505,6 +506,14 @@ static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -
 		claims[best.key] = true
 
 static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
+	var side: String = s.side
+	var plan: float = params(s, side, mem).get("planner", 0.0)
+	if plan == 2.0:
+		return AIPlan.next_step(s, mem)
+	return greedy_step(s, mem)
+
+## v1: best single action over every unit (one ply), then buys
+static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 	var side: String = s.side
 	if not mem.has("claims"):
 		mem.claims = {}

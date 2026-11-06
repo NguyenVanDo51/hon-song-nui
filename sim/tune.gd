@@ -5,11 +5,16 @@ extends SceneTree
 ##   evolve out=<file> [games=8] [minutes=20] [island=0] [thr=0.55]
 ##                                                   -> mutate best, play child vs best, keep child if > thr twice
 ##                                                      (2 x games x maps x 2 seats); resumes from out (var_to_str)
-##   presets [games=8] [salt=9000000] [tuned=<file>] -> round robin of the difficulty presets (row score vs column)
-## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned) | hard_n2 (tuned, noise 2) | file:<path> (tuned file)
+##   presets [games=8] [salt=9000000] [tuned=<file>] [names=a,b,..] -> round robin of the presets (row score vs column)
+##   time a=<spec> b=<spec> [games=2] [salt=9100000] -> A's AI wall time per step / per turn (avg, worst)
+## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned file) | hard_n2 (tuned, noise 2)
+##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard) | file:<path> (tuned file)
+##       + optional overrides: <spec>+key:value+key:value (e.g. hard_v2+pl_cands:4)
 ## seeds: game k of salt -> 1000 + (salt * 64 + k) * 7919 (evolve salts < 9e6; held-out / presets >= 9e6)
 const FROZEN := ["noise", "cap_last"] # not tuned: noise = difficulty knob, last-castle capture = instant win
 const HELD_OUT := 9000000
+## AI.PRESETS.hard as it was before hard v2 (planner): the fixed yardstick
+const HARD_V1 := { "hp_cap": 81.2937, "kill_hero": 552.335 }
 
 var seed_v := 1.0
 var args := {}
@@ -32,6 +37,8 @@ func _init() -> void:
 		evolve()
 	elif mode == "presets":
 		presets()
+	elif mode == "time":
+		time_ai()
 	var sec := (Time.get_ticks_msec() - t0) / 1000.0
 	printerr("wall %.1fs, %d games, %.2f games/s" % [sec, games_played, games_played / maxf(sec, 0.001)])
 	quit()
@@ -46,7 +53,19 @@ func arg(k: String, def: String) -> String:
 	return v
 
 ## params for a spec; partial dicts are fine (AI.params merges over DEFAULT)
-func spec(sp: String) -> Dictionary:
+func spec(full: String) -> Dictionary:
+	var parts := full.split("+")
+	var out := base_spec(parts[0]).duplicate()
+	for kv: String in parts.slice(1):
+		var p := kv.split(":", true, 1)
+		out[p[0]] = float(p[1])
+	return out
+
+func base_spec(sp: String) -> Dictionary:
+	if sp == "hard_v1":
+		return HARD_V1
+	if sp == "hard_v2":
+		return AI.PRESETS.hard
 	if sp == "easy" or sp == "easy_gold":
 		# reckless: no death fear, no walk home, no heal stop, coarse picks; _gold = start gold factor (not an AI knob)
 		var e := { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }
@@ -85,8 +104,8 @@ func play_match(a: Dictionary, b: Dictionary, games: int, salt: int, verbose := 
 				print("  %-10s A as %s: %.1f / %d" % [map_id, a_side, part, games])
 	return [score / n, n]
 
-## winner side or "draw"
-func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int) -> String:
+## winner side or "draw". timing.side set -> that side's AI wall time (usec) appended to timing.steps / timing.turns
+func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int, timing := {}) -> String:
 	seed_v = 1000.0 + (salt * 64.0 + k) * 7919.0
 	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false))
 	s.seed = int(seed_v)
@@ -100,9 +119,21 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int)
 	s.aiParams = { "p": pp, "e": pe }
 	var mem := {}
 	var steps := 0
+	var t_side: String = timing.get("side", "")
+	var turn_us := 0
 	while s.winner == null and s.turn <= 60 and steps < 30000:
+		var t0 := Time.get_ticks_usec()
 		var step: Variant = AI.next_step(s, mem)
+		if s.side == t_side:
+			var dt := Time.get_ticks_usec() - t0
+			var ts: Array = timing.steps
+			ts.append(dt)
+			turn_us += dt
 		if step == null:
+			if s.side == t_side:
+				var tt: Array = timing.turns
+				tt.append(turn_us)
+			turn_us = 0
 			Game.end_turn(s)
 			mem = {}
 			continue
@@ -171,7 +202,7 @@ func evolve() -> void:
 
 ## round robin: row preset score vs column preset (held-out seeds)
 func presets() -> void:
-	var names := ["easy_gold", "easy", "normal", "hard", "hard_n2"]
+	var names := Array(arg("names", "easy,normal,hard_v1,hard_v2").split(","))
 	var games := int(arg("games", "8"))
 	var salt := int(arg("salt", str(HELD_OUT)))
 	print("row score vs column (win 1, draw 0.5), %d games per pair" % (games * 2 * Content.SKIRMISH.MAPS.size()))
@@ -190,3 +221,26 @@ func presets() -> void:
 		for j in names.size():
 			cells.append("  -    " if i == j else ("%.3f" % m[[i, j]]).rpad(7))
 		print("%-9s %s" % [names[i], "  ".join(cells)])
+
+## A's AI cost on every map, both seats: per step and per whole turn (ms)
+func time_ai() -> void:
+	var a := spec(arg("a", "hard_v2"))
+	var b := spec(arg("b", "hard_v1"))
+	var games := int(arg("games", "2"))
+	var salt := int(arg("salt", "9100000"))
+	var timing := { "steps": [], "turns": [] }
+	for map_id: String in Content.SKIRMISH.MAPS:
+		for a_side: String in ["p", "e"]:
+			timing.side = a_side
+			for k in games:
+				play_one(map_id, a if a_side == "p" else b, b if a_side == "p" else a, salt, k, timing)
+	for key: String in ["steps", "turns"]:
+		var xs: Array = timing[key]
+		var sum := 0
+		for x: int in xs:
+			sum += x
+		xs.sort()
+		var p95: int = xs[int(xs.size() * 0.95)] if xs.size() else 0
+		var worst: int = xs.back() if xs.size() else 0
+		print("%s %s: n %d  avg %.1f ms  p95 %.1f ms  worst %.1f ms" % [arg("a", "hard_v2"), key, xs.size(),
+			sum / 1000.0 / maxi(1, xs.size()), p95 / 1000.0, worst / 1000.0])

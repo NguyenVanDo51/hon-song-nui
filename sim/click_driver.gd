@@ -18,6 +18,10 @@ func ok(cond: bool, msg: String) -> void:
 	if not cond:
 		fails += 1
 
+## ok() for conditions read off Dictionaries (Variant)
+func okv(cond: Variant, msg: String) -> void:
+	ok(true if cond else false, msg)
+
 func wait(sec: float) -> void:
 	await create_timer(sec).timeout
 
@@ -72,6 +76,163 @@ func idle(g: GameScreen) -> void:
 		if not g.ui.busy:
 			return
 		await process_frame
+
+## node carrying meta key = val (menu cards are PanelContainers, not buttons)
+func find_meta(n: Node, key: String, val: String) -> Control:
+	if n.has_meta(key) and str(n.get_meta(key)) == val:
+		return n as Control
+	for c: Node in n.get_children():
+		var f := find_meta(c, key, val)
+		if f:
+			return f
+	return null
+
+func click_card(key: String, val: String) -> void:
+	var card := find_meta(main.menus, key, val)
+	ok(card != null, "card %s" % val)
+	if card:
+		card.gui_input.emit(_click())
+
+## wait until the side to move is `side` and input is open (or frames run out)
+func turn_of(g: GameScreen, side: String, frames := 3000) -> bool:
+	for i in frames:
+		if g.s.side == side and not g.ui.busy and g._handoff_layer == null:
+			return true
+		await process_frame
+	return false
+
+func wait_handoff(g: GameScreen) -> bool:
+	for i in 120:
+		if g._handoff_layer != null:
+			return true
+		await process_frame
+	return false
+
+## 1 vs 1: two humans on one device (handoff between turns), then a short start against the AI
+func _duel(g: GameScreen) -> void:
+	var done0: Array = Store.done_list().duplicate()
+	press("1 đấu 1")
+	await wait(0.6)
+	click_card("duel_pick", "p:" + str(Content.heroes_of("p")[0]))
+	await process_frame
+	click_card("duel_pick", "e:" + str(Content.heroes_of("e")[0]))
+	await process_frame
+	press("Người")
+	await process_frame
+	press("Xuất quân")
+	await wait(0.8)
+	var s: Dictionary = g.s
+	var started: bool = g.visible and s.get("ctrl", {}) == { "p": "human", "e": "human" } and s.side == "p"
+	ok(started, "1 vs 1 hotseat starts, ctrl %s" % [s.get("ctrl")])
+	ok(await wait_handoff(g), "handoff card before Red's first turn")
+	press("Bắt đầu lượt")
+	ok(await turn_of(g, "p"), "Red to move")
+	ok(g._turn.text.contains(g._side_name("p")), "HUD names Red's turn (%s)" % g._turn.text)
+	# P1: hero moves + waits, then ends the turn
+	var hero: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
+	g._on_tile(pos(hero).x, pos(hero).y)
+	var dest := Vector2i(-1, -1)
+	var reach: Dictionary = board(g).view.reach
+	for r: Dictionary in reach.values():
+		if pos(r) != pos(hero) and Game.unit_at(s, pos(r).x, pos(r).y) == null:
+			dest = pos(r)
+	g._on_tile(dest.x, dest.y)
+	g._on_tile(dest.x, dest.y)
+	await idle(g)
+	var p1_ok: bool = hero.acted and pos(hero) == dest
+	ok(p1_ok, "P1 hero moved")
+	for i in 5:
+		if g.ui.sel == null:
+			break
+		g.cancel()
+	press("Hết lượt")
+	ok(await wait_handoff(g), "handoff card after P1 ends the turn")
+	var hb := find_btn(g._handoff_layer, "Bắt đầu")
+	okv(hb != null and s.side == "e" and not Content.is_ai(s, "e"), "handoff waits for Blue (no AI turn)")
+	await main.shot("duel_handoff")
+	press("Bắt đầu lượt")
+	ok(await turn_of(g, "e"), "Blue to move")
+	var gold_ok: bool = int(g._gold_num.text) == s.gold.e or g._gold_shown >= 0
+	ok(gold_ok, "HUD shows Blue's gold (%s vs %d)" % [g._gold_num.text, s.gold.e])
+	# P2: buy at Blue's castle
+	var cas: Vector2i = Game.castle_tiles(s, "e")[0]
+	ok(Game.unit_at(s, cas.x, cas.y) == null, "Blue castle free")
+	g._on_tile(cas.x, cas.y)
+	await process_frame
+	okv(g.ui.buyAt == [cas.x, cas.y], "Blue castle opens Blue's shop")
+	var ge0: int = s.gold.e
+	press("", g._actions)
+	await process_frame
+	var ge1: int = s.gold.e
+	ok(ge1 < ge0, "P2 bought (%d -> %d)" % [ge0, ge1])
+	g._clear_sel()
+	g.refresh()
+	# P2: a Blue soldier attacks a Red unit next to it
+	var sol: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "soldier" and not u.acted)[0]
+	var foe: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type != "hero")[0]
+	foe.x = sol.x + 1; foe.y = sol.y
+	if Game.tile_at(s, pos(foe).x, pos(foe).y) == null or Game.unit_at(s, pos(foe).x, pos(foe).y) != foe:
+		foe.x = sol.x; foe.y = sol.y + 1
+	g.refresh()
+	g._on_tile(pos(sol).x, pos(sol).y)
+	g._on_tile(pos(foe).x, pos(foe).y)
+	await process_frame
+	okv(g.ui.mode == "target", "P2 aims at a Red unit")
+	await main.shot("duel_p2_aim")
+	var hp0: int = foe.hp
+	press("⚔ Đánh")
+	await idle(g)
+	var hit_ok: bool = foe.hp < hp0 or Game.unit_by_id(s, id_of(foe)) == null
+	ok(hit_ok, "P2 attack resolved")
+	for i in 5:
+		if g.ui.sel == null:
+			break
+		g.cancel()
+	press("Hết lượt")
+	ok(await wait_handoff(g), "handoff card after P2")
+	press("Bắt đầu lượt")
+	var back: bool = await turn_of(g, "p")
+	okv(back and s.turn == 2, "turn back to P1, turn %d" % s.turn)
+	# save / continue keeps ctrl
+	g.save()
+	main.show_title()
+	await wait(0.6)
+	press("Đánh tiếp")
+	await wait(0.6)
+	var cont_ctrl: Dictionary = g.s.get("ctrl", {})
+	okv(g.visible and cont_ctrl == { "p": "human", "e": "human" } and g.s.turn == 2, "continue keeps ctrl")
+	ok(await wait_handoff(g), "continued hotseat game opens on the handoff card")
+	press("Bắt đầu lượt")
+	await process_frame
+	# end card: faction wins, no campaign progress
+	g.s.winner = "e"
+	g.s.reason = "castlesLost"
+	g.finish()
+	await wait(1.5)
+	ok(g._end.visible and find_btn(g._end, "Chơi lại") != null and find_btn(g._end, "Về menu") != null, "duel end card: Chơi lại / Về menu")
+	await main.shot("duel_end")
+	ok(Store.done_list() == done0, "duel result leaves campaign progress alone")
+	press("Chơi lại")
+	await wait(0.8)
+	var again_ctrl: Dictionary = g.s.get("ctrl", {})
+	okv(g.visible and g.s.turn == 1 and again_ctrl.e == "human", "Chơi lại restarts the duel")
+	# vs AI (hard): Red ends the turn -> the AI plays Blue -> back to Red
+	main.show_title()
+	await wait(0.6)
+	press("1 đấu 1")
+	await wait(0.6)
+	press("Máy Khó")
+	await process_frame
+	press("Xuất quân")
+	await wait(0.8)
+	var ai_ctrl: Dictionary = g.s.get("ctrl", {})
+	okv(ai_ctrl.e == "ai:hard" and g._handoff_layer == null, "vs AI: Blue = ai:hard, no handoff")
+	ok(await turn_of(g, "p"), "vs AI: Red to move")
+	press("Hết lượt")
+	var ai_back: bool = await turn_of(g, "p")
+	okv(ai_back and g.s.turn == 2, "vs AI: AI turn played, back to Red (turn %d)" % g.s.turn)
+	main.show_title()
+	await wait(0.4)
 
 func _run() -> void:
 	FX.speed = 3.0
@@ -318,5 +479,6 @@ func _run() -> void:
 	main.show_title()
 	await wait(0.8)
 	ok(Store.is_done("m03") and not g._end.visible, "win kept when leaving during the end pause")
+	await _duel(g)
 	print("DRIVER DONE fails=%d" % fails)
 	quit(1 if fails else 0)

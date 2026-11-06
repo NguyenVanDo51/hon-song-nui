@@ -2,7 +2,7 @@ class_name Main
 extends Control
 ## app shell: theme, audio, menus (title / campaign / briefing / skirmish / codex), the game screen, debug flags.
 ## debug args (after `--`): mission=m01 (start it) bot (AI plays our side) speed=3 fresh (ignore save)
-##   screen=title|campaign|briefing:m03|skirmish|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
+##   screen=title|campaign|briefing:m03|skirmish|duel|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
 
 const BASE := Vector2(1280, 720)
 const MIN_SCALE := 0.8
@@ -107,6 +107,8 @@ func _boot() -> void:
 		menus.show_campaign(sc.split(":")[1] if ":" in sc else "")
 	elif sc == "skirmish":
 		menus.show_skirmish()
+	elif sc == "duel":
+		menus.show_duel()
 	elif sc == "codex":
 		menus.show_title()
 		menus.open_codex("p")
@@ -130,7 +132,11 @@ func show_skirmish() -> void:
 	game.leave()
 	menus.show_skirmish()
 
-## ctx = {kind:'campaign', id} | {kind:'skirmish', hero, easy}
+func show_duel() -> void:
+	game.leave()
+	menus.show_duel()
+
+## ctx = {kind:'campaign', id} | {kind:'skirmish', hero, easy, map, gold, cap} | {kind:'duel', map, hero, heroE, ctrlE, gold, cap}
 func start_game(state: Dictionary, ctx: Dictionary) -> void:
 	menus.hide_all()
 	game.start(state, ctx)

@@ -26,25 +26,6 @@ static func set_v(key: String, v: Variant) -> void:
 	_c().save(CFG)
 
 # ---------- settings ----------
-## cut-away battle scene: every attack / only attacks by our side / never (attacks play on the board)
-const BATTLE_MODES := ["all", "mine", "off"]
-const BATTLE_MODE_NAMES := { "all": "Luôn", "mine": "Khi ta đánh", "off": "Tắt" }
-
-## default off: attacks play on the map (with a zoom); the cut-away scene is opt-in from ⚙.
-## Settings saved before that default changed are reset once (they were never a deliberate choice).
-static func battle_mode() -> String:
-	if not bool(get_v("battle_default_off", false)):
-		_c().set_value("hsn", "battle_default_off", true)
-		set_v("battle_mode", "off")
-	var m: Variant = get_v("battle_mode", "off")
-	return m if BATTLE_MODES.has(m) else "off"
-
-static func set_battle_mode(m: String) -> void:
-	set_v("battle_mode", m)
-
-static func cycle_battle_mode() -> void:
-	set_battle_mode(BATTLE_MODES[(BATTLE_MODES.find(battle_mode()) + 1) % BATTLE_MODES.size()])
-
 ## flat 2D map (default) or the 3D tabletop board; `board3d_flag` (debug flag 3d=1/0) overrides it for one run
 static var board3d_flag := -1
 static func board_3d() -> bool:

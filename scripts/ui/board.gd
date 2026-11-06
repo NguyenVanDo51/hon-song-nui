@@ -176,10 +176,6 @@ func _process(dt: float) -> void:
 		return
 	var t := FX.now()
 	fx.update(t)
-	# the duel view covers the whole screen: draw nothing underneath (it otherwise kept ~2000 draw calls alive)
-	_stage.visible = not BattleView.covering
-	if BattleView.covering:
-		return
 	var sc := Baked.screen_scale(self)
 	if _terrain_dirty or not is_equal_approx(sc, _scale):
 		_terrain_dirty = false

@@ -45,7 +45,7 @@ Người chơi (chủ repo) góp ý, đã làm:
 
 ## 2026-11-05 — cảnh giao chiến (máy macOS)
 - Người dùng muốn "đánh thì chuyển màn khác giống game gốc (bật/tắt được)" + nhiều hiệu ứng hơn.
-- `scripts/ui/battle_view.gd`: mỗi đòn đánh (kèm đánh trả) -> cảnh cắt ngang hai nửa, nền theo ô địa hình, đội hình theo máu, xông lên / bắn, lính ngã, số sát thương, thanh máu tụt. `game_screen.play()` gom cặp hit + counter rồi `await battle.run(d)`. Store `battle_scene` (mặc định bật), nút ⚔ trên thanh trên; bot tắt trừ khi có cờ `battle`.
+- (Đã xoá 2026-11-06: cảnh cắt ngang `battle_view.gd` + cài đặt 3 chế độ; mọi đòn đánh chơi trên bàn cờ, có zoom + rig.)
 - macOS: `tools/run_guarded.sh` thay cho run_guarded.ps1. Đã chạy: tests 43/43, click_driver 35/35, bot có cửa sổ m05 (đêm) / m07 / m12 / m15 chụp màn hình. Chưa thử bản web (web_smoke cần Edge trên Windows).
 - Máy này không có remote: người dùng tự đẩy từ máy khác.
 

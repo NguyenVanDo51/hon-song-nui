@@ -9,12 +9,13 @@ func _init() -> void:
 	for m: Dictionary in Content.campaign():
 		Content.use_chapter(Content.chapter_of(m))
 		var s := Game.new_game(m)
+		var mid: String = m.id
 		for u: Dictionary in s.units:
 			if u.side != "p":
 				continue
 			var reach := Game.reachable(s, u)
 			for key: Vector2i in reach:
-				_check(m.id, s, u, Game.path_for(s, u, key.x, key.y), key)
+				_check(mid, s, u, Game.path_for(s, u, key.x, key.y), key)
 	print("paths checked %d, bad %d" % [checked, bad])
 	quit()
 
@@ -29,7 +30,11 @@ func _check(mid: String, _s: Dictionary, u: Dictionary, path: Array, to: Vector2
 		why = "does not end at the tile"
 	else:
 		for i in range(1, path.size()):
-			if absi(path[i][0] - path[i - 1][0]) + absi(path[i][1] - path[i - 1][1]) != 1:
+			var a: Array = path[i - 1]
+			var b: Array = path[i]
+			var dx: int = b[0] - a[0]
+			var dy: int = b[1] - a[1]
+			if absi(dx) + absi(dy) != 1:
 				why = "jump at step %d" % i
 				break
 	if why == "" and path.size() > 1:
@@ -37,7 +42,9 @@ func _check(mid: String, _s: Dictionary, u: Dictionary, path: Array, to: Vector2
 		var T := 64.0
 		var pts := []
 		for p: Array in path:
-			pts.append(Vector2((p[0] + 0.5) * T, (p[1] + 0.5) * T))
+			var px: float = p[0]
+			var py: float = p[1]
+			pts.append(Vector2((px + 0.5) * T, (py + 0.5) * T))
 		for phase: float in [0.0, 5.0, 11.0, 17.0]:
 			var inked := _ink(pts, T * 0.12, T * 0.14, phase)
 			for i in range(1, pts.size()):
@@ -56,13 +63,15 @@ func _ink(pts: Array, on: float, off: float, phase: float) -> Array:
 	var period := on + off
 	var cum := PackedFloat32Array([0.0])
 	for i in range(1, pts.size()):
-		cum.append(cum[i - 1] + (pts[i] as Vector2).distance_to(pts[i - 1]))
+		var p0: Vector2 = pts[i - 1]
+		var p1: Vector2 = pts[i]
+		cum.append(cum[i - 1] + p1.distance_to(p0))
 	var total := cum[cum.size() - 1]
 	var inked := []
 	inked.resize(pts.size() - 1)
 	inked.fill(false)
 	var start := -fposmod(phase, period)
-	var n := int(ceil((total - start) / period)) + 1
+	var n := ceili((total - start) / period) + 1
 	for k in mini(n, 400):
 		var s0 := maxf(0.0, start + k * period)
 		var s1 := minf(total, start + k * period + on)

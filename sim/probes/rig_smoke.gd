@@ -1,7 +1,8 @@
 extends "res://sim/probes/probe_base.gd"
 ## plays every rigged unit's attack once per side and direction through the real path (FX.rig_attack on the 2D board),
 ## then checks: on_hit fired exactly once, the attack ended, its sparks drained. Any SCRIPT ERROR lands in the .err log.
-##   MAX_SEC=300 tools/run_guarded.sh /tmp/rig_smoke.log -- --headless --path . -s sim/probes/rig_smoke.gd -- mission=m02 fresh nointro nobattle profile=test speed=3
+##   MAX_SEC=300 tools/run_guarded.sh /tmp/rig_smoke.log -- --headless --path . -s sim/probes/rig_smoke.gd \
+##       -- mission=m02 fresh nointro nobattle profile=test speed=3
 ##   grep -c "SCRIPT ERROR" /tmp/rig_smoke.log.err   # must be 0;  log ends with "RIG SMOKE DONE fails=0"
 var fails := 0
 
@@ -9,16 +10,19 @@ func _initialize() -> void:
 	boot_wait = 1.0
 	super()
 
-func _run(g: Node) -> void:
+func _run(g: GameScreen) -> void:
 	var s: Dictionary = g.s
 	if not (g.board is Board):
 		print("RIG SMOKE: board is not the 2D Board, nothing to test")
 		quit(1)
 		return
 	var dirs := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(-2, 1)]
-	var ax := Vector2i(s.w / 2 - 1, s.h / 2)
-	var p_any: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p")[0]
-	var e_any: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
+	var w: int = s.w
+	var h: int = s.h
+	@warning_ignore("integer_division")
+	var ax := Vector2i(w / 2 - 1, h / 2)
+	var p_any: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p")[0]
+	var e_any: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
 	clear_around(s, ax, 4, [p_any.id, e_any.id])
 	var n := 0
 	for type: String in Rigs.types():

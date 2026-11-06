@@ -3,8 +3,10 @@ extends SceneTree
 ## <godot> --headless --path . -s sim/trace.gd [-- only=m01,m02,sk_dong_bang,naive] > out.txt; diff with sim/golden.txt
 ## Regenerate sim/golden.txt only after an intended rules / AI / map change. tests.gd replays a few games every run.
 
+const Parity := preload("res://sim/parity.gd")
+
 func _init() -> void:
-	var p: RefCounted = load("res://sim/parity.gd").new()
+	var p := Parity.new()
 	p.apply()
 	var only := []
 	for a in OS.get_cmdline_user_args():
@@ -13,6 +15,6 @@ func _init() -> void:
 	for r: Array in p.runs():
 		if only.size() and not only.has(r[0]):
 			continue
-		for g in r[1]:
+		for g: int in r[1]:
 			print("%s %d %s" % [r[0], g, p.replay("%s %d" % [r[0], g])])
 	quit()

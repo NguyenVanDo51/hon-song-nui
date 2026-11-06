@@ -25,7 +25,8 @@ func run_ai(s: Dictionary, naive := false, max_turn := 60, before := Callable(),
 			Game.end_turn(s)
 			mem = {}
 			continue
-		AI.apply_step(s, step)
+		var st: Dictionary = step
+		AI.apply_step(s, st)
 		steps += 1
 		if max_steps > 0 and steps > max_steps:
 			push_error("stuck")

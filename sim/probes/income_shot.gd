@@ -2,11 +2,11 @@ extends "res://sim/probes/probe_base.gd"
 ## turn-start income look: "+N" pops per owned building (over units) + gold total counting up.
 ##   tools/run_guarded.sh /tmp/inc.log -- --path . -s sim/probes/income_shot.gd -- mission=m02 fresh nointro profile=test shots=<dir>
 
-func _run(g: Node) -> void:
+func _run(g: GameScreen) -> void:
 	var s: Dictionary = g.s
 	# hand us every building on the left half so several pop (one under a unit)
-	for y in s.h:
-		for x in s.w / 2:
+	for y: int in s.h:
+		for x: int in s.w / 2:
 			if s.tiles[y][x] in ["v", "c"]:
 				s.owner[Vector2i(x, y)] = "p"
 	var inc: int = Game.income(s, "p")
@@ -14,7 +14,8 @@ func _run(g: Node) -> void:
 	g._gold_shown = s.gold.p - inc
 	g.refresh()
 	# a hurt unit on one of our buildings: its +hp pops over it, after the coin
-	var on_b: Array = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and s.owner.get(Vector2i(u.x, u.y)) == "p")
+	var owner: Dictionary = s.owner
+	var on_b: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and owner.get(pos(u)) == "p")
 	var hu: Dictionary = on_b[0] if on_b.size() else s.units[0]
 	hu.hp = 80
 	var t0 := Time.get_ticks_msec()

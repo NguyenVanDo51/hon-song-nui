@@ -6,7 +6,8 @@ const DEF := {
 	"title": "Tin Dữ Hợp Phố",
 	"place": "Hợp Phố · bờ biển phía đông bắc",
 	"region": "Hợp Phố", "pos": [88, 12],
-	"history": "Năm 42, Mã Viện tập hợp hai vạn quân và hai nghìn thuyền ở Hợp Phố. Tương truyền nữ tướng Thánh Thiên được Trưng Vương giao giữ vùng này.",
+	"history": "Năm 42, Mã Viện tập hợp hai vạn quân và hai nghìn thuyền ở Hợp Phố. Tương truyền nữ tướng Thánh Thiên được Trưng Vương giao "
+		+ "giữ vùng này.",
 	"hero": "anhhung", "enemyHero": null,
 	"newUnits": ["boat"],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": [] },

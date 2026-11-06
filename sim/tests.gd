@@ -791,7 +791,7 @@ func mission_tests() -> void:
 	run("hero mission: killing enemy hero wins even with castles left", func() -> void:
 		var s := Game.new_game(Content.mission("m04"))
 		var eh: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "hero")[0]
-		var el: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "elephant")[0]
+		var el: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "soldier")[0]
 		eh.hp = 1
 		el.x = eh.x
 		el.y = eh.y + 1

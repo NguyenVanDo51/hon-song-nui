@@ -13,8 +13,8 @@ const DEF := {
 	"enemyHero": "tuonggiac",
 	"newUnits": ["catapult"],
 	"allowed": {
-		"p": ["soldier", "archer", "boat", "drum", "shaman", "elephant", "catapult"],
-		"e": ["soldier", "archer", "boat", "drum", "shaman", "elephant", "catapult"],
+		"p": ["soldier", "archer", "drum", "elephant"],
+		"e": ["soldier", "archer", "drum", "elephant", "catapult"],
 	},
 	"gold": { "p": 1200, "e": 0 },
 	"win": { "type": "castles" },
@@ -55,7 +55,7 @@ const DEF := {
 		"outro": [["trungtrac", "Long Biên đã vỡ. Tô Định chỉ còn trị sở Luy Lâu."]],
 	},
 	"tips": [
-		"[b]Máy bắn đá[/b] ném 2–4 ô nhưng [b]đã đi thì không ném[/b] trong lượt đó, và không đánh trả. Đặt chỗ an toàn rồi ném liên tục. Ném được cả làng địch cho hỏng.",
+		"[b]Máy bắn đá[/b] ném 2–4 ô nhưng [b]đã đi thì không ném[/b] trong lượt đó, và không đánh trả. Đặt chỗ an toàn rồi ném liên tục. Ném được cả làng địch cho hỏng. Trận này chỉ có một máy, chưa mua thêm được: giữ nó sau voi.",
 		"Địch có 2 thành: phải chiếm cả hai [b]và[/b] hạ Tướng giặc mới thắng.",
 		"Đồi +10 thủ, núi +15 thủ cho mọi quân. Đứng sau đồi núi mà ném đá.",
 	],

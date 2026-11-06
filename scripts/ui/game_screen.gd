@@ -496,7 +496,7 @@ func _build_view() -> void:
 	v.sel = u if u != null and not ui.busy else null
 	v.selMine = u != null and my_turn and u.side == "p" and not u.acted
 	v.reach = _reach(u) if u != null and not ui.busy and ui.mode == M_IDLE else null
-	v.attackable = _attackable_anywhere(u, v.reach) if v.selMine and ui.mode == M_IDLE else []
+	v.attackable = _memo_get("a%d" % u.id, func() -> Array: return _attackable_anywhere(u, v.reach)) if v.selMine and ui.mode == M_IDLE else []
 	v.dest = ui.dest if u != null and not ui.busy and ui.mode != M_IDLE else null
 	v.targets = Game.targets_from(s, u, ui.dest[0], ui.dest[1]) if ui.mode == M_TARGET and u != null else []
 	v.target = ui.target

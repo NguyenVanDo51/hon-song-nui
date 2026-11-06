@@ -64,7 +64,7 @@ const THEME := {
 		"loseTip_timeUp": "Mẹo: đi đường mòn cho nhanh, để bộ binh chặn đường đuổi phía sau.",
 		"loseTip_heroKilled": "",
 	},
-	## win types: brief = briefing card, bar = top bar. {eh} enemy commander, {hero} ours, {n} count, {turns} limit, {left} turns left
+	## win types: brief = goal line of the mission opening, bar = top bar. {eh} enemy commander, {hero} ours, {n} count, {turns} limit, {left} turns left
 	"goals": {
 		"castles": { "brief": "Chiếm hết thành của địch và hạ {eh} (hoặc diệt sạch quân lẫn thành).", "bar": "Chiếm {n} thành + hạ {eh}" },
 		"rout": { "brief": "Diệt hết quân địch.", "bar": "Diệt hết địch (còn {n})" },
@@ -172,5 +172,8 @@ const THEME := {
 		"danlang": { "name": "Dân làng", "icon": "👨" },
 		"truyenthuyet": { "name": "Lời kể", "icon": "📖" },
 		"thamtu": { "name": "Thám tử", "icon": "🕵️" },
+		# mission opening (StoryOverlay): history line first, goal line last
+		"sutich": { "name": "Sử tích", "icon": "📜" },
+		"muctieu": { "name": "Mục tiêu", "icon": "🎯" },
 	},
 }

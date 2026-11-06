@@ -37,7 +37,7 @@ Trước: `Game` / `AI` / UI so ký tự `v` / `c` / `x` / `t` ở ~15 chỗ, th
 
 ## Thêm kiểu mục tiêu (win.type)
 1. `scripts/core/objectives.gd` `TYPES`: 1 mục, mọi khóa tùy chọn (hàm static): `loss(s, side)` -> lý do thua | null (xét trước luật AE2 chung), `on_round(s)` -> `[phe thắng, lý do]` | null (đầu mỗi vòng), `ai_goals(s, u)` (ô AI nhắm thay đích thường), `ai_tile(s, u, x, y)` (điểm cộng AI khi đứng ô đó), `marks(s)` (ô cờ vàng trên bàn 2D + 3D), `bar_n(s)` (`{n}` trên thanh mục tiêu), `check(s)` (lỗi nội dung, test tự gọi).
-2. `content/theme.gd`: `goals[type]` (`brief` giới thiệu màn, `bar` thanh trên), `ends[phe][lý do]`, `text.loseTip_<lý do>`.
+2. `content/theme.gd`: `goals[type]` (`brief` dòng "Mục tiêu" cuối thoại mở màn, `bar` thanh trên), `ends[phe][lý do]`, `text.loseTip_<lý do>`.
 3. Màn: `"win": { "type": "<type>", ... }`.
 
 Trước: sửa 7 chỗ (`Game.loss_reason` + `end_turn`, `AI.goals_for` + `best_for_unit`, `board.gd` + `board3d.gd` vẽ ô đích, `game_screen._goal_line`, `Content.WIN_TYPES`, validator trong `sim/tests.gd`) + theme.
@@ -52,10 +52,10 @@ const DEF := {
 	"id": "m09", "order": 9,
 	"title": "Tên màn", "place": "Địa danh",
 	"region": "Tên vùng", "pos": [x, y],   # điểm trên bản đồ chiến dịch (khung 100 x 70)
-	"history": "Một câu sử tích",         # hiện ở màn giới thiệu
+	"history": "Một câu sử tích",         # dòng "Sử tích" đầu thoại mở màn
 	"hero": "anhhung",                    # luôn là anhhung
 	"enemyHero": "tuonggiac",             # luôn là tuonggiac; null = địch không có tướng
-	"newUnits": ["wolf"],                 # thẻ "Lính mới" ở màn giới thiệu (màn đầu tiên có loại lính đó)
+	"newUnits": ["wolf"],                 # ghi chú: màn ra mắt loại lính đó (thẻ giới thiệu quân tự bật theo quân trên bản đồ, xem dưới)
 	"allowed": { "p": [...], "e": [...] },  # lính được mua mỗi phe (soldier archer boat shaman drum wolf elephant catapult bird)
 	"gold": { "p": 300, "e": 400 },       # vàng đầu trận (độ khó). Thu nhập: làng 30, thành 50 mỗi lượt
 	"win": { "type": "castles" },         # Objectives.TYPES: castles (chiếm hết thành + hạ tướng địch) | rout | hero | survive (+ "turns") | reach (+ "at": [[x, y]], tùy chọn "turns")
@@ -66,9 +66,15 @@ const DEF := {
 	"units": [["p", "hero", x, y], ["e", "soldier", x, y, { "guard": true, "hp": 70, "rank": 1 }], ...],
 	"waves": [{ "turn": 3, "units": [["soldier", x, y], ...] }],   # địch kéo đến đầu lượt địch
 	"story": { "intro": [["trungtrac", "thoại..."], ...], "outro": [...] },
-	"tips": ["mẹo hiện trên dải hướng dẫn, [b]in đậm[/b]", ...],
+	"tips": ["mẹo, [b]in đậm[/b]", ...],   # hiện chưa hiện ở đâu (dải mẹo bỏ từ 3beb8aa)
 }
 ```
+
+**Thoại mở màn** (không còn màn giới thiệu): bấm màn trên bản đồ chiến dịch / "Màn tiếp" -> vào thẳng bản đồ, hiện thẻ tên màn (chương · màn, `title`, `place`), rồi thoại từng người một ở dải dưới (`scripts/ui/story_overlay.gd`):
+- Thứ tự: `["sutich", history]` (nếu có) -> `story.intro` -> `["muctieu", goal brief]`. Người nói = khóa trong `heroes` / `people` của theme (`sutich`, `muctieu` cũng nằm ở `people`); `"side": "e"` -> khung xanh, chân dung bên phải.
+- Chạm / Space / Enter: hiện hết câu, rồi câu sau · giữ chuột / Space hoặc nút **»» Tua**: tự chạy nhanh · **Bỏ qua** / Esc: vào trận. Sau đó: thẻ giới thiệu quân mới (nếu có), rồi chơi.
+- Không chiếu lại khi "Đánh tiếp ván đang dở", "Đánh lại", "Chơi lại"; chơi lại màn đã thắng từ bản đồ thì có (bỏ qua được). Cờ `bot` / `nointro` tắt; cờ `story` bật lại (`mission=m03 story`).
+- `story.outro` (+ `outro` của chương ở màn cuối chương) vẫn hiện trên thẻ kết thúc.
 
 Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành).
 

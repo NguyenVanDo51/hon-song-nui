@@ -253,7 +253,7 @@ static func _names(hero_keys: Dictionary) -> Dictionary:
 	var e: Variant = hero_keys.get("e")
 	return { "hero": hero_look(str(hero_keys.get("p", ""))).name, "eh": hero_look(str(e)).name if e != null else text("noEnemyHero") }
 
-## objective wording for a win spec; form "brief" (briefing) or "bar" (top bar). Unknown win types fall back to the type name.
+## objective wording for a win spec; form "brief" (mission opening) or "bar" (top bar). Unknown win types fall back to the type name.
 static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars := {}) -> String:
 	var w := { "type": "castles" }
 	w.merge(win, true)

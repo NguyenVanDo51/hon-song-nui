@@ -1,6 +1,6 @@
 class_name Menus
 extends Control
-## menu screens over the animated backdrop: title, campaign (chapter tabs + clickable map), briefing, skirmish,
+## menu screens over the animated backdrop: title, campaign (chapter tabs + clickable map), skirmish,
 ## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
 
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
@@ -359,103 +359,13 @@ func show_campaign(chapter_id := "") -> void:
 	map.picked.connect(func(id: String) -> void:
 		_sfx("ui")
 		var md: Dictionary = Content.mission(id)
-		show_briefing(md))
+		main.play_mission(md))
 	var mv := Style.vbox(6)
 	mv.add_child(map)
 	var note: String = ch.get("note", "")
 	mv.add_child(Style.lbl(note, 12, Style.MUTED))
 	v.add_child(mv)
-	# no mission cards: the map is the menu (hover a node for its title, click to open the briefing)
-
-# ---------- briefing ----------
-func show_briefing(m: Dictionary) -> void:
-	var cid := Content.chapter_of(m)
-	Content.use_chapter(cid)
-	var ms := Content.missions_of(cid)
-	var v := _page(1040)
-	v.add_child(_head("‹ Bản đồ chiến dịch", func() -> void: show_campaign(cid)))
-	var cols := Style.hbox(18)
-	var story := Style.vbox(8)
-	story.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	story.size_flags_stretch_ratio = 1.3
-	story.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	story.add_child(_eyebrow("Chương %d · Màn %d/%d" % [Content.chapters().find(Content.chapter(cid)) + 1, ms.find(m) + 1, ms.size()]))
-	var m_title: String = m.title
-	var place: String = m.get("place", "")
-	var history: String = m.get("history", "")
-	var title := Style.lbl(m_title, 48, Style.GOLD, Style.display, true)
-	title.add_theme_constant_override("line_spacing", -8)
-	story.add_child(title)
-	story.add_child(Style.lbl(place, 15, Style.MUTED))
-	if history != "":
-		var hb := PanelContainer.new()
-		var hs := Style.box(Color(0, 0, 0, 0.2), Color.TRANSPARENT, 8, 9)
-		hs.corner_radius_top_left = 0
-		hs.corner_radius_bottom_left = 0
-		hs.border_color = Style.BRONZE
-		hs.border_width_left = 3
-		hs.content_margin_left = 12
-		hb.add_theme_stylebox_override("panel", hs)
-		hb.add_child(Style.rich("[b]Sử tích[/b]  " + history, 14, Style.INK, Style.GOLD))
-		story.add_child(hb)
-	var m_story: Dictionary = m.get("story", {})
-	var intro: Array = m_story.get("intro", [])
-	story.add_child(Style.dialogue(intro))
-	cols.add_child(story)
-
-	var side := Style.vbox(12)
-	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	side.size_flags_stretch_ratio = 1.0
-	side.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	var goal := Style.card()
-	var gv := Style.vbox(6)
-	gv.add_child(Style.lbl("Mục tiêu", 17, Style.GOLD, Style.display))
-	gv.add_child(Style.lbl(goal_text(m), 15, Style.INK, null, true))
-	goal.add_child(gv)
-	side.add_child(goal)
-	var go := Style.menu_button("Xuất quân", "", true)
-	var go_title: Label = go.get_meta("title")
-	go_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	go.custom_minimum_size.y = 56
-	_on(go, func() -> void: confirm_start(Game.new_game(m), { "kind": "campaign", "id": m.id }))
-	side.add_child(go)
-	var new_units: Array = m.get("newUnits", [])
-	for ty: String in new_units:
-		side.add_child(Style.unit_card("p", ty, m.hero, { "tag": "Tướng của bạn" if ty == "hero" else "Lính mới" }))
-	var sides := Style.card()
-	var sv := Style.vbox(8)
-	sv.add_child(Style.lbl("Hai bên", 17, Style.GOLD, Style.display))
-	var hero_key: String = m.hero
-	var hl := Content.hero_look(hero_key)
-	if not new_units.has("hero"): # the commander's card above already says it
-		sv.add_child(_side_row("p", "hero", m.hero, "[b]%s[/b] · %s" % [hl.name, hl.blurb]))
-	if m.get("enemyHero") != null:
-		var ehk: String = m.enemyHero
-		var el := Content.hero_look(ehk)
-		sv.add_child(_side_row("e", "hero", m.enemyHero, "[b]%s[/b] · %s" % [el.name, el.blurb]))
-	else:
-		sv.add_child(_side_row("e", "soldier", null, "[b]%s[/b] · địch không có tướng chỉ huy." % Content.theme().units.e.soldier.name))
-	var buys: Array = []
-	var allowed: Dictionary = m.get("allowed", {})
-	for ty: String in allowed.get("p", []):
-		buys.append(Content.theme().units.p[ty].name)
-	if buys.size():
-		sv.add_child(Style.lbl("Mua được: " + ", ".join(buys), 13, Style.MUTED, null, true))
-	sides.add_child(sv)
-	side.add_child(sides)
-	cols.add_child(side)
-	v.add_child(cols)
-
-func _side_row(side: String, type: String, hk: Variant, bb: String) -> Control:
-	var r := Style.hbox(10)
-	var tk := Token.make(side, type, hk, 40)
-	tk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	r.add_child(tk)
-	var t := Style.rich(bb, 14, Style.INK, Style.INK)
-	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	r.add_child(t)
-	return r
+	# no mission cards: the map is the menu (hover a node for its title, click to start it: story plays over the map)
 
 # ---------- skirmish ----------
 func show_skirmish() -> void:

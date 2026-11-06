@@ -1,8 +1,8 @@
 class_name Main
 extends Control
-## app shell: theme, audio, menus (title / campaign / briefing / skirmish / codex), the game screen, debug flags.
-## debug args (after `--`): mission=m01 (start it) bot (AI plays our side) speed=3 fresh (ignore save)
-##   screen=title|campaign|briefing:m03|skirmish|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
+## app shell: theme, audio, menus (title / campaign / skirmish / codex), the game screen, debug flags.
+## debug args (after `--`): mission=m01 (start it; + story = with its opening story) bot (AI plays our side) speed=3
+##   fresh (ignore save) screen=title|campaign|skirmish|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
 
 const BASE := Vector2(1280, 720)
 const MIN_SCALE := 0.8
@@ -97,13 +97,13 @@ func _boot() -> void:
 	if flags.has("mission"):
 		var mid := str(flags.mission)
 		var md: Dictionary = Content.mission(mid)
-		start_game(Game.new_game(md), { "kind": "campaign", "id": flags.mission })
+		var mctx := { "kind": "campaign", "id": flags.mission }
+		if flags.has("story"):
+			mctx.story = true
+		start_game(Game.new_game(md), mctx)
 		return
 	var sc: String = flags.get("screen", "title")
-	if sc.begins_with("briefing"):
-		var bm: Dictionary = Content.mission(sc.split(":")[1] if ":" in sc else "m01")
-		menus.show_briefing(bm)
-	elif sc.begins_with("campaign"):
+	if sc.begins_with("campaign"):
 		menus.show_campaign(sc.split(":")[1] if ":" in sc else "")
 	elif sc == "skirmish":
 		menus.show_skirmish()
@@ -122,9 +122,10 @@ func show_campaign(chapter_id := "") -> void:
 	game.leave()
 	menus.show_campaign(chapter_id)
 
-func show_briefing(m: Dictionary) -> void:
-	game.leave()
-	menus.show_briefing(m)
+## campaign mission entered fresh (map / next mission): title + story over the map first
+func play_mission(m: Dictionary) -> void:
+	var mid: String = m.id
+	menus.confirm_start(Game.new_game(m), { "kind": "campaign", "id": mid, "story": true })
 
 func show_skirmish() -> void:
 	game.leave()

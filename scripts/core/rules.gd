@@ -46,4 +46,7 @@ const RULES := {
 	# raiseCap: raising from a grave respects unitCap (off in the frozen chapter-1 rules). Waves ignore the cap on purpose:
 	# scripted reinforcements are part of a mission's design.
 	"raiseCap": true,
+	# buyAE2: a bought unit acts the same turn, and our castle may be bought on while one of our units stands there
+	# (the new one must step off). Off in the frozen chapter-1 rules (new unit waits a turn, castle must be empty).
+	"buyAE2": true,
 }

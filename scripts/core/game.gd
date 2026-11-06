@@ -185,7 +185,16 @@ static func reachable(s: Dictionary, u: Dictionary) -> Dictionary:
 		var o: Variant = occ.get(key)
 		if o != null and o.id != u.id:
 			best.erase(key)
+	if stacked(s, u): # two on one tile (just bought on an occupied castle): neither may stay put
+		best.erase(Vector2i(u.x, u.y))
 	return best
+
+## another unit shares u's tile (only right after buying on an occupied castle)
+static func stacked(s: Dictionary, u: Dictionary) -> bool:
+	for o: Dictionary in s.units:
+		if o.id != u.id and o.x == u.x and o.y == u.y:
+			return true
+	return false
 
 ## UI / animation route from the unit to (x, y): walks through allies (path_to on reachable() breaks there,
 ## because tiles with allies are dropped from it; that older path is still what the guard rule looks at)
@@ -413,9 +422,14 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 	_check_winner(s, ev)
 	return ev
 
+## own castle; may hold one of our units (AE2: the new unit appears on it and must step off), never two
 static func buy_options(s: Dictionary, side: String, x: int, y: int) -> Array:
-	if tile_at(s, x, y) != "c" or s.owner.get(Vector2i(x, y)) != side or unit_at(s, x, y) != null:
+	if tile_at(s, x, y) != "c" or s.owner.get(Vector2i(x, y)) != side:
 		return []
+	var here: Array = s.units.filter(func(o: Dictionary) -> bool: return o.x == x and o.y == y)
+	if here.size() > 1 or (here.size() == 1 and (here[0].side != side or not RULES.get("buyAE2", false))):
+		return []
+	var busy: bool = here.size() == 1
 	var list := []
 	for type: String in s.allowed[side]:
 		list.append({ "type": type, "cost": UNITS[type].cost })
@@ -423,8 +437,16 @@ static func buy_options(s: Dictionary, side: String, x: int, y: int) -> Array:
 		list.push_front({ "type": "hero", "cost": UNITS.hero.cost })
 	var full: bool = unit_count(s, side) >= s.unitCap
 	for o: Dictionary in list:
-		o.ok = not full and s.gold[side] >= o.cost
+		o.ok = not full and s.gold[side] >= o.cost and (not busy or _can_step_off(s, side, o.type, x, y))
 	return list
+
+## a unit of `type` placed on (x,y) next to another would have a free tile to move to
+static func _can_step_off(s: Dictionary, side: String, type: String, x: int, y: int) -> bool:
+	var probe := { "id": -1, "side": side, "type": type, "x": x, "y": y, "hp": 100, "xp": 0, "rank": 0, "acted": false }
+	s.units.append(probe)
+	var ok := reachable(s, probe).size() > 0
+	s.units.pop_back()
+	return ok
 
 static func buy(s: Dictionary, x: int, y: int, type: String) -> Variant:
 	var opt: Variant = null
@@ -436,7 +458,7 @@ static func buy(s: Dictionary, x: int, y: int, type: String) -> Variant:
 	s.gold[s.side] -= opt.cost
 	if type == "hero":
 		s.heroDead[s.side] = false
-	return spawn(s, s.side, type, x, y, true)
+	return spawn(s, s.side, type, x, y, not RULES.get("buyAE2", false)) # AE2: a bought unit moves / attacks this turn
 
 static func castle_tiles(s: Dictionary, side: String) -> Array:
 	var out := []

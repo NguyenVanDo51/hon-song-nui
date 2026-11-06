@@ -679,9 +679,16 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 	_info_spots.clear()
 	var v := view
 	var list := []
+	var seen := {} # tile -> a unit already there: a 2nd one (just bought on an occupied castle) is drawn shifted
 	for u: Dictionary in s.units:
 		if not v.hide.has(u.id):
-			list.append({ "u": u, "x": float(u.x), "y": float(u.y), "alpha": -1.0, "scale": 1.0 })
+			var k := Vector2i(u.x, u.y)
+			var off := Vector2(0.24, 0.06) if seen.has(k) else Vector2.ZERO
+			if seen.has(k):
+				seen[k].x -= 0.2
+			var it := { "u": u, "x": float(u.x) + off.x, "y": float(u.y) + off.y, "alpha": -1.0, "scale": 1.0 }
+			seen[k] = it
+			list.append(it)
 	for sp: Dictionary in v.sprites:
 		if not sp.get("hidden", false):
 			list.append({ "u": sp.u, "x": float(sp.u.x), "y": float(sp.u.y), "alpha": sp.get("alpha", -1.0), "scale": 1.0 })

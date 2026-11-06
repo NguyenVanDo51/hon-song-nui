@@ -7,7 +7,7 @@ Luật = luật chung của thể loại; tên / bản đồ / lính / chỉ s�
 - Lưới 14×11, 1 bản đồ đối xứng xoay 180°. Ta: thành dưới-trái. Địch: thành trên-phải. 2 thành trung lập, 14 làng trung lập.
 - Lượt: chọn lính -> đi (không xuyên quân địch, xuyên quân mình OK) -> hành động: Đánh / Chiếm / Gọi hồn / Chờ.
 - Đầu lượt: +50 vàng/làng, +100/thành. Lính đứng trên làng/thành của mình +20 máu.
-- Mua lính: bấm thành của mình đang trống -> lính ra, đi được từ lượt sau.
+- Mua lính (AE2, `RULES.buyAE2`): bấm thành mình -> lính ra, đi + đánh ngay lượt đó. Thành có quân ta: chọn quân đó -> "Mộ quân"; lính mới đứng chồng, phải bước ra (không đứng yên, không hết lượt được tới khi ra); tối đa 2 quân / ô; hết ô trống để ra -> không mua được. Mua nhiều lần / thành / lượt. AI chỉ mua khi thành trống.
 - Sát thương (cố định, xem trước được): `max(15%·A, A − D) × máu_người_đánh/100`
   - A = công + 5·cấp + trống đồng (+10) + nỏ đánh bay (+20)
   - D = thủ + 5·cấp + địa hình (bay = 0; thầy mo bỏ qua địa hình) + Lạc Long Quân (+10)

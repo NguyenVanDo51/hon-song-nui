@@ -48,7 +48,7 @@ const DEF := {
 	},
 	"tips": [
 		"Mục tiêu mới: [b]chiếm thành[/b] của địch. Chỉ tướng chiếm được thành.",
-		"Bấm vào [b]thành[/b] của ta khi ô trống để [b]mua lính[/b]. Lính mới đi được từ lượt sau.",
+		"Bấm vào [b]thành[/b] của ta để [b]mua lính[/b]; lính mới đi và đánh được ngay. Thành đang có quân: bấm quân đó 2 lần rồi chọn [b]Mộ quân[/b], lính mới phải bước ra ô khác.",
 		"[b]Nỏ thủ[/b] bắn cách 2 ô thì địch cận chiến không đánh trả được.",
 		"Làng cho thêm vàng mỗi lượt. Chiếm làng sớm để mua được nhiều quân.",
 	],

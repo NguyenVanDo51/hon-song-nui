@@ -399,6 +399,48 @@ func rule_tests() -> void:
 			s.units.append({ "id": 100 + i, "side": "p", "type": "soldier", "x": 3, "y": i % 6, "hp": 100, "xp": 0, "rank": 0 })
 		check(Game.buy_options(s, "p", 0, 0).all(func(o: Dictionary) -> bool: return not o.ok), "cap blocks buy")
 	)
+	run("AE2 buy: new unit acts at once; buy on own-occupied castle -> must step off", func() -> void:
+		var s := blank([["p", "soldier", 0, 0], ["e", "soldier", 5, 4]])
+		s.gold.p = 5000
+		var ok := func(t: String) -> bool: return Game.buy_options(s, "p", 0, 0).any(func(o: Dictionary) -> bool: return o.type == t and o.ok)
+		check(ok.call("archer"), "buy allowed with our soldier on the castle")
+		var a: Dictionary = Game.buy(s, 0, 0, "archer")
+		check(not a.acted, "bought unit can act this turn")
+		check(Game.stacked(s, a) and Game.stacked(s, s.units[0]), "both stacked")
+		check(not Game.reachable(s, a).has(Vector2i(0, 0)), "new unit cannot stay on the shared tile")
+		check(not Game.reachable(s, s.units[0]).has(Vector2i(0, 0)), "old unit cannot stay either")
+		check(Game.buy_options(s, "p", 0, 0).is_empty(), "no 3rd unit on a stacked castle")
+		eq(Game.do_action(s, { "id": a.id, "to": [0, 0], "kind": "wait" }), [], "wait in place rejected")
+		Game.do_action(s, { "id": a.id, "to": [1, 1], "kind": "wait" })
+		check(not Game.stacked(s, s.units[0]), "stack cleared after stepping off")
+		check(ok.call("soldier"), "can buy again on the same castle this turn")
+		# boxed in: no free tile to step to -> cannot buy on top
+		var b := blank([["p", "soldier", 0, 0], ["p", "soldier", 1, 0], ["p", "soldier", 0, 1], ["p", "soldier", 1, 1]])
+		b.gold.p = 5000
+		for u: Dictionary in b.units:
+			if u.id > 1: u.acted = true
+		b.tiles[2][0] = "~"; b.tiles[2][1] = "~"; b.tiles[0][2] = "~"; b.tiles[1][2] = "~"; b.tiles[2][2] = "~"
+		check(Game.buy_options(b, "p", 0, 0).all(func(o: Dictionary) -> bool: return not o.ok or o.type == "bird"), "boxed-in castle blocks walkers")
+		# enemy on our castle: no buying
+		var c := blank([["e", "soldier", 0, 0]])
+		check(Game.buy_options(c, "p", 0, 0).is_empty(), "enemy on castle blocks buy")
+	)
+	run("AI moves a unit it bought the same turn", func() -> void:
+		var s := blank([["p", "soldier", 0, 0], ["e", "hero", 4, 4]])
+		s.side = "e"
+		s.gold.e = 150
+		s.units[1].acted = true
+		var bought := false
+		var mem := {}
+		for i in 20:
+			var st: Variant = AI.next_step(s, mem)
+			if st == null: break
+			if st.kind == "buy": bought = true
+			AI.apply_step(s, st)
+		var nu: Array = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type != "hero")
+		check(bought and nu.size() == 1, "AI bought")
+		check(nu.size() == 1 and nu[0].acted, "bought unit acted this turn")
+	)
 	run("rank up from xp", func() -> void:
 		var s := blank([["p", "elephant", 1, 1], ["e", "soldier", 2, 1, 50]])
 		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })

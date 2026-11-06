@@ -593,6 +593,7 @@ func cancel() -> void:
 		ui.target = null
 	else:
 		_clear_sel()
+		_force_stack()
 	refresh()
 
 func _on_tile(x: int, y: int) -> void:
@@ -643,6 +644,11 @@ func _on_tile(x: int, y: int) -> void:
 			_set_dest(x, y)
 			return
 	_clear_sel()
+	if my_turn and (clicked == null or clicked.side == "p") and _stuck_unit() != null and (clicked == null or not Game.stacked(s, clicked)):
+		_force_stack()
+		main.audio.play("select")
+		refresh()
+		return
 	if clicked != null:
 		ui.sel = clicked.id
 		# standing on a village/castle to take (or a ruin to repair): orders open on the first click
@@ -665,7 +671,11 @@ func _on_tile(x: int, y: int) -> void:
 ## something worth doing without moving: capture the tile it stands on, or raise a grave next to it
 func _in_place_work(u: Dictionary) -> bool:
 	return Game.can_capture(s, u, u.x, u.y) or Game.raisable_graves(s, u, u.x, u.y).size() > 0 or Game.can_repair(s, u, u.x, u.y) \
-		or Game.razable_from(s, u, u.x, u.y).size() > 0
+		or Game.razable_from(s, u, u.x, u.y).size() > 0 or _can_buy_here(u)
+
+## our unit stands on our castle and something can be bought there (the new unit then steps off)
+func _can_buy_here(u: Dictionary) -> bool:
+	return u.side == "p" and s.side == "p" and Game.buy_options(s, "p", u.x, u.y).any(func(o: Dictionary) -> bool: return o.ok)
 
 ## true when the mouse has rested on (x,y) long enough that the board preview was visible
 func _hover_settled(x: int, y: int) -> bool:
@@ -779,14 +789,42 @@ func commit(extra: Dictionary) -> void:
 func buy_unit(type: String) -> void:
 	var x: int = ui.buyAt[0]
 	var y: int = ui.buyAt[1]
-	if Game.buy(s, x, y, type) == null:
+	var nu: Variant = Game.buy(s, x, y, type)
+	if nu == null:
 		return
 	fx.buy_fx(x, y)
 	_bump_gold()
-	ui.buyAt = null
-	ui.hotBuy = null
+	_clear_sel()
+	ui.sel = nu.id # AE2: the new unit moves / attacks right away (must step off if the castle was occupied)
+	_stack_hint()
 	save()
 	refresh()
+
+## our unit that shares a tile (bought onto an occupied castle) and still has to step off
+func _stuck_unit() -> Variant:
+	for i in range(s.units.size() - 1, -1, -1):
+		var u: Dictionary = s.units[i]
+		if u.side == "p" and not u.acted and Game.stacked(s, u):
+			return u
+	return null
+
+## keep a stacked unit selected until one of the pair moves away; true when it took over the selection
+func _force_stack() -> bool:
+	var st: Variant = _stuck_unit()
+	if st == null:
+		return false
+	var cur: Variant = _sel_unit()
+	if cur != null and Game.stacked(s, cur) and not cur.acted:
+		return false
+	_clear_sel()
+	ui.sel = st.id
+	_stack_hint()
+	return true
+
+func _stack_hint() -> void:
+	var u: Variant = _sel_unit()
+	if u != null and Game.stacked(s, u):
+		ui.hint = "Hai quân đứng chung thành: cho [b]%s[/b] bước ra ô khác." % _name_of(u)
 
 ## units of ours that could still attack or capture this turn
 func _open_work() -> int:
@@ -804,6 +842,12 @@ func _open_work() -> int:
 
 func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no longer asks twice)
 	if ui.busy or s.side != "p" or s.winner != null:
+		return
+	if _stuck_unit() != null: # a unit bought onto an occupied castle has not stepped off yet
+		_clear_sel()
+		_force_stack()
+		main.audio.play("select")
+		refresh()
 		return
 	var my := gen
 	_clear_sel()
@@ -1627,6 +1671,14 @@ func refresh() -> void:
 				if graves.size():
 					var g0: Dictionary = graves[0]
 					_actions.add_child(_act(Content.text("raiseButton"), func() -> void: commit({ "kind": "raise", "target": [g0.x, g0.y] }), { "hot": hk == "raise" }))
+				if dx == u.x and dy == u.y and _can_buy_here(u):
+					var bx: int = u.x
+					var by: int = u.y
+					_actions.add_child(_act("🏯 Mộ quân", func() -> void:
+						_clear_sel()
+						ui.buyAt = [bx, by]
+						main.audio.play("select")
+						refresh()))
 				if dx != u.x or dy != u.y: # no "wait" on its own tile
 					_actions.add_child(_act("⏳ Chờ", func() -> void: commit({ "kind": "wait" }), { "hot": hk == "wait" }))
 				_actions.add_child(_act("✖ Hủy", cancel))
@@ -1636,7 +1688,7 @@ func refresh() -> void:
 		var x: int = ui.buyAt[0]
 		var y: int = ui.buyAt[1]
 		_pop_anchor = [x, y]
-		_info.add_child(_head(null, Content.text("buyTitle"), "Có %d vàng · Quân %d/%d · lính mới đi được từ lượt sau" % [s.gold.p, Game.unit_count(s, "p"), s.unitCap]))
+		_info.add_child(_head(null, Content.text("buyTitle"), "Có %d vàng · Quân %d/%d · lính mới đi được ngay" % [s.gold.p, Game.unit_count(s, "p"), s.unitCap]))
 		var grid := GridContainer.new()
 		grid.columns = 1
 		grid.add_theme_constant_override("v_separation", 6)

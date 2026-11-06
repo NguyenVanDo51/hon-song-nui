@@ -194,7 +194,9 @@ func _run() -> void:
 	main.menus.close_codex()
 	g._on_speed()
 	# end turn -> enemy turn -> back to us
-	g.cancel()
+	while g.ui.sel != null: # a picked unit swaps the HUD for its card: deselect to reach "Hết lượt"
+		g.cancel()
+	ok(g._btn_end.visible and not g._card.visible, "nothing picked -> HUD back, card gone")
 	press("Hết lượt")
 	for i in 1200:
 		if s.side == "p" and not g.ui.busy:

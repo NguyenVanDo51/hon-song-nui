@@ -40,7 +40,7 @@ var _menu: PanelContainer
 var _hud_tr: Control
 var _hud_tl: Control
 var _pop_box: StyleBox # popup panel; dropped when the popup holds only buttons
-var _side := true # layout: true = left sidebar, false = top / bottom bands
+var _card_avoid: Array[Rect2] = [] # tiles (in _wrap) the corner card must not cover
 var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _card: PanelContainer
 var _card_box: VBoxContainer
@@ -57,7 +57,6 @@ var _pop_anchor: Variant = null # [x, y] tile the popup belongs to; null = top c
 var _hover_at := 0
 const POP_W := 290.0
 const HUD_M := 10.0 # HUD distance from the screen edge
-const CARD_RESERVE := 250.0 # bottom band height kept for the unit card (tall-screen layout)
 ## cut-away duel scene (BattleView) parked for now: every attack plays on the map. Flip to bring the setting back.
 const SCENE_ENABLED := false
 
@@ -273,8 +272,8 @@ func _show_menu(on: bool) -> void:
 		_menu.size = Vector2.ZERO
 		_place_hud()
 
-## HUD corners follow the window (the map under them fills the screen)
-## inner width of the sidebar = the unit card's width
+## map fills the screen; HUD floats over it. Nothing picked: turn/gold (TL), ⏩ ⚙ (TR), end turn (BR).
+## Something picked: only its card, in the first corner that keeps the picked tiles visible.
 func _side_w() -> float:
 	return maxf(_card.get_combined_minimum_size().x, 210.0)
 
@@ -282,47 +281,38 @@ func _place_hud() -> void:
 	if _btn_end == null:
 		return
 	var M := HUD_M
-	var sw := _side_w()
+	var picked := _card.visible
+	_hud_tl.visible = not picked
+	_hud_tr.visible = not picked
+	_btn_end.visible = not picked
 	_hud_tr.reset_size()
 	var trs := _hud_tr.get_combined_minimum_size()
-	if _side:
-		_hud_tr.position = Vector2(M + sw - trs.x, M)
-		_hud_tl.custom_minimum_size.x = sw
-		_btn_end.custom_minimum_size.x = sw
-	else:
-		_hud_tr.position = Vector2(size.x - trs.x - M, M)
-		_hud_tl.custom_minimum_size.x = 0
-		_btn_end.custom_minimum_size.x = 190
-	# wrap the goal only inside the fixed-width sidebar (a wrapping label with no width would collapse)
-	_goal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if _side else TextServer.AUTOWRAP_OFF
+	_hud_tr.position = Vector2(size.x - trs.x - M, M)
+	_hud_tl.custom_minimum_size.x = 0
+	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_hud_tl.reset_size()
-	_hud_tl.position = Vector2(M, M + trs.y + 6) if _side else Vector2(M, M)
+	_hud_tl.position = Vector2(M, M)
+	_btn_end.custom_minimum_size.x = 190
 	var eb := _btn_end.get_combined_minimum_size()
 	_btn_end.size = eb
-	_btn_end.position = Vector2(M, size.y - eb.y - M) if _side else size - eb - Vector2(M, M)
-	if _card.visible:
+	_btn_end.position = size - eb - Vector2(M, M)
+	if picked:
 		_card.reset_size()
 		var cs := _card.get_combined_minimum_size()
-		var bottom := _btn_end.position.y - 8 if _side else size.y - M
-		_card.position = Vector2(M, maxf(_hud_tl.position.y + _hud_tl.size.y + 8, bottom - cs.y) if _side else bottom - cs.y)
+		var cands: Array[Vector2] = [Vector2(M, M), Vector2(size.x - cs.x - M, M), Vector2(M, size.y - cs.y - M), size - cs - Vector2(M, M)]
+		_card.position = cands[0]
+		for c: Vector2 in cands:
+			var r := Rect2(c, cs)
+			if not _card_avoid.any(func(a: Rect2) -> bool: return r.intersects(a)):
+				_card.position = c
+				break
 	if _menu.visible:
 		var ms := _menu.get_combined_minimum_size()
-		_menu.position = Vector2(M, M + trs.y + 6) if _side else Vector2(size.x - ms.x - M, M + 48)
+		_menu.position = Vector2(size.x - ms.x - M, M + trs.y + 6)
 
-## map area free of the HUD for the current layout; picks sidebar vs bands by the bigger tile size
+## the whole window is map; the HUD overlays it
 func _layout() -> void:
-	var W := _wrap.size
-	var M := HUD_M
-	var trh := _hud_tr.get_combined_minimum_size().y
-	var tl_h := _hud_tl.get_combined_minimum_size().y
-	var eh := _btn_end.get_combined_minimum_size().y
-	var side := Rect2(Vector2(_side_w() + 2 * M, 0), Vector2(W.x - _side_w() - 2 * M, W.y))
-	var top := maxf(tl_h, trh) + 2 * M
-	var bot := maxf(CARD_RESERVE, eh) + 2 * M
-	var band := Rect2(Vector2(0, top), Vector2(W.x, W.y - top - bot))
-	var k := func(r: Rect2) -> float: return minf((r.size.x - 8) / s.w, (r.size.y - 8) / s.h)
-	_side = k.call(side) >= k.call(band)
-	_safe = side if _side else band
+	_safe = Rect2(Vector2.ZERO, _wrap.size)
 
 func _ibtn(text: String, tip: String, fn: Callable) -> Button:
 	var b := Style.button(text, "IconBtn")
@@ -1541,11 +1531,14 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		_card_box.remove_child(c)
 		c.queue_free()
 	var show := false
+	_card_avoid.clear()
 	if peek == null and u != null:
 		show = true
 		var st := Game.stat(s, u)
 		var look := Content.unit_look(s, u)
 		var dt: Array = ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != M_IDLE else [u.x, u.y]
+		_avoid_tile(u.x, u.y)
+		_avoid_tile(dt[0], dt[1])
 		var name: String = Content.unit_title(look.name, u.rank, u.type == "hero")
 		var side_txt: String = Content.theme().factions[u.side].short
 		var sub := "%s · Máu %d%s" % [side_txt, u.hp, " · đã đi" if u.side == "p" and u.acted else ""]
@@ -1566,6 +1559,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var x: int = ui.info.x
 		var y: int = ui.info.y
 		var t: String = s.tiles[y][x]
+		_avoid_tile(x, y)
 		var own: Variant = s.owner.get(Vector2i(x, y))
 		var tr: Dictionary = Rules.TERRAIN[t]
 		var own_txt := ""
@@ -1579,7 +1573,13 @@ func _render_card(u: Variant, peek: Variant) -> void:
 			_card_box.add_child(_note(Content.text("graveNote"), Style.MUTED, 13))
 	_card.visible = show
 	_card.reset_size()
+	_place_hud() # swap HUD vs card now, so a click this frame finds the right buttons
 	_place_hud.call_deferred() # wrapped text knows its height after one layout pass
+
+## picked tile + a half-tile ring, in screen coords
+func _avoid_tile(x: int, y: int) -> void:
+	var r: Rect2 = board.tile_rect(x, y)
+	_card_avoid.append(Rect2(_wrap.position + r.position, r.size).grow(r.size.x * 0.5))
 
 ## "50–55 +10" (roll range incl. level, then live bonus / malus)
 func _atk_txt(u: Dictionary, b: Dictionary) -> String:
@@ -1808,7 +1808,7 @@ func _place_pop() -> void:
 	var tr: Rect2 = board.tile_rect(_pop_anchor[0], _pop_anchor[1])
 	var tile := tr.position
 	var tw := tr.size
-	var keep: Array[Rect2] = [tr, Rect2(_btn_end.position, _btn_end.size)]
+	var keep: Array[Rect2] = [tr, Rect2(_card.position, _card.size) if _card.visible else Rect2(_btn_end.position, _btn_end.size)]
 	if ui.mode == M_TARGET and ui.target != null:
 		var tg: Variant = Game.unit_by_id(s, ui.target)
 		if tg != null:

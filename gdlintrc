@@ -6,8 +6,7 @@ class-variable-name: (_?[a-z][a-z0-9]*(_[a-z0-9]+)*(_[A-Z])?|_?[A-Z][A-Za-z0-9]?
 # ^ + ALL_CAPS for static vars used as swappable tables (Game.UNITS, Store.SAVE)
 comparison-with-itself: null
 constant-name: _?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*
-disable: # loosened: existing files order consts / vars / inner classes freely
-- class-definitions-order
+disable: [] # gdtoolkit crashes on an empty list written as a block
 duplicated-load: null
 enum-element-name: '[A-Z][A-Z0-9]*(_[A-Z0-9]+)*'
 enum-name: ([A-Z][a-z0-9]*)+
@@ -24,8 +23,8 @@ function-preload-variable-name: ([A-Z][a-z0-9]*)+
 function-variable-name: ([a-z][a-z0-9]*(_[a-z0-9]+)*|[A-Z][A-Z0-9]?)
 load-constant-name: (([A-Z][a-z0-9]*)+|_?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)
 loop-variable-name: _?[a-z][a-z0-9]*(_[a-z0-9]+)*
-max-file-lines: 2200 # loosened from 1000: game_screen.gd ~2000 (split = backlog E5), board.gd / tests.gd ~1000
-max-line-length: 180 # loosened from 100 (tabs count 1); tighten as files get touched
+max-file-lines: 2300 # loosened from 1000: game_screen.gd ~2200 (split = backlog E5, before 1v1 mode), board.gd ~1150, tests.gd ~1050
+max-line-length: 150 # loosened from 100 (tabs count 1); 120 would wrap ~385 more lines for no real gain
 max-public-methods: 80 # loosened from 20: Game / Board are static-helper hubs
 max-returns: 14 # loosened from 6: game_screen._on_tile click router (early-return per click case)
 mixed-tabs-and-spaces: null

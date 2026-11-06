@@ -233,8 +233,8 @@ func _toggle_3d() -> void:
 		return
 	Store.set_board_3d(not (board is Board3D))
 	_make_board(Store.board_3d())
-	board.call("set_state", s)
-	board.call("refresh_terrain")
+	board.set_state(s)
+	board.refresh_terrain()
 	_fit()
 	_board_label()
 	refresh()
@@ -320,7 +320,7 @@ func _place_hud() -> void:
 		_card.position = cands[0]
 		var avoid: Array[Rect2] = []
 		for k: Vector2i in _card_avoid:
-			var tile_r: Rect2 = board.call("tile_rect", k.x, k.y)
+			var tile_r: Rect2 = board.tile_rect(k.x, k.y)
 			avoid.append(Rect2(_wrap.position + tile_r.position, tile_r.size).grow(tile_r.size.x * 0.5))
 		for c: Vector2 in cands:
 			var r := Rect2(c, cs)
@@ -375,7 +375,7 @@ func _fit() -> void:
 	if s.is_empty():
 		return
 	_layout()
-	board.call("fit", _safe.size - Vector2(8, 8))
+	board.fit(_safe.size - Vector2(8, 8))
 	board.position = (_safe.position + (_safe.size - board.size) / 2.0).floor()
 	_frame.position = board.position
 	_frame.size = board.size
@@ -435,7 +435,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	board.view.sprites = []
 	board.view.hp = null
 	fx.clear()
-	board.call("set_state", s)
+	board.set_state(s)
 	_end.visible = false
 	visible = true
 	_speed_label()
@@ -443,7 +443,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	_show_menu(false)
 	_board_label()
 	_fit.call_deferred()
-	board.call("refresh_terrain")
+	board.refresh_terrain()
 	save()
 	refresh()
 	var foe: bool = s.side != "p"
@@ -1189,11 +1189,11 @@ func play(events: Array, before: Dictionary) -> void:
 			return
 		if dived and e.t != "hit" and e.t != "die":
 			dived = false
-			await board.call("unfocus")
+			await board.unfocus()
 		if e.t == "hit" and not dived and not e.get("counter", false) and _zoom_on():
 			dived = true
 			var zfx: int = e.fx; var zfy: int = e.fy
-			await board.call("focus", Vector2i(zfx, zfy), Vector2i(ex, ey))
+			await board.focus(Vector2i(zfx, zfy), Vector2i(ex, ey))
 		match e.t:
 			"move":
 				var eid: int = e.id
@@ -1268,14 +1268,14 @@ func play(events: Array, before: Dictionary) -> void:
 				await fx.raze({ "x": e.fx, "y": e.fy, "id": e.from }, ex, ey)
 				var hold: Dictionary = v.hold
 				hold.erase(Vector2i(ex, ey))
-				board.call("refresh_terrain")
+				board.refresh_terrain()
 				fx.float_text(ex, ey - 0.3, Content.text("razeText"), "#ffb36b", 1300.0, true)
 				await fx.sleep(600.0)
 			"repair":
 				fx.repair(ex, ey)
 				var hold: Dictionary = v.hold
 				hold.erase(Vector2i(ex, ey))
-				board.call("refresh_terrain")
+				board.refresh_terrain()
 				fx.float_text(ex, ey - 0.3, Content.text("repairText"), "#ffe08a", 1300.0)
 				await fx.sleep(450.0)
 			"rank":
@@ -1319,7 +1319,7 @@ func play(events: Array, before: Dictionary) -> void:
 				if e.side == "p" and e.amount:
 					_income_fx()
 	if dived and gen == my:
-		await board.call("unfocus")
+		await board.unfocus()
 	v.hp = null
 	var hold_end: Dictionary = v.hold
 	hold_end.clear()
@@ -2040,7 +2040,9 @@ func _place_pop() -> void:
 	if _pop_anchor == null:
 		_pop.position = Vector2(((lim.x - sz.x) / 2.0), board.position.y + 10).floor()
 		return
-	var tile_r: Rect2 = board.call("tile_rect", _pop_anchor[0], _pop_anchor[1])
+	var anc_x: int = _pop_anchor[0]
+	var anc_y: int = _pop_anchor[1]
+	var tile_r: Rect2 = board.tile_rect(anc_x, anc_y)
 	var tile := tile_r.position
 	var tw := tile_r.size
 	var keep: Array[Rect2] = [tile_r, Rect2(_card.position, _card.size) if _card.visible else Rect2(_btn_end.position, _btn_end.size)]
@@ -2048,7 +2050,9 @@ func _place_pop() -> void:
 		var target_id: int = ui.target
 		var tg: Variant = Game.unit_by_id(s, target_id)
 		if tg != null:
-			var tg_r: Rect2 = board.call("tile_rect", tg.x, tg.y)
+			var tg_x: int = tg.x
+			var tg_y: int = tg.y
+			var tg_r: Rect2 = board.tile_rect(tg_x, tg_y)
 			keep.append(tg_r)
 	var gap := 10.0
 	var cands: Array[Vector2] = [
@@ -2069,7 +2073,9 @@ func _place_pop() -> void:
 		for o: Dictionary in s.units:
 			if o.id == ui.sel:
 				continue
-			var orr: Rect2 = board.call("tile_rect", o.x, o.y)
+			var o_x: int = o.x
+			var o_y: int = o.y
+			var orr: Rect2 = board.tile_rect(o_x, o_y)
 			if r.intersects(orr.grow(-orr.size.x * 0.2)):
 				cost += 3.0 if o.side != "p" else 1.0
 		if cost < best_cost:

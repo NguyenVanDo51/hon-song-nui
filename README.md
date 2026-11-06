@@ -56,9 +56,11 @@ Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy 
 
 ### Lint
 - Cài 1 lần: `pipx install "gdtoolkit==4.*"` (macOS: `brew install pipx` trước), rồi `tools/install_hooks.sh` -> git pre-commit chạy `tools/lint.sh --staged` (bỏ qua 1 lần: `git commit --no-verify`).
-- `tools/lint.sh` (cả repo, ~4 s) = `gdlint` theo `gdlintrc` + Godot parse mọi script với cảnh báo = lỗi (`project.godot` [debug]: unused_*, unreachable_*, standalone_*, unassigned_*, narrowing_conversion, redundant_await, confusable_identifier, static_called_on_instance) qua `sim/check_scripts.gd`.
+- `tools/lint.sh` (cả repo, ~4 s) = `gdlint` theo `gdlintrc` + Godot parse mọi script với cảnh báo = lỗi (`project.godot` [debug]: unused_*, unreachable_*, standalone_*, unassigned_*, narrowing_conversion, redundant_await, confusable_identifier, static_called_on_instance) qua `sim/check_scripts.gd`. Kiểu chặt toàn repo (2026-11-06): untyped_declaration, unsafe_* , integer_division, incompatible_ternary, shadowed_* cũng = lỗi -> đọc field Dictionary vào biến có kiểu (`var hp: int = u.hp`), không `as` từ Variant.
+- `tools/warn_count.sh [-v] [thư mục]`: đếm cảnh báo chưa bật (override.cfg tạm) — dùng trước khi bật thêm một cảnh báo.
+- Cố ý tắt: `return_value_discarded` (267 chỗ, >90% chủ ý: append / do_action / connect / end_turn / tween / erase; lỗi IO thì kiểm tay), `inferred_declaration` (`:=` là chuẩn).
 - `run_guarded.sh/.ps1` trả exit 1 nếu log có `SCRIPT ERROR` (test crash giữa chừng không còn tính là qua).
-- Không dùng `gdformat` (gdtoolkit 4.5.0): làm hỏng 14 file (lambda nhiều dòng trong lời gọi hàm -> Godot "Unindent doesn't match"). `gdlintrc` đang nới vài luật (ghi chú trong file) -> siết dần.
+- Không dùng `gdformat` (gdtoolkit 4.5.0): làm hỏng 14 file (lambda nhiều dòng trong lời gọi hàm -> Godot "Unindent doesn't match"). `gdlintrc`: dòng ≤ 150, class-definitions-order bật; còn nới `max-file-lines` 2300 (game_screen ~2200, tách = E5).
 
 ## Cân bằng (sim AI-vs-AI, 12 ván/màn (24 nếu ghi /24), 2026-11-06, luật AE2 + AI `31a006e` + nhịp ra quân mới)
 AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 60 lượt chưa phân thắng bại. Mới = loại quân ra mắt (thấy → cầm → mua, xem `docs/content.md` mục "Nhịp ra quân mới").

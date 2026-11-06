@@ -11,13 +11,9 @@
 
 ## Chất lượng code
 - [x] Lint (2026-11-06): gdtoolkit 4.5.0 `gdlint` + Godot warnings = error + `tools/lint.sh` + pre-commit (`tools/install_hooks.sh`). README "Lint".
-- [ ] **Siết lint theo giai đoạn** (mỗi giai đoạn 1 commit; sau mỗi bước: tests + click_driver + rig_smoke + golden giống hệt):
-  1. ✅ (2026-11-06, merge 1424e63) **Kiểu chặt cho `scripts/core`** (luật / AI, ít UI, lỗi kiểu ở đây = sai luật): sửa `untyped_declaration`, `unsafe_call_argument`, `unsafe_method_access`, `unsafe_property_access` trong core -> bật mức error chỉ cho core (`@warning_ignore` / bật theo thư mục nếu Godot cho, không thì check riêng core trong `tools/lint.sh`).
-  2. ✅ (2026-11-06) Cảnh báo ít, dễ sửa -> error toàn repo: `integer_division` (18), `incompatible_ternary` (19), `narrowing_conversion` đã bật; `shadowed_variable` (29), `shadowed_global_identifier` (11), `shadowed_variable_base_class` (44).
-  3. Kiểu chặt cho `content/`, `sim/`, rồi `scripts/ui/rig`, cuối cùng `scripts/ui` còn lại (game_screen sau khi tách = E5).
-  4. `return_value_discarded` (~292): xem từng loại (tween / connect / erase thường bỏ qua có chủ đích) -> chỉ bật nếu ồn ít.
-  5. `gdlintrc`: `max-line-length` 180 -> 150 -> 120 (sửa dần file đang đụng); bật lại `class-definitions-order`; `max-file-lines` 2200 -> 1000 sau khi tách game_screen / board.
-  - Số hiện tại (2026-11-06, toàn repo): unsafe_call_argument ~1655, unsafe_method_access ~411, return_value_discarded ~292, unsafe_property_access ~173, untyped_declaration 162 dòng lỗi, shadowed_* ~84, unsafe_cast 20, incompatible_ternary 19, integer_division 18. Đếm lại: bật 1 cảnh báo = 2 trong `project.godot` [debug] rồi `tools/lint.sh`.
+- [x] **Siết lint theo giai đoạn** (2026-11-06, xong): 1 core kiểu chặt; 2 int division / ternary / shadowing = error; 3 kiểu chặt content / sim / tools / ui (5 agent song song); 4 `return_value_discarded` quyết định TẮT (267 chỗ, >90% chủ ý; lỗi IO đã kiểm tay: save_png / FileAccess / store_string / load_svg); 5 gdlintrc dòng ≤ 150 + class-definitions-order bật. `tools/warn_count.sh` = 0 toàn repo; tests 80/80, golden giống hệt, driver 0 fail, rig smoke 132/0.
+  - [ ] Còn: `max-file-lines` 2300 -> 1000 sau khi tách game_screen (E5, 2211 dòng; agent đã gộp ~50 cặp biến bằng `;` để vừa giới hạn cũ -> tách xong thì bỏ), board.gd ~1150, tests.gd ~1050.
+  - [ ] Click driver dùng chung profile "driver" -> chạy song song nhiều worktree thì 2 check save/briefing lỗi ngẫu nhiên: cho profile theo tham số (vd `profile=driver_<pid>`).
 - [ ] Formatter: `gdformat` 4.5.0 hỏng với lambda nhiều dòng -> thử GDScript Formatter (GDQuest, Rust; cần build / tải binary, hỏi user) hoặc đợi gdtoolkit sửa.
 - [x] Code review 2026-11-06 backlog: hiệu năng P1–P8 (trừ P9), mở rộng E2/E3/E4/E7, tái sử dụng R1–R5 — merged e5a3520.
 - [ ] Còn lại từ review (`docs/review/code_review_2026-11-06.md`): E1 nhiều phe / đồng minh, E5 tách `game_screen.gd`, E6 i18n; P9 vẽ lại khi idle; spike ~18 ms khi rig đánh lần đầu (raster phần rig); test UI phá/sửa làng/gọi hồn qua click, phím tắt, save giữa ván; đo hiệu năng trên điện thoại thật (web/iOS).

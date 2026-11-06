@@ -30,6 +30,23 @@ func _pick(_p: Vector2) -> Variant:
 func tile_rect(_x: int, _y: int) -> Rect2:
 	return Rect2()
 
+## board API used by GameScreen; Board / Board3D override
+func set_state(_state: Dictionary) -> void:
+	pass
+
+func refresh_terrain() -> void:
+	pass
+
+func fit(_avail: Vector2) -> void:
+	pass
+
+## close-up on an exchange (awaitable); unfocus() eases back
+func focus(_a: Vector2i, _b: Vector2i) -> void:
+	await get_tree().process_frame
+
+func unfocus() -> void:
+	await get_tree().process_frame
+
 ## unit id whose ⓘ dot is under p, else -1
 func _info_at(_p: Vector2) -> int:
 	return -1

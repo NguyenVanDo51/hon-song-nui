@@ -1,37 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
 <g stroke="#2b2220" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
-<rect x="74" y="190" width="24" height="52" rx="10" fill="#8f5f34"/>
-<rect x="164" y="190" width="24" height="52" rx="10" fill="#8f5f34"/>
-<path d="M50 160 Q18 152 22 122 Q28 98 50 108 Q60 118 46 128" fill="none" stroke="#2b2220" stroke-width="28"/>
-<path d="M50 160 Q18 152 22 122 Q28 98 50 108 Q60 118 46 128" fill="none" stroke="#c48a4f" stroke-width="14"/>
-<ellipse cx="114" cy="176" rx="72" ry="42" fill="#c48a4f"/>
-<path d="M58 202 Q114 222 172 202" fill="none" stroke="#8f5f34" stroke-width="5"/>
-<ellipse cx="72" cy="186" rx="28" ry="30" fill="#c48a4f"/>
-<rect x="52" y="200" width="30" height="44" rx="12" fill="#c48a4f"/>
-<rect x="144" y="196" width="30" height="48" rx="12" fill="#c48a4f"/>
-<path d="M62 234 L62 243 M72 234 L72 243 M154 234 L154 243 M164 234 L164 243" stroke="#8f5f34" stroke-width="4"/>
-<path d="M66 138 Q112 118 158 136 L164 194 Q112 208 60 194 Z" fill="#c9503f"/>
-<path d="M62 190 Q112 204 162 190" fill="none" stroke="#e2c36e" stroke-width="10"/>
-<path d="M70 142 Q112 124 154 140" fill="none" stroke="#93362b" stroke-width="5"/>
-<circle cx="112" cy="166" r="10" fill="#e2c36e" stroke-width="5"/>
-<path d="M190 88 L210 50 L222 96 Z" fill="#8f5f34"/>
-<path d="M156 98 L146 56 L184 82 Z" fill="#c48a4f"/>
-<path d="M157 88 L152 68 L170 82 Z" fill="#8f5f34" stroke="none"/>
-<circle cx="186" cy="126" r="44" fill="#c48a4f"/>
-<path d="M150 112 Q144 150 172 178" fill="none" stroke="#2b2220" stroke-width="24"/>
-<path d="M150 112 Q144 150 172 178" fill="none" stroke="#5a4a3c" stroke-width="11"/>
-<path d="M146 122 L130 116 L144 134 Z M144 146 L128 148 L146 158 Z M154 168 L144 182 L162 178 Z" fill="#aab3bd" stroke-width="5"/>
-<circle cx="147" cy="140" r="5" fill="#e2c36e" stroke-width="4"/>
-<path d="M202 142 L248 140 Q244 176 218 178 Q202 170 202 142 Z" fill="#5a2420"/>
-<path d="M206 166 Q226 176 244 158 L242 168 Q230 188 206 176 Z" fill="#ecd9b4" stroke-width="5"/>
-<path d="M222 172 Q230 166 238 164" fill="none" stroke="#d9706a" stroke-width="4"/>
-<ellipse cx="222" cy="130" rx="27" ry="15" fill="#ecd9b4"/>
-<ellipse cx="246" cy="124" rx="8" ry="6" fill="#2b2220" stroke-width="4"/>
-<path d="M212 143 L217 160 L223 143 Z M233 142 L237 157 L242 141 Z" fill="#f5ecd8" stroke-width="4"/>
-<path d="M222 174 L226 160 L231 171 Z" fill="#f5ecd8" stroke-width="4"/>
+<!-- tail (curled, Phu Quoc) -->
+<path d="M60 162 Q20 158 22 122 Q26 92 54 100 Q70 112 54 130" fill="none" stroke="#2b2220" stroke-width="28"/>
+<path d="M60 162 Q20 158 22 122 Q26 92 54 100 Q70 112 54 130" fill="none" stroke="#c48a4f" stroke-width="14"/>
+<!-- far hind leg -->
+<rect x="90" y="190" width="24" height="54" rx="10" fill="#8f5f34"/>
+<!-- far front leg -->
+<rect x="178" y="186" width="24" height="58" rx="10" fill="#8f5f34"/>
+<!-- body + ridge -->
+<ellipse cx="120" cy="174" rx="72" ry="40" fill="#c48a4f"/>
+<path d="M76 140 Q116 126 158 138" fill="none" stroke="#8f5f34" stroke-width="9"/>
+<path d="M66 204 Q120 220 178 200" fill="none" stroke="#8f5f34" stroke-width="5"/>
+<!-- near hind leg -->
+<ellipse cx="76" cy="186" rx="28" ry="30" fill="#c48a4f"/>
+<rect x="56" y="198" width="30" height="46" rx="12" fill="#c48a4f"/>
+<path d="M66 234 L66 243 M76 234 L76 243" stroke="#8f5f34" stroke-width="4"/>
+<!-- near front leg -->
+<rect x="150" y="188" width="30" height="56" rx="12" fill="#c48a4f"/>
+<path d="M160 234 L160 243 M170 234 L170 243" stroke="#8f5f34" stroke-width="4"/>
+<!-- war cloth -->
+<path d="M68 148 Q118 134 168 148 L172 198 Q118 212 62 198 Z" fill="#c9503f"/>
+<path d="M74 155 Q118 143 162 155" fill="none" stroke="#93362b" stroke-width="5"/>
+<path d="M86 176 L94 167 L102 176 M134 176 L142 167 L150 176" fill="none" stroke="#93362b" stroke-width="4"/>
+<path d="M64 194 Q118 208 170 194" fill="none" stroke="#e2c36e" stroke-width="10"/>
+<circle cx="118" cy="174" r="12" fill="#e2c36e" stroke-width="5"/>
+<circle cx="118" cy="174" r="5" fill="none" stroke="#93362b" stroke-width="3"/>
+<!-- ears -->
+<path d="M150 102 L142 54 L182 82 Z" fill="#c48a4f"/>
+<path d="M154 92 L150 68 L170 82 Z" fill="#8f5f34" stroke="none"/>
+<path d="M184 86 L204 42 L222 90 Z" fill="#c48a4f"/>
+<path d="M193 82 L204 58 L212 84 Z" fill="#8f5f34" stroke="none"/>
+<!-- mouth inside -->
+<path d="M196 144 L240 140 Q238 174 214 178 Q198 170 196 144 Z" fill="#5a2420"/>
+<!-- lower jaw -->
+<path d="M200 164 Q220 174 240 156 L238 168 Q226 188 200 176 Z" fill="#ecd9b4" stroke-width="5"/>
+<path d="M210 172 Q220 166 230 164" fill="none" stroke="#d9706a" stroke-width="4"/>
+<path d="M219 171 L223 158 L228 169 Z" fill="#f5ecd8" stroke-width="4"/>
+<!-- head -->
+<circle cx="178" cy="124" r="44" fill="#c48a4f"/>
+<ellipse cx="214" cy="130" rx="27" ry="15" fill="#ecd9b4"/>
+<ellipse cx="238" cy="124" rx="8" ry="6" fill="#2b2220" stroke-width="4"/>
+<path d="M205 143 L210 160 L216 143 Z M226 142 L230 157 L235 141 Z" fill="#f5ecd8" stroke-width="4"/>
+<!-- spiked collar -->
+<path d="M144 108 Q138 148 166 176" fill="none" stroke="#2b2220" stroke-width="24"/>
+<path d="M144 108 Q138 148 166 176" fill="none" stroke="#5a4a3c" stroke-width="11"/>
+<path d="M140 118 L124 112 L138 130 Z M137 142 L121 144 L139 154 Z M148 164 L138 178 L156 174 Z" fill="#aab3bd" stroke-width="5"/>
+<circle cx="141" cy="136" r="5" fill="#e2c36e" stroke-width="4"/>
 </g>
-<path d="M180 106 L204 114" stroke="#2b2220" stroke-width="6" stroke-linecap="round"/>
-<circle cx="194" cy="120" r="6" fill="#2b2220"/>
-<circle cx="196" cy="118" r="2" fill="#fff"/>
-<ellipse cx="198" cy="144" rx="6" ry="4" fill="#f09a88" opacity="0.6"/>
+<!-- face -->
+<path d="M174 104 L198 112" stroke="#2b2220" stroke-width="6" stroke-linecap="round"/>
+<circle cx="188" cy="118" r="6" fill="#2b2220"/>
+<circle cx="190" cy="116" r="2" fill="#fff"/>
+<ellipse cx="180" cy="142" rx="6" ry="4" fill="#f09a88" opacity="0.6"/>
 </svg>

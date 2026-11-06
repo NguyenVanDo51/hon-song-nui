@@ -1,41 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
 <g stroke="#2b2220" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
-<path d="M46 246 Q34 230 52 224 Q54 206 78 210 Q90 194 114 204 Q132 194 148 208 Q172 202 176 222 Q196 224 190 246 Z" fill="#f5ecd8" stroke-width="6"/>
-<path d="M70 232 Q84 222 98 232 M140 228 Q154 218 168 230" fill="none" stroke="#d9cdb4" stroke-width="5"/>
-<path d="M66 112 Q26 96 28 54 Q44 66 58 62 Q52 34 78 20 Q86 44 100 46 Q108 24 132 26 Q120 64 112 116 Z" fill="#c9503f"/>
-<path d="M60 98 Q48 82 46 68 M80 94 Q72 66 78 42 M100 98 Q102 70 114 46" fill="none" stroke="#93362b" stroke-width="5"/>
-<path d="M120 190 L118 226" stroke-width="24"/>
-<path d="M120 190 L118 226" stroke="#e0b04a" stroke-width="11"/>
-<path d="M110 228 L128 228" stroke-width="9"/>
-<path d="M38 128 Q14 208 50 214" fill="none" stroke-width="32"/>
-<path d="M38 128 Q14 208 50 214" fill="none" stroke="#e0b04a" stroke-width="18"/>
-<path d="M44 202 Q56 180 76 180 Q68 192 70 198 Q88 186 104 194 Q90 202 88 208 Q102 212 108 228 Q80 222 46 226 Z" fill="#c9503f"/>
-<path d="M58 206 Q74 196 90 196 M60 216 Q80 212 96 220" fill="none" stroke="#93362b" stroke-width="5"/>
-<path d="M168 132 C150 206 100 200 92 150 C84 100 46 96 36 132" fill="none" stroke-width="46"/>
-<path d="M168 132 C150 206 100 200 92 150 C84 100 46 96 36 132" fill="none" stroke="#e0b04a" stroke-width="32"/>
-<path d="M100 168 Q118 196 146 184" fill="none" stroke="#f5ecd8" stroke-width="10"/>
-<path d="M46 114 Q62 102 78 114" fill="none" stroke="#b5832e" stroke-width="5"/>
-<path d="M156 176 Q176 184 190 190" fill="none" stroke-width="24"/>
-<path d="M156 176 Q176 184 190 190" fill="none" stroke="#e0b04a" stroke-width="11"/>
-<circle cx="204" cy="188" r="14" fill="#e2c36e" stroke-width="6"/>
-<path d="M186 180 L194 184 M184 196 L194 194" stroke-width="6"/>
-<path d="M172 44 Q150 14 122 26 Q138 36 134 46 Q104 46 96 70 Q118 70 122 78 Q96 92 98 118 Q118 106 128 110 Q114 130 126 150 L170 128 Z" fill="#c9503f"/>
-<path d="M150 46 Q132 52 124 64 M134 80 Q118 90 114 104" fill="none" stroke="#93362b" stroke-width="5"/>
-<path d="M178 52 Q178 30 164 12" fill="none" stroke-width="16"/>
-<path d="M178 52 Q178 30 164 12" fill="none" stroke="#efe3c8" stroke-width="7"/>
-<path d="M174 30 L188 20" fill="none" stroke-width="14"/>
-<path d="M174 30 L188 20" fill="none" stroke="#efe3c8" stroke-width="6"/>
-<circle cx="180" cy="94" r="48" fill="#e0b04a"/>
-<path d="M204 76 Q232 64 246 80 Q256 96 246 114 Q240 124 226 122 L206 124 Z" fill="#e0b04a"/>
-<path d="M200 118 Q226 126 240 120 Q236 140 212 140 Q198 136 200 118 Z" fill="#f5ecd8"/>
+<!-- cloud -->
+<path d="M38 246 Q26 230 44 222 Q46 204 70 208 Q82 192 106 202 Q124 192 140 206 Q164 200 168 220 Q190 222 184 246 Z" fill="#f5ecd8" stroke-width="6"/>
+<path d="M62 232 Q76 222 90 232 M134 230 Q148 220 162 232" fill="none" stroke="#d9cdb4" stroke-width="5"/>
+<!-- fin (dorsal fin-wing) -->
+<path d="M70 114 Q30 100 26 58 Q42 70 56 66 Q50 38 76 22 Q84 46 98 48 Q106 26 130 28 Q120 66 114 118 Z" fill="#c9503f"/>
+<path d="M62 100 Q50 84 46 70 M82 96 Q74 68 80 44 M102 100 Q104 72 116 48" fill="none" stroke="#93362b" stroke-width="5"/>
+<!-- leg -->
+<path d="M124 192 L122 224" stroke-width="24"/>
+<path d="M124 192 L122 224" stroke="#e0b04a" stroke-width="11"/>
+<path d="M112 228 L132 228" stroke-width="9"/>
+<!-- tail -->
+<path d="M40 130 Q14 206 52 214" fill="none" stroke-width="32"/>
+<path d="M40 130 Q14 206 52 214" fill="none" stroke="#e0b04a" stroke-width="18"/>
+<!-- tailFlame -->
+<path d="M46 204 Q58 182 78 182 Q70 194 72 200 Q90 188 106 196 Q92 204 90 210 Q104 214 110 230 Q82 224 48 228 Z" fill="#c9503f"/>
+<path d="M60 208 Q76 198 92 198 M62 218 Q82 214 98 222" fill="none" stroke="#93362b" stroke-width="5"/>
+<!-- hump -->
+<path d="M98 158 C90 104 50 98 40 132" fill="none" stroke-width="46"/>
+<path d="M98 158 C90 104 50 98 40 132" fill="none" stroke="#e0b04a" stroke-width="32"/>
+<path d="M50 114 Q64 104 80 114" fill="none" stroke="#b5832e" stroke-width="5"/>
+<!-- belly -->
+<path d="M96 150 C98 200 150 206 162 172" fill="none" stroke-width="46"/>
+<path d="M96 150 C98 200 150 206 162 172" fill="none" stroke="#e0b04a" stroke-width="32"/>
+<path d="M104 170 Q120 196 146 188" fill="none" stroke="#f5ecd8" stroke-width="10"/>
+<!-- neck -->
+<path d="M160 176 C170 160 174 144 178 124" fill="none" stroke-width="46"/>
+<path d="M160 176 C170 160 174 144 178 124" fill="none" stroke="#e0b04a" stroke-width="32"/>
+<path d="M164 164 Q172 150 172 136" fill="none" stroke="#f5ecd8" stroke-width="9"/>
+<!-- arm + pearl -->
+<path d="M158 182 Q178 188 192 192" fill="none" stroke-width="24"/>
+<path d="M158 182 Q178 188 192 192" fill="none" stroke="#e0b04a" stroke-width="11"/>
+<circle cx="206" cy="190" r="14" fill="#e2c36e" stroke-width="6"/>
+<path d="M188 182 L196 186 M186 198 L196 196" stroke-width="6"/>
+<!-- mane -->
+<path d="M170 48 Q148 16 120 28 Q136 38 132 48 Q102 48 94 72 Q116 72 120 80 Q94 94 96 120 Q116 108 126 112 Q112 132 124 150 L170 128 Z" fill="#c9503f"/>
+<path d="M148 46 Q130 52 122 64 M132 82 Q116 92 112 106" fill="none" stroke="#93362b" stroke-width="5"/>
+<!-- horns -->
+<path d="M176 52 Q176 30 162 12" fill="none" stroke-width="16"/>
+<path d="M176 52 Q176 30 162 12" fill="none" stroke="#efe3c8" stroke-width="7"/>
+<path d="M172 30 L186 20" fill="none" stroke-width="14"/>
+<path d="M172 30 L186 20" fill="none" stroke="#efe3c8" stroke-width="6"/>
+<!-- mouthIn (hidden behind jaw at rest) -->
+<path d="M204 116 L206 98 Q224 90 240 94 L242 116 Z" fill="#3a2e28" stroke="none"/>
+<path d="M210 112 Q224 104 236 110" fill="none" stroke="#f09a88" stroke-width="7"/>
+<!-- head -->
+<circle cx="180" cy="94" r="46" fill="#e0b04a"/>
+<path d="M204 76 Q232 64 246 80 Q256 96 246 112 L206 114 Z" fill="#e0b04a"/>
+<path d="M216 112 L220 120 L224 112 M234 112 L238 120 L242 112" fill="#f5ecd8" stroke-width="4"/>
 <path d="M146 66 Q156 54 172 52" fill="none" stroke="#b5832e" stroke-width="5"/>
+<!-- jaw -->
+<path d="M200 114 L244 114 Q242 132 220 138 Q202 136 200 114 Z" fill="#f5ecd8"/>
+<path d="M212 128 Q222 132 232 128" fill="none" stroke="#d9cdb4" stroke-width="4"/>
 </g>
-<path d="M234 108 Q252 122 242 138 Q234 150 248 160" fill="none" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>
-<path d="M188 132 Q174 146 182 160" fill="none" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>
-<circle cx="198" cy="92" r="10" fill="#2b2220"/>
-<circle cx="201" cy="88" r="3.5" fill="#fff"/>
-<path d="M236 86 Q244 82 244 90 Q242 94 238 92" fill="none" stroke="#2b2220" stroke-width="3.5" stroke-linecap="round"/>
-<ellipse cx="214" cy="110" rx="7" ry="4.5" fill="#f09a88" opacity="0.6"/>
-<path d="M216 119 Q226 124 236 119" fill="none" stroke="#2b2220" stroke-width="3" stroke-linecap="round"/>
-<circle cx="199" cy="183" r="4" fill="#fff" opacity="0.7"/>
+<!-- face (raw, on head) -->
+<path d="M240 104 Q256 116 246 132 Q238 144 250 156" fill="none" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>
+<path d="M186 128 Q172 142 180 158" fill="none" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>
+<path d="M186 72 Q198 64 212 70" fill="none" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>
+<circle cx="198" cy="90" r="10" fill="#2b2220"/>
+<circle cx="201" cy="86" r="3.5" fill="#fff"/>
+<path d="M236 84 Q244 80 244 88 Q242 92 238 90" fill="none" stroke="#2b2220" stroke-width="3.5" stroke-linecap="round"/>
+<ellipse cx="208" cy="104" rx="7" ry="4.5" fill="#f09a88" opacity="0.6"/>
+<!-- pearl shine (raw, on body) -->
+<circle cx="201" cy="185" r="4" fill="#fff" opacity="0.7"/>
 </svg>

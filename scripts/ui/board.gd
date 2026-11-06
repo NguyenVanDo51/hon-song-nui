@@ -1,14 +1,9 @@
 class_name Board
-extends Control
+extends BoardBase
 ## the battlefield: cached terrain layer + animated water, buildings, fallen soldiers, overlays, units, effects, night, ambience.
 ## Looks come from the theme; any unit / terrain "img" replaces the procedural drawing. Port of src/ui/render.js.
 ## Layers (bottom -> top): terrain (baked once into a texture on fit / refresh) | dyn | fx normal | fx additive | numbers | night | ambient.
 ## Units are drawn from a pre-rendered Token.Atlas. Nothing is drawn while the duel view covers the board.
-
-signal tile_clicked(x: int, y: int)
-signal hover_changed(tile: Variant)
-signal cancel_requested
-signal info_requested(id: int)
 
 const BUFF_ATK := Color("#ff9a3c") # aura: +10 attack
 const POISON := Color("#e0503f") # bitten: -atk / -def
@@ -39,15 +34,7 @@ const STAR_INK := Color("#2a1606")
 const BLADE_INK := Color("#2a1206")
 const SHIELD_INK := Color("#0b2330")
 
-var s: Dictionary = {}
-var fx: FX
-var T := 48.0
-## what the game screen wants shown (see GameScreen.build_view)
-var view := { "hide": {}, "hold": {}, "razable": [], "razeAt": null, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
-	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null, "preview": null }
-var hover: Variant = null
 var _info_spots := [] # [[centre, unit id]] of the ⓘ dots drawn this frame
-var _info_hit_id := -1
 var _stage: Control
 var _terrain: Baked # offscreen render of the static terrain
 var _terrain_hi: Baked # the same at ZOOM x, shown during an attack close-up (the 1x one would blur)
@@ -74,8 +61,7 @@ static func hash01(x: int, y: int, n: int) -> float:
 	return float((((x * 73856093) ^ (y * 19349663) ^ (n * 83492791)) & 0xFFFFFFFF) % 1000) / 1000.0
 
 func _init() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	super()
 	clip_contents = false
 	_stage = Control.new()
 	_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -145,12 +131,10 @@ func refresh_terrain() -> void:
 ## close-up on an exchange: the map scales up around the two tiles (awaitable); unfocus() eases back
 func focus(a: Vector2i, b: Vector2i) -> void:
 	_zoom_at = (Vector2(a + b) / 2.0 + Vector2(0.5, 0.5)) * T
-	var z0 := _zoom
-	await fx.tween(300.0, func(k: float) -> void: _zoom = lerpf(z0, 1.0, 1.0 - pow(1.0 - k, 3.0)))
+	await _ease_focus(300.0, _zoom, 1.0, func(v: float) -> void: _zoom = v)
 
 func unfocus() -> void:
-	var z0 := _zoom
-	await fx.tween(260.0, func(k: float) -> void: _zoom = lerpf(z0, 0.0, k * k * (3.0 - 2.0 * k)))
+	await _ease_focus(260.0, _zoom, 0.0, func(v: float) -> void: _zoom = v)
 
 func _apply_zoom(shake: Vector2) -> void:
 	var sc := lerpf(1.0, ZOOM, _zoom)
@@ -194,35 +178,10 @@ func _process(dt: float) -> void:
 		_drift_motes(dt)
 
 # ---------- input ----------
-func _tile_at_mouse(p: Vector2) -> Variant:
+func _pick(p: Vector2) -> Variant:
 	var x := int(floor(p.x / T))
 	var y := int(floor(p.y / T))
 	return Vector2i(x, y) if Game.tile_at(s, x, y) != null else null
-
-func _gui_input(ev: InputEvent) -> void:
-	if s.is_empty():
-		return
-	if ev is InputEventMouseButton and ev.pressed:
-		if ev.button_index == MOUSE_BUTTON_LEFT:
-			var info_id := _info_at(ev.position)
-			if info_id >= 0:
-				info_requested.emit(info_id)
-			else:
-				var tl: Variant = _tile_at_mouse(ev.position)
-				if tl != null:
-					tile_clicked.emit(tl.x, tl.y)
-		elif ev.button_index == MOUSE_BUTTON_RIGHT:
-			cancel_requested.emit()
-		accept_event()
-	elif ev is InputEventMouseMotion:
-		var ih := _info_at(ev.position)
-		if ih != _info_hit_id:
-			_info_hit_id = ih
-			tooltip_text = "Xem thông tin quân" if ih >= 0 else ""
-		var tl: Variant = _tile_at_mouse(ev.position)
-		if tl != hover:
-			hover = tl
-			hover_changed.emit(tl)
 
 ## unit id whose ⓘ dot is under p (a little larger than drawn, so it is easy to hit), else -1
 func _info_at(p: Vector2) -> int:
@@ -231,11 +190,6 @@ func _info_at(p: Vector2) -> int:
 		if p.distance_to(sp[0]) <= r:
 			return sp[1]
 	return -1
-
-func _notification(what: int) -> void:
-	if what == NOTIFICATION_MOUSE_EXIT and hover != null:
-		hover = null
-		hover_changed.emit(null)
 
 # ---------- terrain (cached) ----------
 ## art set (Token.fig_style, e.g. chibi): SVG tiles in assets/terrain/<style>/ replace the procedural terrain
@@ -682,23 +636,13 @@ func _draw_preview(ci: CanvasItem) -> void:
 func _draw_units(ci: CanvasItem, time: float) -> void:
 	_info_spots.clear()
 	var v := view
-	var list := []
-	var seen := {} # tile -> a unit already there: a 2nd one (just bought on an occupied castle) is drawn shifted
-	for u: Dictionary in s.units:
-		if not v.hide.has(u.id):
-			var k := Vector2i(u.x, u.y)
-			var off := Vector2(0.24, 0.06) if seen.has(k) else Vector2.ZERO
-			if seen.has(k):
-				seen[k].x -= 0.2
-			var it := { "u": u, "x": float(u.x) + off.x, "y": float(u.y) + off.y, "alpha": -1.0, "scale": 1.0 }
-			seen[k] = it
-			list.append(it)
-	for sp: Dictionary in v.sprites:
-		if not sp.get("hidden", false):
-			list.append({ "u": sp.u, "x": float(sp.u.x), "y": float(sp.u.y), "alpha": sp.get("alpha", -1.0), "scale": 1.0 })
-	for g: Dictionary in fx.ghosts:
-		var kk: float = clampf((time - g.t0) / g.dur, 0.0, 1.0)
-		list.append({ "u": g.u, "x": float(g.u.x), "y": float(g.u.y), "alpha": 1.0 - kk * kk, "scale": 1.0, "die": kk })
+	var list := _figures(time)
+	for it: Dictionary in list:
+		it.x += it.stack.x
+		it.y += it.stack.y
+		it.scale = 1.0
+		if it.k >= 0.0:
+			it.die = it.k
 	var rig_t := {} # target id -> live attack rig: its back / mid fx wrap that token (tornado halves)
 	var z := {} # unit id -> same-row rank: rig target 0, others 1, rig attacker 2 (demo: back, target, mid, attacker)
 	for r: Rig in fx.rigs:
@@ -747,7 +691,7 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		var rt: Rig = rig_t.get(u.id) if not rig_done.has(u.id) else null
 		var is_sel: bool = u.id == sel_id
 		if is_sel:
-			Draw.ellipse_line(ci, c + Vector2(0, T * 0.32), T * 0.36, T * 0.12, Color(1, 0.878, 0.541, 0.6 + sin(time / 160.0) * 0.4), maxf(2.0, T * 0.05))
+			Draw.ellipse_line(ci, c + Vector2(0, T * 0.32), T * 0.36, T * 0.12, sel_color(time), maxf(2.0, T * 0.05))
 		var alpha: float = it.alpha if it.alpha >= 0 else 1.0
 		var acted: bool = u.get("acted", false) and s.side == u.side and not v.busy and not it.has("die")
 		var tint := Color(0.42, 0.42, 0.45) if acted else Color.WHITE # done this turn: the figure greys out

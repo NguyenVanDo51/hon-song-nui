@@ -1,15 +1,10 @@
 class_name Board3D
-extends Control
-## tabletop 3D board (Store.board_3d). Same surface as Board — signals, s, fx, T, view, hover, set_state / fit /
-## refresh_terrain / tile_rect — and it reads the same view + fx state, so GameScreen's playback (move tweens,
+extends BoardBase
+## tabletop 3D board (Store.board_3d). Same surface as Board (BoardBase + set_state / fit / refresh_terrain /
+## tile_rect) and it reads the same view + fx state, so GameScreen's playback (move tweens,
 ## lunges, flashes, deaths) animates the figurines unchanged.
 ## Layers: 3D SubViewport shown as one texture (table, terrain mesh, buildings, figurines, flat overlay quads textured
 ## by a 2D SubViewport painted with Board's own overlay code) | 2D screen layers (fx, hp bars, ⓘ, forecast, numbers).
-
-signal tile_clicked(x: int, y: int)
-signal hover_changed(tile: Variant)
-signal cancel_requested
-signal info_requested(id: int)
 
 const PITCH := 45.0 # camera tilt below the horizon, degrees (fixed: no free camera)
 const OT := 40.0 # overlay texture px per tile
@@ -51,13 +46,6 @@ const KK_WATER_DEEP := Color("#1f3d86")
 const KK_ROAD := Color("#dfb787")
 const KK_ROAD2 := Color("#d4a471")
 
-var s: Dictionary = {}
-var fx: FX
-var T := 48.0 # screen px per tile at the whole-board view
-var view := { "hide": {}, "hold": {}, "razable": [], "razeAt": null, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
-	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null, "preview": null }
-var hover: Variant = null
-
 var _flat: Board # never in the tree: paints overlays / buffs / ⓘ / forecast with Board's own code
 var _vp: SubViewport
 var _cam: Camera3D
@@ -96,8 +84,7 @@ var _mat_flash: StandardMaterial3D
 var _night_on := false
 
 func _init() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	super()
 	clip_contents = true
 	_flat = Board.new()
 	_mat = StandardMaterial3D.new()
@@ -168,9 +155,6 @@ func _init() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_PREDELETE and is_instance_valid(_flat):
 		_flat.free()
-	elif what == NOTIFICATION_MOUSE_EXIT and hover != null:
-		hover = null
-		hover_changed.emit(null)
 
 func _layer(fn: Callable) -> Control:
 	var l := Board.Layer.new()
@@ -254,12 +238,10 @@ func tile_rect(x: int, y: int) -> Rect2:
 func focus(a: Vector2i, b: Vector2i) -> void:
 	_focus_center = Vector3((a.x + b.x) / 2.0 + 0.5, 0.3, (a.y + b.y) / 2.0 + 0.5)
 	_focus_size = clampf(_base_size * 0.42, 3.2, _base_size)
-	var f0 := _focus
-	await fx.tween(320.0, func(t: float) -> void: _focus = lerpf(f0, 1.0, 1.0 - pow(1.0 - t, 3.0)))
+	await _ease_focus(320.0, _focus, 1.0, func(v: float) -> void: _focus = v)
 
 func unfocus() -> void:
-	var f0 := _focus
-	await fx.tween(280.0, func(t: float) -> void: _focus = lerpf(f0, 0.0, t * t * (3.0 - 2.0 * t)))
+	await _ease_focus(280.0, _focus, 0.0, func(v: float) -> void: _focus = v)
 
 func _apply_camera(shake: Vector2) -> void:
 	var c := _base_center.lerp(_focus_center, _focus)
@@ -312,31 +294,6 @@ func _pick(p: Vector2) -> Variant:
 			best = Vector2i(tx, ty)
 			best_t = t
 	return best
-
-func _gui_input(ev: InputEvent) -> void:
-	if s.is_empty():
-		return
-	if ev is InputEventMouseButton and ev.pressed:
-		if ev.button_index == MOUSE_BUTTON_LEFT:
-			var info_id := _info_at(ev.position)
-			if info_id >= 0:
-				info_requested.emit(info_id)
-			else:
-				var tl: Variant = _pick(ev.position)
-				if tl != null:
-					tile_clicked.emit(tl.x, tl.y)
-		elif ev.button_index == MOUSE_BUTTON_RIGHT:
-			cancel_requested.emit()
-		accept_event()
-	elif ev is InputEventMouseMotion:
-		var ih := _info_at(ev.position)
-		if ih != _flat._info_hit_id:
-			_flat._info_hit_id = ih
-			tooltip_text = "Xem thông tin quân" if ih >= 0 else ""
-		var tl: Variant = _pick(ev.position)
-		if tl != hover:
-			hover = tl
-			hover_changed.emit(tl)
 
 func _info_at(p: Vector2) -> int:
 	return _flat._info_at(p)
@@ -584,24 +541,22 @@ func _sync_lights() -> void:
 			l.position = want[i]
 
 # ---------- figures ----------
-## same list the 2D board draws: live units (minus hidden), moving / dying sprites, fading corpses
+## same list the 2D board draws (BoardBase._figures); a stacked pair is shifted after the feet height is found
 func _collect(time: float, _dt: float) -> void:
 	_shown.clear()
 	var v := view
 	var sel_id: int = v.sel.id if v.sel != null else -1
-	for u: Dictionary in s.units:
-		if not v.hide.has(u.id):
-			_shown.append({ "key": "u%d" % u.id, "u": u, "x": float(u.x), "y": float(u.y), "ghost": -1.0 })
-	for sp: Dictionary in v.sprites:
-		if not sp.get("hidden", false):
-			_shown.append({ "key": "s%d" % sp.u.id, "u": sp.u, "x": float(sp.u.x), "y": float(sp.u.y), "ghost": -1.0 })
-	for g: Dictionary in fx.ghosts:
-		_shown.append({ "key": "g%d_%d" % [g.u.id, int(g.t0)], "u": g.u, "x": float(g.u.x), "y": float(g.u.y), "ghost": clampf((time - g.t0) / g.dur, 0.0, 1.0) })
+	for f: Dictionary in _figures(time):
+		var id: int = f.u.id
+		var key: String = ("u%d" % id) if f.kind == "u" else (("s%d" % id) if f.kind == "s" else "g%d_%d" % [id, int(f.t0)])
+		_shown.append({ "key": key, "u": f.u, "x": f.x, "y": f.y, "ghost": f.k, "stack": f.stack })
 	for it: Dictionary in _shown:
 		var u: Dictionary = it.u
+		var stack: Vector2 = it.stack
 		if u.id == sel_id and v.dest != null and it.ghost < 0:
 			it.x = float(v.dest[0])
 			it.y = float(v.dest[1])
+			stack = Vector2.ZERO
 		var off: Variant = fx.offsets.get(u.id)
 		it.off = off
 		var bx: float = it.x
@@ -619,6 +574,8 @@ func _collect(time: float, _dt: float) -> void:
 		var frac := fxr + fyr
 		it.h = lerpf(h0, h1, frac)
 		it.moving = frac > 0.001 and frac < 0.999
+		it.x += stack.x
+		it.y += stack.y
 
 func _roster_key(u: Dictionary) -> String:
 	return ("hero_" + u.side) if u.type == "hero" else u.type
@@ -749,7 +706,7 @@ func _paint_overlay(ci: CanvasItem) -> void:
 	if view.sel != null:
 		var at: Array = view.dest if view.dest != null else [view.sel.x, view.sel.y]
 		var c := Vector2((at[0] + 0.5) * OT, (at[1] + 0.5) * OT)
-		ci.draw_arc(c, OT * 0.42, 0, TAU, 32, Color(1, 0.878, 0.541, 0.6 + sin(time / 160.0) * 0.4), OT * 0.07, true)
+		ci.draw_arc(c, OT * 0.42, 0, TAU, 32, sel_color(time), OT * 0.07, true)
 
 # ---------- screen layers ----------
 func _draw_add(ci: CanvasItem) -> void:

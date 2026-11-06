@@ -1,10 +1,12 @@
 class_name GameScreen
 extends Control
 ## the war table: full-screen map + floating HUD (turn/gold/goal, ⚙ menu, unit card, Hết lượt), one orders popup beside the selection;
-## input, event playback, enemy turn loop, hint, end screen.
+## input, event playback, AI turn loop, hotseat handoff, hint, end screen.
+## "me" = the side the person at the screen plays (_me); "p" / "e" literals left here mean faction colour.
 ## Port of the game half of src/ui/screens.js.
 
 signal _intro_closed
+signal _handoff_closed
 
 ## selection modes: idle = nothing / choosing where to go; moved = destination picked; target = enemy aimed
 const M_IDLE := "idle"
@@ -20,7 +22,7 @@ var def: Dictionary = {}
 ## bumps on start / leave so stale async turn loops stop
 var gen := 0
 var ui := {}
-var stats := { "kills": 0, "losses": 0 }
+var stats := { "p": 0, "e": 0 } # units lost per side
 var fx: FX
 var board: BoardBase # Board (2D) or Board3D: same surface (signals, view, fit, set_state, tile_rect, focus)
 
@@ -28,7 +30,7 @@ var _turn: Label
 var _gold_box: HBoxContainer
 var _gold_num: Label
 var _coins: CoinPop
-var _gold_shown := -1 # count-up value on screen; -1 = show s.gold.p
+var _gold_shown := -1 # count-up value on screen; -1 = show s.gold[_me()]
 var _gold_tw: Tween
 var _hp_count := {} # unit id -> hp shown while a heal counts up
 var _heal_tws: Array[Tween] = []
@@ -55,7 +57,7 @@ var _card: PanelContainer
 var _card_box: VBoxContainer
 var _wrap: Control
 var _frame: Panel
-var _banner: Banner
+var _banner: HudWidgets.Banner
 var _info: VBoxContainer
 var _actions: GridContainer
 var _btn_end: Button
@@ -69,6 +71,7 @@ var _memo := {}
 var _memo_fp := 0
 var _intro_on := false
 var _intro_layer: Control = null
+var _handoff_layer: Control = null
 var _pop_pending := false
 var _pop_placed_at: Variant = null
 
@@ -92,7 +95,7 @@ func _reset_ui() -> void:
 ## tall screen -> top band (turn/gold/goal, ⚙) + bottom band (card left, Hết lượt right). Whichever gives bigger tiles.
 ## Only the orders popup (beside the selected tile) and the ⚙ menu float over the map.
 func _build() -> void:
-	var bg := BgPaint.new()
+	var bg := HudWidgets.BgPaint.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	_wrap = Control.new()
@@ -110,7 +113,7 @@ func _build() -> void:
 	_make_board(Store.board_3d())
 	_coins = CoinPop.new(board)
 	_wrap.add_child(_coins)
-	_banner = Banner.new()
+	_banner = HudWidgets.Banner.new()
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_wrap.add_child(_banner)
 	# top-left: turn, gold, goal
@@ -127,7 +130,7 @@ func _build() -> void:
 	_turn = Style.lbl("Lượt 1", 19, Style.GOLD, Style.display_x)
 	th.add_child(_turn)
 	_gold_box = Style.hbox(5)
-	_gold_box.add_child(Coin.new())
+	_gold_box.add_child(HudWidgets.Coin.new())
 	_gold_num = Style.lbl("0", 16, Style.GOLD, Style.bold)
 	_gold_num.pivot_offset = Vector2(10, 10)
 	_gold_box.add_child(_gold_num)
@@ -151,7 +154,7 @@ func _build() -> void:
 	top_r.add_child(_btn_ff)
 	_gear = _ibtn("", "Menu, cài đặt", func() -> void: _show_menu(not _menu.visible))
 	_gear.custom_minimum_size = Vector2(44, 40)
-	var gi := GearIcon.new() # no gear glyph in the bundled fonts: drawn
+	var gi := HudWidgets.GearIcon.new() # no gear glyph in the bundled fonts: drawn
 	gi.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	gi.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_gear.add_child(gi)
@@ -268,7 +271,7 @@ func _build_menu() -> void:
 		v.add_child(b)
 		return b
 	_btn_hint = item.call("💬 Gợi ý nước đi", "Gợi ý (phím H)", _on_hint)
-	item.call("📖 Sách lính", "Tính chất từng loại quân", func() -> void: main.menus.open_codex("p"))
+	item.call("📖 Sách lính", "Tính chất từng loại quân", func() -> void: main.menus.open_codex(_me()))
 	_btn_speed = item.call("", "Tốc độ hoạt cảnh", _on_speed, false)
 	_btn_sound = item.call("", "Âm thanh", func() -> void:
 		main.audio.set_muted(not main.audio.muted)
@@ -363,7 +366,7 @@ func _confirm_restart() -> void:
 
 ## while the enemy moves: hold Space or a mouse button (or ⏩) to run x4
 func _process(_dt: float) -> void:
-	if not visible or s.is_empty() or s.side != "e" or not ui.busy:
+	if not visible or s.is_empty() or not _is_ai(_turn_side()) or not ui.busy:
 		return
 	var held := Input.is_key_pressed(KEY_SPACE) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	FX.speed = maxf(_user_speed, 4.0) if (_ff or held) else _user_speed
@@ -384,12 +387,13 @@ func _fit() -> void:
 
 func _refresh_end_button(my_turn: bool) -> void:
 	var units: Array = s.units
-	var left: int = units.filter(func(o: Dictionary) -> bool: return o.side == "p" and not o.acted).size()
-	var enemy_busy: bool = ui.busy and s.side == "e"
+	var me := _me()
+	var left: int = units.filter(func(o: Dictionary) -> bool: return o.side == me and not o.acted).size()
+	var enemy_busy: bool = ui.busy and _is_ai(_turn_side())
 	_btn_end.disabled = not my_turn
 	var end_title: Label = _btn_end.get_meta("title")
 	end_title.text = "Lượt địch" if enemy_busy else "Hết lượt"
-	var sub := ("%s đang ra quân…" % Content.theme().factions.e.short) if enemy_busy else (
+	var sub := ("%s đang ra quân…" % Content.theme().factions[s.side].short) if enemy_busy else (
 		("Còn %d quân chưa đi" % left) if left > 0 else "Mọi quân đã ra lệnh")
 	Style.set_sub(_btn_end, sub if (my_turn or enemy_busy) else "")
 	# everyone has moved: the button breathes so the next step is obvious
@@ -410,8 +414,11 @@ func _def_for(c: Dictionary) -> Dictionary:
 		var mid: String = c.id
 		return Content.mission(mid)
 	var map_id: String = c.get("map", "dong_bang"); var hero: String = c.hero
-	var easy: bool = c.easy; var gold: int = c.get("gold", 300)
-	var cap: int = c.get("cap", 15)
+	var gold: int = c.get("gold", 300); var cap: int = c.get("cap", 15)
+	if c.kind == "duel":
+		var hero_e: String = c.heroE; var ctrl_e: String = c.ctrlE
+		return Content.duel_def(map_id, hero, hero_e, ctrl_e, gold, cap)
+	var easy: bool = c.easy
 	return Content.skirmish_def(map_id, hero, easy, gold, cap)
 
 func start(state: Dictionary, c: Dictionary) -> void:
@@ -428,7 +435,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	if (board is Board3D) != Store.board_3d():
 		_make_board(Store.board_3d())
 	_reset_ui()
-	stats = { "kills": 0, "losses": 0 }
+	stats = { "p": 0, "e": 0 }
 	var view_hide: Dictionary = board.view.hide; var view_hold: Dictionary = board.view.hold
 	view_hide.clear()
 	view_hold.clear()
@@ -446,25 +453,72 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	board.refresh_terrain()
 	save()
 	refresh()
-	var foe: bool = s.side != "p"
-	banner(_turn_banner() if s.side == "p" else Content.text("enemyTurn"), foe)
-	if s.side == "p":
+	if _hotseat():
+		_hotseat_start()
+		return
+	var ai := _is_ai(_turn_side())
+	banner(Content.text("enemyTurn") if ai else _turn_banner(), _turn_side() == "e")
+	if not ai:
 		_intro_new_units.call_deferred()
-	if s.side == "e":
-		enemy_turn()
-	else:
 		_maybe_bot()
+	else:
+		ai_turn()
+
+## hotseat game opened (new or continued): hand the device to the side to move first
+func _hotseat_start() -> void:
+	var my := gen
+	ui.busy = true
+	refresh()
+	await _handoff()
+	if gen != my:
+		return
+	ui.busy = false
+	banner(_turn_banner(), _turn_side() == "e")
+	refresh()
+	_maybe_bot()
 
 func _turn_banner() -> String:
+	if _hotseat():
+		return Content.text("duelTurn").format({ "turn": s.turn, "side": _side_name(_turn_side()) })
 	return Content.text("turnBanner").format({ "turn": s.turn })
 
+# ---------- sides ----------
+## the side the person at the screen plays: the side to move, unless the AI has it
+func _me() -> String:
+	var side := _turn_side()
+	var other := Game.other(side)
+	return other if _is_ai(side) and not _is_ai(other) else side
+
+func _foe() -> String:
+	return Game.other(_me())
+
+func _turn_side() -> String:
+	return str(s.get("side", "p"))
+
+func _is_ai(side: String) -> bool:
+	return Content.is_ai(s, side)
+
+## two humans share the device: texts name the factions instead of "ta" / "địch"
+func _hotseat() -> bool:
+	return not _is_ai("p") and not _is_ai("e")
+
+## a person (or the `bot` flag) moves now
+func _human_turn() -> bool:
+	return not _is_ai(_turn_side())
+
+func _side_name(side: String) -> String:
+	var f: Dictionary = Content.theme().factions[side]
+	return str(f.get("duelShort", f.name)) if _hotseat() else str(f.short)
+
 func leave() -> void:
-	if not s.is_empty() and s.side == "e":
+	if not s.is_empty() and _is_ai(_turn_side()):
 		FX.speed = _user_speed
 	_btn_ff.visible = false
 	gen += 1
 	if _intro_layer != null:
 		_intro_closed.emit()
+	if _handoff_layer != null:
+		_handoff_closed.emit()
 	visible = false
 	_end.visible = false
 	fx.clear()
@@ -510,10 +564,10 @@ func _build_view() -> void:
 	v.hpCount = _hp_count
 	var u: Variant = _sel_unit()
 	var su: Dictionary = u if u != null else {} # u typed; read only where u != null
-	var my_turn: bool = s.side == "p" and not ui.busy and s.winner == null
+	var my_turn: bool = _human_turn() and not ui.busy and s.winner == null
 	v.busy = ui.busy
 	v.sel = u if u != null and not ui.busy else null
-	v.selMine = u != null and my_turn and u.side == "p" and not u.acted
+	v.selMine = u != null and my_turn and u.side == _me() and not u.acted
 	v.reach = null
 	if u != null and not ui.busy and ui.mode == M_IDLE:
 		v.reach = _reach(su)
@@ -563,7 +617,7 @@ func _hover_attack() -> Variant:
 		return null
 	var hx: int = ui.hover.x; var hy: int = ui.hover.y
 	var e: Variant = Game.unit_at(s, hx, hy)
-	if e == null or e.side != "e":
+	if e == null or e.side != _foe():
 		return null
 	var su: Dictionary = _sel_unit(); var ed: Dictionary = e
 	var from: Variant = _attack_from(su, ed)
@@ -657,7 +711,7 @@ func cancel() -> void:
 func _unbuy_sel() -> bool:
 	var sel: Variant = _sel_unit()
 	var u: Dictionary = sel if sel != null else {}
-	if sel == null or s.side != "p" or not Game.can_unbuy(s, u):
+	if sel == null or not _human_turn() or not Game.can_unbuy(s, u):
 		return false
 	var x: int = u.x
 	var y: int = u.y
@@ -673,16 +727,17 @@ func _unbuy_sel() -> bool:
 	return true
 
 func _on_tile(x: int, y: int) -> void:
-	var my_turn: bool = s.side == "p"
+	var my_turn := _human_turn()
+	var me := _me(); var foe := _foe()
 	var clicked: Variant = Game.unit_at(s, x, y)
 	var cd: Dictionary = clicked if clicked != null else {} # clicked typed; read only where clicked != null
 	var u: Variant = _sel_unit()
 	var info_was: Variant = ui.info
 	ui.hint = null; ui.hotBuy = null; ui.hintKind = null
-	if u != null and my_turn and not u.acted and u.side == "p":
+	if u != null and my_turn and not u.acted and u.side == me:
 		var su: Dictionary = u
 		var ux: int = su.x; var uy: int = su.y
-		if clicked != null and clicked.side == "e":
+		if clicked != null and clicked.side == foe:
 			var from: Variant = _attack_from(su, cd)
 			if from != null:
 				# mouse: the preview was already on the board while hovering -> one click attacks.
@@ -727,21 +782,21 @@ func _on_tile(x: int, y: int) -> void:
 		if ui.mode == M_IDLE and (x != u.x or y != u.y) and _unbuy_sel():
 			return
 	_clear_sel()
-	if my_turn and (clicked == null or clicked.side == "p") and _stuck_unit() != null and (clicked == null or not Game.stacked(s, cd)):
+	if my_turn and (clicked == null or clicked.side == me) and _stuck_unit() != null and (clicked == null or not Game.stacked(s, cd)):
 		_force_stack()
 		main.audio.play("select")
 		refresh()
 		return
 	if clicked != null:
 		# AE2: our castle opens the shop even when the unit on it has acted, or is an enemy (new unit steps off)
-		if my_turn and (clicked.side == "e" or clicked.acted) and Game.buy_options(s, "p", x, y).size():
+		if my_turn and (clicked.side == foe or clicked.acted) and Game.buy_options(s, me, x, y).size():
 			ui.buyAt = [x, y]
 			main.audio.play("select")
 			refresh()
 			return
 		ui.sel = clicked.id
 		# standing on a village/castle to take (or a ruin to repair): orders open on the first click
-		if my_turn and clicked.side == "p" and not clicked.acted \
+		if my_turn and clicked.side == me and not clicked.acted \
 				and (Game.can_capture(s, cd, x, y) or Game.can_repair(s, cd, x, y)):
 			_set_dest(x, y)
 			return
@@ -749,7 +804,7 @@ func _on_tile(x: int, y: int) -> void:
 		refresh()
 		return
 	ui.sel = null
-	if my_turn and Game.buy_options(s, "p", x, y).size():
+	if my_turn and Game.buy_options(s, me, x, y).size():
 		ui.buyAt = [x, y]
 		main.audio.play("select")
 		refresh()
@@ -768,7 +823,7 @@ func _in_place_work(u: Dictionary) -> bool:
 ## our unit stands on our castle and something can be bought there (the new unit then steps off)
 func _can_buy_here(u: Dictionary) -> bool:
 	var ux: int = u.x; var uy: int = u.y
-	return u.side == "p" and s.side == "p" and Game.buy_options(s, "p", ux, uy).any(func(o: Dictionary) -> bool: return o.ok)
+	return u.side == _me() and _human_turn() and Game.buy_options(s, _me(), ux, uy).any(func(o: Dictionary) -> bool: return o.ok)
 
 ## true when the mouse has rested on (x,y) long enough that the board preview was visible
 func _hover_settled(x: int, y: int) -> bool:
@@ -783,7 +838,7 @@ func _best_raze(list: Array) -> Array:
 	var ux: int = u.x; var uy: int = u.y
 	for t: Array in list:
 		var tx: int = t[0]; var ty: int = t[1]
-		var sc := (100.0 if owners.get(Vector2i(tx, ty)) == "e" else 0.0) - Game.dist(ux, uy, tx, ty)
+		var sc := (100.0 if owners.get(Vector2i(tx, ty)) == _foe() else 0.0) - Game.dist(ux, uy, tx, ty)
 		if sc > best_sc:
 			best_sc = sc
 			best = t
@@ -792,7 +847,7 @@ func _best_raze(list: Array) -> Array:
 ## Space / Enter / clicking the chosen tile again: attack the aimed target, else capture, else wait
 func default_action() -> void:
 	var u: Variant = _sel_unit()
-	if ui.busy or u == null or u.side != "p" or u.acted or s.side != "p" or s.winner != null:
+	if ui.busy or u == null or u.side != _me() or u.acted or not _human_turn() or s.winner != null:
 		return
 	var su: Dictionary = u
 	var ux: int = su.x; var uy: int = su.y
@@ -821,10 +876,11 @@ func default_action() -> void:
 
 ## Tab: select the next unit of ours that hasn't acted
 func select_next() -> void:
-	if ui.busy or s.side != "p" or s.winner != null:
+	if ui.busy or not _human_turn() or s.winner != null:
 		return
 	var units: Array = s.units
-	var mine: Array = units.filter(func(o: Dictionary) -> bool: return o.side == "p" and not o.acted)
+	var me := _me()
+	var mine: Array = units.filter(func(o: Dictionary) -> bool: return o.side == me and not o.acted)
 	if mine.is_empty():
 		return
 	var i := 0
@@ -841,6 +897,11 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if _intro_on:
 		if key != null and key.pressed and not key.echo and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER, KEY_ESCAPE]:
 			_intro_closed.emit()
+			get_viewport().set_input_as_handled()
+		return
+	if _handoff_layer != null:
+		if key != null and key.pressed and not key.echo and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]:
+			_handoff_closed.emit()
 			get_viewport().set_input_as_handled()
 		return
 	if not visible or s.is_empty() or _end.visible or main.menus.is_codex_open():
@@ -913,7 +974,7 @@ func _stuck_unit() -> Variant:
 	var units: Array = s.units
 	for i in range(units.size() - 1, -1, -1):
 		var u: Dictionary = units[i]
-		if u.side == "p" and not u.acted and Game.stacked(s, u):
+		if u.side == _me() and not u.acted and Game.stacked(s, u):
 			return u
 	return null
 
@@ -942,7 +1003,7 @@ func _stack_hint() -> void:
 func _open_work() -> int:
 	var n := 0
 	for u: Dictionary in s.units:
-		if u.side != "p" or u.acted:
+		if u.side != _me() or u.acted:
 			continue
 		var reach := _reach(u)
 		for r: Dictionary in reach.values():
@@ -954,7 +1015,7 @@ func _open_work() -> int:
 	return n
 
 func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no longer asks twice)
-	if ui.busy or s.side != "p" or s.winner != null:
+	if ui.busy or not _human_turn() or s.winner != null:
 		return
 	if _stuck_unit() != null: # a unit bought onto an occupied castle has not stepped off yet
 		_clear_sel()
@@ -966,20 +1027,62 @@ func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no
 	_clear_sel()
 	var before := _snapshot()
 	var ev := Game.end_turn(s)
+	_count_from(ev)
 	save()
 	if s.winner != null:
 		finish()
 		return
 	ui.busy = true
 	refresh()
+	if _human_turn(): # two humans: hand the device over, then the new side's turn start plays
+		await _handoff()
+		if gen == my:
+			await _turn_start(ev, before)
+		return
 	banner(Content.text("enemyTurn"), true)
 	await play(ev, before)
 	if gen != my:
 		return
-	await enemy_turn()
+	await ai_turn()
 
-func enemy_turn() -> void:
+## the next person takes the device: full-screen card, any tap / Space / Enter goes on (`bot` runs skip it)
+func _handoff() -> void:
+	if main.flags.has("bot"):
+		return
+	var turn: int = s.turn
+	var side_txt: String = Content.theme().factions[s.side].name
+	_handoff_layer = HudWidgets.Handoff.make(Content.text("handoffTitle").format({ "side": side_txt }),
+		Content.text("handoffSub").format({ "turn": turn }), Style.P_NAME if s.side == "p" else Style.SEA_HI, _handoff_closed.emit)
+	add_child(_handoff_layer)
+	main.audio.play("drum")
+	if main.flags.has("shots"):
+		main.shot(str(main.flags.get("tag", "s")) + "_handoff")
+	await _handoff_closed
+	main.audio.play("ui")
+	_handoff_layer.queue_free()
+	_handoff_layer = null
+
+## income about to play for the side on screen: its total counts up from before the coins
+func _count_from(ev: Array) -> void:
+	for e: Dictionary in ev:
+		if e.t == "income" and e.side == _me() and e.amount:
+			_gold_shown = s.gold[_me()] - e.amount
+
+## a human side's turn begins: banner, income / heal / reinforcement playback, then input opens
+func _turn_start(ev: Array, before: Dictionary) -> void:
 	var my := gen
+	banner(_turn_banner(), _hotseat() and _turn_side() == "e")
+	refresh()
+	await play(ev, before) # income, heal, reinforcements: input stays closed until they finish
+	if gen != my:
+		return
+	ui.busy = false
+	refresh()
+	_maybe_bot()
+
+func ai_turn() -> void:
+	var my := gen
+	var side: String = s.side
 	var game_seed: int = s.get("seed", 0); var turn: int = s.turn
 	AI.seed_game(game_seed * 1000 + turn) # same game + turn -> same enemy choices after a reload
 	_user_speed = FX.speed
@@ -990,8 +1093,8 @@ func enemy_turn() -> void:
 	await fx.sleep(900.0)
 	if gen != my:
 		return
-	var mem := {}
-	while s.winner == null and s.side == "e":
+	var mem := Content.ai_mem(s, side) # difficulty hook (docs/1v1.md)
+	while s.winner == null and s.side == side:
 		var next: Variant = AI.next_step(s, mem)
 		if next == null:
 			break
@@ -1016,9 +1119,7 @@ func enemy_turn() -> void:
 		return
 	var before := _snapshot()
 	var ev := Game.end_turn(s)
-	for e: Dictionary in ev:
-		if e.t == "income" and e.side == "p" and e.amount:
-			_gold_shown = s.gold.p - e.amount # our income lands here (enemy's end_turn): total counts up when coins land
+	_count_from(ev) # our income lands here (AI's end_turn): total counts up when coins land
 	save()
 	if s.winner != null:
 		ui.busy = false
@@ -1027,14 +1128,7 @@ func enemy_turn() -> void:
 	_btn_ff.visible = false
 	_ff = false
 	FX.speed = _user_speed
-	banner(_turn_banner())
-	refresh()
-	await play(ev, before) # income, heal, reinforcements: input stays closed until they finish
-	if gen != my:
-		return
-	ui.busy = false
-	refresh()
-	_maybe_bot()
+	await _turn_start(ev, before)
 
 ## changes whenever an AI step did anything (moved / acted / bought)
 func _progress_sig() -> String:
@@ -1047,14 +1141,14 @@ func _progress_sig() -> String:
 
 ## debug flag `bot`: the AI plays our side too (screenshots / soak test)
 func _maybe_bot() -> void:
-	if main.flags.has("bot") and s.side == "p" and s.winner == null:
+	if main.flags.has("bot") and _human_turn() and s.winner == null:
 		_bot_turn.call_deferred()
 
 func _bot_turn() -> void:
 	var my := gen
 	await fx.sleep(400.0)
 	var mem := {}
-	while gen == my and s.side == "p" and s.winner == null:
+	while gen == my and _human_turn() and s.winner == null:
 		var step: Variant = AI.next_step(s, mem)
 		if step == null:
 			break
@@ -1078,23 +1172,24 @@ func _bot_turn() -> void:
 ## every paying building pops its own "+N"; the total counts up as they land
 func _income_fx() -> void:
 	var items: Array = []
+	var me := _me()
 	for k: Vector2i in s.owner:
-		if s.owner[k] == "p":
+		if s.owner[k] == me:
 			items.append({ "x": k.x, "y": k.y, "amount": Game.income_of(s.tiles[k.y][k.x]) })
 	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y or (a.y == b.y and a.x < b.x))
 	_coins.board = board
 	_coins.play(items)
 	main.audio.play("coin")
-	var from: int = _gold_shown if _gold_shown >= 0 else s.gold.p
+	var from: int = _gold_shown if _gold_shown >= 0 else s.gold[me]
 	if _gold_tw != null:
 		_gold_tw.kill()
 	_gold_tw = _count_up(_gold_num, CoinPop.RISE, 0.9, func(k: float) -> void:
-		var gold_now: float = s.gold.p # live target: a buy mid-count still ends right
+		var gold_now: float = s.gold[me] # live target: a buy mid-count still ends right
 		_gold_shown = roundi(lerpf(from, gold_now, k))
 		_gold_num.text = str(_gold_shown))
 	_gold_tw.tween_callback(func() -> void:
 		_gold_shown = -1
-		_gold_num.text = str(s.gold.p)
+		_gold_num.text = str(s.gold[me])
 		_bump_gold())
 
 ## heal = same pop as income (green +N over the unit, after the coins) + the hp bar counting up
@@ -1252,10 +1347,7 @@ func play(events: Array, before: Dictionary) -> void:
 					sprites.erase(sp)
 					var spu: Dictionary = sp.u
 					fx.death(spu)
-				if e.side == "e":
-					stats.kills += 1
-				else:
-					stats.losses += 1
+				stats[e.side] += 1
 				await fx.sleep(380.0)
 			"capture":
 				var eside: String = e.side
@@ -1316,7 +1408,7 @@ func play(events: Array, before: Dictionary) -> void:
 			"heal":
 				_heal_fx(e)
 			"income":
-				if e.side == "p" and e.amount:
+				if e.side == _me() and e.amount:
 					_income_fx()
 	if dived and gen == my:
 		await board.unfocus()
@@ -1335,7 +1427,7 @@ func _zoom_on() -> bool:
 ## buyable) that the player has never met — all at the start, never mid-battle. Remembered per player
 ## (Store "seen_units"). Off for bot / nointro runs, which also never write the seen list.
 func _intro_new_units() -> void:
-	if main.flags.has("bot") or main.flags.has("nointro") or _intro_on or s.is_empty() or not visible:
+	if main.flags.has("bot") or main.flags.has("nointro") or _intro_on or s.is_empty() or not visible or _hotseat():
 		return
 	var seen: Array = Store.get_v("seen_units", [])
 	var fresh := [] # [side, type]
@@ -1377,7 +1469,7 @@ func _intro_card(u: Dictionary, i: int, n: int) -> void:
 	var side: String = u.side; var type: String = u.type
 	var look := Content.unit_type_look(side, type, hk)
 	var st := Content.type_stat(type, hk)
-	var mine: bool = u.side == "p"
+	var mine: bool = u.side == _me()
 	var layer := Control.new()
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -1413,7 +1505,7 @@ func _intro_card(u: Dictionary, i: int, n: int) -> void:
 	var head := Style.hbox(18)
 	var holder := Control.new()
 	holder.custom_minimum_size = Vector2(120, 120)
-	var glow := IntroGlow.new()
+	var glow := HudWidgets.IntroGlow.new()
 	glow.col = side_col
 	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	holder.add_child(glow)
@@ -1478,27 +1570,21 @@ func _intro_card(u: Dictionary, i: int, n: int) -> void:
 	layer.queue_free()
 	_intro_layer = null
 
-## soft pulsing halo behind the token on the intro card
-class IntroGlow extends Control:
-	var col := Color.WHITE
-	func _process(_dt: float) -> void:
-		queue_redraw()
-	func _draw() -> void:
-		var k := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 400.0)
-		Draw.glow(self, size / 2, size.x * (0.62 + 0.06 * k), Color(col, 0.35 + 0.2 * k))
-
 # ---------- end ----------
 func finish() -> void:
 	Store.clear_game()
-	var win: bool = s.winner == "p"
-	if win and ctx.kind == "campaign":
-		var done_id: String = ctx.id
-		Store.mark_done(done_id) # before any await: leaving during the pause must not lose the win
+	Store.record_result(ctx, s.winner) # before any await: leaving during the pause must not lose the win
+	var duel: bool = ctx.kind == "duel"
+	var win: bool = s.winner == _me() or (duel and _hotseat()) # two humans: someone at the screen won
 	refresh()
 	var my := gen
 	var hero_keys: Dictionary = s.heroKey
 	var reason_text := Content.end_text(s.winner, str(s.reason), hero_keys)
-	if not win:
+	if duel: # ends[] lines speak as p ("Quân ta đã tan"): name the losing side instead
+		var loser: String = Content.theme().factions[Game.other(str(s.winner))].name
+		reason_text = Content.text("duelEnd_" + str(s.reason)).format({ "loser": loser })
+		reason_text = "" if reason_text.begins_with("duelEnd_") else reason_text
+	if not win and not duel:
 		var tip := Content.text("loseTip_" + str(s.reason))
 		if not tip.begins_with("loseTip_"):
 			reason_text += "\n" + tip
@@ -1537,6 +1623,10 @@ func finish() -> void:
 				main.start_game(Game.new_game(m), c2)
 			buttons.append(["Đánh lại", retry, true])
 			buttons.append(["Bản đồ chiến dịch", func() -> void: main.show_campaign(cid), false])
+	elif duel:
+		var c3 := ctx.duplicate()
+		buttons.append(["Chơi lại", func() -> void: main.start_game(Game.new_game(_def_for(c3)), c3), true])
+		buttons.append(["Về menu", main.show_title, false])
 	else:
 		buttons.append(["Ván mới", main.show_skirmish, true])
 		buttons.append(["Menu", main.show_title, false])
@@ -1564,12 +1654,16 @@ func _show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 	card.clip_contents = true
 	center.add_child(card)
 	if win:
-		var rays := Rays.new()
+		var rays := HudWidgets.Rays.new()
 		rays.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		card.add_child(rays)
 	var v := Style.vbox(12)
 	card.add_child(v)
-	var title := Style.lbl(Content.text("victory") if win else Content.text("defeat"), 46, Style.GOLD if win else Style.SEA_HI, Style.display_x)
+	var title_txt := Content.text("victory") if win else Content.text("defeat")
+	var duel: bool = ctx.get("kind") == "duel"
+	if duel:
+		title_txt = Content.text("duelWin").format({ "side": Content.theme().factions[s.winner].name })
+	var title := Style.lbl(title_txt, 34 if duel else 46, Style.GOLD if win else Style.SEA_HI, Style.display_x, duel)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(title)
 	if text != "":
@@ -1580,7 +1674,10 @@ func _show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 		v.add_child(Style.dialogue(outro, 0.5, true))
 	var st := Style.hbox(26)
 	st.alignment = BoxContainer.ALIGNMENT_CENTER
-	for pair: Array in [[s.turn, "lượt"], [stats.kills, "địch bị hạ"], [stats.losses, "quân ta ngã"]]:
+	var rows := [[s.turn, "lượt"], [stats[_foe()], "địch bị hạ"], [stats[_me()], "quân ta ngã"]]
+	if duel and _hotseat():
+		rows = [[s.turn, "lượt"], [stats.p, _side_name("p") + " ngã"], [stats.e, _side_name("e") + " ngã"]]
+	for pair: Array in rows:
 		var col := Style.vbox(0)
 		var n := Style.lbl(str(pair[0]), 24, Style.INK, Style.display_x)
 		n.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1614,7 +1711,7 @@ func _show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 
 # ---------- hint ----------
 func _on_hint() -> void:
-	if s.is_empty() or ui.busy or s.side != "p" or s.winner != null:
+	if s.is_empty() or ui.busy or not _human_turn() or s.winner != null:
 		return
 	_reset_ui()
 	var step: Variant = AI.next_step(s.duplicate(true), {}) # next_step may clear guard flags: ask on a copy
@@ -1626,7 +1723,7 @@ func _on_hint() -> void:
 		ui.buyAt = [step.x, step.y]
 		ui.hotBuy = step.type
 		var hot_type: String = step.type
-		ui.hint = "Gợi ý: mua [b]%s[/b]." % Content.unit_type_look("p", hot_type, s.heroKey.p).name
+		ui.hint = "Gợi ý: mua [b]%s[/b]." % Content.unit_type_look(_me(), hot_type, s.heroKey[_me()]).name
 		refresh()
 		return
 	var a: Dictionary = step.act
@@ -1686,7 +1783,11 @@ func _act(label: String, fn: Callable, opts := {}) -> Button:
 func _goal_line() -> String:
 	var win: Dictionary = s.win; var hero_keys: Dictionary = s.heroKey
 	var turns: int = win.get("turns", 0); var turn: int = s.turn
-	var obj := Content.goal_text(win, "bar", hero_keys, { "n": Objectives.bar_n(s), "left": maxi(0, turns - turn + 1) })
+	var n: Variant = Objectives.bar_n(s)
+	if s.has("ctrl"): # 1 vs 1: goal said from the side on screen (bar_n / goal words read as p)
+		hero_keys = { "p": s.heroKey[_me()], "e": s.heroKey[_foe()] }
+		n = Game.castles(s, _foe())
+	var obj := Content.goal_text(win, "bar", hero_keys, { "n": n, "left": maxi(0, turns - turn + 1) })
 	return "[color=#%s]🎯[/color] %s" % [Style.GOLD.to_html(false), obj]
 
 ## where the unit is shown standing: its picked destination while selected, else its tile
@@ -1752,8 +1853,8 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var side: String = cu.side; var type: String = cu.type
 		var hp: float = cu.hp
 		var title: String = Content.unit_title(look_name, rank, type == "hero")
-		var side_txt: String = Content.theme().factions[u.side].short
-		var sub := "%s · Máu %d%s" % [side_txt, u.hp, " · đã đi" if u.side == "p" and u.acted else ""]
+		var side_txt: String = _side_name(side)
+		var sub := "%s · Máu %d%s" % [side_txt, u.hp, " · đã đi" if u.side == _me() and u.acted else ""]
 		_card_box.add_child(_head(Token.make(side, type, s.heroKey[side], 38), title, sub, side))
 		_card_box.add_child(Style.Bar.make(hp / 100.0, 5, Color("#5fa83c"), Style.GOOD))
 		var b := Game.buffs_at(s, cu, dtx, dty)
@@ -1776,7 +1877,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var ter: Dictionary = Rules.TERRAIN[t]
 		var own_txt := ""
 		if ter.has("building"):
-			own_txt = " · " + (("của ta" if own == "p" else "của địch") if own != null else "chưa ai chiếm")
+			own_txt = " · " + (_owner_txt(str(own)) if own != null else "chưa ai chiếm")
 		var ter_name: String = Content.terrain(t).name
 		var ter_cost: float = ter.cost
 		var cost_txt := "không qua" if ter_cost == INF else str(int(ter_cost))
@@ -1790,6 +1891,11 @@ func _render_card(u: Variant, peek: Variant) -> void:
 	_card.reset_size()
 	_place_hud() # swap HUD vs card now, so a click this frame finds the right buttons
 	_place_hud.call_deferred() # wrapped text knows its height after one layout pass
+
+func _owner_txt(own: String) -> String:
+	if _hotseat():
+		return "của " + _side_name(own)
+	return "của ta" if own == _me() else "của địch"
 
 ## picked tile + a half-tile ring, in screen coords
 func _avoid_tile(x: int, y: int) -> void:
@@ -1862,16 +1968,18 @@ func refresh() -> void:
 	if s.is_empty():
 		return
 	_build_view()
-	_turn.text = "Lượt %d" % s.turn
-	_gold_num.text = str(s.gold.p if _gold_shown < 0 else _gold_shown)
-	var allowed_p: Array = s.allowed.p
-	_gold_box.visible = allowed_p.size() > 0 or Game.castles(s, "p") > 0
-	_income.text = "+%d" % Game.income(s, "p")
+	var me := _me()
+	_turn.text = "Lượt %d" % s.turn + ((" · " + _side_name(me)) if _hotseat() else "")
+	_turn.add_theme_color_override("font_color", (Style.P_NAME if me == "p" else Style.SEA_HI) if _hotseat() else Style.GOLD)
+	_gold_num.text = str(s.gold[me] if _gold_shown < 0 else _gold_shown)
+	var allowed_me: Array = s.allowed[me]
+	_gold_box.visible = allowed_me.size() > 0 or Game.castles(s, me) > 0
+	_income.text = "+%d" % Game.income(s, me)
 	_goal.text = _goal_line()
 	for c in _info.get_children() + _actions.get_children():
 		c.get_parent().remove_child(c) # now, so the popup measures only the new content
 		c.queue_free()
-	var my_turn: bool = s.side == "p" and not ui.busy and s.winner == null
+	var my_turn: bool = _human_turn() and not ui.busy and s.winner == null
 	_btn_hint.disabled = not my_turn
 	_refresh_end_button(my_turn)
 	_pop_anchor = null
@@ -1892,7 +2000,7 @@ func refresh() -> void:
 			refresh()))
 	elif u != null:
 		var su: Dictionary = u
-		if my_turn and u.side == "p" and not u.acted and ui.mode != M_IDLE:
+		if my_turn and u.side == me and not u.acted and ui.mode != M_IDLE:
 			_pop_anchor = ui.dest
 			var dx: int = ui.dest[0]
 			var dy: int = ui.dest[1]
@@ -1968,14 +2076,14 @@ func refresh() -> void:
 		var y: int = ui.buyAt[1]
 		_pop_anchor = [x, y]
 		_info.add_child(_head(null, Content.text("buyTitle"),
-			"Có %d vàng · Quân %d/%d · lính mới đi được ngay" % [s.gold.p, Game.cap_count(s, "p"), s.unitCap]))
+			"Có %d vàng · Quân %d/%d · lính mới đi được ngay" % [s.gold[me], Game.cap_count(s, me), s.unitCap]))
 		var grid := GridContainer.new()
 		grid.columns = 1
 		grid.add_theme_constant_override("v_separation", 6)
 		grid.custom_minimum_size.x = POP_W
-		for o: Dictionary in Game.buy_options(s, "p", x, y):
+		for o: Dictionary in Game.buy_options(s, me, x, y):
 			var type: String = o.type
-			var look := Content.unit_type_look("p", type, s.heroKey.p)
+			var look := Content.unit_type_look(me, type, s.heroKey[me])
 			var b := _act("", func() -> void: buy_unit(type), { "disabled": not o.ok or not my_turn, "hot": ui.hotBuy == o.type })
 			b.tooltip_text = look.blurb if o.type == "hero" else look.desc
 			b.custom_minimum_size = Vector2(POP_W, 46)
@@ -1984,7 +2092,7 @@ func refresh() -> void:
 			row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 			row.offset_left = 8
 			row.offset_right = -12
-			var tk := Token.make("p", type, s.heroKey.p, 32)
+			var tk := Token.make(me, type, s.heroKey[me], 32)
 			tk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			row.add_child(tk)
 			var look_name: String = look.name
@@ -2077,7 +2185,7 @@ func _place_pop() -> void:
 			var o_y: int = o.y
 			var orr: Rect2 = board.tile_rect(o_x, o_y)
 			if r.intersects(orr.grow(-orr.size.x * 0.2)):
-				cost += 3.0 if o.side != "p" else 1.0
+				cost += 3.0 if o.side != _me() else 1.0
 		if cost < best_cost:
 			best_cost = cost
 			best = p
@@ -2107,105 +2215,3 @@ func _preview_box(p: Dictionary) -> Control:
 		pc.add_child(v)
 		g.add_child(pc)
 	return g
-
-
-## gold coin icon in the top bar
-## ⚙ drawn (the bundled fonts have no gear glyph)
-class GearIcon extends Control:
-	func _draw() -> void:
-		var c := size / 2.0
-		var r := minf(size.x, size.y) * 0.24
-		var col := Style.INK
-		var pts := PackedVector2Array()
-		for i in 48:
-			var a := TAU * i / 48.0
-			@warning_ignore("integer_division")
-			var tooth := 1.0 if (i / 3) % 2 == 0 else 0.0
-			pts.append(c + Vector2(cos(a), sin(a)) * r * (1.0 + 0.32 * tooth))
-		draw_colored_polygon(pts, col)
-		draw_circle(c, r * 0.45, Color("#3a2416"))
-
-class Coin extends Control:
-	func _init() -> void:
-		custom_minimum_size = Vector2(20, 20)
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-	func _draw() -> void:
-		var c := Vector2(10, 10)
-		Draw.radial(self, c, 9.5, [[0.0, Color("#fff0b3")], [0.6, Color("#e0a43a")], [1.0, Color("#9a6a1e")]], 24, Vector2.ONE, Vector2(-2.5, -3))
-		draw_arc(c, 8.5, 0, TAU, 24, Color("#b8873a"), 2.0, true)
-		draw_rect(Rect2(c - Vector2(3, 3), Vector2(6, 6)), Color("#8a5a16"), false, 1.5)
-
-
-## warm radial backdrop behind the table
-class BgPaint extends Control:
-	func _init() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-	func _draw() -> void:
-		draw_rect(Rect2(Vector2.ZERO, size), Style.LACQUER)
-		Draw.radial(self, size * Vector2(0.5, 0.4), size.length() * 0.45, [[0.0, Color("#2a1810")], [1.0, Style.LACQUER]], 40,
-			Vector2(1.0, size.y / size.x * 1.4))
-	func _notification(what: int) -> void:
-		if what == NOTIFICATION_RESIZED:
-			queue_redraw()
-
-
-## turn banner sweeping across the board
-class Banner extends Control:
-	var _label: Label
-	var _t := 1.0
-	var _foe := false
-	func _init() -> void:
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_label = Style.lbl("", 44, Style.GOLD, Style.display_x)
-		_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		_label.add_theme_constant_override("outline_size", 0)
-		_label.add_theme_color_override("font_shadow_color", Color("#4a2c0e"))
-		_label.add_theme_constant_override("shadow_offset_x", 0)
-		_label.add_theme_constant_override("shadow_offset_y", 2)
-		add_child(_label)
-		visible = false
-	func show_text(text: String, foe: bool) -> void:
-		_label.text = text
-		_foe = foe
-		_label.add_theme_color_override("font_color", Style.SEA_HI if foe else Style.GOLD)
-		_label.add_theme_color_override("font_shadow_color", Color("#0b2a2e") if foe else Color("#4a2c0e"))
-		_t = 0.0
-		visible = true
-	func _process(dt: float) -> void:
-		if not visible:
-			return
-		_t += dt / 1.5
-		if _t >= 1.0:
-			visible = false
-			return
-		queue_redraw()
-		var a := clampf(_t / 0.18, 0.0, 1.0) if _t < 0.18 else (1.0 if _t < 0.78 else 1.0 - (_t - 0.78) / 0.22)
-		var up := 0.0 if _t < 0.78 else (_t - 0.78) / 0.22 * 10.0
-		_label.size = Vector2(size.x, 80)
-		_label.position = Vector2(0, size.y / 2 - 40 - up)
-		_label.modulate.a = a
-	func _draw() -> void:
-		var open := clampf(_t / 0.18, 0.0, 1.0)
-		var a := 1.0 if _t < 0.78 else maxf(0.0, 1.0 - (_t - 0.78) / 0.22)
-		var up := 0.0 if _t < 0.78 else (_t - 0.78) / 0.22 * 10.0
-		var h := 84.0
-		var w := size.x * open
-		var r := Rect2((size.x - w) / 2, size.y / 2 - h / 2 - up, w, h)
-		var band := Color(0.08, 0.043, 0.03, 0.85 * a)
-		Draw.gradient_rect(self, r, [[0.0, Color(band, 0.0)], [0.2, band], [0.8, band], [1.0, Color(band, 0.0)]], false)
-
-
-## slow spinning victory rays behind the end card
-class Rays extends Control:
-	func _process(_dt: float) -> void:
-		if is_visible_in_tree():
-			queue_redraw()
-	func _draw() -> void:
-		var c := size / 2
-		var R := size.length()
-		var rot := FX.now() / 30000.0 * TAU
-		for i in 18:
-			var a0 := rot + i * TAU / 18.0
-			var a1 := a0 + TAU / 36.0
-			draw_colored_polygon(PackedVector2Array([c, c + Vector2(cos(a0), sin(a0)) * R, c + Vector2(cos(a1), sin(a1)) * R]), Color(0.94, 0.79, 0.42, 0.08))

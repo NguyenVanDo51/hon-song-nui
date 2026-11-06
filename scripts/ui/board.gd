@@ -774,6 +774,7 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			rig_done[u.id] = true
 			rt.draw_layer(ci, "mid")
 		var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
+		hp = v.get("hpCount", {}).get(u.id, hp) # turn-start heal counting up
 		if it.alpha < 0 or it.alpha > 0.5:
 			var w := T * 0.62
 			var h := maxf(3.0, T * 0.07)

@@ -27,6 +27,7 @@ var _gold_num: Label
 var _coins: CoinPop
 var _gold_shown := -1 # count-up value on screen; -1 = show s.gold.p
 var _gold_tw: Tween
+var _hp_count := {} # unit id -> hp shown while a heal counts up
 var _income: Label
 var _goal: RichTextLabel
 var _btn_hint: Button
@@ -396,6 +397,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	if _gold_tw != null:
 		_gold_tw.kill()
 	_gold_shown = -1
+	_hp_count.clear()
 	_coins.clear()
 	s = state
 	ctx = c
@@ -482,6 +484,7 @@ func _build_view() -> void:
 	if s.is_empty():
 		return
 	var v: Dictionary = board.view
+	v.hpCount = _hp_count
 	var u: Variant = _sel_unit()
 	var my_turn: bool = s.side == "p" and not ui.busy and s.winner == null
 	v.busy = ui.busy
@@ -974,6 +977,31 @@ func _income_fx() -> void:
 		_gold_num.text = str(s.gold.p)
 		_bump_gold())
 
+## heal = same pop as income (green +N over the unit, after the coins) + the hp bar counting up
+func _heal_fx(e: Dictionary) -> void:
+	var u: Variant = Game.unit_by_id(s, e.id)
+	if u == null:
+		return
+	var id: int = e.id
+	var from: int = u.hp - e.amount
+	_hp_count[id] = from
+	_coins.board = board
+	_coins.play([{ "x": e.x, "y": e.y, "amount": e.amount }], "heal", 0.3)
+	fx.burst(e.x, e.y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0, "lmax": 1000.0, "smin": 0.06, "smax": 0.08 })
+	main.audio.play("heal")
+	var tw := create_tween()
+	tw.tween_interval(0.3 + CoinPop.RISE)
+	tw.tween_method(func(k: float) -> void:
+		var cur: Variant = Game.unit_by_id(s, id)
+		if cur == null:
+			_hp_count.erase(id)
+			return
+		_hp_count[id] = roundi(lerpf(from, cur.hp, k))
+		board.queue_redraw(), 0.0, 1.0, 0.7).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_callback(func() -> void:
+		_hp_count.erase(id)
+		board.queue_redraw())
+
 func _bump_gold() -> void:
 	var tw := _gold_num.create_tween()
 	tw.tween_property(_gold_num, "scale", Vector2(1.25, 1.25), 0.15)
@@ -1128,8 +1156,7 @@ func play(events: Array, before: Dictionary) -> void:
 				fx.buy_fx(e.x, e.y)
 				await fx.sleep(250.0)
 			"heal":
-				fx.heal(e.x, e.y, e.amount)
-				main.audio.play("heal")
+				_heal_fx(e)
 			"income":
 				if e.side == "p" and e.amount:
 					_income_fx()

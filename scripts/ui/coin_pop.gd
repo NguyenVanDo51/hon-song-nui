@@ -1,6 +1,6 @@
 class_name CoinPop
 extends Control
-## "+N" popping out of each paying building at turn start: jumps up, lands on the tile, bounces, fades.
+## "+N" popping out of a tile at turn start (gold per building, hp per healed unit): jumps up, lands, bounces, fades.
 ## Overlay above the board (draws over units); follows board.tile_rect so zoom / resize keep it on the tile.
 
 const RISE := 0.55 # s: up and back down to the ground
@@ -17,12 +17,13 @@ func _init(p_board: Control) -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 
-## items: [{x, y, amount}]
-func play(items: Array) -> void:
-	var t0 := Time.get_ticks_msec() / 1000.0
+## items: [{x, y, amount}]; kind "coin" lands low on the tile, "heal" higher (over the unit) so both fit one tile
+func play(items: Array, kind := "coin", delay := 0.0) -> void:
+	var t0 := Time.get_ticks_msec() / 1000.0 + delay
 	for i in items.size():
 		var it: Dictionary = items[i]
-		pops.append({ "x": it.x, "y": it.y, "text": "+%d" % it.amount, "t0": t0 + i * STAGGER })
+		var txt := ("+%d" if kind == "heal" else "%d") % it.amount # coin icon already says "gain"
+		pops.append({ "x": it.x, "y": it.y, "text": txt, "t0": t0 + i * STAGGER, "kind": kind })
 	queue_redraw()
 
 func clear() -> void:
@@ -45,7 +46,8 @@ func _draw() -> void:
 			continue
 		var r: Rect2 = board.tile_rect(p.x, p.y)
 		var T := r.size.x
-		var ground := r.position + Vector2(T * 0.5, T * 0.62)
+		var heal: bool = p.kind == "heal"
+		var ground := r.position + Vector2(T * 0.5, T * (0.3 if heal else 0.62))
 		var h := 0.0 # height above ground, in tiles
 		var sc := 1.0
 		if t < RISE:
@@ -67,10 +69,18 @@ func _draw() -> void:
 		draw_set_transform(ground, 0.0, Vector2(1.0, 0.35))
 		draw_circle(Vector2.ZERO, w * 0.42 * sh, Color(0, 0, 0, 0.28 * a))
 		draw_set_transform(Vector2.ZERO)
+		var ink := Color(0.17, 0.13, 0.12, a)
 		var cc := base + Vector2(cr, -fs * 0.36)
-		draw_circle(cc, cr + 2.0, Color(0.17, 0.13, 0.12, a))
-		draw_circle(cc, cr, Color(0.98, 0.78, 0.26, a))
-		draw_circle(cc, cr * 0.55, Color(0.86, 0.6, 0.14, a))
+		draw_circle(cc, cr + 2.0, ink)
+		if heal:
+			draw_circle(cc, cr, Color(0.37, 0.66, 0.24, a))
+			var arm := cr * 0.58
+			var th := maxf(2.0, cr * 0.36)
+			draw_rect(Rect2(cc - Vector2(arm, th / 2), Vector2(arm * 2, th)), Color(1, 1, 1, a))
+			draw_rect(Rect2(cc - Vector2(th / 2, arm), Vector2(th, arm * 2)), Color(1, 1, 1, a))
+		else:
+			draw_circle(cc, cr, Color(0.98, 0.78, 0.26, a))
+			draw_circle(cc, cr * 0.55, Color(0.86, 0.6, 0.14, a))
 		var tp := base + Vector2(cr * 2.0 + 3.0, 0)
-		draw_string_outline(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, maxi(3, fs / 5), Color(0.17, 0.13, 0.12, a))
-		draw_string(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1.0, 0.86, 0.36, a))
+		draw_string_outline(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, maxi(3, fs / 5), ink)
+		draw_string(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.69, 0.93, 0.55, a) if heal else Color(1.0, 0.86, 0.36, a))

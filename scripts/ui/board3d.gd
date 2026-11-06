@@ -776,6 +776,7 @@ func _draw_top(ci: CanvasItem) -> void:
 		var u: Dictionary = it.u
 		var c := _proj(Vector3(it.x + 0.5, it.h + 0.36, it.y + 0.5))
 		var hp: int = view.hp.get(u.id, u.hp) if view.hp != null else u.hp
+		hp = view.get("hpCount", {}).get(u.id, hp) # turn-start heal counting up
 		if hp < 100:
 			var w := te * 0.62
 			var h := maxf(3.0, te * 0.07)

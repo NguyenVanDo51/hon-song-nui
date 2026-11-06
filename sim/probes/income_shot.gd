@@ -20,12 +20,17 @@ func _run() -> void:
 	s.gold.p += inc
 	g._gold_shown = s.gold.p - inc
 	g.refresh()
+	# a hurt unit on one of our buildings: its +hp pops over it, after the coin
+	var on_b: Array = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and s.owner.get(Vector2i(u.x, u.y)) == "p")
+	var hu: Dictionary = on_b[0] if on_b.size() else s.units[0]
+	hu.hp = 80
 	var t0 := Time.get_ticks_msec()
 	g._income_fx()
+	g._heal_fx({ "id": hu.id, "amount": 20, "x": hu.x, "y": hu.y })
 	for at: int in [150, 330, 550, 800, 1200, 2000, 3000]:
 		while Time.get_ticks_msec() - t0 < at:
 			await process_frame
-		print("t=%d gold=%s" % [at, g._gold_num.text])
+		print("t=%d gold=%s hp=%s" % [at, g._gold_num.text, g._hp_count.get(hu.id, hu.hp)])
 		await main.shot("inc_%04d" % at)
 	print("target=%d pops=%d" % [s.gold.p, g._coins.pops.size()])
 	quit()

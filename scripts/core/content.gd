@@ -150,7 +150,7 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	if st.get("capC", false):
 		out.append("Chiếm được cả thành lẫn làng.")
 	elif st.get("capV", false):
-		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.RULES.incomeVillage)
+		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.TERRAIN.v.income)
 	var lo: int = st.atk
 	var hi: int = maxi(lo, st.get("atkMax", st.atk) - 1) # AE2 never rolls atkMax (same as Game.atk_range)
 	if hi > lo:
@@ -164,8 +164,9 @@ static func traits(type: String, hero_key: Variant) -> Array:
 		out.append("Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta." % st.aura)
 	if st.get("antiAir", 0):
 		out.append("+%d công khi đánh rồng." % st.antiAir)
-	if st.get("vsGhost", 0):
-		out.append("+%d công khi đánh âm binh." % st.vsGhost)
+	var vs: Dictionary = st.get("vsType", {})
+	for t: String in vs:
+		out.append("+%d công khi đánh %s." % [vs[t], theme().units.p[t].name.to_lower()])
 	if st.get("poison", 0):
 		out.append("Cắn trúng: địch −%d công, −%d thủ tới lượt sau của ta." % [st.poison, st.poison])
 	if st.get("waterAtk", 0):
@@ -248,13 +249,13 @@ static func tile_note(t: String) -> String:
 		return " hoặc ".join(names)
 	match t:
 		"v":
-			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.RULES.incomeVillage })
+			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.TERRAIN.v.income })
 		"x":
 			return text("tileRuin").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)),
 				"raze": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("raze", false)) })
 		"c":
 			var cc: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false))
-			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.RULES.incomeCastle })
+			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.TERRAIN.c.income })
 		"~":
 			return text("tileWater").format({ "water": who.call(func(st: Dictionary, _t: String) -> bool: return st.move == "water") })
 		"t":
@@ -263,12 +264,21 @@ static func tile_note(t: String) -> String:
 
 
 # ---------- saves ----------
-const STATE_V := 3 # Game.new_game writes "v"; bump both when the saved state shape changes
-const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
+const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when the saved state shape changes
+## v3 -> v4: aura / poison stamps carry their amount (auraAtk / poisonAmt); v3 had them fixed at 10
+const V3_STAMP := 10
 
 ## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
 const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
 static func migrate_save(v: Dictionary) -> void:
+	var st: Variant = v.get("state")
+	if st is Dictionary and int(st.get("v", 0)) == 3 and st.get("units") is Array:
+		for u: Variant in st.units:
+			if u is Dictionary and u.get("aura") != null and not u.has("auraAtk"):
+				u.auraAtk = V3_STAMP
+			if u is Dictionary and u.get("poison") != null and not u.has("poisonAmt"):
+				u.poisonAmt = V3_STAMP
+		st.v = 4
 	var hk: Variant = v.get("state", {}).get("heroKey") if v.get("state") is Dictionary else null
 	if hk is Dictionary:
 		for side: String in hk:
@@ -285,7 +295,7 @@ static func save_fits(v: Dictionary) -> bool:
 	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead", "heroDeaths", "heroSaved", "rng"]:
 		if not st.has(k):
 			return false
-	if not WIN_TYPES.has(str(st.win.get("type", ""))):
+	if not Objectives.has(str(st.win.get("type", ""))):
 		return false
 	for u: Variant in st.units:
 		if not (u is Dictionary) or not Rules.UNITS.has(u.get("type")):

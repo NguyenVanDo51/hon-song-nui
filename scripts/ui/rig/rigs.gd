@@ -43,7 +43,7 @@ static func make(type: String, side: String) -> Rig:
 	r.swap = side == "e" and name == e.p
 	r.part_id = "rig|" + name
 	r.a_type = type
-	r.heavy = type in ["elephant", "bird", "catapult", "hero"]
+	r.heavy = Rules.UNITS.get(type, {}).get("heavy", false)
 	return r
 
 static func types() -> Array:

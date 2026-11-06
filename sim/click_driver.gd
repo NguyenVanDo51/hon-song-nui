@@ -7,7 +7,6 @@ var fails := 0
 func _init() -> void:
 	Store.use_profile("driver") # never touch the player's save / progress / settings
 	Store.board3d_flag = 0 # this driver walks the 2D board
-	Store.set_battle_mode("off") # cut-away scene off + no zoom: the driver runs fast
 	main = load("res://main.tscn").instantiate()
 	main.flags["nozoom"] = "1"
 	root.add_child(main)
@@ -124,11 +123,6 @@ func _run() -> void:
 	ok(g.ui.mode == "target", "click enemy -> target mode with preview")
 	var hp0: int = foe.hp
 	press("⚔ Đánh")
-	var shown := false
-	for i in 20:
-		await process_frame
-		shown = shown or g.battle.visible
-	ok(not shown, "no cut-away scene by default")
 	await idle(g)
 	ok(foe.hp < hp0 or Game.unit_by_id(s, foe.id) == null, "attack resolved")
 	# mouse path: rest the pointer on an enemy -> board shows the forecast -> one click attacks
@@ -153,13 +147,7 @@ func _run() -> void:
 	g._on_tile_clicked(0, 0)
 	ok(not g._menu.visible, "a map click closes the menu")
 	g._on_tile(foe2.x, foe2.y)
-	var opened := false
-	for i in 20:
-		await process_frame
-		opened = opened or g.battle.visible
-	ok(not opened, "no battle scene when off")
 	await idle(g)
-	Store.set_battle_mode("off")
 	ok(arch.acted and (foe2.hp < hp1 or Game.unit_by_id(s, foe2.id) == null), "one click attack after hover")
 	g.ui.hover = null
 	# terrain info, hint, codex, speed

@@ -27,8 +27,8 @@ func _process(dt: float) -> bool:
 							u.x = x; u.y = y
 							break
 					if s.tiles[u.y][u.x] == "~": break
-			if u.type == "wolf": u.poison = "e" if u.side == "p" else "p"
-			if u.side == "p" and u.type == "hero": u.aura = "p"; u.rank = 4
+			if u.type == "wolf": u.poison = "e" if u.side == "p" else "p"; u.poisonAmt = Rules.UNITS.wolf.poison
+			if u.side == "p" and u.type == "hero": u.aura = "p"; u.auraAtk = Rules.UNITS.drum.aura; u.rank = 4
 		for y in s.h:
 			for x in s.w:
 				if s.tiles[y][x] == "." and Game.unit_at(s, x, y) == null and x == s.w / 2 - 2 and y == s.h / 2:

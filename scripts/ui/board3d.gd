@@ -742,9 +742,8 @@ func _paint_overlay(ci: CanvasItem) -> void:
 	_flat.T = OT
 	_flat.hover = hover
 	_flat._draw_overlays(ci, time)
-	if s.win.type == "reach":
-		for at: Array in s.win.get("at", []):
-			_flat._draw_goal(ci, at[0] * OT, at[1] * OT, time)
+	for at: Array in Objectives.marks(s):
+		_flat._draw_goal(ci, at[0] * OT, at[1] * OT, time)
 	fx.draw_under(ci, OT, time)
 	if view.sel != null:
 		var at: Array = view.dest if view.dest != null else [view.sel.x, view.sel.y]

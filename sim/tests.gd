@@ -82,7 +82,7 @@ func content_tests() -> void:
 			var need := []
 			for y in s.h:
 				for x in s.w:
-					if s.tiles[y][x] == "c":
+					if Game.sells(s.tiles[y][x]):
 						need.append(Vector2i(x, y))
 			for u: Dictionary in s.units:
 				if u.side == "e" and u.type == "hero":
@@ -148,7 +148,7 @@ func content_tests() -> void:
 				check(not seen.has(Vector2i(u.x, u.y)), "two units on %d,%d" % [u.x, u.y])
 				seen[Vector2i(u.x, u.y)] = true
 			for key: Vector2i in s.owner:
-				check(Game.tile_at(s, key.x, key.y) in ["v", "c"], "owner on non-building %s" % key)
+				check(Game.cap_flag(Game.tile_at(s, key.x, key.y)) != "", "owner on non-building %s" % key)
 			for side: String in ["p", "e"]:
 				if s.units.any(func(u: Dictionary) -> bool: return u.side == side and u.type == "hero"):
 					check(s.heroKey[side] != null, side + " hero unit but no hero key")
@@ -159,19 +159,10 @@ func content_tests() -> void:
 					var wst := Game.stat(s, { "type": wu[0], "side": "e" })
 					check(Game.move_cost(wst.move, Game.tile_at(s, wu[1], wu[2])) != INF, "wave %s on impassable %d,%d" % [wu[0], wu[1], wu[2]])
 			# win schema
-			check(Content.WIN_TYPES.has(s.win.type), "win type " + str(s.win.type))
-			if s.win.type == "survive":
-				check(s.win.get("turns") is int and s.win.turns > 0, "survive needs turns")
-			if s.win.type == "hero":
-				check(s.heroKey.e != null, "hero win needs an enemy commander")
-			if s.win.type == "reach":
-				check(s.win.get("at", []).size() > 0, "reach needs at")
-				var hst := Game.stat(s, { "type": "hero", "side": "p" })
-				for g: Array in s.win.get("at", []):
-					check(Game.move_cost(hst.move, Game.tile_at(s, g[0], g[1])) != INF, "reach tile %s impassable" % [g])
+			eq(Objectives.check(s), "", "win spec")
 			for side: String in ["p", "e"]:
 				for t: String in s.allowed[side]:
-					check(AI.WEIGHTS.has(t), "AI has no buy weight for " + t)
+					check(Rules.UNITS[t].has("aiWeight"), "no aiWeight (AI falls back to DEFAULT_WEIGHT) for " + t)
 			for t: String in def.get("newUnits", []):
 				check(Rules.UNITS.has(t), "newUnits " + t)
 			for side: String in ["p", "e"]:
@@ -246,7 +237,7 @@ func rule_tests() -> void:
 		check(not s.owner.has(Vector2i(4, 1)), "owner cleared")
 		check(ev.any(func(e: Dictionary) -> bool: return e.t == "raze" and e.prev == "e"), "raze event with prev owner")
 		check(c.acted, "catapult done for the turn")
-		eq(Game.income(s, "e"), Rules.RULES.incomeCastle, "enemy lost the village income")
+		eq(Game.income(s, "e"), Rules.TERRAIN.c.income, "enemy lost the village income")
 	)
 	run("ruined village: no capture; capV unit repairs -> unowned village, capture on a later turn", func() -> void:
 		var s := blank([["p", "soldier", 2, 2], ["p", "archer", 3, 3], ["e", "soldier", 5, 4]])
@@ -310,6 +301,39 @@ func rule_tests() -> void:
 		s.units[0].acted = false
 		Game.do_action(s, { "id": 1, "to": [2, 1], "kind": "wait" })
 		eq(s.graves.size(), 0, "stepped on")
+	)
+	run("buildings are descriptors: a new tile type works from TERRAIN alone (income, capture, heal, sells, raze / repair)", func() -> void:
+		var ter: Dictionary = Rules.TERRAIN.duplicate(true)
+		ter["p"] = { "def": 10, "cost": 1, "building": "port", "income": 40, "cap": "capV", "heals": "owner", "razeTo": "q" }
+		ter["q"] = { "def": 5, "cost": 1, "repairTo": "p", "repairBy": "capV" }
+		ter["o"] = { "def": 20, "cost": 1, "building": "fort", "income": 10, "cap": "capC", "heals": "owner", "sells": true }
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, ter)
+		eq([Game.income_of("p"), Game.income_of("."), Game.sells("o"), Game.sells("p"), Game.cap_flag("o"), Game.cap_flag("t")], [40, 0, true, false, "capC", ""])
+		var s := blank([["p", "soldier", 2, 2, 50], ["p", "hero", 3, 3], ["e", "catapult", 5, 1]])
+		s.tiles[2][2] = "p"
+		s.tiles[3][3] = "o"
+		check(Game.can_capture(s, s.units[0], 2, 2), "soldier takes a port (cap capV)")
+		check(not Game.can_capture(s, s.units[0], 3, 3) and Game.can_capture(s, s.units[1], 3, 3), "fort needs capC")
+		Game.do_action(s, { "id": 1, "to": [2, 2], "kind": "capture" })
+		Game.do_action(s, { "id": 2, "to": [3, 3], "kind": "capture" })
+		eq(Game.income(s, "p"), 50 + 40 + 10, "income = sum over owned tiles")
+		eq(Game.castle_tiles(s, "p"), [Vector2i(0, 0), Vector2i(3, 3)], "fort sells")
+		check(Game.buy_options(s, "p", 3, 3).size() > 0 and Game.buy_options(s, "p", 2, 2).is_empty(), "buy only where it sells")
+		Game.end_turn(s); Game.end_turn(s)
+		eq(s.units[0].hp, 70, "port heals its owner")
+		s.units[0].x = 1
+		s.units[1].x = 4; s.units[1].y = 4
+		s.side = "e"
+		s.units[2].acted = false
+		check(Game.razable_from(s, s.units[2], 5, 1).has([2, 2]), "port razable (razeTo)")
+		Game.do_action(s, { "id": 3, "to": [5, 1], "kind": "raze", "target": [2, 2] })
+		eq(s.tiles[2][2], "q", "razed into razeTo")
+		Game.end_turn(s)
+		s.units[0].acted = false
+		check(Game.can_repair(s, s.units[0], 2, 2), "repairBy capV")
+		Game.do_action(s, { "id": 1, "to": [2, 2], "kind": "repair" })
+		eq(s.tiles[2][2], "p", "repaired into repairTo")
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
 	)
 	run("AE2 income: village 30, castle 50", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
@@ -485,6 +509,7 @@ func rule_tests() -> void:
 		eq(Game.damage(s, s.units[3], 3, 3, 100, s.units[4], 0.0), 43, "drum 35 +15 vs ghost - 2 def - 5 field")
 		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 40, "plain soldier hit")
 		so.poison = "e"
+		so.poisonAmt = 10
 		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 30, "poisoned attacker -10 atk")
 		so.erase("poison")
 		foe.rank = 2
@@ -569,7 +594,7 @@ func rule_tests() -> void:
 		s.side = "e"
 		s.gold.p = 0
 		Game.end_turn(s)
-		eq(s.gold.p, Rules.RULES.incomeCastle)
+		eq(s.gold.p, Rules.TERRAIN.c.income)
 		eq(s.units[0].hp, 70)
 		s.units[0].x = 1
 		s.gold.p = 99999
@@ -799,8 +824,82 @@ func rule_tests() -> void:
 		nowin.win = { "type": "teleport" }
 		check(not Content.save_fits({ "state": nowin, "ctx": { "kind": "campaign", "id": "m03" } }), "unknown win type refused")
 	)
+	run("v3 save (stamps without amounts) migrates to v4: aura / poison keep their old 10", func() -> void:
+		var s := Game.new_game(Content.mission("m03"))
+		var v3: Dictionary = { "state": s.duplicate(true), "ctx": { "kind": "campaign", "id": "m03" } }
+		v3.state.v = 3
+		v3.state.units[0].aura = "p"
+		v3.state.units[1].poison = "e"
+		check(not Content.save_fits(v3), "v3 does not fit before migrating")
+		Content.migrate_save(v3)
+		eq(v3.state.v, Content.STATE_V)
+		check(Content.save_fits(v3), "migrated v3 fits")
+		eq([Game.aura_atk(v3.state.units[0]), Game.poison_amt(v3.state.units[1])], [10, 10])
+		eq(Game.aura_atk(v3.state.units[2]), 0, "no stamp -> 0")
+	)
+	run("unit flags are data: heavy set, aiWeight on buyables, raise / vsType name real types", func() -> void:
+		var heavy := []
+		for t: String in Rules.UNITS:
+			if Rules.UNITS[t].get("heavy", false):
+				heavy.append(t)
+			var r: Variant = Rules.UNITS[t].get("raise")
+			check(r == null or Rules.UNITS.has(r), "%s raises a known type" % t)
+			for v: String in Rules.UNITS[t].get("vsType", {}):
+				check(Rules.UNITS.has(v), "%s vsType %s" % [t, v])
+			if Rules.UNITS[t].get("buyable", true) and t != "hero":
+				check(Rules.UNITS[t].has("aiWeight"), "aiWeight " + t)
+		eq(heavy, ["hero", "elephant", "catapult", "bird"])
+	)
+	run("a new unit type defined only in UNITS: AI buys it (default weight), its flags work (vsType, aura, poison, raise)", func() -> void:
+		var units: Dictionary = Rules.UNITS.duplicate(true)
+		units["monk"] = { "cost": 100, "atk": 30, "atkMax": 31, "def": 5, "mv": 4, "rmin": 1, "rmax": 1, "move": "foot",
+			"vsType": { "soldier": 7 }, "aura": 4, "poison": 3, "raise": "soldier" }
+		Game.use_tables(units, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
+		eq(AI.weight("monk"), AI.DEFAULT_WEIGHT)
+		var s := blank([["p", "monk", 1, 1], ["p", "soldier", 1, 3], ["e", "soldier", 2, 1]])
+		s.allowed.p = ["monk"]
+		s.gold.p = 1000
+		eq(AI.choose_buy(s, "p"), "monk", "no aiWeight: still bought, no crash")
+		var mk: Dictionary = s.units[0]
+		var foe: Dictionary = s.units[2]
+		var plain := Game.damage(s, s.units[1], 1, 1, 100, foe, 0.0) # soldier 50 - 5 def - 5 field
+		eq(Game.damage(s, mk, 1, 1, 100, foe, 0.0), 30 + 7 - 10, "vsType bonus")
+		Game.fixed_roll = 0.0
+		Game.do_action(s, { "id": mk.id, "to": [1, 1], "kind": "attack", "target": foe.id })
+		eq(Game.poison_amt(foe), 3, "poison amount from data")
+		eq(Game.aura_atk(s.units[1]), 4, "aura amount from data")
+		eq(Game.damage(s, s.units[1], 1, 1, 100, foe, 0.0), plain + 4 + 3, "aura +4, target -3 def")
+		s.graves = [{ "x": 0, "y": 1, "ttl": 3 }]
+		mk.acted = false
+		s.side = "p"
+		Game.do_action(s, { "id": mk.id, "to": [1, 1], "kind": "raise", "target": [0, 1] })
+		var raised: Variant = Game.unit_at(s, 0, 1)
+		check(raised != null and raised.type == "soldier", "raise spawns the type named by `raise`")
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
+	)
+	run("objectives registry: a new win type is one entry (loss, round, AI goal, marks, bar)", func() -> void:
+		eq(Objectives.types(), ["castles", "rout", "hero", "survive", "reach"])
+		var s := blank([["p", "hero", 1, 1], ["e", "soldier", 4, 4]])
+		s.win = { "type": "flag", "at": [[3, 1]] }
+		check(Objectives.check(s).begins_with("unknown"), "unknown type flagged")
+		Objectives.TYPES["flag"] = { "loss": func(st: Dictionary, side: String) -> Variant: return "flagTaken" if side == "e" and Game.unit_at(st, 3, 1) != null else null,
+			"on_round": func(st: Dictionary) -> Variant: return ["e", "late"] if st.turn > 3 else null,
+			"ai_goals": func(st: Dictionary, _u: Dictionary) -> Variant: return st.win.at.duplicate(),
+			"marks": func(st: Dictionary) -> Array: return st.win.at, "bar_n": func(_st: Dictionary) -> int: return 7 }
+		eq([Objectives.check(s), Objectives.marks(s), Objectives.bar_n(s)], ["", [[3, 1]], 7])
+		eq(AI.goals_for(s, s.units[0], {}), [[3, 1]], "AI heads for the objective")
+		Game.do_action(s, { "id": 1, "to": [3, 1], "kind": "wait" })
+		eq([s.winner, s.reason], ["p", "flagTaken"], "loss hook")
+		var s2 := blank([["p", "hero", 1, 1], ["e", "soldier", 4, 4]])
+		s2.win = { "type": "flag", "at": [[3, 1]] }
+		for i in 6:
+			Game.end_turn(s2)
+		eq([s2.winner, s2.reason, s2.turn], ["e", "late", 4], "round hook")
+		Objectives.TYPES.erase("flag")
+		eq(Objectives.marks(s), [], "no entry: no marks")
+	)
 	run("goal / end texts: every win type has copy, unknown types fall back", func() -> void:
-		for t: String in Content.WIN_TYPES:
+		for t: String in Objectives.types():
 			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "brief", { "p": "anhhung", "e": "tuonggiac" }) != t, "brief copy " + t)
 			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "bar", { "p": "anhhung", "e": "tuonggiac" }, { "n": 1, "left": 2 }) != t, "bar copy " + t)
 		eq(Content.goal_text({ "type": "teleport" }, "brief", { "p": "anhhung", "e": null }), "teleport")

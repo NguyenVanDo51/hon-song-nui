@@ -176,10 +176,6 @@ func _process(dt: float) -> void:
 		return
 	var t := FX.now()
 	fx.update(t)
-	# the duel view covers the whole screen: draw nothing underneath (it otherwise kept ~2000 draw calls alive)
-	_stage.visible = not BattleView.covering
-	if BattleView.covering:
-		return
 	var sc := Baked.screen_scale(self)
 	if _terrain_dirty or not is_equal_approx(sc, _scale):
 		_terrain_dirty = false
@@ -437,9 +433,8 @@ func _draw_dyn(ci: CanvasItem) -> void:
 				_draw_building(ci, t, x * T, y * T, own, time, x, y)
 	for g: Dictionary in s.graves:
 		_draw_grave(ci, g.x * T, g.y * T, time)
-	if s.win.type == "reach":
-		for at: Array in s.win.get("at", []):
-			_draw_goal(ci, at[0] * T, at[1] * T, time)
+	for at: Array in Objectives.marks(s):
+		_draw_goal(ci, at[0] * T, at[1] * T, time)
 	_draw_overlays(ci, time)
 	fx.draw_under(ci, T, time)
 	_draw_units(ci, time)
@@ -522,7 +517,7 @@ func _draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, 
 			Draw.quad(tip, Vector2(X + T * 0.64, Y + T * 0.06 + wave), P.call(0.5, 0.08), 6)])
 		ci.draw_colored_polygon(flag, flag_col)
 
-## "reach" goal: pulsing gold frame + a tall gold banner
+## objective goal tile (Objectives.marks): pulsing gold frame + a tall gold banner
 func _draw_goal(ci: CanvasItem, X: float, Y: float, time: float) -> void:
 	var pulse := 0.5 + 0.5 * sin(time / 300.0)
 	ci.draw_rect(Rect2(X + 2, Y + 2, T - 4, T - 4), Color(1, 0.84, 0.4, 0.12 + 0.12 * pulse))

@@ -19,7 +19,6 @@ var ui := {}
 var stats := { "kills": 0, "losses": 0 }
 var fx: FX
 var board: Control # Board (2D) or Board3D: same surface (signals, view, fit, set_state, tile_rect, focus)
-var battle: BattleView
 
 var _turn: Label
 var _gold_box: HBoxContainer
@@ -62,8 +61,6 @@ var _pop_anchor: Variant = null # [x, y] tile the popup belongs to; null = top c
 var _hover_at := 0
 const POP_W := 290.0
 const HUD_M := 10.0 # HUD distance from the screen edge
-## cut-away duel scene (BattleView) parked for now: every attack plays on the map. Flip to bring the setting back.
-const SCENE_ENABLED := false
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -74,12 +71,6 @@ func _ready() -> void:
 	FX.speed = float(Store.get_v("speed", 1.0)) if not main.flags.has("speed") else FX.speed
 	_reset_ui()
 	_build()
-	var bl := CanvasLayer.new() # above the top bar and the Hết lượt button
-	bl.layer = 20
-	add_child(bl)
-	battle = BattleView.new()
-	battle.main = main
-	bl.add_child(battle)
 
 func _reset_ui() -> void:
 	ui = { "sel": null, "dest": null, "mode": M_IDLE, "target": null, "info": null, "buyAt": null, "busy": false, "hint": null,
@@ -142,10 +133,8 @@ func _build() -> void:
 	tr.minimum_size_changed.connect(func() -> void: _place_hud.call_deferred()) # ⏩ shown / hidden
 	add_child(tr)
 	_hud_tr = tr
-	_btn_ff = _ibtn("» Tua lượt địch", "Chạy nhanh lượt địch, bỏ qua cảnh đánh (giữ Space / chuột cũng tua)", func() -> void:
+	_btn_ff = _ibtn("» Tua lượt địch", "Chạy nhanh lượt địch (giữ Space / chuột cũng tua)", func() -> void:
 		_ff = true
-		if battle.visible:
-			battle.skip()
 		_btn_ff.visible = false)
 	_btn_ff.visible = false
 	tr.add_child(_btn_ff)
@@ -244,7 +233,7 @@ func _hud_box() -> StyleBoxFlat:
 	b.shadow_color = Color(0, 0, 0, 0.45); b.shadow_size = 10; b.shadow_offset = Vector2(0, 4)
 	return b
 
-## ⚙ dropdown: hint, unit book, speed, battle scene, sound, restart, leave
+## ⚙ dropdown: hint, unit book, speed, sound, 2D/3D, restart, leave
 func _build_menu() -> void:
 	_menu = PanelContainer.new()
 	_menu.add_theme_stylebox_override("panel", _hud_box())
@@ -444,7 +433,6 @@ func leave() -> void:
 		FX.speed = _user_speed
 	_btn_ff.visible = false
 	gen += 1
-	battle.close()
 	if _intro_layer != null:
 		_intro_closed.emit()
 	visible = false
@@ -1002,8 +990,7 @@ func _income_fx() -> void:
 	var items: Array = []
 	for k: Vector2i in s.owner:
 		if s.owner[k] == "p":
-			var castle: bool = s.tiles[k.y][k.x] == "c"
-			items.append({ "x": k.x, "y": k.y, "amount": Rules.RULES.incomeCastle if castle else Rules.RULES.incomeVillage })
+			items.append({ "x": k.x, "y": k.y, "amount": Game.income_of(s.tiles[k.y][k.x]) })
 	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y or (a.y == b.y and a.x < b.x))
 	_coins.board = board
 	_coins.play(items)
@@ -1091,26 +1078,20 @@ func play(events: Array, before: Dictionary) -> void:
 		if e.t == "raise" or e.t == "spawn":
 			v.hide[e.id] = true
 		if e.t == "raze": # keep the village standing until the rock lands
-			v.hold[Vector2i(e.x, e.y)] = ["v", e.prev]
+			v.hold[Vector2i(e.x, e.y)] = [e.tile, e.prev]
 		if e.t == "repair":
-			v.hold[Vector2i(e.x, e.y)] = ["x", null]
-	var done_ev := {}
+			v.hold[Vector2i(e.x, e.y)] = [e.tile, null]
 	var dived := false
 	for ei in events.size():
 		var e: Dictionary = events[ei]
 		if gen != my:
 			return
-		if done_ev.has(ei):
-			continue
 		if dived and e.t != "hit" and e.t != "die":
 			dived = false
 			await board.unfocus()
-		if e.t == "hit" and not dived and not e.get("counter", false) and _zoom_on(e):
+		if e.t == "hit" and not dived and not e.get("counter", false) and _zoom_on():
 			dived = true
 			await board.focus(Vector2i(e.fx, e.fy), Vector2i(e.x, e.y))
-		if e.t == "hit" and not e.get("counter", false) and _battle_on(e):
-			await _duel(events, ei, before, hp, done_ev)
-			continue
 		match e.t:
 			"move":
 				var ds: Variant = dying.get(e.id)
@@ -1164,8 +1145,9 @@ func play(events: Array, before: Dictionary) -> void:
 				await fx.sleep(380.0)
 			"capture":
 				fx.capture(e.x, e.y, e.side)
-				fx.float_text(e.x, e.y - 0.3, Content.text("captureCastle") if e.tile == "c" else Content.text("captureVillage"), "#ffe08a", 1300.0, e.tile == "c")
-				await fx.sleep(700.0 if e.tile == "c" else 450.0)
+				var castle := Game.sells(e.tile)
+				fx.float_text(e.x, e.y - 0.3, Content.text("captureCastle") if castle else Content.text("captureVillage"), "#ffe08a", 1300.0, castle)
+				await fx.sleep(700.0 if castle else 450.0)
 			"raze":
 				await fx.raze({ "x": e.fx, "y": e.fy, "id": e.from }, e.x, e.y)
 				v.hold.erase(Vector2i(e.x, e.y))
@@ -1192,7 +1174,7 @@ func play(events: Array, before: Dictionary) -> void:
 				main.audio.play("ui")
 			"poison":
 				fx.ring(e.x, e.y, "#e0503f", 600.0, 0.7, 0.08)
-				fx.float_text(e.x, e.y - 0.3, "−10 công/thủ", "#ff8a7a", 1000.0)
+				fx.float_text(e.x, e.y - 0.3, "−%d công/thủ" % e.amount, "#ff8a7a", 1000.0)
 			"graveGone":
 				pass
 			"raise":
@@ -1218,62 +1200,9 @@ func play(events: Array, before: Dictionary) -> void:
 	v.hold.clear()
 	v.sprites = v.sprites.filter(func(sp: Dictionary) -> bool: return not dying.has(sp.u.id))
 
-## cut-away duel for the attack at events[i] (+ its counter); marks both hits handled and applies their damage to the shown hp
-func _battle_on(e: Dictionary) -> bool:
-	return _scene_on(e)
-
-## attacks that play on the map zoom onto the two units (no cut-away scene for this one, not fast-forwarding)
-func _zoom_on(e: Dictionary) -> bool:
-	return not _scene_on(e) and not _ff and not main.flags.has("nozoom") and (not main.flags.has("bot") or main.flags.has("zoom"))
-
-## the battle-scene setting wants the cut-away duel for this attack
-func _scene_on(e: Dictionary) -> bool:
-	if not SCENE_ENABLED:
-		return false
-	var m := Store.battle_mode()
-	if m == "off" or (m == "mine" and e.side != "p") or _ff or main.flags.has("nobattle"):
-		return false
-	return not main.flags.has("bot") or main.flags.has("battle")
-
-func _duel(events: Array, i: int, before: Dictionary, hp: Dictionary, done_ev: Dictionary) -> void:
-	var e: Dictionary = events[i]
-	var counter: Variant = null
-	for j in range(i + 1, events.size()):
-		var o: Dictionary = events[j]
-		if o.t == "hit":
-			if o.get("counter", false) and o.from == e.id and o.id == e.from:
-				counter = o
-				done_ev[j] = true
-			break
-	var dies := {}
-	for o: Dictionary in events:
-		if o.t == "die":
-			dies[o.id] = true
-	var au: Dictionary = before.get(e.from, Game.unit_by_id(s, e.from)).duplicate()
-	var du: Dictionary = before.get(e.id, Game.unit_by_id(s, e.id)).duplicate()
-	au.x = e.fx; au.y = e.fy
-	var side_unit := func(u: Dictionary) -> Dictionary:
-		var t: String = Game.tile_at(s, u.x, u.y)
-		return { "side": u.side, "type": u.type, "hero": s.heroKey[u.side] if u.type == "hero" else null, "hp0": float(hp.get(u.id, u.hp)),
-			"tile": t, "owner": s.owner.get(Vector2i(u.x, u.y)), "rank": u.get("rank", 0), "def": Game.terrain_def(s, u, u.x, u.y) }
-	var shot_of := func(u: Dictionary, d: Dictionary) -> String:
-		var dd: int = absi(u.x - d.x) + absi(u.y - d.y)
-		return Rules.UNITS.get(u.type, {}).get("shot", "") if dd > 1 else ""
-	var d := { "night": s.get("night", false), "att": e.side, "counter": null,
-		"first": { "amount": e.amount, "kill": dies.has(e.id), "shot": shot_of.call(au, du) } }
-	d[au.side] = side_unit.call(au)
-	d[du.side] = side_unit.call(du)
-	if counter != null:
-		d.counter = { "amount": counter.amount, "kill": dies.has(e.from), "shot": shot_of.call(du, au) }
-	var my := gen
-	await battle.run(d)
-	if gen != my:
-		return
-	hp[e.id] = hp.get(e.id, 100) - e.amount
-	if counter != null:
-		hp[e.from] = hp.get(e.from, 100) - counter.amount
-	fx.flash(e.id)
-	board.queue_redraw()
+## attacks zoom onto the two units unless fast-forwarding
+func _zoom_on() -> bool:
+	return not _ff and not main.flags.has("nozoom") and (not main.flags.has("bot") or main.flags.has("zoom"))
 
 # ---------- new unit intro ----------
 signal _intro_closed
@@ -1610,7 +1539,7 @@ func _act(label: String, fn: Callable, opts := {}) -> Button:
 
 func _goal_line() -> String:
 	var obj := Content.goal_text(s.win, "bar", s.heroKey, {
-		"n": Game.castles(s, "e") if s.win.type == "castles" else Game.unit_count(s, "e"), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) })
+		"n": Objectives.bar_n(s), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) })
 	return "[color=#%s]🎯[/color] %s" % [Style.GOLD.to_html(false), obj]
 
 ## compact unit card for the popup: token + name + side/HP/XP, HP bar, one stat line; full = also the unit's description
@@ -1717,7 +1646,7 @@ func _def_txt(u: Dictionary, st: Dictionary, b: Dictionary) -> String:
 func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
 	var out := []
 	if b.atk_from == "aura":
-		out.append("[color=#%s]⚔ +10 công[/color] nhờ trống đồng, tới lượt sau của phe mình." % Board.BUFF_UP.to_html(false))
+		out.append("[color=#%s]⚔ +%d công[/color] nhờ trống đồng, tới lượt sau của phe mình." % [Board.BUFF_UP.to_html(false), b.aura])
 	if b.def_from == "water":
 		out.append("[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông." % [Board.BUFF_UP.to_html(false), b.def, Game.stat(s, u).get("waterAtk", 0)])
 	if b.poison:
@@ -1738,8 +1667,9 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 		parts.append("[color=#%s]−%d công[/color] (bị cắn)" % [Style.BAD.to_html(false), bu.poison])
 	if su.get("antiAir", 0) and stg.move == "fly":
 		parts.append("+%d công đánh rồng" % su.antiAir)
-	if su.get("vsGhost", 0) and tgt.type == "ghost":
-		parts.append("+%d công đánh âm binh" % su.vsGhost)
+	var vs: int = su.get("vsType", {}).get(tgt.type, 0)
+	if vs:
+		parts.append("+%d công đánh %s" % [vs, Content.unit_type_look(tgt.side, tgt.type, null).name.to_lower()])
 	var bt := Game.buffs_at(s, tgt, tgt.x, tgt.y)
 	if bt.terrain:
 		parts.append("địch được %s +%d thủ" % [Content.terrain(s.tiles[tgt.y][tgt.x]).name.to_lower(), bt.terrain])
@@ -1816,7 +1746,7 @@ func refresh() -> void:
 						ui.target = best.id
 						refresh()))
 				if Game.can_capture(s, u, dx, dy):
-					_actions.add_child(_act("🏯 Chiếm thành" if s.tiles[dy][dx] == "c" else "🏠 Chiếm làng", func() -> void: commit({ "kind": "capture" }),
+					_actions.add_child(_act("🏯 Chiếm thành" if Game.sells(s.tiles[dy][dx]) else "🏠 Chiếm làng", func() -> void: commit({ "kind": "capture" }),
 						{ "hot": hk == "capture" or hk == null, "go": true }))
 				if Game.can_repair(s, u, dx, dy):
 					_info.add_child(_note("Làng hỏng: sửa xong thành làng chưa ai chiếm, lượt sau mới chiếm được."))

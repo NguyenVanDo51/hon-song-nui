@@ -26,10 +26,11 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 
 ## Thắng / thua
 - Một phe bị loại khi: hết thành **và** tướng đã chết; hoặc hết quân **và** hết thành. Phe chưa từng có thành (một số màn) chỉ thua khi hết quân.
-- Màn chiến dịch thêm mục tiêu: `hero` (hạ tướng địch), `survive` N lượt, `reach` (đưa tướng tới ô), `rout`; `waves` = quân phục kích theo lượt.
+- Màn chiến dịch thêm mục tiêu: `hero` (hạ tướng địch), `survive` N lượt, `reach` (đưa tướng tới ô), `rout`; `waves` = quân phục kích theo lượt. Mỗi kiểu = 1 mục trong `scripts/core/objectives.gd`.
 
 ## Địa hình (thủ +, giá đi)
 Đồng 5/1 · Đường 0/1 · Rừng 10/2 · Đồi 10/2 · Núi 15/3 (mọi quân) · Sông 0/3 (thủy binh 1) · Cầu 5/1 · Làng 15/1 · Thành 15/1 · Làng hỏng 15/1 · Đền 15/1 (không chiếm, hồi máu mọi phe). Rồng: mọi ô 1.
+Công trình = mô tả trong `TERRAIN` (`income`, `cap`, `heals`, `sells`, `razeTo`, `repairTo`/`repairBy`): làng 30 vàng, chiếm `capV`, phá -> làng hỏng; thành 50 vàng, chiếm `capC`, mua lính; làng hỏng sửa (`capV`) -> làng; đền hồi máu mọi phe.
 
 ## Lính (giá · công / thủ / đi / tầm)
 | Lính | AE2 | Giá | C / T / Đi / Tầm | Đặc biệt |
@@ -44,6 +45,8 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 | Máy bắn đá | Catapult | 700 | 50–70 / 10 / 4 / 2–4 | công thành, phá làng |
 | Rồng | Dragon | 1000 | 70–80 / 25 / 7 / 1 | bay |
 | Âm binh | Skeleton | — | 40–50 / 2 / 5 / 1 | gọi từ mộ, không tính trần |
+
+Số liệu đặc biệt (hào quang, độc, thưởng vs loại, gọi hồn ra loại gì) là cờ trong `UNITS`; quân bị đóng dấu giữ phe đóng dấu (`aura` / `poison`) + lượng (`auraAtk` / `poisonAmt`). Lưu ván v4 (v3 tự nâng, lượng = 10).
 
 ## Đã xác nhận từ mã gốc AE2 (`docs/review/ae2_research.md`, 2026-11-06)
 Luật mua (đi ngay, mua dưới quân ta / quân địch đứng trên thành, không giới hạn số lần), công thức KN (chỉ số gồm cả thưởng cấp, ×200/3), cấp tối đa 9, bảng địa hình + rồng vẫn được thủ địa hình, voi / máy bắn đá lên núi, +15 nỏ vs bay, độc không giảm bước đi, hào quang tầm 1–2, mộ (đếm 3, bước lên là mất), tướng hồi sinh giữ cấp + giá 200/+200/tối đa 1000.

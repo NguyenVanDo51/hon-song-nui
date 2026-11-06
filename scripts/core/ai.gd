@@ -10,10 +10,15 @@ static var rng: Callable = _gen.randf
 static func seed_game(v: int) -> void:
 	_gen.seed = v
 
-const WEIGHTS := { "soldier": 3, "archer": 2, "boat": 0.8, "shaman": 0.6, "drum": 0.5, "wolf": 1.2, "elephant": 1.4, "catapult": 0.7, "bird": 1 }
+## buy weight for a type without `aiWeight` (a new unit still gets bought, never crashes the AI)
+const DEFAULT_WEIGHT := 1.0
+
+static func weight(type: String) -> float:
+	return float(Game.UNITS[type].get("aiWeight", DEFAULT_WEIGHT))
 
 static func value(_s: Dictionary, u: Dictionary) -> float:
-	return (900 if u.type == "hero" else Game.UNITS[u.type].cost) * (1 + 0.2 * u.rank)
+	var b: Dictionary = Game.UNITS[u.type]
+	return b.get("aiValue", b.cost) * (1 + 0.2 * u.rank)
 
 ## multi-source terrain distance (ignores units)
 static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dictionary:
@@ -103,8 +108,9 @@ static func expected_hit(s: Dictionary, u: Dictionary, x: int, y: int, attackers
 static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array:
 	var st := Game.stat(s, u)
 	var out := []
-	if s.win.type == "reach" and u.side == "p" and u.type == "hero":
-		return s.win.get("at", []).duplicate() # escape missions: the hero only cares about the goal
+	var og: Variant = Objectives.ai_goals(s, u)
+	if og != null:
+		return og
 	var cap_v: bool = st.get("capV", false)
 	var cap_c: bool = st.get("capC", false)
 	if cap_v or cap_c:
@@ -114,16 +120,17 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 				var key := Vector2i(x, y)
 				if s.owner.get(key) == u.side or claims.has(key):
 					continue
-				if (t == "v" and cap_v) or (t == "c" and cap_c) or (t == "x" and cap_v):
+				if Game.can_take(st, t):
 					out.append([x, y])
-	if not out.size() or u.type != "soldier":
+	if not out.size() or not cap_v or cap_c: # pure village takers (capV only) chase villages, not fights
 		for e: Dictionary in s.units:
 			if e.side != u.side:
 				out.append([e.x, e.y])
 		for key: Vector2i in s.owner:
 			var o: Variant = s.owner[key]
-			if o != null and o != u.side and s.tiles[key.y][key.x] == "c":
-				if cap_c:
+			var kt: String = s.tiles[key.y][key.x]
+			if o != null and o != u.side and Game.sells(kt):
+				if st.get(Game.cap_flag(kt), false):
 					out.append([key.x, key.y])
 				else: # crowd round it, never stand on it (that blocks our own commander's capture)
 					for d: Array in Game.DIRS:
@@ -161,6 +168,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var die_val := maxf(0.0, val - 150.0) * caution # soldier-priced hp already covers a soldier's death
 	var has_df := df.size() > 0
 	var enemy_castles := Game.castles(s, Game.other(u.side))
+	var goal_tile: Variant = Objectives.hook(s, "ai_tile")
 	var best: Array = [null] # [ {score, act} ]
 	var consider := func(score: float, act: Dictionary) -> void:
 		score += (rng.call() - 0.5) * 8
@@ -178,31 +186,29 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key))
 		pos -= _risk(hurt, u.hp, hp_val, die_val)
 		var own: Variant = s.owner.get(key)
-		if (own == u.side or Game.TERRAIN[t].get("temple", false)) and u.hp < 70:
+		if Game.heals_at(s, u.side, rx, ry) and u.hp < 70:
 			pos += (100 - u.hp) * minf(val, 300.0) * 0.004 # capped: a 60-hp commander must not glue to a village
 		if st.get("aura", 0): # drum: allies within 2 get +atk after it acts
 			for o: Dictionary in s.units:
 				if o.side == u.side and o.id != u.id and not o.acted and Game.dist(o.x, o.y, rx, ry) <= 2:
 					pos += 15
-		if t == "c" and own == u.side:
+		var castle := Game.sells(t)
+		if castle and own == u.side:
 			pos -= 40 # AE2 sells under one unit: only a nudge to keep moving (it also guards the castle)
-		elif t == "c" and own != null and not st.get("capC", false):
+		elif castle and own != null and not st.get(Game.cap_flag(t), false):
 			pos -= 600 # parked on an enemy castle it cannot take: blocks our commander
 
 		if danger.has(key):
 			pos += 900 # block the capture
-		if s.win.type == "reach" and u.side == "p" and u.type == "hero":
-			for g: Array in s.win.get("at", []):
-				if g[0] == rx and g[1] == ry:
-					# stepping on the goal wins; rebought on it (offGoal) -> must step off first, back next turn
-					pos += -500.0 if u.get("offGoal", false) else 20000.0
+		if goal_tile != null:
+			pos += goal_tile.call(s, u, rx, ry)
 		consider.call(pos, { "id": u.id, "to": [rx, ry], "kind": "wait" })
 
 		if Game.can_capture(s, u, rx, ry):
-			var c := 700 if t == "c" else 220
+			var c := 700 if castle else 220
 			if own != null:
-				c += 400 if t == "c" else 100
-			if t == "c" and own == Game.other(u.side) and enemy_castles == 1:
+				c += 400 if castle else 100
+			if castle and own == Game.other(u.side) and enemy_castles == 1:
 				c += 10000
 			consider.call(pos + c + gd * 12, { "id": u.id, "to": [rx, ry], "kind": "capture" })
 		if Game.can_repair(s, u, rx, ry):
@@ -243,29 +249,37 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null) -> Varia
 			counts[u.type] = counts.get(u.type, 0) + 1
 		elif Game.UNITS[u.type].move == "fly":
 			enemy_fly = true
-	var open := 0
+	var open := {} # cap flag -> buildings needing it that are not ours
 	var water := 0
 	for y in s.h:
 		for x in s.w:
-			if s.tiles[y][x] == "v" and s.owner.get(Vector2i(x, y)) != side:
-				open += 1
-			elif s.tiles[y][x] == "~":
+			var t: String = s.tiles[y][x]
+			var f := Game.cap_flag(t)
+			if f != "" and s.owner.get(Vector2i(x, y)) != side:
+				open[f] = open.get(f, 0) + 1
+			elif Game.TERRAIN[t].get("water", false):
 				water += 1
 	var best: Variant = null
 	for type: String in s.allowed[side]:
-		var cost: int = Game.UNITS[type].cost
+		var st: Dictionary = Game.UNITS[type]
+		var cost: int = st.cost
 		if cost > s.gold[side] or (ok != null and not ok.has(type)):
 			continue
-		if type == "boat" and water == 0:
+		var swims: bool = st.move == "water"
+		if swims and water == 0:
 			continue # no river: a boat is a soldier at twice the price
-		var w: float = WEIGHTS[type]
-		if type == "archer" and enemy_fly:
+		var w := weight(type)
+		if st.get("antiAir", 0) and enemy_fly:
 			w += 2
-		if type == "soldier" and open > counts.get("soldier", 0) * 3:
+		var takes := 0
+		for f: String in open:
+			if st.get(f, false):
+				takes += open[f]
+		if takes > counts.get(type, 0) * 3:
 			w += 2
-		if type == "shaman" and s.graves.size():
+		if st.get("raise", "") and s.graves.size():
 			w += 0.5
-		if type == "boat" and water * 8 > s.w * s.h:
+		if swims and water * 8 > s.w * s.h:
 			w += 1.5
 		var sc: float = (w / (1 + counts.get(type, 0))) * pow(cost / 300.0, 0.35)
 		if best == null or sc > best.sc:
@@ -284,7 +298,7 @@ static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -
 			var key := Vector2i(x, y)
 			if s.owner.get(key) == u.side or claims.has(key):
 				continue
-			if not (t == "v" or t == "x" or (t == "c" and st.get("capC", false))):
+			if not Game.can_take(st, t):
 				continue
 			var d := absi(x - act.to[0]) + absi(y - act.to[1])
 			if best == null or d < best.d:

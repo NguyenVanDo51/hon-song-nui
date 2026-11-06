@@ -39,7 +39,7 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 		c.done = false
 		waves.append(c)
 	var s := {
-		"v": 3, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles, "owner": {}, "units": [], "graves": [],
+		"v": Content.STATE_V, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles, "owner": {}, "units": [], "graves": [],
 		"gold": gold, "turn": 1, "side": "p",
 		"heroKey": { "p": _or(opts, "hero", def.get("hero")), "e": def.get("enemyHero") },
 		"heroDead": { "p": false, "e": false }, "heroDeaths": { "p": 0, "e": 0 }, "heroSaved": { "p": {}, "e": {} },
@@ -116,6 +116,35 @@ static func grave_at(s: Dictionary, x: int, y: int) -> Variant:
 		if g.x == x and g.y == y:
 			return g
 	return null
+
+## TERRAIN entry of a tile letter ({} off the map)
+static func ter(t: Variant) -> Dictionary:
+	return TERRAIN.get(t, {}) if t != null else {}
+
+## gold per turn a tile pays its owner
+static func income_of(t: Variant) -> int:
+	return int(ter(t).get("income", 0))
+
+## the owner buys units here (a castle)
+static func sells(t: Variant) -> bool:
+	return ter(t).get("sells", false)
+
+## unit flag needed to capture the tile ("" = not capturable)
+static func cap_flag(t: Variant) -> String:
+	return ter(t).get("cap", "")
+
+## stats st can capture or repair tile t (owner not checked)
+static func can_take(st: Dictionary, t: Variant) -> bool:
+	var f := cap_flag(t)
+	if f != "" and st.get(f, false):
+		return true
+	var by: String = ter(t).get("repairBy", "")
+	return by != "" and st.get(by, false)
+
+## a unit of `side` standing on (x, y) heals at its turn start
+static func heals_at(s: Dictionary, side: String, x: int, y: int) -> bool:
+	var h: String = ter(tile_at(s, x, y)).get("heals", "")
+	return h == "any" or (h == "owner" and s.owner.get(Vector2i(x, y)) == side)
 
 static func move_cost(move_class: String, t: Variant) -> float:
 	if t == null:
@@ -211,21 +240,28 @@ static func targets_from(s: Dictionary, u: Dictionary, fx: int, fy: int) -> Arra
 			out.append(o)
 	return out
 
+## stamps on a unit: `aura` / `poison` = side that laid it (wears off at that side's next turn), auraAtk / poisonAmt = amount
+static func aura_atk(u: Dictionary) -> int:
+	return int(u.get("auraAtk", 0)) if u.get("aura") != null else 0
+
+static func poison_amt(u: Dictionary) -> int:
+	return int(u.get("poisonAmt", 0)) if u.get("poison") != null else 0
+
 ## UI helper, no rule effect: live bonuses on u if it stood at (x, y): aura (+atk, from a drum, until its side's next
-## turn), poison (-atk / -def), water bonus for the water class, terrain def. { atk, atk_from, def, poison, terrain }
+## turn), poison (-atk / -def), water bonus for the water class, terrain def. { atk, atk_from, aura, def, poison, terrain }
 static func buffs_at(s: Dictionary, u: Dictionary, x: int, y: int) -> Dictionary:
 	var st := stat(s, u)
 	var wet: bool = TERRAIN[tile_at(s, x, y)].get("water", false)
-	var out := { "atk": 0, "atk_from": null, "def": 0, "def_from": null, "poison": 0, "terrain": terrain_def(s, u, x, y) }
+	var out := { "atk": 0, "atk_from": null, "aura": 0, "def": 0, "def_from": null, "poison": 0, "terrain": terrain_def(s, u, x, y) }
 	if u.get("aura") != null:
-		out.atk += 10
+		out.aura = aura_atk(u)
+		out.atk += out.aura
 		out.atk_from = "aura"
 	if wet and st.get("waterAtk", 0):
 		out.atk += st.waterAtk
 		out.def += st.get("waterDef", 0)
 		out.def_from = "water"
-	if u.get("poison") != null:
-		out.poison = 10
+	out.poison = poison_amt(u)
 	return out
 
 static func terrain_def(s: Dictionary, u: Dictionary, x: int, y: int) -> int:
@@ -245,19 +281,15 @@ static func _mods(s: Dictionary, a: Dictionary, ax: int, ay: int, d: Dictionary)
 	var m := 0
 	if sa.get("antiAir", 0) and sd.move == "fly":
 		m += sa.antiAir
-	if sa.get("vsGhost", 0) and d.type == "ghost":
-		m += sa.vsGhost
+	m += int(sa.get("vsType", {}).get(d.type, 0))
 	if sa.get("waterAtk", 0) and TERRAIN[tile_at(s, ax, ay)].get("water", false):
 		m += sa.waterAtk
-	if a.get("aura") != null:
-		m += 10
-	if a.get("poison") != null:
-		m -= 10
+	m += aura_atk(a)
+	m -= poison_amt(a)
 	var D: int = sd.def + RULES.rankBonus * d.rank + terrain_def(s, d, d.x, d.y)
 	if sd.get("waterDef", 0) and TERRAIN[tile_at(s, d.x, d.y)].get("water", false):
 		D += sd.waterDef
-	if d.get("poison") != null:
-		D -= 10
+	D -= poison_amt(d)
 	return m - D
 
 ## AE2: (rolled atk + bonuses - defence) x attacker hp / 100, rounded down, 0..d.hp. roll in [0,1): 0 = min, ->1 = atkMax - 1
@@ -317,9 +349,10 @@ static func can_capture(s: Dictionary, u: Dictionary, x: int, y: int) -> bool:
 	var st := stat(s, u)
 	if s.owner.get(Vector2i(x, y)) == u.side:
 		return false
-	return (t == "v" and st.get("capV", false)) or (t == "c" and st.get("capC", false))
+	var f := cap_flag(t)
+	return f != "" and st.get(f, false)
 
-## villages a raze unit can wreck from (fx, fy): siege, so only from where it stands; enemy or unowned, in range, empty
+## buildings (razeTo) a raze unit can wreck from (fx, fy): siege, so only from where it stands; enemy or unowned, in range, empty
 static func razable_from(s: Dictionary, u: Dictionary, fx: int, fy: int) -> Array:
 	var st := stat(s, u)
 	if not st.get("raze", false) or fx != u.x or fy != u.y:
@@ -328,14 +361,15 @@ static func razable_from(s: Dictionary, u: Dictionary, fx: int, fy: int) -> Arra
 	var r: int = st.rmax
 	for y in range(fy - r, fy + r + 1):
 		for x in range(fx - r, fx + r + 1):
-			if tile_at(s, x, y) == "v" and s.owner.get(Vector2i(x, y)) != u.side and in_range(st, dist(fx, fy, x, y)) \
+			if ter(tile_at(s, x, y)).has("razeTo") and s.owner.get(Vector2i(x, y)) != u.side and in_range(st, dist(fx, fy, x, y)) \
 					and unit_at(s, x, y) == null:
 				out.append([x, y])
 	return out
 
-## a ruined village is repaired (back to an unowned village) by a unit that can capture villages, standing on it
+## a ruin (repairTo) is repaired (back to an unowned building) by a unit with its repairBy flag, standing on it
 static func can_repair(s: Dictionary, u: Dictionary, x: int, y: int) -> bool:
-	return tile_at(s, x, y) == "x" and stat(s, u).get("capV", false)
+	var by: String = ter(tile_at(s, x, y)).get("repairBy", "")
+	return by != "" and stat(s, u).get(by, false)
 
 static func raisable_graves(s: Dictionary, u: Dictionary, x: int, y: int) -> Array:
 	if not stat(s, u).get("raise", false): # AE2: raised ghosts do not count toward the cap, so no cap check
@@ -446,9 +480,11 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 					_kill(s, u, ev)
 			# AE2 wolf: after the counter, any hit the target survives (even 0 dmg, even if the wolf fell) weakens it
 			# until our next turn (RM MainDisplayable finishAttack)
-			if stat(s, u).get("poison", 0):
+			var pa: int = stat(s, u).get("poison", 0)
+			if pa:
 				d.poison = u.side
-				ev.append({ "t": "poison", "id": d.id, "x": d.x, "y": d.y })
+				d.poisonAmt = pa
+				ev.append({ "t": "poison", "id": d.id, "x": d.x, "y": d.y, "amount": pa })
 		_promote(s, u, ev)
 		if d.hp > 0:
 			_promote(s, d, ev)
@@ -456,39 +492,43 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		var key := Vector2i(tx, ty)
 		var prev: Variant = s.owner.get(key)
 		s.owner[key] = u.side
-		if tile_at(s, tx, ty) == "c":
+		if sells(tile_at(s, tx, ty)):
 			s.hadCastle[u.side] = true # spec: only a side that never held a castle falls by rout alone
 		ev.append({ "t": "capture", "x": tx, "y": ty, "side": u.side, "prev": prev, "tile": tile_at(s, tx, ty) })
 	elif act.kind == "raze":
 		var key := Vector2i(act.target[0], act.target[1])
 		var prev: Variant = s.owner.get(key)
+		var was: String = s.tiles[key.y][key.x]
 		s.owner.erase(key)
-		s.tiles[key.y][key.x] = "x"
-		ev.append({ "t": "raze", "from": u.id, "fx": tx, "fy": ty, "x": key.x, "y": key.y, "prev": prev, "type": u.type, "side": u.side })
+		s.tiles[key.y][key.x] = ter(was).razeTo
+		ev.append({ "t": "raze", "from": u.id, "fx": tx, "fy": ty, "x": key.x, "y": key.y, "prev": prev, "tile": was, "type": u.type, "side": u.side })
 	elif act.kind == "repair":
-		s.tiles[ty][tx] = "v"
-		ev.append({ "t": "repair", "id": u.id, "x": tx, "y": ty, "side": u.side })
+		var was: String = s.tiles[ty][tx]
+		s.tiles[ty][tx] = ter(was).repairTo
+		ev.append({ "t": "repair", "id": u.id, "x": tx, "y": ty, "tile": was, "side": u.side })
 	elif act.kind == "raise":
 		var gx: int = act.target[0]
 		var gy: int = act.target[1]
 		s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.x != gx or g.y != gy)
-		var gh := spawn(s, u.side, "ghost", gx, gy, true)
+		var gh := spawn(s, u.side, stat(s, u).raise, gx, gy, true)
 		ev.append({ "t": "raise", "id": gh.id, "x": gx, "y": gy, "from": u.id })
 	u.acted = true
-	if stat(s, u).get("aura", 0): # AE2 wisp: allies within 2 get +atk until our next turn; also from where it fell (RM finishMove)
+	var aa: int = stat(s, u).get("aura", 0)
+	if aa: # AE2 wisp: allies within 2 get +atk until our next turn; also from where it fell (RM finishMove)
 		var ids := []
 		for o: Dictionary in s.units:
 			if o.side == u.side and o.id != u.id and dist(o.x, o.y, u.x, u.y) <= 2:
+				o.auraAtk = maxi(aura_atk(o), aa) # two drums do not stack: the bigger one counts
 				o.aura = u.side
 				ids.append(o.id)
 		if ids.size():
-			ev.append({ "t": "aura", "from": u.id, "ids": ids })
+			ev.append({ "t": "aura", "from": u.id, "ids": ids, "amount": aa })
 	_check_winner(s, ev)
 	return ev
 
-## own castle; may hold one of our units (AE2: the new unit appears on it and must step off), never two
+## own castle (sells); may hold one of our units (AE2: the new unit appears on it and must step off), never two
 static func buy_options(s: Dictionary, side: String, x: int, y: int) -> Array:
-	if tile_at(s, x, y) != "c" or s.owner.get(Vector2i(x, y)) != side:
+	if not sells(tile_at(s, x, y)) or s.owner.get(Vector2i(x, y)) != side:
 		return []
 	var here: Array = s.units.filter(func(o: Dictionary) -> bool: return o.x == x and o.y == y)
 	# AE2 original (bytecode): the castle check looks only at the owner -> buying works under any one unit, even an
@@ -551,25 +591,32 @@ static func unbuy(s: Dictionary, id: int) -> bool:
 static func hero_cost(s: Dictionary, side: String) -> int:
 	return mini(RULES.heroMax, RULES.heroBase + RULES.heroStep * int(s.get("heroDeaths", {}).get(side, 0)))
 
+## owned tiles that sell units (castles), in owner order
 static func castle_tiles(s: Dictionary, side: String) -> Array:
 	var out := []
 	for key: Vector2i in s.owner:
-		if s.owner[key] == side and tile_at(s, key.x, key.y) == "c":
+		if s.owner[key] == side and sells(tile_at(s, key.x, key.y)):
 			out.append(key)
 	return out
 
 static func castles(s: Dictionary, side: String) -> int:
 	return castle_tiles(s, side).size()
 
+## owned buildings that do not sell (villages)
 static func villages(s: Dictionary, side: String) -> int:
 	var n := 0
-	for o: Variant in s.owner.values():
-		if o == side:
+	for key: Vector2i in s.owner:
+		if s.owner[key] == side and not sells(tile_at(s, key.x, key.y)):
 			n += 1
-	return n - castles(s, side)
+	return n
 
+## sum of what every owned tile pays
 static func income(s: Dictionary, side: String) -> int:
-	return villages(s, side) * RULES.incomeVillage + castles(s, side) * RULES.incomeCastle
+	var n := 0
+	for key: Vector2i in s.owner:
+		if s.owner[key] == side:
+			n += income_of(tile_at(s, key.x, key.y))
+	return n
 
 static func unit_count(s: Dictionary, side: String) -> int:
 	var n := 0
@@ -602,14 +649,11 @@ static func hero_on_goal(s: Dictionary) -> bool:
 	return false
 
 ## a reason string when `side` has lost, else null.
-## AE2: out = commander dead and no castle left, or no unit and no castle left. Mission goals (hero / reach) on top.
+## AE2: out = commander dead and no castle left, or no unit and no castle left. Mission goals (Objectives) on top.
 static func loss_reason(s: Dictionary, side: String) -> Variant:
-	if side == "e" and s.win.type == "hero" and s.heroDead.e:
-		return "heroKilled"
-	if side == "e" and s.win.type == "reach" and hero_on_goal(s):
-		return "reached"
-	if side == "p" and s.win.type == "reach" and s.heroDead.p and castles(s, "p") == 0:
-		return "heroFell" # reach needs the commander and no castle is left to rebuy it
+	var goal: Variant = Objectives.loss(s, side)
+	if goal != null:
+		return goal
 	var c := castles(s, side)
 	if c > 0:
 		return null
@@ -660,15 +704,11 @@ static func end_turn(s: Dictionary) -> Array:
 	s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.ttl > 0)
 	if s.side == "p":
 		s.turn += 1
-		if s.win.type == "survive" and s.turn > s.win.turns:
-			s.winner = "p"
-			s.reason = "survived"
-			ev.append({ "t": "win", "side": "p", "reason": "survived" })
-			return ev
-		if s.win.type == "reach" and s.win.has("turns") and s.turn > s.win.turns:
-			s.winner = "e"
-			s.reason = "timeUp"
-			ev.append({ "t": "win", "side": "e", "reason": "timeUp" })
+		var w: Variant = Objectives.on_round(s) # [winner, reason]: survive / time limits
+		if w != null:
+			s.winner = w[0]
+			s.reason = w[1]
+			ev.append({ "t": "win", "side": w[0], "reason": w[1] })
 			return ev
 	else:
 		for w: Dictionary in s.waves:
@@ -686,8 +726,10 @@ static func end_turn(s: Dictionary) -> Array:
 	for u: Dictionary in s.units:
 		if u.get("aura") == s.side:
 			u.erase("aura")
+			u.erase("auraAtk")
 		if u.get("poison") == s.side:
 			u.erase("poison")
+			u.erase("poisonAmt")
 	var inc := income(s, s.side)
 	s.gold[s.side] += inc
 	ev.append({ "t": "income", "side": s.side, "amount": inc })
@@ -696,9 +738,7 @@ static func end_turn(s: Dictionary) -> Array:
 			continue
 		if not ev.any(func(e: Dictionary) -> bool: return e.t == "spawn" and e.id == u.id):
 			u.acted = false
-		var k := Vector2i(u.x, u.y)
-		var heals: bool = s.owner.get(k) == u.side or TERRAIN[tile_at(s, u.x, u.y)].get("temple", false)
-		if heals and u.hp < 100:
+		if heals_at(s, u.side, u.x, u.y) and u.hp < 100:
 			var h := mini(RULES.heal, 100 - u.hp)
 			u.hp += h
 			ev.append({ "t": "heal", "id": u.id, "amount": h, "x": u.x, "y": u.y })

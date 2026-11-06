@@ -98,10 +98,14 @@ func _run() -> void:
 				plain = Vector2i(tx, ty)
 	g._on_tile(plain.x, plain.y)
 	await process_frame
-	ok(g.ui.info != null and not g._btn_end.is_visible_in_tree(), "terrain click shows its card, end-turn hidden")
+	ok(g.ui.info != null and g._card.visible and g._btn_end.is_visible_in_tree(), "terrain click shows its card, end-turn stays")
 	g._on_tile(plain.x, plain.y)
 	await process_frame
-	ok(g.ui.info == null and g._btn_end.is_visible_in_tree(), "same terrain tile again closes card, end-turn back")
+	ok(g.ui.info == null and not g._card.visible and g._btn_end.is_visible_in_tree(), "same terrain tile again closes card")
+	g._on_tile(hero.x, hero.y)
+	await process_frame
+	ok(g._card.visible and not g._btn_end.is_visible_in_tree(), "unit picked: only its card, end-turn hidden")
+	g.cancel()
 	# buy at our castle (1,2)
 	g._on_tile(1, 2)
 	await process_frame

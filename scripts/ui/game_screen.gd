@@ -45,6 +45,7 @@ var _hud_tr: Control
 var _hud_tl: Control
 var _pop_box: StyleBox # popup panel; dropped when the popup holds only buttons
 var _card_avoid: Array[Vector2i] = [] # tiles the corner card must not cover (rects rebuilt on placement)
+var _card_terrain := false # card shows a tile, not a unit: HUD stays up
 var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _card: PanelContainer
 var _card_box: VBoxContainer
@@ -274,7 +275,8 @@ func _show_menu(on: bool) -> void:
 		_place_hud()
 
 ## map fills the screen; HUD floats over it. Nothing picked: turn/gold (TL), ⏩ ⚙ (TR), end turn (BR).
-## Something picked: only its card, in the first corner that keeps the picked tiles visible.
+## Unit picked: only its card, in the first corner that keeps the picked tiles visible.
+## Terrain picked: HUD stays; card prefers the free bottom-left corner, else takes a top corner from its HUD panel.
 func _side_w() -> float:
 	return maxf(_card.get_combined_minimum_size().x, 210.0)
 
@@ -283,9 +285,10 @@ func _place_hud() -> void:
 		return
 	var M := HUD_M
 	var picked := _card.visible
-	_hud_tl.visible = not picked
-	_hud_tr.visible = not picked
-	_btn_end.visible = not picked
+	var unit_card := picked and not _card_terrain
+	_hud_tl.visible = not unit_card
+	_hud_tr.visible = not unit_card
+	_btn_end.visible = not unit_card
 	_hud_tr.reset_size()
 	var trs := _hud_tr.get_combined_minimum_size()
 	_hud_tr.position = Vector2(size.x - trs.x - M, M)
@@ -301,6 +304,8 @@ func _place_hud() -> void:
 		_card.reset_size()
 		var cs := _card.get_combined_minimum_size()
 		var cands: Array[Vector2] = [Vector2(M, M), Vector2(size.x - cs.x - M, M), Vector2(M, size.y - cs.y - M), size - cs - Vector2(M, M)]
+		if _card_terrain: # bottom-right = end turn button, never covered
+			cands = [cands[2], cands[0], cands[1]]
 		_card.position = cands[0]
 		var avoid: Array[Rect2] = []
 		for k: Vector2i in _card_avoid:
@@ -311,6 +316,9 @@ func _place_hud() -> void:
 			if not avoid.any(func(a: Rect2) -> bool: return r.intersects(a)):
 				_card.position = c
 				break
+		if _card_terrain: # card took a top corner: that corner's HUD panel yields
+			_hud_tl.visible = _card.position.y > M or _card.position.x > M
+			_hud_tr.visible = _card.position.y > M or _card.position.x <= M
 	if _menu.visible:
 		var ms := _menu.get_combined_minimum_size()
 		_menu.position = Vector2(size.x - ms.x - M, M + trs.y + 6)
@@ -1607,6 +1615,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		_card_box.remove_child(c)
 		c.queue_free()
 	var show_card := false
+	_card_terrain = false
 	_card_avoid.clear()
 	if peek == null and u != null:
 		show_card = true
@@ -1630,6 +1639,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		_card_box.add_child(more)
 	elif peek == null and ui.info != null:
 		show_card = true
+		_card_terrain = true
 		var x: int = ui.info.x
 		var y: int = ui.info.y
 		var t: String = s.tiles[y][x]

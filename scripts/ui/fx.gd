@@ -325,8 +325,12 @@ func raise_fx(x: int, y: int) -> void:
 	ring(x, y, "#a37cff", 800.0, 1.1, 0.1)
 
 func heal(x: int, y: int, amount: int) -> void:
-	burst(x, y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0, "lmax": 1000.0, "smin": 0.06, "smax": 0.08 })
+	heal_sparkle(x, y)
 	float_text(x, y - 0.1, "+" + str(amount), "#9fe08a", 900.0)
+
+## green "+" sparks rising off a healed unit
+func heal_sparkle(x: float, y: float) -> void:
+	burst(x, y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0, "lmax": 1000.0, "smin": 0.06, "smax": 0.08 })
 
 func spawn_fx(x: int, y: int) -> void:
 	_play("spawn")

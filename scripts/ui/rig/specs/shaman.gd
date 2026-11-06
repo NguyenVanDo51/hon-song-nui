@@ -6,7 +6,6 @@ const SPIRIT := Color("#8fe39a")
 const SPIRIT_PALE := Color("#e6ffe9")
 const GLOW := Color(0.561, 0.89, 0.604, 0.22) # rgba(143,227,154,.22)
 const RING_BACK := Color("#b9efc0")
-const INK := Rig.INK
 
 static func wob(t: float, a: float, b: float, amp: float, per: float) -> float:
 	return amp * sin((t - a) / per) if t > a and t < b else 0.0
@@ -34,7 +33,7 @@ func events(r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "plume":
-		var idle: float = 1.0 if ctx.idle else 0.0
+		var idle: float = ctx.idle
 		return clampf(-vx * 0.035, -26, 14) - p.lean * 0.5 - p.head * 0.4 + idle * 2.0 * sin(ctx.clock / 700.0)
 	return 0.0
 
@@ -63,13 +62,13 @@ class Fl extends RefCounted:
 		ctx.set_xf(m)
 		ctx.alpha = alpha
 		ctx.begin_path(); ctx.circle(0, 0, s * 1.7); ctx.fill(GLOW)
-		Fl.flame_shape(ctx, s, w); ctx.fill(SPIRIT); ctx.stroke(INK, 5)
+		Fl.flame_shape(ctx, s, w); ctx.fill(SPIRIT); ctx.stroke(RigFx.INK, 5)
 		ctx.set_xf(m.translated_local(Vector2(s * 0.2, 0)))
 		Fl.flame_shape(ctx, s * 0.55, w); ctx.fill(SPIRIT_PALE)
 		if eyes:
 			ctx.set_xf(up)
 			for ex: float in [-s * 0.28, s * 0.3]:
-				ctx.begin_path(); ctx.ellipse(ex, -s * 0.05, s * 0.13, s * 0.2, 0, 0, TAU); ctx.fill(INK)
+				ctx.begin_path(); ctx.ellipse(ex, -s * 0.05, s * 0.13, s * 0.2, 0, 0, TAU); ctx.fill(RigFx.INK)
 		ctx.alpha = 1.0
 
 ## elliptic arc on the near (front) or far half
@@ -84,15 +83,15 @@ static func arc_half(ctx: RigCtx, cx: float, cy: float, rx: float, ry: float, fr
 static func glyph(ctx: RigCtx, k: int, s: float) -> void:
 	ctx.begin_path()
 	if k == 0:
-		ctx.arc(0, 0, s, 0, TAU); ctx.fill(SPIRIT_PALE); ctx.stroke(INK, 3)
-		ctx.begin_path(); ctx.arc(0, 0, s * 0.4, 0, TAU); ctx.fill(INK)
+		ctx.arc(0, 0, s, 0, TAU); ctx.fill(SPIRIT_PALE); ctx.stroke(RigFx.INK, 3)
+		ctx.begin_path(); ctx.arc(0, 0, s * 0.4, 0, TAU); ctx.fill(RigFx.INK)
 		return
 	if k == 1:
 		ctx.arc(-s * 0.5, 0, s * 0.5, PI, 0)
 		ctx.arc(s * 0.5, 0, s * 0.5, PI, 0, true)
 	else:
 		ctx.move_to(-s, s * 0.6); ctx.line_to(0, -s * 0.6); ctx.line_to(s, s * 0.6)
-	ctx.stroke(INK, 7); ctx.stroke(SPIRIT_PALE, 3.5)
+	ctx.stroke(RigFx.INK, 7); ctx.stroke(SPIRIT_PALE, 3.5)
 
 # ---------- attack draw: glyph ring at the feet + rising wisps + spirit gathering on the bronze bird ----------
 ## stateless (pure function of t). Hero-attached: every point in the hero frame (w = 0).
@@ -130,7 +129,7 @@ func _ring(ctx: RigCtx, cam: RigCam, r: Rig, t: float, front: bool) -> void:
 		var w: float = kw[1]
 		arc_half(ctx, RX, RY, rx * k, ry * k, front)
 		ctx.alpha = fade * (1.0 if front else 0.75)
-		ctx.stroke(INK, w + 5.0)
+		ctx.stroke(RigFx.INK, w + 5.0)
 		ctx.stroke(SPIRIT if front else RING_BACK, w)
 	for k in 8:
 		var a := rot + k * PI / 4.0
@@ -157,7 +156,7 @@ func _ring(ctx: RigCtx, cam: RigCam, r: Rig, t: float, front: bool) -> void:
 	# spirit gathering on the bronze bird while chanting (becomes the burst)
 	if front and t > 240.0 and t < t_thrust:
 		var u := clampf((t - 240.0) / 260.0, 0.0, 1.0)
-		var m := Transform2D(Vector2(cam.f * cam.ca, 0), Vector2(0, cam.ca), r.point_px("top")).translated_local(Vector2(2.0, -20.0 - 6.0 * u))
+		var m := cam.at_px(r.point_px("top"), cam.ca, true).translated_local(Vector2(2.0, -20.0 - 6.0 * u))
 		Fl.draw_flame(ctx, m.rotated_local(deg_to_rad(-90.0)), m, 5.0 + 8.0 * RigFx.out(u) + 1.2 * sin(t / 35.0), 0.3 * sin(t / 40.0), fade, false)
 	ctx.alpha = 1.0
 
@@ -241,7 +240,7 @@ class SoulFlame extends RefCounted:
 				else:
 					ctx.line_to(p.x, p.y)
 			ctx.alpha = 0.75
-			ctx.stroke(INK, 13.0 * k); ctx.stroke(SPIRIT, 7.0 * k)
+			ctx.stroke(RigFx.INK, 13.0 * k); ctx.stroke(SPIRIT, 7.0 * k)
 			ctx.alpha = 1.0
 		var grow := minf(1.0, age / 60.0)
 		var s := 20.0 * (0.88 + 0.16 * z) * (0.5 + 0.5 * grow)
@@ -251,5 +250,5 @@ class SoulFlame extends RefCounted:
 			var d := at - px(head)
 			if d.length_squared() > 0.0001:
 				dir = d
-		var up := Transform2D(Vector2(cam.f * k, 0), Vector2(0, k), at)
+		var up := cam.at_px(at, k, true)
 		Fl.draw_flame(ctx, cam.aimed(at, dir, k), up, s, 0.25 * sin(age / 30.0), 1.0, true)

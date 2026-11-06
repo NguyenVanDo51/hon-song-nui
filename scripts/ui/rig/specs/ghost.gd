@@ -35,7 +35,7 @@ func events(_r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = 1.0 if ctx.idle else 0.0
+	var idle: float = ctx.idle
 	if name == "tail":
 		return clampf(vx * 0.035, -18, 34) + p.lean * 0.5 + idle * 5.0 * sin(ctx.clock / 520.0)
 	if name == "band":
@@ -76,32 +76,33 @@ static func wisps(a: Rig, x: float, y: float, n: int, o := {}) -> void:
 	var sx: float = o.get("sx", 18.0)
 	var sy: float = o.get("sy", 14.0)
 	for i in n:
-		a.add(Wisp.new(a, { "x": x + randf_range(-sx, sx), "y": y + randf_range(-sy, sy), "vx": float(o.get("vx", 0.0)) + randf_range(-40, 40),
-			"vy": -randf_range(60, 130), "r": randf_range(9, 15) * float(o.get("size", 1.0)), "life": randf_range(520, 820), "age": 0.0,
-			"ph": randf_range(0, 6) }))
+		var m := Wisp.new()
+		m.x = x + randf_range(-sx, sx)
+		m.y = y + randf_range(-sy, sy)
+		m.vx = float(o.get("vx", 0.0)) + randf_range(-40, 40)
+		m.vy = -randf_range(60, 130)
+		m.rr = randf_range(9, 15) * float(o.get("size", 1.0))
+		m.life = randf_range(520, 820)
+		m.ph = randf_range(0, 6)
+		m.w = a.cam.w_of(m.x)
+		a.add(m)
 
-class Wisp extends RefCounted:
-	var q: Dictionary
-	var w := 0.0 # frame weight fixed where it spawned (like Rig particles)
-	func _init(r: Rig, p_q: Dictionary) -> void:
-		q = p_q
-		w = r.cam.w_of(q.x)
-	func upd(s: float, ms: float) -> bool:
-		q.age += ms
-		q.vx *= 1.0 - 2.0 * s
-		q.x += (q.vx + 40.0 * sin(q.age / 120.0 + q.ph)) * s
-		q.y += q.vy * s
-		return q.age < q.life
-	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
-		if layer != "front":
-			return
-		var u: float = q.age / q.life
-		var r: float = q.r * (1.0 - 0.45 * u)
-		var sway: float = 10.0 * sin(q.age / 90.0 + q.ph)
-		ctx.set_xf(cam.frame(q.x, q.y, w))
-		ctx.alpha = u / 0.1 if u < 0.1 else 1.0 - (u - 0.1) / 0.9
+class Wisp extends RigFx.Mote:
+	var ph := 0.0
+	func move(s: float) -> void:
+		vx *= 1.0 - 2.0 * s
+		x += (vx + 40.0 * sin(age / 120.0 + ph)) * s
+		y += vy * s
+	func xf(cam: RigCam) -> Transform2D:
+		return cam.frame(x, y, w)
+	func fade() -> float:
+		var u := age / life
+		return u / 0.1 if u < 0.1 else 1.0 - (u - 0.1) / 0.9
+	func shape(ctx: RigCtx) -> void:
+		var u := age / life
+		var r := rr * (1.0 - 0.45 * u)
+		var sway := 10.0 * sin(age / 90.0 + ph)
 		ctx.begin_path(); ctx.arc(0, 0, r, PI, 0, true)
 		ctx.quad_to(r, -1.7 * r, sway, -3.3 * r); ctx.quad_to(-r * 0.3, -1.4 * r, -r, 0); ctx.close_path()
-		ctx.fill(GHOST); ctx.stroke(Rig.INK, 3)
+		ctx.fill(GHOST); ctx.stroke(RigFx.INK, 3)
 		ctx.begin_path(); ctx.arc(0, -r * 0.1, r * 0.42, 0, TAU); ctx.fill(SPIRIT)
-		ctx.alpha = 1.0

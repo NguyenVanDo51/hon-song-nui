@@ -6,7 +6,6 @@ const GROUND := 244.0
 const WATER := "#6fb6e0"
 const WSHADE := "#3f8cc4"
 const FOAM := "#f4fcff"
-const INK := Color("#2b2220")
 const DEMO_FRONT := 340.0 # T_FRONT at the demo range (256 + targetFront)
 
 func events(_r: Rig) -> Array:
@@ -26,7 +25,7 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "plume":
-		var idle: float = 1.0 if ctx.idle else 0.0
+		var idle: float = ctx.idle
 		return clampf(vx * 0.035, -14, 30) + p.lean * 0.8 + p.head * 0.6 + idle * 2.0 * sin(ctx.clock / 700.0)
 	return 0.0
 
@@ -38,16 +37,7 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 	p.shld = b
 
 ## water droplet: outlined teardrop along its velocity, gravity, dies on the ground. Frame weight fixed at spawn.
-class Drop extends RefCounted:
-	var x: float
-	var y: float
-	var vx: float
-	var vy: float
-	var rr: float
-	var life: float
-	var age := 0.0
-	var w := 0.0
-
+class Drop extends RigFx.Mote:
 	static func spawn(r: Rig, px: float, py: float, n: int, o := {}) -> void:
 		var sx: float = o.get("sx", 20.0)
 		for i in n:
@@ -61,24 +51,26 @@ class Drop extends RefCounted:
 			d.w = r.cam.w_of(d.x)
 			r.add(d)
 
-	func upd(s: float, ms: float) -> bool:
-		age += ms
+	func move(s: float) -> void:
 		vy += 1500.0 * s
 		x += vx * s
 		y += vy * s
+
+	func alive() -> bool:
 		return age < life and y < GROUND + 6.0
 
-	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
-		if layer != "front":
-			return
+	func xf(cam: RigCam) -> Transform2D:
+		return cam.frame(x, y, w).rotated_local(atan2(vy, vx))
+
+	func fade() -> float:
+		return 1.0 - (age - life * 0.7) / (life * 0.3) if age > life * 0.7 else 1.0
+
+	func shape(ctx: RigCtx) -> void:
 		var r := rr
-		ctx.set_xf(cam.frame(x, y, w).rotated_local(atan2(vy, vx)))
-		ctx.alpha = 1.0 - (age - life * 0.7) / (life * 0.3) if age > life * 0.7 else 1.0
 		ctx.begin_path(); ctx.move_to(-r * 2.3, 0); ctx.quad_to(-r * 0.6, -r, 0, -r); ctx.arc(0, 0, r, -PI / 2, PI / 2)
 		ctx.quad_to(-r * 0.6, r, -r * 2.3, 0)
-		ctx.fill(WATER); ctx.stroke(INK, 3)
+		ctx.fill(WATER); ctx.stroke(RigFx.INK, 3)
 		ctx.begin_path(); ctx.circle(r * 0.2, -r * 0.35, r * 0.3); ctx.fill(FOAM)
-		ctx.alpha = 1.0
 
 ## wave: rises + curls toward the target, crashes (THE shared HIT), then collapses into foam
 class WaveFx extends RefCounted:
@@ -131,7 +123,7 @@ class WaveFx extends RefCounted:
 		_lip(ctx, P, tip, c)
 		_bz(ctx, P.call(tip.x - 0.04, tip.y - 0.22 * minf(c, 1.0)), P.call(I.x + 0.14, I.y - 0.14), P.call(I.x, I.y))
 		_bz(ctx, P.call(I.x - 0.1, I.y + 0.25), P.call(0.16, -0.06), P.call(0.42, 0.0))
-		ctx.close_path(); ctx.fill(WATER); ctx.stroke(INK, 6)
+		ctx.close_path(); ctx.fill(WATER); ctx.stroke(RigFx.INK, 6)
 		# shade on the inner face (no outline)
 		ctx.begin_path(); _mv(ctx, P.call(I.x, I.y))
 		_bz(ctx, P.call(I.x - 0.1, I.y + 0.25), P.call(0.16, -0.06), P.call(0.36, -0.01))
@@ -149,11 +141,11 @@ class WaveFx extends RefCounted:
 		var q2: Vector2 = P.call(-0.05, -1.0)
 		ctx.quad_to(q1.x, q1.y, q2.x, q2.y)
 		_lip(ctx, P, tip, c)
-		ctx.stroke(INK, w + 7.0); ctx.stroke(FOAM, w)
+		ctx.stroke(RigFx.INK, w + 7.0); ctx.stroke(FOAM, w)
 		# foam bubbles off the lip
 		for b: Array in [[0.08, -0.1, 0.05], [-0.02, 0.02, 0.035], [0.12, 0.06, 0.03]]:
 			var at: Vector2 = P.call(tip.x + b[0], tip.y + b[1])
-			ctx.begin_path(); ctx.circle(at.x, at.y, maxf(4.0, b[2] * H)); ctx.fill(FOAM); ctx.stroke(INK, 3)
+			ctx.begin_path(); ctx.circle(at.x, at.y, maxf(4.0, b[2] * H)); ctx.fill(FOAM); ctx.stroke(RigFx.INK, 3)
 		ctx.alpha = 1.0
 
 	static func _lip(ctx: RigCtx, P: Callable, tip: Vector2, c: float) -> void:

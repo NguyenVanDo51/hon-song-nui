@@ -80,6 +80,55 @@ class Timed extends RefCounted:
 	func draw(_ctx: RigCtx, _cam: RigCam, _layer: String) -> void:
 		pass
 
+## one-shot particle a spec spawns (wisp, droplet, ember, clod, debris): own position / velocity, front layer.
+## w = frame weight fixed where it spawned (-1 = follow x along the default ramp every frame)
+class Mote extends Timed:
+	var x := 0.0
+	var y := 0.0
+	var vx := 0.0
+	var vy := 0.0
+	var rr := 0.0
+	var rot := 0.0
+	var vr := 0.0
+	var w := 0.0
+	func upd(s: float, ms: float) -> bool:
+		age += ms
+		move(s)
+		return alive()
+	## one step of motion (age already advanced)
+	func move(_s: float) -> void:
+		pass
+	func alive() -> bool:
+		return age < life
+	func xf(cam: RigCam) -> Transform2D:
+		return cam.frame(x, y, w).rotated_local(rot)
+	func fade() -> float:
+		return 1.0
+	## outline in the mote's own frame (fill + stroke)
+	func shape(_ctx: RigCtx) -> void:
+		pass
+	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
+		if layer != "front":
+			return
+		ctx.set_xf(xf(cam))
+		ctx.alpha = fade()
+		shape(ctx)
+		ctx.alpha = 1.0
+
+## frame weight of an fx travelling from x0: 0 at launch -> 1 at the target front
+static func travel_w(r: Rig, x0: float, px: float) -> float:
+	var front: float = r.target().front
+	return clampf((px - x0) / maxf(1.0, front - x0), 0.0, 1.0)
+
+## upright frame on a travelling fx (wave crescent, drum rings), local +x along its drawn path on the board
+static func travel_xf(r: Rig, cam: RigCam, x0: float, x: float, y: float) -> Transform2D:
+	var w := travel_w(r, x0, x)
+	var at := cam.map(x, y, w)
+	var dir := cam.map(x + 4.0, y, travel_w(r, x0, x + 4.0)) - at
+	if dir.length_squared() < 0.0001:
+		dir = cam.u
+	return cam.aimed(at, dir, cam.k(w))
+
 class Number extends Timed:
 	var x: float
 	var y: float
@@ -159,7 +208,7 @@ class Gleam extends Timed:
 			return
 		var at := r.point_px(pt)
 		var s := sin(age / life * PI) * 28.0
-		ctx.set_xf(Transform2D(Vector2(cam.ca, 0), Vector2(0, cam.ca), at).rotated_local(deg_to_rad(r.clock * 0.3)))
+		ctx.set_xf(cam.at_px(at).rotated_local(deg_to_rad(r.clock * 0.3)))
 		RigFx.star4(ctx, s); ctx.fill(Color.WHITE); ctx.stroke(INK, 3)
 
 static func crescent(ctx: RigCtx, R: float, T: float, span: float) -> void:
@@ -195,9 +244,6 @@ class Wave extends RefCounted:
 		r = p_r; o = p_o
 		x = o.x; x0 = x; y = o.get("y", r.data.target_cy); vx = o.get("vx", 1500.0); R = o.get("R", 120.0)
 		ang = o.get("angle", -14.0); fill = Color(o.get("fill", "#f4fcff")); inner = Color(o.get("inner", "#a9e1f0"))
-	func w_at(px: float) -> float:
-		var front: float = r.target().front
-		return clampf((px - x0) / maxf(1.0, front - x0), 0.0, 1.0)
 	func upd(s: float, ms: float) -> bool:
 		age += ms
 		x += vx * s
@@ -211,13 +257,10 @@ class Wave extends RefCounted:
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
-		var w := w_at(x)
-		var at := cam.map(x, y, w)
-		var dir := cam.map(x + 4.0, y, w_at(x + 4.0)) - at
 		var grow := minf(1.0, age / 70.0)
 		var fade := 1.0 - gone / 220.0
 		var sc := (0.6 + 0.4 * grow) * (1.0 + gone / 400.0)
-		var m := cam.aimed(at, dir, cam.k(w)).rotated_local(deg_to_rad(ang)).scaled_local(Vector2(sc, sc * (1.0 + 0.05 * sin(age / 25.0))))
+		var m := RigFx.travel_xf(r, cam, x0, x, y).rotated_local(deg_to_rad(ang)).scaled_local(Vector2(sc, sc * (1.0 + 0.05 * sin(age / 25.0))))
 		ctx.set_xf(m)
 		ctx.alpha = fade
 		var k := R / 120.0
@@ -356,10 +399,13 @@ static func arc_run(ctx: RigCtx, cx: float, cy: float, rx: float, ry: float, a0:
 		else:
 			open = false
 
+## ink-edged stroke of the current path at this alpha (ctx.alpha left as it was)
 static func band(ctx: RigCtx, lw: float, color: Color, alpha: float) -> void:
+	var a0 := ctx.alpha
 	ctx.alpha = alpha
 	ctx.stroke(INK, lw + 5.0)
 	ctx.stroke(color, lw)
+	ctx.alpha = a0
 
 ## spin ring around the hero (hero frame)
 class Ring extends Timed:

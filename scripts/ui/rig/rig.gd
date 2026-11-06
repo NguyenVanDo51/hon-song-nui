@@ -9,7 +9,6 @@ extends RefCounted
 ## shared impact for every unit (docs/anim_demo/SHARED.md)
 const HIT := { "stop": 90, "amp": 9, "kx": 420, "debris": "spark", "n": 8, "sparkColor": "#ffe08a", "cut": true, "cutAng": -24 }
 const HIT_SMALL := { "small": true, "stop": 45, "amp": 4, "kx": 0, "debris": "spark", "n": 3, "sparkColor": "#ffe08a", "cut": false }
-const INK := Color("#2b2220")
 
 var data: RigData
 var spec: RigSpec
@@ -78,9 +77,9 @@ func place(p_board: Control, a_xy: Vector2i, d_xy: Vector2i, f: float) -> void:
 	_cam_T = -1.0
 	_update_cam()
 
-## px per art unit of a standing token (Token._standee: the 256 SVG fills h = T * 0.74 / 0.66 * 1.12)
+## px per art unit of a standing token (Token._standee: the 256 SVG fills Token.fig_h)
 static func token_k(type: String, T: float) -> float:
-	return T * (0.74 if type == "hero" else 0.66) * 1.12 / 256.0
+	return Token.fig_h(type, T) / 256.0
 
 func _update_cam() -> void:
 	var T: float = board.T if board else 64.0
@@ -101,11 +100,11 @@ func _update_cam() -> void:
 	c.xhf = c.CX + 64.0
 	c.xt = c.TX + 128.0
 	c.xtf = c.xt - 64.0
-	# feet: the token's SVG square has its bottom edge at tile centre + 0.30 T (Token._standee)
+	# feet: the token's SVG square has its bottom edge at tile centre + Token.FOOT tiles (Token._standee)
 	var ac := (Vector2(a_tile) + Vector2(0.5, 0.5)) * T
 	var dc := (Vector2(d_tile) + Vector2(0.5, 0.5)) * T
-	c.Fa = ac + Vector2(c.f * (c.CX - 128.0) * c.ca, T * 0.30 + (c.FEET - 256.0) * c.ca)
-	c.Fd = dc + Vector2(0.0, T * 0.30 + (c.FEET - 256.0) * c.cd)
+	c.Fa = ac + Vector2(c.f * (c.CX - 128.0) * c.ca, T * Token.FOOT + (c.FEET - 256.0) * c.ca)
+	c.Fd = dc + Vector2(0.0, T * Token.FOOT + (c.FEET - 256.0) * c.cd)
 
 # ---------- pose ----------
 func base_pose() -> Dictionary:
@@ -196,7 +195,7 @@ func update(dt: float, rdt: float) -> void:
 		for k: String in _sprs:
 			var sp: Dictionary = data.springs[k]
 			var o: Array = _sprs[k]
-			var aim := spec.drive(k, p, vx, { "idle": not playing, "clock": clock })
+			var aim := spec.drive(k, p, vx, { "idle": 0.0 if playing else 1.0, "clock": clock })
 			var h := s / 4.0
 			for i in 4:
 				o[1] += (float(sp.k) * (aim - o[0]) - float(sp.c) * o[1]) * h
@@ -396,9 +395,9 @@ func draw_char(ci: CanvasItem) -> void:
 	var base := g - Vector2(0.0, (data.feet - 256.0) * cam.ca)
 	var ls := clampf(1.0 + p.y / 220.0, 0.45, 1.0)
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
-	Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24 * ls, T * 0.075 * ls, Color(0, 0, 0, 0.42))
+	Token.draw_shadow(ci, base, T, 1.0, ls)
 	if a_type == "hero":
-		Token.halo(ci, base - Vector2(0.0, T * 0.30), T, Token.FOE_GLOW if swap or data.name.ends_with("_e") else Token.HERO_GLOW)
+		Token.halo(ci, base - Vector2(0.0, T * Token.FOOT), T, Token.FOE_GLOW if swap or data.name.ends_with("_e") else Token.HERO_GLOW)
 	if playing:
 		spec.draw_char_under(_ctx(ci), cam, self)
 		ci.draw_set_transform_matrix(Transform2D.IDENTITY)
@@ -466,7 +465,7 @@ func _draw_smear(ci: CanvasItem) -> void:
 	for i in range(mids.size() - 1, -1, -1):
 		outline.append(mids[i])
 	outline.append(tips[0])
-	var ink := INK
+	var ink := RigFx.INK
 	ink.a *= a
 	RigCtx.stroke_line(ci, outline, ink, maxf(0.8, 4.0 * cam.ca))
 	_strip(ci, inner, mids, inn)

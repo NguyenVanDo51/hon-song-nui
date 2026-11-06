@@ -4,8 +4,6 @@ extends RigSpec
 ## Target-attached fx draw in a frame at the target centre (local x = the art's forward): same as the JS world offsets
 ## for left / right, and the offsets stay screen-horizontal for up / down.
 
-const INK := Color("#2b2220")
-
 func events(_r: Rig) -> Array:
 	return [
 		[120.0, func(a: Rig) -> void: a.gleam("eye", 200)],
@@ -22,7 +20,7 @@ func events(_r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = 1.0 if ctx.idle else 0.0
+	var idle: float = ctx.idle
 	var ears: float = p.get("earsX", 0.0)
 	if name == "tail":
 		return clampf(-vx * 0.035, -34, 16) + float(p.get("tailX", 0.0)) - p.pitch * 0.6 + idle * 9.0 * sin(ctx.clock / 170.0)
@@ -51,22 +49,18 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 		ctx.begin_path()
 		ctx.move_to(-70.0, q[0])
 		ctx.line_to(-70.0 - q[1], q[0])
-		ctx.stroke(INK, 10)
+		ctx.stroke(RigFx.INK, 10)
 		ctx.stroke("#f4fcff", 5)
 	ctx.alpha = 1.0
 
 ## 3 red bite/claw slashes on the target, staggered
-class Claw extends RefCounted:
+class Claw extends RigFx.Timed:
 	const LIFE := 360.0
-	var r: Rig
-	var age := 0.0
 	var col: Color
 	func _init(p_r: Rig) -> void:
 		r = p_r
+		life = LIFE
 		col = Color(r.data.consts.CLAW)
-	func upd(_s: float, ms: float) -> bool:
-		age += ms
-		return age < LIFE
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
@@ -88,32 +82,28 @@ class Claw extends RefCounted:
 			ctx.quad_to(0.0, w, -len / 2.0, 0.0)
 			ctx.close_path()
 			ctx.fill(col)
-			ctx.stroke(INK, 4)
+			ctx.stroke(RigFx.INK, 4)
 
 ## debuff (-10 atk / -10 def): dark-red puff + swirl on the bitten torso + 2 sinking down-arrows (below the dmg number)
-class Weak extends RefCounted:
+class Weak extends RigFx.Timed:
 	const LIFE := 950.0
 	const PUFF := [[-30.0, 6.0, 20.0], [-8.0, -8.0, 26.0], [20.0, -2.0, 22.0], [34.0, 10.0, 15.0], [0.0, 12.0, 20.0]]
-	var r: Rig
-	var age := 0.0
 	var dark: Color
 	var mid: Color
 	var light: Color
 	func _init(p_r: Rig) -> void:
 		r = p_r
+		life = LIFE
 		var wk: Dictionary = r.data.consts.WEAK
 		dark = Color(wk.dark)
 		mid = Color(wk.mid)
 		light = Color(wk.light)
-	func upd(_s: float, ms: float) -> bool:
-		age += ms
-		return age < LIFE
 	func _arrow(ctx: RigCtx, x: float, y: float, s: float) -> void:
 		ctx.begin_path()
 		ctx.move_to(x - 7 * s, y - 22 * s); ctx.line_to(x + 7 * s, y - 22 * s); ctx.line_to(x + 7 * s, y - 4 * s); ctx.line_to(x + 16 * s, y - 4 * s)
 		ctx.line_to(x, y + 16 * s); ctx.line_to(x - 16 * s, y - 4 * s); ctx.line_to(x - 7 * s, y - 4 * s); ctx.close_path()
 		ctx.fill(mid)
-		ctx.stroke(INK, 4)
+		ctx.stroke(RigFx.INK, 4)
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
@@ -131,7 +121,7 @@ class Weak extends RefCounted:
 		for q: Array in PUFF:
 			ctx.move_to(q[0] + q[2], q[1])
 			ctx.arc(q[0], q[1], q[2], 0.0, TAU)
-		ctx.stroke(INK, 9)
+		ctx.stroke(RigFx.INK, 9)
 		ctx.fill(dark)
 		ctx.begin_path()
 		for k in 41:

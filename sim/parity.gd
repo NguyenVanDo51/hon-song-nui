@@ -1,4 +1,4 @@
-extends RefCounted
+extends "res://sim/sim_lib.gd"
 ## regression player: seeded AI-vs-AI games on the current rules, one trace line each (sim/golden.txt).
 ## Used by sim/trace.gd (full run) and sim/tests.gd (a few games). apply() swaps in the seeded AI rng.
 
@@ -33,12 +33,6 @@ func replay(key: String) -> String:
 			return play(r[2].call(g), r[3])
 	return "?"
 
-var seed_v := 1.0
-
-func rng() -> float:
-	seed_v = fmod(seed_v * 1103515245.0 + 12345.0, 2147483648.0)
-	return seed_v / 2147483648.0
-
 static func fnv(h: int, s: String) -> int:
 	for c in s.to_ascii_buffer():
 		h = ((h ^ c) * 16777619) & 0xFFFFFFFF
@@ -59,18 +53,9 @@ func play(def: Dictionary, naive: bool) -> String:
 	var s := Game.new_game(def)
 	s.seed = int(seed_v)
 	s.rng = int(seed_v) # combat rolls seeded like the AI
-	var mem := {}
-	var steps := 0
-	var h := 2166136261
-	while s.winner == null and s.turn <= 60:
-		var step: Variant = AI.random_step(s, rng) if naive and s.side == "p" else AI.next_step(s, mem)
-		h = fnv(h, step_str(step) + ";")
-		if step == null:
-			Game.end_turn(s)
-			mem = {}
-			continue
-		AI.apply_step(s, step)
-		steps += 1
+	var hh := [2166136261] # FNV-1a over every step (array: the lambda cannot rebind a captured local)
+	var steps := run_ai(s, naive, 60, Callable(), func(step: Variant) -> void: hh[0] = fnv(hh[0], step_str(step) + ";"))
+	var h: int = hh[0]
 	for u: Dictionary in s.units:
 		h = fnv(h, "%d:%d,%d:%d:%d:%d;" % [u.id, u.x, u.y, u.hp, u.xp, u.rank])
 	h = fnv(h, "g%d,%d" % [s.gold.p, s.gold.e])

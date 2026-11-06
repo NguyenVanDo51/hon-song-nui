@@ -628,7 +628,7 @@ func _on_tile(x: int, y: int) -> void:
 					ui.dest = from
 					commit({ "kind": "attack", "target": clicked.id })
 					return
-				ui.dest = from; ui.mode = M_TARGET; ui.target = clicked.id; ui.buyAt = null; ui.info = null
+				_aim(from, M_TARGET, clicked.id, ui.raze)
 				main.audio.play("select")
 				refresh()
 				return
@@ -638,7 +638,7 @@ func _on_tile(x: int, y: int) -> void:
 				ui.dest = [u.x, u.y]
 				commit({ "kind": "raze", "target": [x, y] })
 				return
-			ui.dest = [u.x, u.y]; ui.mode = M_MOVED; ui.target = null; ui.buyAt = null; ui.info = null; ui.raze = [x, y]
+			_aim([u.x, u.y], M_MOVED, null, [x, y])
 			main.audio.play("select")
 			refresh()
 			return
@@ -787,8 +787,12 @@ func _clear_sel() -> void:
 	ui.sel = null; ui.dest = null; ui.mode = M_IDLE; ui.target = null; ui.buyAt = null; ui.info = null; ui.raze = null
 	ui.hint = null; ui.hotBuy = null; ui.hintKind = null; ui.peek = null
 
+## point the selection: destination, mode, attack target, village to wreck; closes the buy / info popups
+func _aim(dest: Variant, mode: String, target: Variant, raze: Variant) -> void:
+	ui.dest = dest; ui.mode = mode; ui.target = target; ui.buyAt = null; ui.info = null; ui.raze = raze
+
 func _set_dest(x: int, y: int) -> void:
-	ui.dest = [x, y]; ui.mode = M_MOVED; ui.target = null; ui.buyAt = null; ui.info = null; ui.raze = null
+	_aim([x, y], M_MOVED, null, null)
 	main.audio.play("select")
 	refresh()
 
@@ -998,11 +1002,9 @@ func _income_fx() -> void:
 	var from: int = _gold_shown if _gold_shown >= 0 else s.gold.p
 	if _gold_tw != null:
 		_gold_tw.kill()
-	_gold_tw = _gold_num.create_tween()
-	_gold_tw.tween_interval(CoinPop.RISE)
-	_gold_tw.tween_method(func(k: float) -> void:
+	_gold_tw = _count_up(_gold_num, CoinPop.RISE, 0.9, func(k: float) -> void:
 		_gold_shown = roundi(lerpf(from, s.gold.p, k)) # live target: a buy mid-count still ends right
-		_gold_num.text = str(_gold_shown), 0.0, 1.0, 0.9).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		_gold_num.text = str(_gold_shown))
 	_gold_tw.tween_callback(func() -> void:
 		_gold_shown = -1
 		_gold_num.text = str(s.gold.p)
@@ -1018,21 +1020,26 @@ func _heal_fx(e: Dictionary) -> void:
 	_hp_count[id] = from
 	_coins.board = board
 	_coins.play([{ "x": e.x, "y": e.y, "amount": e.amount }], "heal", 0.3)
-	fx.burst(e.x, e.y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0, "lmax": 1000.0, "smin": 0.06, "smax": 0.08 })
+	fx.heal_sparkle(e.x, e.y)
 	main.audio.play("heal")
-	var tw := create_tween()
-	_heal_tws.append(tw)
-	tw.tween_interval(0.3 + CoinPop.RISE)
-	tw.tween_method(func(k: float) -> void:
+	var tw := _count_up(self, 0.3 + CoinPop.RISE, 0.7, func(k: float) -> void:
 		var cur: Variant = Game.unit_by_id(s, id)
 		if cur == null:
 			_hp_count.erase(id)
 			return
 		_hp_count[id] = roundi(lerpf(from, cur.hp, k))
-		board.queue_redraw(), 0.0, 1.0, 0.7).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+		board.queue_redraw())
+	_heal_tws.append(tw)
 	tw.tween_callback(func() -> void:
 		_hp_count.erase(id)
 		board.queue_redraw())
+
+## a shown number counting up: wait delay s, then step(k) for k 0 -> 1 over dur s (ease-out); chain the end on it
+func _count_up(host: Node, delay: float, dur: float, step: Callable) -> Tween:
+	var tw := host.create_tween()
+	tw.tween_interval(delay)
+	tw.tween_method(step, 0.0, 1.0, dur).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	return tw
 
 func _stop_heal_counts() -> void:
 	for tw: Tween in _heal_tws:
@@ -1542,11 +1549,19 @@ func _goal_line() -> String:
 		"n": Objectives.bar_n(s), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) })
 	return "[color=#%s]🎯[/color] %s" % [Style.GOLD.to_html(false), obj]
 
+## where the unit is shown standing: its picked destination while selected, else its tile
+func _shown_at(u: Dictionary) -> Array:
+	return ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != M_IDLE else [u.x, u.y]
+
+## "Công · Thủ · Đi · Tầm" line with live buffs (unit card + corner card)
+func _stat_note(u: Dictionary, st: Dictionary, b: Dictionary) -> Control:
+	return _note("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [_atk_txt(u, b), _def_txt(u, st, b), st.mv, Style.stat_range(st)], Style.MUTED, 14)
+
 ## compact unit card for the popup: token + name + side/HP/XP, HP bar, one stat line; full = also the unit's description
 func _unit_info(u: Dictionary, full := false) -> void:
 	var st := Game.stat(s, u)
 	var look := Content.unit_look(s, u)
-	var dt: Array = ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != M_IDLE else [u.x, u.y]
+	var dt := _shown_at(u)
 	var t: String = s.tiles[dt[1]][dt[0]]
 	var next: Variant = Game.xp_need(s, u) if u.rank < Rules.RULES.maxRank else null
 	var name: String = Content.unit_title(look.name, u.rank, u.type == "hero")
@@ -1555,9 +1570,7 @@ func _unit_info(u: Dictionary, full := false) -> void:
 	_info.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 40), name, sub, u.side))
 	_info.add_child(Style.Bar.make(u.hp / 100.0, 6, Color("#5fa83c"), Style.GOOD))
 	var b := Game.buffs_at(s, u, dt[0], dt[1])
-	var atk_txt := _atk_txt(u, b)
-	var def_txt := _def_txt(u, st, b)
-	_info.add_child(_note("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [atk_txt, def_txt, st.mv, Style.stat_range(st)], Style.MUTED, 14))
+	_info.add_child(_stat_note(u, st, b))
 	for line: String in _buff_lines(u, b):
 		_info.add_child(_note(line, Style.INK, 13))
 	if full:
@@ -1582,7 +1595,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		show = true
 		var st := Game.stat(s, u)
 		var look := Content.unit_look(s, u)
-		var dt: Array = ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != M_IDLE else [u.x, u.y]
+		var dt := _shown_at(u)
 		_avoid_tile(u.x, u.y)
 		_avoid_tile(dt[0], dt[1])
 		var name: String = Content.unit_title(look.name, u.rank, u.type == "hero")
@@ -1591,9 +1604,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		_card_box.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 38), name, sub, u.side))
 		_card_box.add_child(Style.Bar.make(u.hp / 100.0, 5, Color("#5fa83c"), Style.GOOD))
 		var b := Game.buffs_at(s, u, dt[0], dt[1])
-		var atk_txt := _atk_txt(u, b)
-		var def_txt := _def_txt(u, st, b)
-		_card_box.add_child(_note("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [atk_txt, def_txt, st.mv, Style.stat_range(st)], Style.MUTED, 14))
+		_card_box.add_child(_stat_note(u, st, b))
 		var id: int = u.id
 		var more := Style.button("📜 Chi tiết", "ChipBtn")
 		more.tooltip_text = "Tính chất, cách dùng, kinh nghiệm"
@@ -1629,7 +1640,7 @@ func _avoid_tile(x: int, y: int) -> void:
 ## "50–55 +10" (roll range incl. level, then live bonus / malus)
 func _atk_txt(u: Dictionary, b: Dictionary) -> String:
 	var r := Game.atk_range(s, u)
-	var t := "[b]%d[/b]" % r[0] if r[0] == r[1] else "[b]%d–%d[/b]" % [r[0], r[1]]
+	var t := "[b]%s[/b]" % Style.range_txt(r[0], r[1])
 	var net: int = b.atk - b.poison
 	if net:
 		t += " [color=#%s][b]%+d[/b][/color]" % [(Board.BUFF_UP if net > 0 else Style.BAD).to_html(false), net]
@@ -1660,7 +1671,7 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	var stg := Game.stat(s, tgt)
 	var bu := Game.buffs_at(s, u, dx, dy)
 	var r := Game.atk_range(s, u)
-	parts.append("công %d–%d" % [r[0], r[1]] if r[0] != r[1] else "công %d" % r[0])
+	parts.append("công " + Style.range_txt(r[0], r[1]))
 	if bu.atk:
 		parts.append("[color=#%s]+%d công[/color] (%s)" % [Board.BUFF_UP.to_html(false), bu.atk, "trống đồng" if bu.atk_from == "aura" else "dưới sông"])
 	if bu.poison:
@@ -1890,9 +1901,8 @@ func _preview_box(p: Dictionary) -> Control:
 	var g := GridContainer.new()
 	g.columns = 2
 	g.add_theme_constant_override("h_separation", 6)
-	var rng := func(lo: int, hi: int) -> String: return str(lo) if lo == hi else "%d–%d" % [lo, hi]
-	for cell: Array in [["Gây", rng.call(p.dmgMin, p.dmgMax), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else ""), Style.GOOD],
-			["Bị đánh trả", rng.call(p.counterMin, p.counterMax), " ngã" if p.die else (" có thể ngã" if p.mayDie else ""), Style.BAD]]:
+	for cell: Array in [["Gây", Style.range_txt(p.dmgMin, p.dmgMax), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else ""), Style.GOOD],
+			["Bị đánh trả", Style.range_txt(p.counterMin, p.counterMax), " ngã" if p.die else (" có thể ngã" if p.mayDie else ""), Style.BAD]]:
 		var pc := Style.card(Color(0, 0, 0, 0.4), Style.LACQUER_3, 8, 6)
 		pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v := Style.vbox(0)

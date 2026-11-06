@@ -19,6 +19,7 @@ const SEA := Color("#2c8c8a")
 const SEA_HI := Color("#6fd6cf")
 const GOOD := Color("#8fd16a")
 const BAD := Color("#ff6b57")
+const AMBER := Color("#ffd166")
 const P_NAME := Color("#ffb38a")
 
 static var body: Font = load("res://assets/fonts/BeVietnamPro-Regular.ttf")
@@ -226,8 +227,16 @@ static func set_sub(b: Button, sub: String) -> void:
 	s.visible = sub != ""
 	b.custom_minimum_size.y = 66 if sub != "" else 50
 
+## hp bar colour: green > 60, amber > 30, else red
+static func hp_color(hp: int) -> Color:
+	return GOOD if hp > 60 else (AMBER if hp > 30 else BAD)
+
+## "3" or "2–4"
+static func range_txt(lo: int, hi: int) -> String:
+	return str(lo) if lo == hi else "%d–%d" % [lo, hi]
+
 static func stat_range(st: Dictionary) -> String:
-	return str(st.rmax) if st.rmin == st.rmax else "%d–%d" % [st.rmin, st.rmax]
+	return range_txt(st.rmin, st.rmax)
 
 ## bars: rows = [[name, value, max] or [name, text]]
 static func stat_bars(rows: Array, size := 13) -> GridContainer:

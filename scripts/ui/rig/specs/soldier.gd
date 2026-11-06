@@ -14,7 +14,7 @@ func events(_r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = 1.0 if ctx.idle else 0.0
+	var idle: float = ctx.idle
 	if name == "crest":
 		return clampf(vx * 0.035, -14, 30) + p.lean * 0.7 + p.head * 0.6 + idle * 1.8 * sin(ctx.clock / 700.0)
 	if name == "tassel": # hangs with gravity (cancels spear angle) + trails the thrust
@@ -32,7 +32,6 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 ## Speed lines: character frame (stay on the drawn spear). Lance + exit ring: target frame aimed along the real
 ## attack line (horizontal = the JS world drawing; up/down stay a lance, not a collapsed sliver).
 class Pierce extends RefCounted:
-	const INK := Color("#2b2220")
 	var r: Rig
 	var dmg: float
 	var age := 0.0
@@ -72,7 +71,7 @@ class Pierce extends RefCounted:
 				ctx.begin_path()
 				ctx.move_to(a.x - 40.0, a.y + q[0])
 				ctx.line_to(b.x - 40.0, b.y + q[0])
-				ctx.stroke(INK, 9)
+				ctx.stroke(RigFx.INK, 9)
 				ctx.stroke("#fffdf4", 4)
 			ctx.alpha = 1.0
 		if layer != "front" or hit < 0.0:
@@ -89,7 +88,7 @@ class Pierce extends RefCounted:
 		ctx.alpha = minf(1.0, 0.35 + k)
 		ctx.begin_path()
 		ctx.move_to(xs, 0); ctx.line_to(xm, -w / 2.0); ctx.line_to(xe, 0); ctx.line_to(xm, w / 2.0); ctx.close_path()
-		ctx.fill("#fffdf4"); ctx.stroke(INK, 5)
+		ctx.fill("#fffdf4"); ctx.stroke(RigFx.INK, 5)
 		ctx.begin_path()
 		ctx.move_to(xs + 40.0, 0); ctx.line_to(xm, -w * 0.2); ctx.line_to(xe - 40.0, 0); ctx.line_to(xm, w * 0.2); ctx.close_path()
 		ctx.fill("#ffe08a")
@@ -99,6 +98,6 @@ class Pierce extends RefCounted:
 		ctx.alpha = maxf(0.0, 1.0 - u / 260.0)
 		ctx.begin_path()
 		ctx.ellipse(xr, 0, 8.0 + 12.0 * g, 22.0 + 38.0 * g, 0, 0, TAU)
-		ctx.stroke(INK, 11.0 * (1.0 - g) + 4.0)
+		ctx.stroke(RigFx.INK, 11.0 * (1.0 - g) + 4.0)
 		ctx.stroke("#fffdf4", 6.0 * (1.0 - g) + 1.5)
 		ctx.alpha = 1.0

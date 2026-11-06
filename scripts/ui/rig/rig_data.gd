@@ -4,7 +4,6 @@ extends RefCounted
 ## points, spring constants, attacks with their tracks as keys. Pure data; the spec's functions live in specs/<unit>.gd.
 
 const DIR := "res://assets/units/rig/"
-const INK := "#2b2220"
 ## enemy = our art with only the team colours swapped (SHARED.md); commanders have their own spec instead
 const TEAM_SWAP := [["#c9503f", "#4f74c9"], ["#93362b", "#32508f"]]
 const EASES := ["lin", "out", "in", "io", "outExpo", "outBack", "hold"]
@@ -140,7 +139,7 @@ func part_svg(part: String, swap: bool) -> String:
 		return _svg[key]
 	var inner: String = parts[part]
 	if not raw.has(part):
-		inner = '<g stroke="%s" stroke-width="%s" stroke-linejoin="round" stroke-linecap="round">%s</g>' % [INK, _num(outline), inner]
+		inner = '<g stroke="%s" stroke-width="%s" stroke-linejoin="round" stroke-linecap="round">%s</g>' % ["#" + RigFx.INK.to_html(false), _num(outline), inner]
 	var s := '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">%s</svg>' % inner
 	if swap:
 		for pr: Array in TEAM_SWAP:

@@ -1,15 +1,8 @@
-extends SceneTree
+extends "res://sim/probes/probe_base.gd"
 ## turn-start income look: "+N" pops per owned building (over units) + gold total counting up.
 ##   tools/run_guarded.sh /tmp/inc.log -- --path . -s sim/probes/income_shot.gd -- mission=m02 fresh nointro profile=test shots=<dir>
-var main: Node
-func _initialize() -> void:
-	main = load("res://main.tscn").instantiate()
-	root.add_child(main)
-	_run.call_deferred()
 
-func _run() -> void:
-	await create_timer(1.5).timeout
-	var g: Node = main.game
+func _run(g: Node) -> void:
 	var s: Dictionary = g.s
 	# hand us every building on the left half so several pop (one under a unit)
 	for y in s.h:

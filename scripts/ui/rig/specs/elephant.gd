@@ -45,42 +45,47 @@ func events(_r: Rig) -> Array:
 ## dirt clods kicked toward the target (one-shot fx with own state)
 static func _clods(a: Rig, x: float, n: int, ground: float) -> void:
 	for i in n:
-		var q := { "x": x + randf_range(-14, 24), "y": ground - 4, "vx": randf_range(120, 460), "vy": randf_range(-560, -260),
-			"r": randf_range(6, 10), "rot": randf_range(0, 6), "age": 0.0, "life": randf_range(520, 720) }
-		a.add({
-			"upd": func(s: float, ms: float) -> bool:
-				q.age += ms
-				q.vy += 1700.0 * s
-				q.x += q.vx * s
-				q.y += q.vy * s
-				q.rot += 9.0 * s
-				if q.y > ground:
-					q.y = ground
-					q.vy *= -0.3
-					q.vx *= 0.5
-				return q.age < q.life,
-			"draw": func(ctx: RigCtx, cam: RigCam, layer: String) -> void:
-				if layer != "front":
-					return
-				var u: float = q.age / q.life
-				ctx.set_xf(cam.frame(q.x, q.y).rotated_local(q.rot))
-				ctx.alpha = (1.0 - u) / 0.3 if u > 0.7 else 1.0
-				ctx.begin_path()
-				for k in 5:
-					var an := k / 5.0 * TAU
-					var rr: float = q.r * (0.75 if k % 2 else 1.0)
-					if k:
-						ctx.line_to(cos(an) * rr, sin(an) * rr)
-					else:
-						ctx.move_to(rr, 0)
-				ctx.close_path()
-				ctx.fill(CRACK)
-				ctx.stroke(Rig.INK, 3)
-				ctx.alpha = 1.0,
-		})
+		var m := Clod.new()
+		m.x = x + randf_range(-14, 24)
+		m.y = ground - 4
+		m.vx = randf_range(120, 460)
+		m.vy = randf_range(-560, -260)
+		m.rr = randf_range(6, 10)
+		m.rot = randf_range(0, 6)
+		m.life = randf_range(520, 720)
+		m.ground = ground
+		m.w = -1.0
+		a.add(m)
+
+class Clod extends RigFx.Mote:
+	var ground: float
+	func move(s: float) -> void:
+		vy += 1700.0 * s
+		x += vx * s
+		y += vy * s
+		rot += 9.0 * s
+		if y > ground:
+			y = ground
+			vy *= -0.3
+			vx *= 0.5
+	func fade() -> float:
+		var u := age / life
+		return (1.0 - u) / 0.3 if u > 0.7 else 1.0
+	func shape(ctx: RigCtx) -> void:
+		ctx.begin_path()
+		for k in 5:
+			var an := k / 5.0 * TAU
+			var r := rr * (0.75 if k % 2 else 1.0)
+			if k:
+				ctx.line_to(cos(an) * r, sin(an) * r)
+			else:
+				ctx.move_to(r, 0)
+		ctx.close_path()
+		ctx.fill(CRACK)
+		ctx.stroke(RigFx.INK, 3)
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = 1.0 if ctx.idle else 0.0
+	var idle: float = ctx.idle
 	if name == "ear":
 		return float(p.get("earX", 0.0)) + clampf(vx * 0.02, -10, 14) + idle * 3.0 * sin(ctx.clock / 520.0)
 	if name == "tail":
@@ -118,7 +123,7 @@ static func _crack_line(ctx: RigCtx, pts: PackedVector2Array, u: float, w0: floa
 		ctx.move_to(p0.x, p0.y)
 		ctx.line_to(e.x, e.y)
 		ctx.stroke(CRACK, w + 9.0)
-		ctx.stroke(Rig.INK, w)
+		ctx.stroke(RigFx.INK, w)
 		acc += d
 		i += 1
 
@@ -135,7 +140,7 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 		ctx.begin_path()
 		ctx.ellipse(_main[0].x, _main[0].y, 30, 8, 0, 0, TAU)
 		ctx.close_path()
-		ctx.fill(Color(Rig.INK, 0.35))
+		ctx.fill(Color(RigFx.INK, 0.35))
 		_crack_line(ctx, _main, u, 13, 5)
 		for b: Array in _br:
 			_crack_line(ctx, b[1], clampf((u - b[0]) / 0.25, 0.0, 1.0), 9, 3)
@@ -148,7 +153,7 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 		var bk := r.point_px("troot")
 		var a0 := atan2(tip.y - bk.y, tip.x - bk.x)
 		var env := clampf((t - tr0) / 40.0, 0.0, 1.0) * clampf((tr1 - t) / 60.0, 0.0, 1.0)
-		ctx.set_xf(Transform2D(Vector2(cam.ca, 0), Vector2(0, cam.ca), tip))
+		ctx.set_xf(cam.at_px(tip))
 		for k in 3:
 			var ph := fposmod((t - tr0) / 200.0 + k / 3.0, 1.0)
 			var d := 16.0 + 56.0 * ph
@@ -161,6 +166,6 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 				ctx.begin_path()
 				ctx.move_to(cx * d, cy * d)
 				ctx.line_to(cx * (d + len), cy * (d + len))
-				ctx.stroke(Rig.INK, 10)
+				ctx.stroke(RigFx.INK, 10)
 				ctx.stroke("#fffaf0", 4.5)
 		ctx.alpha = 1.0

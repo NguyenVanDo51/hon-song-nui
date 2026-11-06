@@ -1,4 +1,4 @@
-# Hồn Sông Núi — spec (luật AE2, 2026-11-06)
+# Công Thành Chiến — spec (luật AE2, 2026-11-06)
 
 Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Hán. Luật = Ancient Empires II (đối chiếu: `docs/review/rules_compare.html`); tên / bản đồ / hình / truyện = tự làm. Số liệu trong `scripts/core/rules.gd`.
 

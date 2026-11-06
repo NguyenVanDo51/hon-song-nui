@@ -240,7 +240,7 @@ func show_title() -> void:
 	v.add_child(tg)
 
 const CREDITS := [
-	["Trò chơi", "Hồn Sông Núi · chiến thuật theo lượt, viết bằng Godot Engine 4.7 (MIT)."],
+	["Trò chơi", "Công Thành Chiến · chiến thuật theo lượt, viết bằng Godot Engine 4.7 (MIT)."],
 	["Phông chữ", "Be Vietnam Pro, Alegreya SC, Noto Sans Symbols 2 · SIL Open Font License 1.1."],
 	["Biểu tượng", "Noto Emoji của Google · Apache License 2.0."],
 	["Hình quân", "Icons made by Delapouite, HeavenlyDog, Lorc, Cathelineau. Available on game-icons.net · CC BY 3.0."],

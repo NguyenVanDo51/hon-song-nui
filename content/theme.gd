@@ -22,7 +22,7 @@ const UNITS := {
 const RANK_TITLES := ["", "lão luyện", "tinh nhuệ", "dũng mãnh"]
 
 const THEME := {
-	"title": "Hồn Sông Núi",
+	"title": "Công Thành Chiến",
 	"tagline": "Hai Bà Trưng · chiến thuật theo lượt",
 	"lede": "Năm 40, Hai Bà Trưng dựng cờ ở Hát Môn, đuổi quân Đông Hán khỏi Giao Chỉ. Hai năm sau, Mã Viện kéo đại quân sang. Hai chương, mười sáu trận.",
 	"text": {

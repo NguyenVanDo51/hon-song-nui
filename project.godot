@@ -3,7 +3,7 @@ config_version=5
 
 [application]
 
-config/name="Hồn Sông Núi"
+config/name="Công Thành Chiến"
 config/description="Chiến thuật theo lượt: Hai Bà Trưng, chống Mã Viện, Bà Triệu."
 run/main_scene="res://main.tscn"
 config/icon="res://assets/emoji/emoji_u1f451.png"

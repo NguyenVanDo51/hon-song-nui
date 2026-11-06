@@ -39,7 +39,7 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 		c.done = false
 		waves.append(c)
 	var s := {
-		"v": 3, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles, "owner": {}, "units": [], "graves": [],
+		"v": Content.STATE_V, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles, "owner": {}, "units": [], "graves": [],
 		"gold": gold, "turn": 1, "side": "p",
 		"heroKey": { "p": _or(opts, "hero", def.get("hero")), "e": def.get("enemyHero") },
 		"heroDead": { "p": false, "e": false }, "heroDeaths": { "p": 0, "e": 0 }, "heroSaved": { "p": {}, "e": {} },
@@ -211,21 +211,28 @@ static func targets_from(s: Dictionary, u: Dictionary, fx: int, fy: int) -> Arra
 			out.append(o)
 	return out
 
+## stamps on a unit: `aura` / `poison` = side that laid it (wears off at that side's next turn), auraAtk / poisonAmt = amount
+static func aura_atk(u: Dictionary) -> int:
+	return int(u.get("auraAtk", 0)) if u.get("aura") != null else 0
+
+static func poison_amt(u: Dictionary) -> int:
+	return int(u.get("poisonAmt", 0)) if u.get("poison") != null else 0
+
 ## UI helper, no rule effect: live bonuses on u if it stood at (x, y): aura (+atk, from a drum, until its side's next
-## turn), poison (-atk / -def), water bonus for the water class, terrain def. { atk, atk_from, def, poison, terrain }
+## turn), poison (-atk / -def), water bonus for the water class, terrain def. { atk, atk_from, aura, def, poison, terrain }
 static func buffs_at(s: Dictionary, u: Dictionary, x: int, y: int) -> Dictionary:
 	var st := stat(s, u)
 	var wet: bool = TERRAIN[tile_at(s, x, y)].get("water", false)
-	var out := { "atk": 0, "atk_from": null, "def": 0, "def_from": null, "poison": 0, "terrain": terrain_def(s, u, x, y) }
+	var out := { "atk": 0, "atk_from": null, "aura": 0, "def": 0, "def_from": null, "poison": 0, "terrain": terrain_def(s, u, x, y) }
 	if u.get("aura") != null:
-		out.atk += 10
+		out.aura = aura_atk(u)
+		out.atk += out.aura
 		out.atk_from = "aura"
 	if wet and st.get("waterAtk", 0):
 		out.atk += st.waterAtk
 		out.def += st.get("waterDef", 0)
 		out.def_from = "water"
-	if u.get("poison") != null:
-		out.poison = 10
+	out.poison = poison_amt(u)
 	return out
 
 static func terrain_def(s: Dictionary, u: Dictionary, x: int, y: int) -> int:
@@ -245,19 +252,15 @@ static func _mods(s: Dictionary, a: Dictionary, ax: int, ay: int, d: Dictionary)
 	var m := 0
 	if sa.get("antiAir", 0) and sd.move == "fly":
 		m += sa.antiAir
-	if sa.get("vsGhost", 0) and d.type == "ghost":
-		m += sa.vsGhost
+	m += int(sa.get("vsType", {}).get(d.type, 0))
 	if sa.get("waterAtk", 0) and TERRAIN[tile_at(s, ax, ay)].get("water", false):
 		m += sa.waterAtk
-	if a.get("aura") != null:
-		m += 10
-	if a.get("poison") != null:
-		m -= 10
+	m += aura_atk(a)
+	m -= poison_amt(a)
 	var D: int = sd.def + RULES.rankBonus * d.rank + terrain_def(s, d, d.x, d.y)
 	if sd.get("waterDef", 0) and TERRAIN[tile_at(s, d.x, d.y)].get("water", false):
 		D += sd.waterDef
-	if d.get("poison") != null:
-		D -= 10
+	D -= poison_amt(d)
 	return m - D
 
 ## AE2: (rolled atk + bonuses - defence) x attacker hp / 100, rounded down, 0..d.hp. roll in [0,1): 0 = min, ->1 = atkMax - 1
@@ -446,9 +449,11 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 					_kill(s, u, ev)
 			# AE2 wolf: after the counter, any hit the target survives (even 0 dmg, even if the wolf fell) weakens it
 			# until our next turn (RM MainDisplayable finishAttack)
-			if stat(s, u).get("poison", 0):
+			var pa: int = stat(s, u).get("poison", 0)
+			if pa:
 				d.poison = u.side
-				ev.append({ "t": "poison", "id": d.id, "x": d.x, "y": d.y })
+				d.poisonAmt = pa
+				ev.append({ "t": "poison", "id": d.id, "x": d.x, "y": d.y, "amount": pa })
 		_promote(s, u, ev)
 		if d.hp > 0:
 			_promote(s, d, ev)
@@ -472,17 +477,19 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		var gx: int = act.target[0]
 		var gy: int = act.target[1]
 		s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.x != gx or g.y != gy)
-		var gh := spawn(s, u.side, "ghost", gx, gy, true)
+		var gh := spawn(s, u.side, stat(s, u).raise, gx, gy, true)
 		ev.append({ "t": "raise", "id": gh.id, "x": gx, "y": gy, "from": u.id })
 	u.acted = true
-	if stat(s, u).get("aura", 0): # AE2 wisp: allies within 2 get +atk until our next turn; also from where it fell (RM finishMove)
+	var aa: int = stat(s, u).get("aura", 0)
+	if aa: # AE2 wisp: allies within 2 get +atk until our next turn; also from where it fell (RM finishMove)
 		var ids := []
 		for o: Dictionary in s.units:
 			if o.side == u.side and o.id != u.id and dist(o.x, o.y, u.x, u.y) <= 2:
+				o.auraAtk = maxi(aura_atk(o), aa) # two drums do not stack: the bigger one counts
 				o.aura = u.side
 				ids.append(o.id)
 		if ids.size():
-			ev.append({ "t": "aura", "from": u.id, "ids": ids })
+			ev.append({ "t": "aura", "from": u.id, "ids": ids, "amount": aa })
 	_check_winner(s, ev)
 	return ev
 
@@ -686,8 +693,10 @@ static func end_turn(s: Dictionary) -> Array:
 	for u: Dictionary in s.units:
 		if u.get("aura") == s.side:
 			u.erase("aura")
+			u.erase("auraAtk")
 		if u.get("poison") == s.side:
 			u.erase("poison")
+			u.erase("poisonAmt")
 	var inc := income(s, s.side)
 	s.gold[s.side] += inc
 	ev.append({ "t": "income", "side": s.side, "amount": inc })

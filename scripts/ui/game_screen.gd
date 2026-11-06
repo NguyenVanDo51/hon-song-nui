@@ -1174,7 +1174,7 @@ func play(events: Array, before: Dictionary) -> void:
 				main.audio.play("ui")
 			"poison":
 				fx.ring(e.x, e.y, "#e0503f", 600.0, 0.7, 0.08)
-				fx.float_text(e.x, e.y - 0.3, "−10 công/thủ", "#ff8a7a", 1000.0)
+				fx.float_text(e.x, e.y - 0.3, "−%d công/thủ" % e.amount, "#ff8a7a", 1000.0)
 			"graveGone":
 				pass
 			"raise":
@@ -1646,7 +1646,7 @@ func _def_txt(u: Dictionary, st: Dictionary, b: Dictionary) -> String:
 func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
 	var out := []
 	if b.atk_from == "aura":
-		out.append("[color=#%s]⚔ +10 công[/color] nhờ trống đồng, tới lượt sau của phe mình." % Board.BUFF_UP.to_html(false))
+		out.append("[color=#%s]⚔ +%d công[/color] nhờ trống đồng, tới lượt sau của phe mình." % [Board.BUFF_UP.to_html(false), b.aura])
 	if b.def_from == "water":
 		out.append("[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông." % [Board.BUFF_UP.to_html(false), b.def, Game.stat(s, u).get("waterAtk", 0)])
 	if b.poison:
@@ -1667,8 +1667,9 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 		parts.append("[color=#%s]−%d công[/color] (bị cắn)" % [Style.BAD.to_html(false), bu.poison])
 	if su.get("antiAir", 0) and stg.move == "fly":
 		parts.append("+%d công đánh rồng" % su.antiAir)
-	if su.get("vsGhost", 0) and tgt.type == "ghost":
-		parts.append("+%d công đánh âm binh" % su.vsGhost)
+	var vs: int = su.get("vsType", {}).get(tgt.type, 0)
+	if vs:
+		parts.append("+%d công đánh %s" % [vs, Content.unit_type_look(tgt.side, tgt.type, null).name.to_lower()])
 	var bt := Game.buffs_at(s, tgt, tgt.x, tgt.y)
 	if bt.terrain:
 		parts.append("địch được %s +%d thủ" % [Content.terrain(s.tiles[tgt.y][tgt.x]).name.to_lower(), bt.terrain])

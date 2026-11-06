@@ -171,7 +171,7 @@ func content_tests() -> void:
 					check(Game.move_cost(hst.move, Game.tile_at(s, g[0], g[1])) != INF, "reach tile %s impassable" % [g])
 			for side: String in ["p", "e"]:
 				for t: String in s.allowed[side]:
-					check(AI.WEIGHTS.has(t), "AI has no buy weight for " + t)
+					check(Rules.UNITS[t].has("aiWeight"), "no aiWeight (AI falls back to DEFAULT_WEIGHT) for " + t)
 			for t: String in def.get("newUnits", []):
 				check(Rules.UNITS.has(t), "newUnits " + t)
 			for side: String in ["p", "e"]:
@@ -485,6 +485,7 @@ func rule_tests() -> void:
 		eq(Game.damage(s, s.units[3], 3, 3, 100, s.units[4], 0.0), 43, "drum 35 +15 vs ghost - 2 def - 5 field")
 		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 40, "plain soldier hit")
 		so.poison = "e"
+		so.poisonAmt = 10
 		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 30, "poisoned attacker -10 atk")
 		so.erase("poison")
 		foe.rank = 2
@@ -798,6 +799,59 @@ func rule_tests() -> void:
 		var nowin: Dictionary = s.duplicate(true)
 		nowin.win = { "type": "teleport" }
 		check(not Content.save_fits({ "state": nowin, "ctx": { "kind": "campaign", "id": "m03" } }), "unknown win type refused")
+	)
+	run("v3 save (stamps without amounts) migrates to v4: aura / poison keep their old 10", func() -> void:
+		var s := Game.new_game(Content.mission("m03"))
+		var v3: Dictionary = { "state": s.duplicate(true), "ctx": { "kind": "campaign", "id": "m03" } }
+		v3.state.v = 3
+		v3.state.units[0].aura = "p"
+		v3.state.units[1].poison = "e"
+		check(not Content.save_fits(v3), "v3 does not fit before migrating")
+		Content.migrate_save(v3)
+		eq(v3.state.v, Content.STATE_V)
+		check(Content.save_fits(v3), "migrated v3 fits")
+		eq([Game.aura_atk(v3.state.units[0]), Game.poison_amt(v3.state.units[1])], [10, 10])
+		eq(Game.aura_atk(v3.state.units[2]), 0, "no stamp -> 0")
+	)
+	run("unit flags are data: heavy set, aiWeight on buyables, raise / vsType name real types", func() -> void:
+		var heavy := []
+		for t: String in Rules.UNITS:
+			if Rules.UNITS[t].get("heavy", false):
+				heavy.append(t)
+			var r: Variant = Rules.UNITS[t].get("raise")
+			check(r == null or Rules.UNITS.has(r), "%s raises a known type" % t)
+			for v: String in Rules.UNITS[t].get("vsType", {}):
+				check(Rules.UNITS.has(v), "%s vsType %s" % [t, v])
+			if Rules.UNITS[t].get("buyable", true) and t != "hero":
+				check(Rules.UNITS[t].has("aiWeight"), "aiWeight " + t)
+		eq(heavy, ["hero", "elephant", "catapult", "bird"])
+	)
+	run("a new unit type defined only in UNITS: AI buys it (default weight), its flags work (vsType, aura, poison, raise)", func() -> void:
+		var units: Dictionary = Rules.UNITS.duplicate(true)
+		units["monk"] = { "cost": 100, "atk": 30, "atkMax": 31, "def": 5, "mv": 4, "rmin": 1, "rmax": 1, "move": "foot",
+			"vsType": { "soldier": 7 }, "aura": 4, "poison": 3, "raise": "soldier" }
+		Game.use_tables(units, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
+		eq(AI.weight("monk"), AI.DEFAULT_WEIGHT)
+		var s := blank([["p", "monk", 1, 1], ["p", "soldier", 1, 3], ["e", "soldier", 2, 1]])
+		s.allowed.p = ["monk"]
+		s.gold.p = 1000
+		eq(AI.choose_buy(s, "p"), "monk", "no aiWeight: still bought, no crash")
+		var mk: Dictionary = s.units[0]
+		var foe: Dictionary = s.units[2]
+		var plain := Game.damage(s, s.units[1], 1, 1, 100, foe, 0.0) # soldier 50 - 5 def - 5 field
+		eq(Game.damage(s, mk, 1, 1, 100, foe, 0.0), 30 + 7 - 10, "vsType bonus")
+		Game.fixed_roll = 0.0
+		Game.do_action(s, { "id": mk.id, "to": [1, 1], "kind": "attack", "target": foe.id })
+		eq(Game.poison_amt(foe), 3, "poison amount from data")
+		eq(Game.aura_atk(s.units[1]), 4, "aura amount from data")
+		eq(Game.damage(s, s.units[1], 1, 1, 100, foe, 0.0), plain + 4 + 3, "aura +4, target -3 def")
+		s.graves = [{ "x": 0, "y": 1, "ttl": 3 }]
+		mk.acted = false
+		s.side = "p"
+		Game.do_action(s, { "id": mk.id, "to": [1, 1], "kind": "raise", "target": [0, 1] })
+		var raised: Variant = Game.unit_at(s, 0, 1)
+		check(raised != null and raised.type == "soldier", "raise spawns the type named by `raise`")
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
 	)
 	run("goal / end texts: every win type has copy, unknown types fall back", func() -> void:
 		for t: String in Content.WIN_TYPES:

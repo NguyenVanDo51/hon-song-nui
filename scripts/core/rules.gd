@@ -19,21 +19,26 @@ const TERRAIN := {
 }
 
 ## atk..atkMax = AE2 table attack; a hit rolls atk..atkMax-1 (AE2 never rolls the max). move classes: foot, fly (all cost 1), water (river cost 1, land as foot).
-## flags: capV/capC capture village/castle; antiAir +atk vs fliers; vsGhost +atk vs ghosts; aura: after acting, allies
-##        within 2 get +atk until our next turn; poison: a hit leaves the target -10 atk / -10 def until our next turn;
-##        waterAtk / waterDef: bonus standing in water; raise (graves -> ghost); siege (no move+attack, no counter);
-##        raze (wreck an enemy / unowned village in range -> "x"); noGrave; noCap (not counted toward unitCap); buyable=false
+## flags (all optional; a new type needs only cost/atk/atkMax/def/mv/rmin/rmax/move):
+##   capV/capC capture village/castle (= the TERRAIN `cap` flag); antiAir +atk vs fliers; vsType {type: +atk};
+##   aura N: after acting, allies within 2 get +N atk until our next turn; poison N: a hit leaves the target -N atk / -N def
+##   until our next turn; waterAtk / waterDef: bonus standing in water; raise "type": graves -> that type;
+##   siege (no move+attack, no counter); raze (wreck an enemy / unowned village in range -> "x"); noGrave;
+##   noCap (not counted toward unitCap); buyable=false; heavy (bigger hit fx / knockback / sound)
+##   AI: aiWeight (buy weight, default AI.DEFAULT_WEIGHT); aiValue (worth when scoring trades, default cost)
 const UNITS := {
-	"hero": { "cost": 200, "atk": 55, "atkMax": 65, "def": 20, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "capC": true },
-	"soldier": { "cost": 150, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true },
-	"archer": { "cost": 250, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 2, "move": "foot", "antiAir": 15, "shot": "arrow" },
-	"boat": { "cost": 300, "atk": 50, "atkMax": 55, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "water", "waterAtk": 10, "waterDef": 15 },
-	"shaman": { "cost": 400, "atk": 40, "atkMax": 45, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "raise": true },
-	"drum": { "cost": 500, "atk": 35, "atkMax": 40, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "aura": 10, "vsGhost": 15 },
-	"wolf": { "cost": 600, "atk": 60, "atkMax": 65, "def": 15, "mv": 6, "rmin": 1, "rmax": 1, "move": "foot", "poison": 10 },
-	"elephant": { "cost": 600, "atk": 60, "atkMax": 70, "def": 30, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot" },
-	"catapult": { "cost": 700, "atk": 50, "atkMax": 70, "def": 10, "mv": 4, "rmin": 2, "rmax": 4, "move": "foot", "siege": true, "raze": true, "shot": "rock" },
-	"bird": { "cost": 1000, "atk": 70, "atkMax": 80, "def": 25, "mv": 7, "rmin": 1, "rmax": 1, "move": "fly" },
+	"hero": { "cost": 200, "atk": 55, "atkMax": 65, "def": 20, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "capC": true,
+		"heavy": true, "aiValue": 900 },
+	"soldier": { "cost": 150, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "aiWeight": 3 },
+	"archer": { "cost": 250, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 2, "move": "foot", "antiAir": 15, "shot": "arrow", "aiWeight": 2 },
+	"boat": { "cost": 300, "atk": 50, "atkMax": 55, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "water", "waterAtk": 10, "waterDef": 15, "aiWeight": 0.8 },
+	"shaman": { "cost": 400, "atk": 40, "atkMax": 45, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "raise": "ghost", "aiWeight": 0.6 },
+	"drum": { "cost": 500, "atk": 35, "atkMax": 40, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "aura": 10, "vsType": { "ghost": 15 }, "aiWeight": 0.5 },
+	"wolf": { "cost": 600, "atk": 60, "atkMax": 65, "def": 15, "mv": 6, "rmin": 1, "rmax": 1, "move": "foot", "poison": 10, "aiWeight": 1.2 },
+	"elephant": { "cost": 600, "atk": 60, "atkMax": 70, "def": 30, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "heavy": true, "aiWeight": 1.4 },
+	"catapult": { "cost": 700, "atk": 50, "atkMax": 70, "def": 10, "mv": 4, "rmin": 2, "rmax": 4, "move": "foot", "siege": true, "raze": true, "shot": "rock",
+		"heavy": true, "aiWeight": 0.7 },
+	"bird": { "cost": 1000, "atk": 70, "atkMax": 80, "def": 25, "mv": 7, "rmin": 1, "rmax": 1, "move": "fly", "heavy": true, "aiWeight": 1 },
 	"ghost": { "cost": 150, "atk": 40, "atkMax": 50, "def": 2, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "noGrave": true, "noCap": true, "buyable": false },
 }
 const BUY_ORDER := ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird"]

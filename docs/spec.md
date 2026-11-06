@@ -45,6 +45,8 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 | Rồng | Dragon | 1000 | 70–80 / 25 / 7 / 1 | bay |
 | Âm binh | Skeleton | — | 40–50 / 2 / 5 / 1 | gọi từ mộ, không tính trần |
 
+Số liệu đặc biệt (hào quang, độc, thưởng vs loại, gọi hồn ra loại gì) là cờ trong `UNITS`; quân bị đóng dấu giữ phe đóng dấu (`aura` / `poison`) + lượng (`auraAtk` / `poisonAmt`). Lưu ván v4 (v3 tự nâng, lượng = 10).
+
 ## Đã xác nhận từ mã gốc AE2 (`docs/review/ae2_research.md`, 2026-11-06)
 Luật mua (đi ngay, mua dưới quân ta / quân địch đứng trên thành, không giới hạn số lần), công thức KN (chỉ số gồm cả thưởng cấp, ×200/3), cấp tối đa 9, bảng địa hình + rồng vẫn được thủ địa hình, voi / máy bắn đá lên núi, +15 nỏ vs bay, độc không giảm bước đi, hào quang tầm 1–2, mộ (đếm 3, bước lên là mất), tướng hồi sinh giữ cấp + giá 200/+200/tối đa 1000.
 

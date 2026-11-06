@@ -628,7 +628,9 @@ func open_codex(side := "p") -> void:
 		_show_codex()
 		return
 	var types: Array = Rules.BUY_ORDER.duplicate()
-	types.append("ghost")
+	for ty: String in Rules.UNITS: # non-buyables (raised ghosts...) last
+		if not Rules.UNITS[ty].get("buyable", true):
+			types.append(ty)
 	for ty: String in types:
 		var uc := Style.unit_card(side, ty, null)
 		uc.size_flags_horizontal = Control.SIZE_EXPAND_FILL

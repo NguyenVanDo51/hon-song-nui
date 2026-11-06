@@ -164,8 +164,9 @@ static func traits(type: String, hero_key: Variant) -> Array:
 		out.append("Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta." % st.aura)
 	if st.get("antiAir", 0):
 		out.append("+%d công khi đánh rồng." % st.antiAir)
-	if st.get("vsGhost", 0):
-		out.append("+%d công khi đánh âm binh." % st.vsGhost)
+	var vs: Dictionary = st.get("vsType", {})
+	for t: String in vs:
+		out.append("+%d công khi đánh %s." % [vs[t], theme().units.p[t].name.to_lower()])
 	if st.get("poison", 0):
 		out.append("Cắn trúng: địch −%d công, −%d thủ tới lượt sau của ta." % [st.poison, st.poison])
 	if st.get("waterAtk", 0):
@@ -263,12 +264,22 @@ static func tile_note(t: String) -> String:
 
 
 # ---------- saves ----------
-const STATE_V := 3 # Game.new_game writes "v"; bump both when the saved state shape changes
+const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when the saved state shape changes
+## v3 -> v4: aura / poison stamps carry their amount (auraAtk / poisonAmt); v3 had them fixed at 10
+const V3_STAMP := 10
 const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
 
 ## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
 const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
 static func migrate_save(v: Dictionary) -> void:
+	var st: Variant = v.get("state")
+	if st is Dictionary and int(st.get("v", 0)) == 3 and st.get("units") is Array:
+		for u: Variant in st.units:
+			if u is Dictionary and u.get("aura") != null and not u.has("auraAtk"):
+				u.auraAtk = V3_STAMP
+			if u is Dictionary and u.get("poison") != null and not u.has("poisonAmt"):
+				u.poisonAmt = V3_STAMP
+		st.v = 4
 	var hk: Variant = v.get("state", {}).get("heroKey") if v.get("state") is Dictionary else null
 	if hk is Dictionary:
 		for side: String in hk:

@@ -97,7 +97,7 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 	var st: Dictionary = Rules.UNITS.get(a.type, {})
 	var dd := absi(a.x - d.x) + absi(a.y - d.y)
 	var shot: String = st.get("shot", "") if dd > 1 else ""
-	var heavy: bool = a.type in ["elephant", "bird"] or st.get("siege", false) or a.type == "hero"
+	var heavy: bool = st.get("heavy", false)
 	var dir := Vector2(d.x - a.x, d.y - a.y).normalized()
 	if absf(dir.x) > 0.01:
 		facing[a.id] = signf(dir.x)

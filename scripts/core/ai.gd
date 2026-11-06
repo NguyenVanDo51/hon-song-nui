@@ -10,10 +10,15 @@ static var rng: Callable = _gen.randf
 static func seed_game(v: int) -> void:
 	_gen.seed = v
 
-const WEIGHTS := { "soldier": 3, "archer": 2, "boat": 0.8, "shaman": 0.6, "drum": 0.5, "wolf": 1.2, "elephant": 1.4, "catapult": 0.7, "bird": 1 }
+## buy weight for a type without `aiWeight` (a new unit still gets bought, never crashes the AI)
+const DEFAULT_WEIGHT := 1.0
+
+static func weight(type: String) -> float:
+	return float(Game.UNITS[type].get("aiWeight", DEFAULT_WEIGHT))
 
 static func value(_s: Dictionary, u: Dictionary) -> float:
-	return (900 if u.type == "hero" else Game.UNITS[u.type].cost) * (1 + 0.2 * u.rank)
+	var b: Dictionary = Game.UNITS[u.type]
+	return b.get("aiValue", b.cost) * (1 + 0.2 * u.rank)
 
 ## multi-source terrain distance (ignores units)
 static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dictionary:
@@ -116,7 +121,7 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 					continue
 				if (t == "v" and cap_v) or (t == "c" and cap_c) or (t == "x" and cap_v):
 					out.append([x, y])
-	if not out.size() or u.type != "soldier":
+	if not out.size() or not cap_v or cap_c: # pure village takers (capV only) chase villages, not fights
 		for e: Dictionary in s.units:
 			if e.side != u.side:
 				out.append([e.x, e.y])
@@ -253,19 +258,21 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null) -> Varia
 				water += 1
 	var best: Variant = null
 	for type: String in s.allowed[side]:
-		var cost: int = Game.UNITS[type].cost
+		var st: Dictionary = Game.UNITS[type]
+		var cost: int = st.cost
 		if cost > s.gold[side] or (ok != null and not ok.has(type)):
 			continue
-		if type == "boat" and water == 0:
+		var swims: bool = st.move == "water"
+		if swims and water == 0:
 			continue # no river: a boat is a soldier at twice the price
-		var w: float = WEIGHTS[type]
-		if type == "archer" and enemy_fly:
+		var w := weight(type)
+		if st.get("antiAir", 0) and enemy_fly:
 			w += 2
-		if type == "soldier" and open > counts.get("soldier", 0) * 3:
+		if st.get("capV", false) and open > counts.get(type, 0) * 3:
 			w += 2
-		if type == "shaman" and s.graves.size():
+		if st.get("raise", "") and s.graves.size():
 			w += 0.5
-		if type == "boat" and water * 8 > s.w * s.h:
+		if swims and water * 8 > s.w * s.h:
 			w += 1.5
 		var sc: float = (w / (1 + counts.get(type, 0))) * pow(cost / 300.0, 0.35)
 		if best == null or sc > best.sc:

@@ -628,6 +628,7 @@ func _on_tile(x: int, y: int) -> void:
 	var my_turn: bool = s.side == "p"
 	var clicked: Variant = Game.unit_at(s, x, y)
 	var u: Variant = _sel_unit()
+	var info_was: Variant = ui.info
 	ui.hint = null; ui.hotBuy = null; ui.hintKind = null
 	if u != null and my_turn and not u.acted and u.side == "p":
 		if clicked != null and clicked.side == "e":
@@ -702,7 +703,9 @@ func _on_tile(x: int, y: int) -> void:
 		main.audio.play("select")
 		refresh()
 		return
-	ui.info = { "x": x, "y": y }
+	# same terrain tile again = close its card (HUD back)
+	if info_was == null or info_was.x != x or info_was.y != y:
+		ui.info = { "x": x, "y": y }
 	refresh()
 
 ## something worth doing without moving: capture the tile it stands on, or raise a grave next to it

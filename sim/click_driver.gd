@@ -90,6 +90,18 @@ func _run() -> void:
 	g.select_next()
 	ok(g.ui.sel != null and g.ui.sel != hero.id, "Tab selects next unacted unit")
 	g.cancel()
+	# empty terrain tile: 1st click = its card (HUD hidden), same tile again = close card, HUD back
+	var plain: Vector2i = Vector2i(-1, -1)
+	for ty in s.h:
+		for tx in s.w:
+			if plain.x < 0 and Game.unit_at(s, tx, ty) == null and Game.buy_options(s, "p", tx, ty).is_empty():
+				plain = Vector2i(tx, ty)
+	g._on_tile(plain.x, plain.y)
+	await process_frame
+	ok(g.ui.info != null and not g._btn_end.is_visible_in_tree(), "terrain click shows its card, end-turn hidden")
+	g._on_tile(plain.x, plain.y)
+	await process_frame
+	ok(g.ui.info == null and g._btn_end.is_visible_in_tree(), "same terrain tile again closes card, end-turn back")
 	# buy at our castle (1,2)
 	g._on_tile(1, 2)
 	await process_frame

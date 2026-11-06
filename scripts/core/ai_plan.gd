@@ -1,7 +1,7 @@
 class_name AIPlan
 extends RefCounted
 ## hard v2 (AI.PRESETS.hard "planner": 2): plans the whole turn, then hands it out one step at a time.
-## Candidate turns (portfolio: v1 greedy under a few knob sets, focus-fire kill prefixes) are played out on copies of
+## Candidate turns (portfolio: v1 greedy under a few knob sets, focus-fire kill prefixes, castle guard) are played on copies of
 ## the state with mid rolls; the opponent answers with the v1 greedy; the position after that is scored -> best turn.
 ## A real roll that changes who is alive -> replan the rest. Deterministic: own RNG seeded from the state, work capped
 ## by counts (the wall-clock cap is an emergency stop only). Never mutates s.

@@ -94,13 +94,27 @@ func _differs(start: Dictionary, v2_steps: Array, side: String) -> bool:
 	var k1 := _value_left(v1, foe)
 	var k2 := _value_left(v2, foe)
 	var hero_kill := _hero_dies(v2, foe) and not _hero_dies(v1, foe)
-	if not hero_kill and k2 >= k1 - 200.0:
+	var held := _held(start, v1, v2, side)
+	if not hero_kill and k2 >= k1 - 200.0 and held == "":
 		return false
-	print("\n== %s turn %d side %s: enemy value left v1 %.0f vs v2 %.0f (mid rolls)" % [start.scenario, start.turn, side, k1, k2])
+	print("\n== %s turn %d side %s: enemy value left v1 %.0f vs v2 %.0f (mid rolls)%s" % [start.scenario, start.turn, side, k1, k2, held])
 	print(" board units: %s" % [_units(start)])
 	print(" v1: %s" % [_fmt(start, v1_steps)])
 	print(" v2: %s" % [_fmt(start, v2_steps)])
 	return true
+
+## an own castle an enemy commander can step on next turn: v2 ends the turn with a unit on it, v1 leaves it empty
+func _held(start: Dictionary, v1: Dictionary, v2: Dictionary, side: String) -> String:
+	for key: Vector2i in Game.castle_tiles(start, side):
+		var near := false
+		for e: Dictionary in start.units:
+			var ex: int = e.x
+			var ey: int = e.y
+			if e.side != side and e.type == "hero" and Game.dist(ex, ey, key.x, key.y) <= Game.stat(start, e).mv:
+				near = true
+		if near and Game.unit_at(v2, key.x, key.y) != null and Game.unit_at(v1, key.x, key.y) == null:
+			return "; castle (%d,%d) under enemy commander threat: v2 holds it, v1 leaves it empty" % [key.x, key.y]
+	return ""
 
 func _hero_dies(s: Dictionary, foe: String) -> bool:
 	return not Game.hero_alive(s, foe)

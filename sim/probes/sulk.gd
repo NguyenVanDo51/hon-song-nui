@@ -25,12 +25,13 @@ func scene(type: String, nohome: bool) -> void:
 	var s := Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false))
 	s.w = 20
 	s.h = 9
-	s.tiles = []
+	var tiles := []
 	for y in 9:
 		var row := []
 		row.resize(20)
 		row.fill(".")
-		s.tiles.append(row)
+		tiles.append(row)
+	s.tiles = tiles
 	s.tiles[0][0] = "c"
 	s.tiles[8][19] = "c"
 	s.tiles[8][16] = "v"
@@ -38,14 +39,15 @@ func scene(type: String, nohome: bool) -> void:
 	if nohome:
 		s.owner = { Vector2i(0, 0): "p" }
 		s.tiles[8][16] = "."
-	s.units = []
+	var units := []
+	s.units = units
 	s.nextId = 1
 	s.gold = { "p": 0, "e": 0 }
 	s.unitCap = 1 # no buys: one e unit on the board
 	s.hadCastle = { "p": true, "e": not nohome }
 	for spec: Array in [["p", "soldier", 8, 3], ["p", "soldier", 9, 6], ["p", "archer", 5, 7], ["p", "hero", 0, 0],
 			["e", type, 4, 1, 25]]:
-		s.units.append({ "id": s.nextId, "side": spec[0], "type": spec[1], "x": spec[2], "y": spec[3],
+		units.append({ "id": s.nextId, "side": spec[0], "type": spec[1], "x": spec[2], "y": spec[3],
 			"hp": spec[4] if spec.size() > 4 else 100, "xp": 0, "rank": 0, "acted": false })
 		s.nextId += 1
 	var u: Dictionary = s.units[4]
@@ -58,8 +60,10 @@ func scene(type: String, nohome: bool) -> void:
 			var step: Variant = AI.next_step(s, mem)
 			if step == null or s.winner != null:
 				break
-			AI.apply_step(s, step)
-		if not s.units.has(u):
+			var stp: Dictionary = step
+			AI.apply_step(s, stp)
+		var alive: Array = s.units
+		if not alive.has(u):
 			line.append("dead")
 			break
 		mem = {}
@@ -71,7 +75,9 @@ func scene(type: String, nohome: bool) -> void:
 	print("%s%s  x,y/hp per e turn: %s" % [type.rpad(9), " nohome" if nohome else "", "  ".join(line)])
 
 func scan(games: int) -> void:
-	var runs: Array = load("res://sim/parity.gd").new().runs()
+	var parity: GDScript = load("res://sim/parity.gd")
+	var pobj: Object = parity.new()
+	var runs: Array = pobj.call("runs")
 	var tot := { "moves": 0, "idle": 0, "nohome": 0, "home": 0, "fight": 0, "worst": 0 }
 	var by_type := {}
 	for r: Array in runs:
@@ -82,7 +88,8 @@ func scan(games: int) -> void:
 		var ms := { "moves": 0, "idle": 0, "nohome": 0, "home": 0, "fight": 0, "worst": 0 }
 		for g in games:
 			lib.seed_v = 1000.0 + g * 7919
-			var s := Game.new_game(mk.call(g))
+			var def: Dictionary = mk.call(g)
+			var s := Game.new_game(def)
 			s.rng = int(lib.seed_v)
 			var streak := {}
 			var sref := [s]
@@ -91,18 +98,23 @@ func scan(games: int) -> void:
 					return
 				var st: Dictionary = sref[0]
 				var a: Dictionary = step.act
-				var u: Dictionary = Game.unit_by_id(st, a.id)
-				if u.hp >= 50 or Game.heals_at(st, u.side, u.x, u.y):
+				var aid: int = a.id
+				var u: Dictionary = Game.unit_by_id(st, aid)
+				var uside: String = u.side
+				var ux: int = u.x; var uy: int = u.y; var uhp: int = u.hp
+				if uhp >= 50 or Game.heals_at(st, uside, ux, uy):
 					return
 				ms.moves += 1
 				var heal := []
 				for y: int in st.h:
 					for x: int in st.w:
-						if Game.heals_at(st, u.side, x, y):
+						if Game.heals_at(st, uside, x, y):
 							heal.append([x, y])
 				var mc: String = Game.stat(st, u).move
 				var df := AI.dist_field(st, mc if mc in ["fly", "water"] else "foot", heal)
-				var closer: bool = df.get(Vector2i(a.to[0], a.to[1]), INF) < df.get(Vector2i(u.x, u.y), INF)
+				var to: Array = a.to
+				var tx: int = to[0]; var ty: int = to[1]
+				var closer: bool = df.get(Vector2i(tx, ty), INF) < df.get(Vector2i(ux, uy), INF)
 				if a.kind != "wait":
 					ms.fight += 1
 					streak[u.id] = 0
@@ -113,12 +125,15 @@ func scan(games: int) -> void:
 					ms.idle += 1
 					if heal.is_empty():
 						ms.nohome += 1
-					streak[u.id] = streak.get(u.id, 0) + 1
-					ms.worst = maxi(ms.worst, streak[u.id])
+					var run_n: int = streak.get(u.id, 0) + 1
+					streak[u.id] = run_n
+					var worst: int = ms.worst
+					ms.worst = maxi(worst, run_n)
 					by_type[u.type] = by_type.get(u.type, 0) + 1, 30000)
 		print("%-14s wounded moves %4d  fight %4d  homeward %4d  idle %4d (no heal tile %d)  longest idle streak %2d" % [
 			name, ms.moves, ms.fight, ms.home, ms.idle, ms.nohome, ms.worst])
 		for k: String in tot:
-			tot[k] = maxi(tot[k], ms[k]) if k == "worst" else tot[k] + ms[k]
+			var tv: int = tot[k]; var mv: int = ms[k]
+			tot[k] = maxi(tv, mv) if k == "worst" else tv + mv
 	print("TOTAL wounded moves %d  fight %d  homeward %d  idle %d (no heal tile %d)  longest idle streak %d  idle by type %s" % [
 		tot.moves, tot.fight, tot.home, tot.idle, tot.nohome, tot.worst, by_type])

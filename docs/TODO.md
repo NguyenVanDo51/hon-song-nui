@@ -7,9 +7,10 @@
 
 ## Tính năng
 - [x] **Chế độ 1 đấu 1** (`docs/1v1.md`, 2026-11-06): người–người chung máy (màn chuyển tay) + người–máy; bước 1–3 xong.
-  - [ ] Bước 4: gắn preset Dễ / Thường / Khó vào `Content.ai_params_for` (1 dòng, xem `docs/1v1.md` "Móc độ khó") + đo tỉ lệ thắng.
+  - [x] Bước 4: Dễ / Thường / Khó = `AI.PRESETS` -> `s.aiParams` (docs/1v1.md "Độ khó"; tỉ lệ thắng docs/ai.md). Khó chỉ hơn Thường ~55%: luyện thêm (`tools/tune.sh`, chạy lâu hơn) hoặc cho máy Khó thêm vàng.
+  - [ ] Điện thoại ngang: màn thiết lập phải cuộn mới thấy "Xuất quân"; popup mua 9 loại quân tràn ~844x390 (có từ đấu tự do). Nút "Đánh tiếp ván đang dở" chưa ghi rõ 1 đấu 1 hay đấu tự do.
   - [ ] Online: relay chuỗi step + hash.
-- [ ] **AI luyện bằng tự đấu**: bảng tham số AI + `sim/tune.gd` (agent đang làm, kèm sửa lính ít máu nằm góc không về hồi máu).
+- [x] **AI luyện bằng tự đấu** (2026-11-06): `AI.DEFAULT` + `sim/tune.gd` + `tools/tune.sh` (docs/ai.md); lính ít máu về hồi máu (hết nằm góc). Theo dõi: m08 hòa 1 -> 4/24 sau sửa.
 
 ## Chất lượng code
 - [x] Lint (2026-11-06): gdtoolkit 4.5.0 `gdlint` + Godot warnings = error + `tools/lint.sh` + pre-commit (`tools/install_hooks.sh`). README "Lint".

@@ -1152,7 +1152,7 @@ func duel_tests() -> void:
 			eq(Content.ctrl_of(s, "e"), "ai:normal")
 			check(not Content.is_ai(s, "p") and Content.is_ai(s, "e"), "p human, e AI")
 			eq(Content.ai_level(s, "e"), "normal")
-			eq(Content.ai_mem(s, "e"), {}, "default AI gets the same empty mem as before")
+			check(not s.has("aiParams"), "%s: default AI, no aiParams" % def.id)
 	)
 	run("duel_def valid on every skirmish map", func() -> void:
 		for mid: String in Content.SKIRMISH.MAPS:
@@ -1169,7 +1169,16 @@ func duel_tests() -> void:
 					check(Game.castles(s, side) > 0, "%s: %s has a castle" % [mid, side])
 					check(units_of(s).any(func(u: Dictionary) -> bool: return u.side == side and u.type == "hero"), "%s: %s commander" % [mid, side])
 				check(not def.has("skirmish") and str(def.id).begins_with("duel:"), mid + " is a duel, not a skirmish")
-		check(Content.ai_params_for(Game.new_game(duel("dong_bang", "ai:hard")), "e") is Dictionary, "params hook returns a dict")
+		var hard := Game.new_game(duel("dong_bang", "ai:hard"))
+		eq(hard.aiParams, { "e": AI.PRESETS.hard }, "hard: tuned knobs stored in state")
+		eq(AI.params(hard, "e").kill_hero, AI.PRESETS.hard.kill_hero, "AI reads the preset")
+		eq(AI.params(hard, "p"), AI.DEFAULT, "human side untouched")
+		check(not Game.new_game(duel("dong_bang", "ai:normal")).has("aiParams"), "normal = built-in AI")
+		check(not Game.new_game(duel("dong_bang", "human")).has("aiParams"), "2 humans: no AI params")
+		var easy := Game.new_game(duel("dong_bang", "ai:easy"))
+		eq(AI.params(easy, "e").noise, 60.0, "easy: noisy picks")
+		var back: Dictionary = str_to_var(var_to_str(hard))
+		eq(back.aiParams, hard.aiParams, "save text keeps aiParams")
 	)
 	run("2 humans: full game by do_action on both sides, step-replayable", func() -> void:
 		var s := Game.new_game(duel("dong_bang", "human"))

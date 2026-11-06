@@ -7,6 +7,13 @@ extends RefCounted
 const DEFAULT_WEIGHT := 1.0
 
 ## every scoring knob; a side's override = s.aiParams[side] (partial dict merged over this; absent = DEFAULT, save unchanged)
+## 1 vs 1 difficulty: partial overrides of DEFAULT (measured in docs/ai.md: easy < normal < hard)
+const PRESETS := {
+	"easy": { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }, # reckless
+	"normal": {},
+	"hard": { "hp_cap": 81.2937, "kill_hero": 552.335 }, # sim/tuned_params.txt: ~55% vs normal
+}
+
 const DEFAULT := {
 	"noise": 8.0, # +-noise/2 per candidate: ties break, play varies
 	"goal_w": 12.0, # per tile-cost of distance to the nearest goal
@@ -408,7 +415,8 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			var counter: int = p.counter
 			var left := maxi(0, uhp - counter)
 			var exposure := _risk(minf(left, hurt), left, hp_val, die_val) if left > 0 else 0.0
-			consider.call(sc + (-gd * goal_w + tdef * def_w) * atk_pos_w - exposure + atk_bias, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
+			var atk_sc := sc + (-gd * goal_w + tdef * def_w) * atk_pos_w - exposure + atk_bias
+			consider.call(atk_sc, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
 	return best[0]
 
 ## ok: types buy_options allows at the chosen castle (gold, cap, step-off); null = any allowed type within gold

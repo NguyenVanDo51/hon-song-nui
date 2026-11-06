@@ -1126,7 +1126,7 @@ func ai_turn() -> void:
 	await fx.sleep(900.0)
 	if gen != my:
 		return
-	var mem := Content.ai_mem(s, side) # difficulty hook (docs/1v1.md)
+	var mem := {} # difficulty: s.aiParams (Game.new_game from ctrl)
 	while s.winner == null and s.side == side:
 		var next: Variant = AI.next_step(s, mem)
 		if next == null:

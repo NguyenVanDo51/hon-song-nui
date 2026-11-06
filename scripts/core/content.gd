@@ -144,15 +144,10 @@ static func ai_level(s: Dictionary, side: String) -> String:
 	var c := ctrl_of(s, side)
 	return c.substr(3) if c.begins_with("ai:") else ""
 
-## difficulty hook: AI params for this side's level; {} = built-in AI. Presets plug in here (docs/1v1.md)
+## AI knob overrides for this side's level ({} = built-in AI); Game.new_game stores them in s.aiParams (AI.params reads it)
 static func ai_params_for(s: Dictionary, side: String) -> Dictionary:
-	var presets := {} # level -> params
-	return presets.get(ai_level(s, side), {})
-
-## the mem an AI turn starts with: params only when a preset applies, so the default AI sees the same mem as before
-static func ai_mem(s: Dictionary, side: String) -> Dictionary:
-	var p := ai_params_for(s, side)
-	return { "params": p } if not p.is_empty() else {}
+	var p: Dictionary = AI.PRESETS.get(ai_level(s, side), {})
+	return p
 
 # ---------- looks ----------
 static func unit_look(s: Dictionary, u: Dictionary) -> Dictionary:

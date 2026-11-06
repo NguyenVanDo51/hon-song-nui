@@ -12,7 +12,8 @@ func _init() -> void:
 		var ts: Array[int] = []
 		for g in games:
 			lib.seed_v = 1000.0 + g * 7919
-			var s := Game.new_game(Content.mission(id))
+			var def: Dictionary = Content.mission(id)
+			var s := Game.new_game(def)
 			s.rng = int(lib.seed_v)
 			var mem := {}
 			while s.winner == null and s.turn <= 60:
@@ -23,7 +24,8 @@ func _init() -> void:
 					Game.end_turn(s)
 					mem = {}
 				else:
-					AI.apply_step(s, step)
+					var stp: Dictionary = step
+					AI.apply_step(s, stp)
 		var sum := 0
 		for t in ts:
 			sum += t

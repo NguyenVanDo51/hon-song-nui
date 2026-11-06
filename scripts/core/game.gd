@@ -67,6 +67,13 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 	if def.has("ctrl"): # 1 vs 1 only: no key = p human, e AI (Content.ctrl_of)
 		var ctrl: Dictionary = def.ctrl
 		s.ctrl = ctrl.duplicate()
+		var aip := {}
+		for side: String in ["p", "e"]:
+			var p := Content.ai_params_for(s, side)
+			if not p.is_empty():
+				aip[side] = p.duplicate()
+		if not aip.is_empty(): # saved with the game: replay / continue use the same AI
+			s.aiParams = aip
 	for o: Array in _or(def, "owner", []):
 		var ox: int = o[0]
 		var oy: int = o[1]

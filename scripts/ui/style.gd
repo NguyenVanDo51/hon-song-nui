@@ -231,8 +231,12 @@ static func set_sub(b: Button, sub: String) -> void:
 static func hp_color(hp: int) -> Color:
 	return GOOD if hp > 60 else (AMBER if hp > 30 else BAD)
 
+## "3" or "2–4"
+static func range_txt(lo: int, hi: int) -> String:
+	return str(lo) if lo == hi else "%d–%d" % [lo, hi]
+
 static func stat_range(st: Dictionary) -> String:
-	return str(st.rmax) if st.rmin == st.rmax else "%d–%d" % [st.rmin, st.rmax]
+	return range_txt(st.rmin, st.rmax)
 
 ## bars: rows = [[name, value, max] or [name, text]]
 static func stat_bars(rows: Array, size := 13) -> GridContainer:

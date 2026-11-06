@@ -613,9 +613,8 @@ func _draw_preview(ci: CanvasItem) -> void:
 	if p == null or s.is_empty():
 		return
 	var fs := int(clampf(T * 0.24, 12, 20))
-	var rng := func(lo: int, hi: int) -> String: return str(lo) if lo == hi else "%d–%d" % [lo, hi]
-	var give := "⚔ %s%s" % [rng.call(p.dmgMin, p.dmgMax), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else "")]
-	var take := "  ↩ %s%s" % [rng.call(p.counterMin, p.counterMax), " ngã" if p.die else (" có thể ngã" if p.mayDie else "")] \
+	var give := "⚔ %s%s" % [Style.range_txt(p.dmgMin, p.dmgMax), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else "")]
+	var take := "  ↩ %s%s" % [Style.range_txt(p.counterMin, p.counterMax), " ngã" if p.die else (" có thể ngã" if p.mayDie else "")] \
 		if p.counterMax > 0 else ""
 	var w1 := Style.xbold.get_string_size(give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var w2 := Style.xbold.get_string_size(take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x

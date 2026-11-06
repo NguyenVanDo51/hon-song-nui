@@ -94,6 +94,8 @@ Hồi quy: `sim/trace.gd` chơi AI-vs-AI có seed trên luật hiện tại cho 
 
 AI một nước (GDScript, Mac Apple Silicon, `sim/probes/ai_time.gd` = 4 ván seed vàng, đo 2026-11-06 ở `fe83a5d`, trung bình / tệ nhất): m01 1.4 / 3.7 ms, m08 3.4 / 15 ms, m12 3.7 / 16 ms (ngay trước, cùng máy: 1.2 / 3.6, 3.3 / 14, 3.6 / 14.5). Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch.
 
+Tham số AI (`AI.DEFAULT`, ghi đè theo phe `s.aiParams`), tự đấu để tune (`sim/tune.gd`, `tools/tune.sh`), phác thảo độ khó Dễ / Thường / Khó + bảng thắng thua: `docs/ai.md`.
+
 ## Thay nội dung (không đụng code)
 | Muốn đổi | Sửa ở |
 |---|---|

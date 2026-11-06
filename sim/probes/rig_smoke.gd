@@ -1,26 +1,15 @@
-extends SceneTree
+extends "res://sim/probes/probe_base.gd"
 ## plays every rigged unit's attack once per side and direction through the real path (FX.rig_attack on the 2D board),
 ## then checks: on_hit fired exactly once, the attack ended, its sparks drained. Any SCRIPT ERROR lands in the .err log.
 ##   MAX_SEC=300 tools/run_guarded.sh /tmp/rig_smoke.log -- --headless --path . -s sim/probes/rig_smoke.gd -- mission=m02 fresh nointro nobattle profile=test speed=3
 ##   grep -c "SCRIPT ERROR" /tmp/rig_smoke.log.err   # must be 0;  log ends with "RIG SMOKE DONE fails=0"
-var main: Node
-var t := 0.0
-var started := false
 var fails := 0
 
 func _initialize() -> void:
-	main = load("res://main.tscn").instantiate()
-	root.add_child(main)
+	boot_wait = 1.0
+	super()
 
-func _process(dt: float) -> bool:
-	t += dt
-	if not started and main.game != null and not main.game.s.is_empty() and t > 1.0:
-		started = true
-		_run()
-	return false
-
-func _run() -> void:
-	var g: Node = main.game
+func _run(g: Node) -> void:
 	var s: Dictionary = g.s
 	if not (g.board is Board):
 		print("RIG SMOKE: board is not the 2D Board, nothing to test")
@@ -30,10 +19,7 @@ func _run() -> void:
 	var ax := Vector2i(s.w / 2 - 1, s.h / 2)
 	var p_any: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p")[0]
 	var e_any: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
-	for u: Dictionary in s.units:
-		if u.id != p_any.id and u.id != e_any.id and absi(u.x - ax.x) + absi(u.y - ax.y) <= 4:
-			u.x = 0
-			u.y = 0
+	clear_around(s, ax, 4, [p_any.id, e_any.id])
 	var n := 0
 	for type: String in Rigs.types():
 		for side: String in ["p", "e"]:

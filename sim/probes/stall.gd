@@ -1,36 +1,29 @@
 extends SceneTree
 ## why AI-vs-AI games time out: -- <mission> -> per-10-turn summary (units per side/type, castles, gold, hero alive)
-var seed_v := 1.0
-func rng() -> float:
-	seed_v = fmod(seed_v * 1103515245.0 + 12345.0, 2147483648.0)
-	return seed_v / 2147483648.0
+const SimLib := preload("res://sim/sim_lib.gd")
+var lib := SimLib.new()
 
 func _init() -> void:
 	var mid: String = OS.get_cmdline_user_args()[0]
-	AI.rng = rng
+	AI.rng = lib.rng
 	for g in 4:
-		seed_v = 1000.0 + g * 7919
+		lib.seed_v = 1000.0 + g * 7919
 		print("--- game ", g)
 		play(mid)
 	quit()
 
 func play(mid: String) -> void:
 	var s := Game.new_game(Content.mission(mid))
-	s.rng = int(seed_v)
-	var mem := {}
-	var last := 0
-	while s.winner == null and s.turn <= 60:
-		if s.turn % 10 == 0 and s.turn != last and s.side == "p":
-			last = s.turn
+	s.rng = int(lib.seed_v)
+	var last := [0]
+	lib.run_ai(s, false, 60, func(st: Dictionary) -> void:
+		if st.turn % 10 == 0 and st.turn != last[0] and st.side == "p":
+			last[0] = st.turn
 			for side: String in ["p", "e"]:
 				var types := {}
-				for u: Dictionary in s.units:
+				for u: Dictionary in st.units:
 					if u.side == side: types[u.type] = types.get(u.type, 0) + 1
-				print("t%d %s castles=%d vil=%d gold=%d hero=%s %s" % [s.turn, side, Game.castles(s, side), Game.villages(s, side), s.gold[side], Game.hero_alive(s, side), types])
-		var st: Variant = AI.next_step(s, mem)
-		if st == null:
-			Game.end_turn(s); mem = {}; continue
-		AI.apply_step(s, st)
+				print("t%d %s castles=%d vil=%d gold=%d hero=%s %s" % [st.turn, side, Game.castles(st, side), Game.villages(st, side), st.gold[side], Game.hero_alive(st, side), types]))
 	print("end ", s.winner, " ", s.reason, " t", s.turn)
 	if s.winner == null:
 		var ec: Array = Game.castle_tiles(s, "e")

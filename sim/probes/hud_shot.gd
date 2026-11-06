@@ -1,26 +1,21 @@
-extends SceneTree
+extends "res://sim/probes/probe_base.gd"
 ## HUD layout check: idle HUD, then a unit picked near the top-left (card must jump right), then one elsewhere.
 ##   tools/run_guarded.sh /tmp/hud.log -- --path . -s sim/probes/hud_shot.gd -- mission=m02 fresh nointro profile=test shots=<dir> [win=WxH]
-var main: Node
-var step := 0
-func _initialize() -> void:
-	main = load("res://main.tscn").instantiate()
-	root.add_child(main)
-	_run.call_deferred()
+
+func _boot() -> void:
+	var win: String = main.flags.get("win", "")
+	if win != "": # before the boot wait, so the game lays out at that size
+		var p := win.split("x")
+		DisplayServer.window_set_size(Vector2i(int(p[0]), int(p[1])))
+	await super()
 
 func _wait(n: int) -> void:
 	for i in n:
 		await process_frame
 
-func _run() -> void:
-	var win: String = main.flags.get("win", "")
-	if win != "":
-		var p := win.split("x")
-		DisplayServer.window_set_size(Vector2i(int(p[0]), int(p[1])))
-	await create_timer(1.5).timeout
-	var g: Node = main.game
+func _run(g: Node) -> void:
 	var s: Dictionary = g.s
-	var tag: String = main.flags.get("tag", "hud")
+	var tag: String = args.get("tag", "hud")
 	await main.shot(tag + "_idle")
 	# park our commander on the top-left tile, then pick it
 	var h: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]

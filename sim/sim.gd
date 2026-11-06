@@ -5,25 +5,21 @@ extends SceneTree
 ## <godot> --headless --path . -s sim/sim.gd -- naive [games]              -> random bot (p) vs AI (e) on skirmish map
 ## <godot> --headless --path . -s sim/sim.gd -- rng                        -> first 10 rng values (parity check)
 
-var seed_v := 1.0
-
-func rng() -> float:
-	# JS: seed = (seed * 1103515245 + 12345) % 2147483648 in doubles (the product exceeds 2^53, so float math is the spec)
-	seed_v = fmod(seed_v * 1103515245.0 + 12345.0, 2147483648.0)
-	return seed_v / 2147483648.0
+const SimLib := preload("res://sim/sim_lib.gd")
+var lib := SimLib.new()
 
 func _init() -> void:
 	var args := OS.get_cmdline_user_args()
 	var mode: String = args[0] if args.size() > 0 else "mission"
 	var a1: String = args[1] if args.size() > 1 else ""
 	var a2: String = args[2] if args.size() > 2 else ""
-	AI.rng = rng
+	AI.rng = lib.rng
 	var t0 := Time.get_ticks_msec()
 	if mode == "rng":
-		seed_v = 1000.0
+		lib.seed_v = 1000.0
 		var out := []
 		for i in 10:
-			out.append("%.0f" % (rng() * 2147483648.0))
+			out.append("%.0f" % (lib.rng() * 2147483648.0))
 		print(" ".join(out))
 	elif mode == "mission":
 		var ids := []
@@ -47,19 +43,7 @@ func _init() -> void:
 
 func play(def: Dictionary, opts: Dictionary, naive: bool) -> Dictionary:
 	var s := Game.new_game(def, opts)
-	var mem := {}
-	var steps := 0
-	while s.winner == null and s.turn <= 60:
-		var step: Variant = AI.random_step(s, rng) if naive and s.side == "p" else AI.next_step(s, mem)
-		if step == null:
-			Game.end_turn(s)
-			mem = {}
-			continue
-		AI.apply_step(s, step)
-		steps += 1
-		if steps > 30000:
-			push_error("stuck")
-			break
+	lib.run_ai(s, naive, 60, Callable(), Callable(), 30000)
 	return s
 
 func report(label: String, games: int, mk: Callable) -> void:
@@ -67,7 +51,7 @@ func report(label: String, games: int, mk: Callable) -> void:
 	var turns := []
 	var reasons := {}
 	for g in games:
-		seed_v = 1000.0 + g * 7919
+		lib.seed_v = 1000.0 + g * 7919
 		var s: Dictionary = mk.call(g)
 		var w: String = s.winner if s.winner != null else "draw"
 		res[w] += 1

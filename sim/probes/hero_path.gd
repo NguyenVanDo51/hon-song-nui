@@ -1,29 +1,23 @@
 extends SceneTree
 ## reach missions: where the AI commander is each turn + its distance to the goal. -- <mission>
-var seed_v := 1000.0
-func rng() -> float:
-	seed_v = fmod(seed_v * 1103515245.0 + 12345.0, 2147483648.0)
-	return seed_v / 2147483648.0
+const SimLib := preload("res://sim/sim_lib.gd")
+var lib := SimLib.new()
 func _init() -> void:
-	AI.rng = rng
+	lib.seed_v = 1000.0
+	AI.rng = lib.rng
 	var s := Game.new_game(Content.mission(OS.get_cmdline_user_args()[0]))
 	s.rng = 1000
-	var mem := {}
-	var last := -1
+	var last := [-1]
 	var goal: Array = s.win.at
-	while s.winner == null and s.turn <= 30:
-		if s.side == "p" and s.turn != last:
-			last = s.turn
-			var h: Variant = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")
+	lib.run_ai(s, false, 30, func(st: Dictionary) -> void:
+		if st.side == "p" and st.turn != last[0]:
+			last[0] = st.turn
+			var h: Variant = st.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")
 			if h.size():
-				var df := AI.dist_field(s, "foot", goal)
-				print("t%d hero %d,%d hp%d dist=%s" % [s.turn, h[0].x, h[0].y, h[0].hp, df.get(Vector2i(h[0].x, h[0].y))])
+				var df := AI.dist_field(st, "foot", goal)
+				print("t%d hero %d,%d hp%d dist=%s" % [st.turn, h[0].x, h[0].y, h[0].hp, df.get(Vector2i(h[0].x, h[0].y))])
 			else:
-				print("t%d hero dead" % s.turn)
-		var st: Variant = AI.next_step(s, mem)
-		if st == null:
-			Game.end_turn(s); mem = {}; continue
-		AI.apply_step(s, st)
+				print("t%d hero dead" % st.turn))
 	print("end ", s.winner, " ", s.reason)
 	for row in s.tiles: print(" ", "".join(row))
 	quit()

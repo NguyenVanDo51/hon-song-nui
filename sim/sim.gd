@@ -34,10 +34,14 @@ func _init() -> void:
 	elif mode == "skirmish":
 		var heroes := Content.heroes_of("p")
 		report("skirmish" + (" easy" if a2 == "easy" else ""), int(a1) if a1 != "" else 12,
-			func(g: int) -> Dictionary: return play(Content.skirmish_def("dong_bang", heroes[g % 3], a2 == "easy"), {}, false))
+			func(g: int) -> Dictionary:
+				var hero: String = heroes[g % heroes.size()]
+				return play(Content.skirmish_def("dong_bang", hero, a2 == "easy"), {}, false))
 	elif mode == "naive":
 		report("random vs AI", int(a1) if a1 != "" else 10,
-			func(_g: int) -> Dictionary: return play(Content.skirmish_def("dong_bang", Content.heroes_of("p")[0], false), {}, true))
+			func(_g: int) -> Dictionary:
+				var hero: String = Content.heroes_of("p")[0]
+				return play(Content.skirmish_def("dong_bang", hero, false), {}, true))
 	printerr("wall %.1fs" % ((Time.get_ticks_msec() - t0) / 1000.0))
 	quit()
 

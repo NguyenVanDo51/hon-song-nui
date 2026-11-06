@@ -25,19 +25,23 @@ func _init() -> void:
 	for j: Array in jobs:
 		if only.size() and not only.has(j[0]):
 			continue
-		var rows := relayout(j[0], j[1])
-		print("MAP %s %s" % [j[0], JSON.stringify(rows)])
+		var id: String = j[0]
+		var m: Dictionary = j[1]
+		var rows := relayout(id, m)
+		print("MAP %s %s" % [id, JSON.stringify(rows)])
 	quit()
 
 static func relayout(id: String, m: Dictionary) -> Array:
 	var src: Array = m.map.rows
 	var h := src.size()
-	var w: int = (src[0] as String).length()
+	var row0: String = src[0]
+	var w := row0.length()
 	var g := [] # Array of PackedStringArray-like Arrays of chars
 	for y in h:
 		var row := []
+		var line: String = src[y]
 		for x in w:
-			row.append((src[y] as String)[x])
+			row.append(line[x])
 		g.append(row)
 	var sym := _is_sym(g, w, h)
 	var rng := RandomNumberGenerator.new()
@@ -57,14 +61,15 @@ static func relayout(id: String, m: Dictionary) -> Array:
 			if t == "v" or t == "x":
 				villages.append(Vector2i(x, y))
 	for u: Array in m.get("units", []):
-		keep[Vector2i(u[2], u[3])] = true
+		keep[_at(u, 2)] = true
 	for wv: Dictionary in m.get("waves", []):
 		for u: Array in wv.units:
-			keep[Vector2i(u[1], u[2])] = true
+			keep[_at(u, 1)] = true
 	for gr: Array in m.get("graves", []):
-		keep[Vector2i(gr[0], gr[1])] = true
-	for at: Array in m.get("win", {}).get("at", []):
-		keep[Vector2i(at[0], at[1])] = true
+		keep[_at(gr, 0)] = true
+	var win: Dictionary = m.get("win", {})
+	for at: Array in win.get("at", []):
+		keep[_at(at, 0)] = true
 	# rough budget from the old map (only tiles we are allowed to change)
 	var budget := { "f": 0, "h": 0, "m": 0 }
 	for y in h:
@@ -86,7 +91,8 @@ static func relayout(id: String, m: Dictionary) -> Array:
 			var best_path := []
 			var best_i := -1
 			for i in rest.size():
-				var p := _route(g, w, h, rest[i], joined, road)
+				var from: Vector2i = rest[i]
+				var p := _route(g, w, h, from, joined, road)
 				if p.size() and (best_i < 0 or p.size() < best_path.size()):
 					best_path = p
 					best_i = i
@@ -126,11 +132,11 @@ static func relayout(id: String, m: Dictionary) -> Array:
 		for x in w:
 			if g[y][x] == "." and not keep.has(Vector2i(x, y)):
 				land += 1
-	var total: int = maxi(budget.f + budget.h + budget.m, int(round(land * MIN_ROUGH)))
-	if budget.f + budget.h + budget.m == 0:
+	var total: int = maxi(_sum(budget), roundi(land * MIN_ROUGH))
+	if _sum(budget) == 0:
 		budget = { "f": 6, "h": 4, "m": 0 }
 	if sym:
-		total = int(ceil(total / 2.0))
+		total = ceili(total / 2.0)
 	var placed := {}
 	var clumps := []
 	var tries := 0
@@ -159,8 +165,10 @@ static func relayout(id: String, m: Dictionary) -> Array:
 			frontier.append(n)
 		clumps.append(clump)
 	# type by depth inside each clump: mountains in the core of big clumps, hills next, forest on the rim
-	var share_m := float(budget.m) / maxf(1.0, budget.f + budget.h + budget.m)
-	var share_h := float(budget.h) / maxf(1.0, budget.f + budget.h + budget.m)
+	var bm: int = budget.m
+	var bh: int = budget.h
+	var share_m := float(bm) / maxf(1.0, _sum(budget))
+	var share_h := float(bh) / maxf(1.0, _sum(budget))
 	for clump: Array in clumps:
 		var depth := {}
 		for k: Vector2i in clump:
@@ -171,8 +179,8 @@ static func relayout(id: String, m: Dictionary) -> Array:
 			depth[k] = nb
 		var order: Array = clump.duplicate()
 		order.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return depth[a] > depth[b])
-		var nm := int(round(order.size() * share_m)) if order.size() >= 4 else 0
-		var nh := int(round(order.size() * share_h))
+		var nm := roundi(order.size() * share_m) if order.size() >= 4 else 0
+		var nh := roundi(order.size() * share_h)
 		for i in order.size():
 			var k: Vector2i = order[i]
 			var t := "m" if i < nm else ("h" if i < nm + nh else "f")
@@ -191,8 +199,22 @@ static func relayout(id: String, m: Dictionary) -> Array:
 			g[h - 1 - cut.y][w - 1 - cut.x] = "h" if g[h - 1 - cut.y][w - 1 - cut.x] == "m" else g[h - 1 - cut.y][w - 1 - cut.x]
 	var out := []
 	for y in h:
-		out.append("".join(PackedStringArray(g[y])))
+		var row: Array = g[y]
+		out.append("".join(PackedStringArray(row)))
 	return out
+
+## tile from a[i], a[i + 1]
+static func _at(a: Array, i: int) -> Vector2i:
+	var x: int = a[i]
+	var y: int = a[i + 1]
+	return Vector2i(x, y)
+
+## rough tiles in the budget (f + h + m)
+static func _sum(budget: Dictionary) -> int:
+	var bf: int = budget.f
+	var bh: int = budget.h
+	var bm: int = budget.m
+	return bf + bh + bm
 
 static func _is_sym(g: Array, w: int, h: int) -> bool:
 	for y in h:

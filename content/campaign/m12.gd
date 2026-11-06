@@ -9,7 +9,8 @@ const DEF := {
 	"history": "Năm 42, quân Hai Bà và quân Mã Viện đánh lớn ở Lãng Bạc. Sách cũ chép trận này rất ác liệt, hai bên tổn thất nặng.",
 	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": { "p": ["soldier", "archer", "boat", "drum", "wolf", "elephant", "catapult"], "e": ["soldier", "archer", "boat", "drum", "wolf", "elephant", "catapult"] },
+	"allowed": { "p": ["soldier", "archer", "boat", "drum", "wolf", "elephant", "catapult"],
+		"e": ["soldier", "archer", "boat", "drum", "wolf", "elephant", "catapult"] },
 	"gold": { "p": 900, "e": 300 },
 	"win": { "type": "castles" },
 	"map": { "rows": [

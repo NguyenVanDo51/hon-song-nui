@@ -30,7 +30,10 @@ func replay(key: String) -> String:
 		if r[0] == p[0]:
 			var g := int(p[1])
 			seed_v = 1000.0 + g * 7919
-			return play(r[2].call(g), r[3])
+			var def_for: Callable = r[2]
+			var naive: bool = r[3]
+			var def: Dictionary = def_for.call(g)
+			return play(def, naive)
 	return "?"
 
 static func fnv(h: int, s: String) -> int:
@@ -54,7 +57,9 @@ func play(def: Dictionary, naive: bool) -> String:
 	s.seed = int(seed_v)
 	s.rng = int(seed_v) # combat rolls seeded like the AI
 	var hh := [2166136261] # FNV-1a over every step (array: the lambda cannot rebind a captured local)
-	var steps := run_ai(s, naive, 60, Callable(), func(step: Variant) -> void: hh[0] = fnv(hh[0], step_str(step) + ";"))
+	var steps := run_ai(s, naive, 60, Callable(), func(step: Variant) -> void:
+		var h0: int = hh[0]
+		hh[0] = fnv(h0, step_str(step) + ";"))
 	var h: int = hh[0]
 	for u: Dictionary in s.units:
 		h = fnv(h, "%d:%d,%d:%d:%d:%d;" % [u.id, u.x, u.y, u.hp, u.xp, u.rank])

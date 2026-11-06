@@ -13,26 +13,26 @@ func _wait(n: int) -> void:
 	for i in n:
 		await process_frame
 
-func _run(g: Node) -> void:
+func _run(g: GameScreen) -> void:
 	var s: Dictionary = g.s
 	var tag: String = args.get("tag", "hud")
 	await main.shot(tag + "_idle")
 	# park our commander on the top-left tile, then pick it
-	var h: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
+	var h: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
 	for y in 2:
 		for x in 2:
 			if Game.unit_at(s, x, y) == null and h.x + h.y > 1:
 				h.x = x; h.y = y
 	g.refresh()
-	g._on_tile(h.x, h.y)
+	g._on_tile(pos(h).x, pos(h).y)
 	await _wait(4)
 	print("TL pick: card at ", g._card.position, " end visible ", g._btn_end.visible)
 	await main.shot(tag + "_pick_tl")
 	g.cancel(); g.cancel()
-	var far: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.id != h.id)[0]
+	var far: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.id != h.id)[0]
 	far.x = s.w - 1; far.y = 0
 	g.refresh()
-	g._on_tile(far.x, far.y)
+	g._on_tile(pos(far).x, pos(far).y)
 	await _wait(4)
 	print("TR pick: card at ", g._card.position)
 	await main.shot(tag + "_pick_tr")

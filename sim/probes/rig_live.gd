@@ -11,21 +11,25 @@ func _initialize() -> void:
 	timeout_ms = 60000
 	super()
 
-func _run(g: Node) -> void:
+func _run(g: GameScreen) -> void:
 	var s: Dictionary = g.s
-	var ax := Vector2i(s.w / 2 - 1, s.h / 2)
+	var w: int = s.w
+	var h: int = s.h
+	@warning_ignore("integer_division")
+	var ax := Vector2i(w / 2 - 1, h / 2)
 	var dx: Vector2i = ax + DIRS.get(args.get("dir", "right"), Vector2i(1, 0))
 	var att: String = args.get("att", "hero")
 	var dft: String = args.get("def", "hero")
-	var mine: Array = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p")
-	var theirs: Array = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e")
+	var mine: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p")
+	var theirs: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e")
 	var pa: Array = mine.filter(func(u: Dictionary) -> bool: return u.type == att)
 	var pd: Array = theirs.filter(func(u: Dictionary) -> bool: return u.type == dft)
 	var a: Dictionary = pa[0] if not pa.is_empty() else mine[0]
 	var d: Dictionary = pd[0] if not pd.is_empty() else theirs[0]
 	a.type = att
 	d.type = dft
-	d.hp = int(args.get("def_hp", "100"))
+	var def_hp: String = args.get("def_hp", "100")
+	d.hp = int(def_hp)
 	clear_around(s, ax, 4, [a.id, d.id])
 	a.acted = false
 	stage(g, a, d, ax, dx)
@@ -44,12 +48,15 @@ func _run(g: Node) -> void:
 	if frames.is_empty():
 		quit(1)
 		return
-	save_sheet(frames, 4, args.get("out", "/tmp/rig_live.png"), "rig_live")
+	var out: String = args.get("out", "/tmp/rig_live.png")
+	save_sheet(frames, 4, out, "rig_live")
 	quit()
 
-func _shoot(g: Node, t0: int) -> void:
-	var every := float(args.get("every", "250")) / 1000.0
-	var n := int(args.get("n", "12"))
+func _shoot(g: GameScreen, t0: int) -> void:
+	var every_ms: String = args.get("every", "250")
+	var n_s: String = args.get("n", "12")
+	var every := float(every_ms) / 1000.0
+	var n := int(n_s)
 	for k in n:
 		await create_timer(every if k > 0 else 0.35).timeout
 		label.text = "%d ms" % (Time.get_ticks_msec() - t0)

@@ -1,6 +1,8 @@
 extends SceneTree
 ## headless tests: <godot> --headless --path . -s sim/tests.gd   -> exit code 1 on failure
 
+const Parity := preload("res://sim/parity.gd")
+
 var failed := 0
 var passed := 0
 var _cur := ""
@@ -12,7 +14,42 @@ func check(cond: bool, msg: String) -> void:
 		printerr("  FAIL %s: %s" % [_cur, msg])
 
 func eq(a: Variant, b: Variant, msg := "") -> void:
-	check(a == b, "%s expected %s got %s" % [msg, b, a])
+	var same: bool = a == b
+	check(same, "%s expected %s got %s" % [msg, b, a])
+
+## s.units / s.owner / s.graves read fresh (Game swaps s.units when a unit dies)
+static func units_of(s: Dictionary) -> Array:
+	return s.units
+
+static func unit(s: Dictionary, i: int) -> Dictionary:
+	return s.units[i]
+
+static func owner_of(s: Dictionary) -> Dictionary:
+	return s.owner
+
+static func graves_of(s: Dictionary) -> Array:
+	return s.graves
+
+static func acted(u: Dictionary) -> bool:
+	return u.acted
+
+static func id_of(u: Dictionary) -> int:
+	return u.id
+
+## unit tile
+static func pos(u: Dictionary) -> Vector2i:
+	var x: int = u.x
+	var y: int = u.y
+	return Vector2i(x, y)
+
+## tile from a[i], a[i + 1]
+static func xy(a: Array, i := 0) -> Vector2i:
+	var x: int = a[i]
+	var y: int = a[i + 1]
+	return Vector2i(x, y)
+
+static func mission(id: String) -> Dictionary:
+	return Content.mission(id)
 
 func run(name: String, fn: Callable) -> void:
 	_cur = name
@@ -36,13 +73,15 @@ func _init() -> void:
 # ---------- content ----------
 func content_tests() -> void:
 	var all: Array = Content.campaign().duplicate()
+	var hero_p: String = Content.heroes_of("p")[0]
 	for mid: String in Content.SKIRMISH.MAPS:
-		all.append(Content.skirmish_def(mid, Content.heroes_of("p")[0], false))
+		all.append(Content.skirmish_def(mid, hero_p, false))
 	run("skirmish: new maps are 180° rotations (fair start)", func() -> void:
 		for mid: String in ["cua_bien", "nui_rung"]:
 			var rows: Array = Content.SKIRMISH.MAPS[mid].rows
 			for y in rows.size():
-				eq(rows[y], (rows[rows.size() - 1 - y] as String).reverse(), "%s row %d" % [mid, y])
+				var mirror: String = rows[rows.size() - 1 - y]
+				eq(rows[y], mirror.reverse(), "%s row %d" % [mid, y])
 	)
 	eq(Content.campaign().size(), 16, "campaign size")
 	run("chapters: 2 chapters, every mission in one, missions of a chapter are consecutive", func() -> void:
@@ -50,14 +89,15 @@ func content_tests() -> void:
 		var seen := []
 		for m: Dictionary in Content.campaign():
 			var c := Content.chapter_of(m)
-			check(Content.chapter(c) != null, "chapter of " + m.id)
+			check(Content.chapter(c) != null, "chapter of %s" % m.id)
 			if seen.is_empty() or seen.back() != c:
 				check(not seen.has(c), "chapter %s split" % c)
 				seen.append(c)
 		for c: Dictionary in Content.chapters():
 			for key: String in ["title", "subtitle", "rivers", "labels", "outro"]:
 				check(c.has(key), "%s.%s" % [c.id, key])
-			check(Content.missions_of(c.id).size() >= 6, c.id + " has missions")
+			var cid: String = c.id
+			check(Content.missions_of(cid).size() >= 6, cid + " has missions")
 		check(Content.chapter_unlocked("c1", 0) and not Content.chapter_unlocked("c2", 7) and Content.chapter_unlocked("c2", 8), "unlock order")
 	)
 	run("our commander can walk (over turns) to every castle, the enemy commander and the reach goal", func() -> void:
@@ -69,9 +109,10 @@ func content_tests() -> void:
 					hero = u
 			if hero == null:
 				continue
-			var mc: String = Game.stat(s, hero).move
-			var seen := { Vector2i(hero.x, hero.y): true }
-			var q := [Vector2i(hero.x, hero.y)]
+			var hu: Dictionary = hero
+			var mc: String = Game.stat(s, hu).move
+			var seen := { pos(hu): true }
+			var q := [pos(hu)]
 			while q.size():
 				var c: Vector2i = q.pop_back()
 				for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
@@ -80,15 +121,16 @@ func content_tests() -> void:
 						seen[n] = true
 						q.append(n)
 			var need := []
-			for y in s.h:
-				for x in s.w:
+			for y: int in s.h:
+				for x: int in s.w:
 					if Game.sells(s.tiles[y][x]):
 						need.append(Vector2i(x, y))
 			for u: Dictionary in s.units:
 				if u.side == "e" and u.type == "hero":
-					need.append(Vector2i(u.x, u.y))
-			for at: Array in s.win.get("at", []):
-				need.append(Vector2i(at[0], at[1]))
+					need.append(pos(u))
+			var win: Dictionary = s.win
+			for at: Array in win.get("at", []):
+				need.append(xy(at))
 			for t: Vector2i in need:
 				# the enemy commander may stand on water: a neighbouring land tile is enough to strike it
 				var ok := seen.has(t) or [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)].any(func(d: Vector2i) -> bool: return seen.has(t + d))
@@ -108,14 +150,16 @@ func content_tests() -> void:
 		eq(Content.heroes_of("e"), ["tuonggiac"])
 		eq(Rules.HEROES.keys(), ["anhhung", "tuonggiac"])
 		for m: Dictionary in Content.campaign():
-			eq(m.hero, "anhhung", m.id)
-			check(m.enemyHero == null or m.enemyHero == "tuonggiac", m.id + " enemy commander")
+			var mid: String = m.id
+			eq(m.hero, "anhhung", mid)
+			var eh_ok: bool = m.enemyHero == null or m.enemyHero == "tuonggiac"
+			check(eh_ok, mid + " enemy commander")
 		for mid: String in Content.SKIRMISH.MAPS:
 			eq(Content.skirmish_def(mid, "anhhung", false).enemyHero, "tuonggiac", mid)
 	)
 	run("reach: hero on the goal wins, time runs out loses", func() -> void:
-		var s := Game.new_game(Content.mission("m13"))
-		var hero: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.type == "hero")[0]
+		var s := Game.new_game(mission("m13"))
+		var hero: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.type == "hero")[0]
 		var goal: Array = s.win.at[0]
 		for u: Dictionary in s.units:
 			if u.side == "e" and abs(u.x - goal[0]) + abs(u.y - goal[1]) <= 1:
@@ -126,7 +170,7 @@ func content_tests() -> void:
 		Game.do_action(s, { "id": hero.id, "to": goal, "kind": "wait" })
 		eq(s.winner, "p")
 		eq(s.reason, "reached")
-		var s2 := Game.new_game(Content.mission("m13"))
+		var s2 := Game.new_game(mission("m13"))
 		for i in 60:
 			if s2.winner != null:
 				break
@@ -135,53 +179,62 @@ func content_tests() -> void:
 		eq(s2.reason, "timeUp")
 	)
 	for def: Dictionary in all:
-		run("content valid: " + def.id, func() -> void:
+		run("content valid: %s" % def.id, func() -> void:
 			var rows: Array = def.map.rows
 			for r: String in rows:
-				check(r.length() == rows[0].length(), "rows equal length")
+				var row0: String = rows[0]
+				check(r.length() == row0.length(), "rows equal length")
 				for i in r.length():
 					check(Rules.TERRAIN.has(r[i]), "unknown tile " + r[i])
 			var s := Game.new_game(def)
 			var seen := {}
 			for u: Dictionary in s.units:
-				check(Game.move_cost(Game.stat(s, u).move, Game.tile_at(s, u.x, u.y)) != INF, "%s %s on impassable %d,%d" % [u.side, u.type, u.x, u.y])
-				check(not seen.has(Vector2i(u.x, u.y)), "two units on %d,%d" % [u.x, u.y])
-				seen[Vector2i(u.x, u.y)] = true
+				var mc: String = Game.stat(s, u).move
+				var at := pos(u)
+				check(Game.move_cost(mc, Game.tile_at(s, at.x, at.y)) != INF, "%s %s on impassable %d,%d" % [u.side, u.type, u.x, u.y])
+				check(not seen.has(at), "two units on %d,%d" % [u.x, u.y])
+				seen[at] = true
 			for key: Vector2i in s.owner:
 				check(Game.cap_flag(Game.tile_at(s, key.x, key.y)) != "", "owner on non-building %s" % key)
 			for side: String in ["p", "e"]:
-				if s.units.any(func(u: Dictionary) -> bool: return u.side == side and u.type == "hero"):
+				if units_of(s).any(func(u: Dictionary) -> bool: return u.side == side and u.type == "hero"):
 					check(s.heroKey[side] != null, side + " hero unit but no hero key")
 			for w: Dictionary in def.get("waves", []):
 				for wu: Array in w.units:
-					check(Game.tile_at(s, wu[1], wu[2]) != null, "wave off map %d,%d" % [wu[1], wu[2]])
+					var at := xy(wu, 1)
+					check(Game.tile_at(s, at.x, at.y) != null, "wave off map %d,%d" % [wu[1], wu[2]])
 					check(Rules.UNITS.has(wu[0]), "wave unit type " + str(wu[0]))
 					var wst := Game.stat(s, { "type": wu[0], "side": "e" })
-					check(Game.move_cost(wst.move, Game.tile_at(s, wu[1], wu[2])) != INF, "wave %s on impassable %d,%d" % [wu[0], wu[1], wu[2]])
+					var mc: String = wst.move
+					check(Game.move_cost(mc, Game.tile_at(s, at.x, at.y)) != INF, "wave %s on impassable %d,%d" % [wu[0], wu[1], wu[2]])
 			# win schema
 			eq(Objectives.check(s), "", "win spec")
 			for side: String in ["p", "e"]:
 				for t: String in s.allowed[side]:
-					check(Rules.UNITS[t].has("aiWeight"), "no aiWeight (AI falls back to DEFAULT_WEIGHT) for " + t)
+					var ut: Dictionary = Rules.UNITS[t]
+					check(ut.has("aiWeight"), "no aiWeight (AI falls back to DEFAULT_WEIGHT) for " + t)
 			for t: String in def.get("newUnits", []):
 				check(Rules.UNITS.has(t), "newUnits " + t)
 			for side: String in ["p", "e"]:
+				var skins: Dictionary = Content.theme().units[side]
 				for t: String in s.allowed[side]:
-					check(Content.theme().units[side].has(t), "no skin %s %s" % [side, t])
+					check(skins.has(t), "no skin %s %s" % [side, t])
 			var story: Dictionary = def.get("story", {})
 			for line: Array in story.get("intro", []) + story.get("outro", []):
-				check(Content.speaker(line[0]).icon != "💬", "speaker " + line[0])
+				var who: String = line[0]
+				var named: bool = Content.speaker(who).icon != "💬"
+				check(named, "speaker " + who)
 			check(s.winner == null, "no winner at start")
 			# foot path from hero to enemy castle on castle maps
 			if s.win.type == "castles":
-				var hero: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
+				var hero: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
 				var goal: Vector2i = Game.castle_tiles(s, "e")[0]
-				var seen_p := { Vector2i(hero.x, hero.y): true }
-				var q := [Vector2i(hero.x, hero.y)]
+				var seen_p := { pos(hero): true }
+				var q := [pos(hero)]
 				while q.size():
 					var c: Vector2i = q.pop_front()
 					for d: Array in Game.DIRS:
-						var n := Vector2i(c.x + d[0], c.y + d[1])
+						var n := c + xy(d)
 						if seen_p.has(n) or Game.move_cost("foot", Game.tile_at(s, n.x, n.y)) == INF:
 							continue
 						seen_p[n] = true
@@ -189,33 +242,38 @@ func content_tests() -> void:
 				check(seen_p.has(goal), "foot path to enemy castle")
 		)
 	run("theme: every terrain painter has the colors it reads", func() -> void:
-		var need := { "field": ["base", "line"], "forest": ["base", "tree", "tree2"], "hill": ["base", "hill", "hill2"], "mountain": ["base", "rock", "rock2", "snow"],
-			"water": ["base", "deep", "wave"], "bridge": ["base", "deep", "plank", "plank2"], "village": ["base", "line", "wall"], "castle": ["base", "wall", "wall2"] }
+		var need := { "field": ["base", "line"], "forest": ["base", "tree", "tree2"], "hill": ["base", "hill", "hill2"],
+			"mountain": ["base", "rock", "rock2", "snow"], "water": ["base", "deep", "wave"], "bridge": ["base", "deep", "plank", "plank2"],
+			"village": ["base", "line", "wall"], "castle": ["base", "wall", "wall2"] }
 		for ch: String in Content.theme().terrain:
 			var t: Dictionary = Content.theme().terrain[ch]
 			check(Rules.TERRAIN.has(ch), "theme tile %s has rules" % ch)
 			for key: String in need.get(t.paint, []):
 				check(t.has(key), "%s (%s) missing %s" % [ch, t.paint, key])
+		var terrain: Dictionary = Content.theme().terrain
 		for ch: String in Rules.TERRAIN:
-			check(Content.theme().terrain.has(ch), "rules tile %s has theme" % ch)
+			check(terrain.has(ch), "rules tile %s has theme" % ch)
 	)
 
 # ---------- rules ----------
 func blank(units: Array) -> Dictionary:
 	var s := Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false))
-	s.tiles = []
+	var tiles := []
+	s.tiles = tiles
 	for y in 6:
-		s.tiles.append([".", ".", ".", ".", ".", "."])
+		tiles.append([".", ".", ".", ".", ".", "."])
 	s.w = 6
 	s.h = 6
 	s.owner = { Vector2i(0, 0): "p", Vector2i(5, 5): "e" }
 	s.tiles[0][0] = "c"
 	s.tiles[5][5] = "c"
-	s.units = []
+	var list := []
+	s.units = list
 	s.nextId = 1
 	s.hadCastle = { "p": true, "e": true }
 	for spec: Array in units:
-		s.units.append({ "id": s.nextId, "side": spec[0], "type": spec[1], "x": spec[2], "y": spec[3], "hp": spec[4] if spec.size() > 4 else 100, "xp": 0, "rank": 0, "acted": false })
+		list.append({ "id": s.nextId, "side": spec[0], "type": spec[1], "x": spec[2], "y": spec[3], "hp": spec[4] if spec.size() > 4 else 100,
+			"xp": 0, "rank": 0, "acted": false })
 		s.nextId += 1
 	return s
 
@@ -234,9 +292,9 @@ func rule_tests() -> void:
 		eq(Game.razable_from(s, c, 1, 2).size(), 0, "siege: not from another tile")
 		var ev := Game.do_action(s, { "id": c.id, "to": [1, 1], "kind": "raze", "target": [4, 1] })
 		eq(s.tiles[1][4], "x", "village ruined")
-		check(not s.owner.has(Vector2i(4, 1)), "owner cleared")
+		check(not owner_of(s).has(Vector2i(4, 1)), "owner cleared")
 		check(ev.any(func(e: Dictionary) -> bool: return e.t == "raze" and e.prev == "e"), "raze event with prev owner")
-		check(c.acted, "catapult done for the turn")
+		check(acted(c), "catapult done for the turn")
 		eq(Game.income(s, "e"), Rules.TERRAIN.c.income, "enemy lost the village income")
 	)
 	run("ruined village: no capture; capV unit repairs -> unowned village, capture on a later turn", func() -> void:
@@ -244,12 +302,12 @@ func rule_tests() -> void:
 		var sol: Dictionary = s.units[0]
 		s.tiles[2][2] = "x"
 		check(not Game.can_capture(s, sol, 2, 2), "cannot capture a ruin")
-		check(not Game.can_repair(s, s.units[1], 2, 2), "archer cannot repair")
+		check(not Game.can_repair(s, unit(s, 1), 2, 2), "archer cannot repair")
 		check(Game.can_repair(s, sol, 2, 2), "soldier can repair")
 		Game.do_action(s, { "id": sol.id, "to": [2, 2], "kind": "repair" })
 		eq(s.tiles[2][2], "v", "repaired")
-		check(not s.owner.has(Vector2i(2, 2)), "still unowned")
-		check(sol.acted, "repair takes the turn")
+		check(not owner_of(s).has(Vector2i(2, 2)), "still unowned")
+		check(acted(sol), "repair takes the turn")
 		Game.end_turn(s); Game.end_turn(s)
 		check(Game.can_capture(s, sol, 2, 2), "capturable next turn")
 		eq(Game.TERRAIN["x"].def, Game.TERRAIN["v"].def, "ruin keeps the village cover (as the original)")
@@ -265,26 +323,26 @@ func rule_tests() -> void:
 		s2.side = "e"
 		s2.tiles[3][4] = "x"
 		var mem := {}
-		var st2: Variant = AI.next_step(s2, mem)
+		var st2: Dictionary = AI.next_step(s2, mem)
 		AI.apply_step(s2, st2)
 		eq(s2.tiles[3][4], "v", "AI soldier repaired the adjacent ruin (got %s)" % [st2.act])
 	)
 	run("illegal capture / raise changes nothing (unit stays, can still act)", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
 		var u: Dictionary = s.units[0]
-		var n: int = s.units.size()
+		var n: int = units_of(s).size()
 		Game.do_action(s, { "id": u.id, "to": [2, 2], "kind": "capture" }) # plain field: nothing to capture
 		eq([u.x, u.y], [1, 1], "position")
-		check(not u.acted, "still can act")
+		check(not acted(u), "still can act")
 		Game.do_action(s, { "id": u.id, "to": [2, 1], "kind": "raise", "target": [3, 1] }) # soldier cannot raise, no grave
 		eq([u.x, u.y], [1, 1], "position after bad raise")
-		eq(s.units.size(), n, "no unit spawned")
+		eq(units_of(s).size(), n, "no unit spawned")
 	)
 	run("AE2: raised ghosts ignore the unit cap and do not count toward it", func() -> void:
 		var s := blank([["p", "shaman", 1, 1], ["e", "soldier", 4, 4]])
 		s.graves = [{ "x": 2, "y": 1, "ttl": 2 }]
 		s.unitCap = 1
-		eq(Game.raisable_graves(s, s.units[0], 1, 1).size(), 1, "raise at cap")
+		eq(Game.raisable_graves(s, unit(s, 0), 1, 1).size(), 1, "raise at cap")
 		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "raise", "target": [2, 1] })
 		eq(Game.cap_count(s, "p"), 1, "ghost not counted")
 	)
@@ -292,14 +350,14 @@ func rule_tests() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
 		s.graves = [{ "x": 3, "y": 3, "ttl": Rules.RULES.graveRounds }]
 		Game.end_turn(s); Game.end_turn(s)
-		eq(s.graves.size(), 1, "alive after 2 half-turns")
+		eq(graves_of(s).size(), 1, "alive after 2 half-turns")
 		Game.end_turn(s)
-		eq(s.graves.size(), 0, "gone after 3")
+		eq(graves_of(s).size(), 0, "gone after 3")
 		s.graves = [{ "x": 2, "y": 1, "ttl": 3 }]
 		s.side = "p"
 		s.units[0].acted = false
 		Game.do_action(s, { "id": 1, "to": [2, 1], "kind": "wait" })
-		eq(s.graves.size(), 0, "stepped on")
+		eq(graves_of(s).size(), 0, "stepped on")
 	)
 	run("buildings are descriptors: a new tile type works from TERRAIN alone (income, capture, heal, sells, raze / repair)", func() -> void:
 		var ter: Dictionary = Rules.TERRAIN.duplicate(true)
@@ -307,12 +365,13 @@ func rule_tests() -> void:
 		ter["q"] = { "def": 5, "cost": 1, "repairTo": "p", "repairBy": "capV" }
 		ter["o"] = { "def": 20, "cost": 1, "building": "fort", "income": 10, "cap": "capC", "heals": "owner", "sells": true }
 		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, ter)
-		eq([Game.income_of("p"), Game.income_of("."), Game.sells("o"), Game.sells("p"), Game.cap_flag("o"), Game.cap_flag("t")], [40, 0, true, false, "capC", ""])
+		eq([Game.income_of("p"), Game.income_of("."), Game.sells("o"), Game.sells("p"), Game.cap_flag("o"), Game.cap_flag("t")],
+			[40, 0, true, false, "capC", ""])
 		var s := blank([["p", "soldier", 2, 2, 50], ["p", "hero", 3, 3], ["e", "catapult", 5, 1]])
 		s.tiles[2][2] = "p"
 		s.tiles[3][3] = "o"
-		check(Game.can_capture(s, s.units[0], 2, 2), "soldier takes a port (cap capV)")
-		check(not Game.can_capture(s, s.units[0], 3, 3) and Game.can_capture(s, s.units[1], 3, 3), "fort needs capC")
+		check(Game.can_capture(s, unit(s, 0), 2, 2), "soldier takes a port (cap capV)")
+		check(not Game.can_capture(s, unit(s, 0), 3, 3) and Game.can_capture(s, unit(s, 1), 3, 3), "fort needs capC")
 		Game.do_action(s, { "id": 1, "to": [2, 2], "kind": "capture" })
 		Game.do_action(s, { "id": 2, "to": [3, 3], "kind": "capture" })
 		eq(Game.income(s, "p"), 50 + 40 + 10, "income = sum over owned tiles")
@@ -324,12 +383,12 @@ func rule_tests() -> void:
 		s.units[1].x = 4; s.units[1].y = 4
 		s.side = "e"
 		s.units[2].acted = false
-		check(Game.razable_from(s, s.units[2], 5, 1).has([2, 2]), "port razable (razeTo)")
+		check(Game.razable_from(s, unit(s, 2), 5, 1).has([2, 2]), "port razable (razeTo)")
 		Game.do_action(s, { "id": 3, "to": [5, 1], "kind": "raze", "target": [2, 2] })
 		eq(s.tiles[2][2], "q", "razed into razeTo")
 		Game.end_turn(s)
 		s.units[0].acted = false
-		check(Game.can_repair(s, s.units[0], 2, 2), "repairBy capV")
+		check(Game.can_repair(s, unit(s, 0), 2, 2), "repairBy capV")
 		Game.do_action(s, { "id": 1, "to": [2, 2], "kind": "repair" })
 		eq(s.tiles[2][2], "p", "repaired into repairTo")
 		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
@@ -361,7 +420,7 @@ func rule_tests() -> void:
 		eq(Game.damage(s, a, 1, 1, 100, d, 0.0), 35)
 		var e := blank([["p", "ghost", 1, 1], ["e", "elephant", 2, 1]])
 		e.tiles[1][2] = "m"
-		eq(Game.damage(e, e.units[0], 1, 1, 100, e.units[1], 0.0), 0, "armour soaks the hit")
+		eq(Game.damage(e, unit(e, 0), 1, 1, 100, unit(e, 1), 0.0), 0, "armour soaks the hit")
 	)
 	run("attack applies rolled damage + adjacent counter; preview gives the range", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 3, 1]])
@@ -382,9 +441,9 @@ func rule_tests() -> void:
 	)
 	run("AE2 counter: only adjacent + rmin 1 (archer counters next to it, not at 2)", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "archer", 2, 1], ["e", "catapult", 1, 2]])
-		check(Game.can_counter(s, s.units[1], 1, 1), "archer adjacent counters")
-		check(not Game.can_counter(s, s.units[1], 0, 1), "archer at 2 does not")
-		check(not Game.can_counter(s, s.units[2], 1, 1), "catapult never")
+		check(Game.can_counter(s, unit(s, 1), 1, 1), "archer adjacent counters")
+		check(not Game.can_counter(s, unit(s, 1), 0, 1), "archer at 2 does not")
+		check(not Game.can_counter(s, unit(s, 2), 1, 1), "catapult never")
 	)
 	run("AE2 drum: after acting, allies within 2 get +10 atk until the drum side's next turn", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["p", "drum", 1, 3], ["p", "archer", 4, 1], ["e", "soldier", 2, 1]])
@@ -392,11 +451,13 @@ func rule_tests() -> void:
 		var d: Dictionary = s.units[3]
 		var before := Game.damage(s, a, 1, 1, 100, d, 0.0)
 		Game.do_action(s, { "id": 2, "to": [1, 3], "kind": "wait" })
-		check(a.get("aura") == "p" and s.units[2].get("aura") == null, "soldier (2 away) buffed, archer (far) not")
+		var buffed: bool = a.get("aura") == "p" and unit(s, 2).get("aura") == null
+		check(buffed, "soldier (2 away) buffed, archer (far) not")
 		eq(Game.damage(s, a, 1, 1, 100, d, 0.0), before + 10)
 		eq(Game.buffs_at(s, a, 1, 1).atk, 10, "buffs_at shows it")
 		Game.end_turn(s)
-		check(a.get("aura") == "p", "lasts through the enemy turn")
+		var lasts: bool = a.get("aura") == "p"
+		check(lasts, "lasts through the enemy turn")
 		Game.end_turn(s)
 		check(a.get("aura") == null, "gone at our next turn")
 		eq(Content.traits("drum", null).any(func(t: String) -> bool: return "+10 công" in t), true)
@@ -406,8 +467,10 @@ func rule_tests() -> void:
 		Game.do_action(k, { "id": 1, "to": [1, 2], "kind": "attack", "target": 4 })
 		Game.fixed_roll = -1.0
 		check(Game.unit_by_id(k, 1) == null, "drum died")
-		check(k.units[0].get("aura") == "p", "ally 1 from the death tile buffed")
-		check(k.units[1].get("aura") == null, "far ally not")
+		var near_buffed: bool = unit(k, 0).get("aura") == "p"
+		check(near_buffed, "ally 1 from the death tile buffed")
+		var far_plain: bool = unit(k, 1).get("aura") == null
+		check(far_plain, "far ally not")
 		eq(Content.how_to_play("archer") != "", true)
 	)
 	run("AE2 wolf: counter first at full strength, then the bite lands (RM finishAttack)", func() -> void:
@@ -457,13 +520,13 @@ func rule_tests() -> void:
 		var s := blank([["p", "boat", 1, 1], ["e", "soldier", 2, 1]])
 		s.tiles[1][1] = "~"
 		var b: Dictionary = s.units[0]
-		eq(Game.damage(s, b, 1, 1, 100, s.units[1], 0.0), 50, "50 + 10 water - 10")
-		eq(Game.damage(s, s.units[1], 2, 1, 100, b, 0.0), 25, "50 - (10 + 15)")
+		eq(Game.damage(s, b, 1, 1, 100, unit(s, 1), 0.0), 50, "50 + 10 water - 10")
+		eq(Game.damage(s, unit(s, 1), 2, 1, 100, b, 0.0), 25, "50 - (10 + 15)")
 	)
 	run("temple heals any side, cannot be captured", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 3, 3, 50]])
 		s.tiles[3][3] = "t"
-		check(not Game.can_capture(s, s.units[0], 3, 3), "no capture")
+		check(not Game.can_capture(s, unit(s, 0), 3, 3), "no capture")
 		Game.end_turn(s)
 		eq(s.units[1].hp, 70, "enemy healed on the temple")
 	)
@@ -482,8 +545,8 @@ func rule_tests() -> void:
 	)
 	run("siege cannot move and attack same turn", func() -> void:
 		var s := blank([["p", "catapult", 1, 1], ["e", "soldier", 4, 1]])
-		eq(Game.targets_from(s, s.units[0], 2, 1).size(), 0)
-		eq(Game.targets_from(s, s.units[0], 1, 1).size(), 1)
+		eq(Game.targets_from(s, unit(s, 0), 2, 1).size(), 0)
+		eq(Game.targets_from(s, unit(s, 0), 1, 1).size(), 1)
 	)
 	run("rules tables = docs/spec.md (cost, atk, atkMax, def, mv, rmin, rmax; terrain def / cost)", func() -> void:
 		var spec := { "hero": [200, 55, 65, 20, 5, 1, 1], "soldier": [150, 50, 55, 5, 5, 1, 1], "archer": [250, 50, 55, 5, 5, 1, 2],
@@ -500,13 +563,14 @@ func rule_tests() -> void:
 			eq([Rules.TERRAIN[k].def, Rules.TERRAIN[k].cost], ter[k], "terrain " + k)
 	)
 	run("AE2 damage modifiers: archer vs fly, drum vs ghost, poisoned attacker, defender rank, flyer terrain def", func() -> void:
-		var s := blank([["p", "archer", 1, 1], ["p", "soldier", 1, 2], ["e", "bird", 2, 1], ["p", "drum", 3, 3], ["e", "ghost", 4, 3], ["e", "soldier", 2, 2]])
+		var s := blank([["p", "archer", 1, 1], ["p", "soldier", 1, 2], ["e", "bird", 2, 1], ["p", "drum", 3, 3], ["e", "ghost", 4, 3],
+			["e", "soldier", 2, 2]])
 		var ar: Dictionary = s.units[0]
 		var so: Dictionary = s.units[1]
 		var bird: Dictionary = s.units[2]
 		var foe: Dictionary = s.units[5]
 		eq(Game.damage(s, ar, 1, 1, 100, bird, 0.0) - Game.damage(s, so, 1, 1, 100, bird, 0.0), 15, "archer +15 vs flyer")
-		eq(Game.damage(s, s.units[3], 3, 3, 100, s.units[4], 0.0), 43, "drum 35 +15 vs ghost - 2 def - 5 field")
+		eq(Game.damage(s, unit(s, 3), 3, 3, 100, unit(s, 4), 0.0), 43, "drum 35 +15 vs ghost - 2 def - 5 field")
 		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 40, "plain soldier hit")
 		so.poison = "e"
 		so.poisonAmt = 10
@@ -529,26 +593,27 @@ func rule_tests() -> void:
 		var weak: Dictionary = s.units[2]
 		weak.xp = 10000000
 		var ev2 := Game.do_action(s, { "id": weak.id, "to": [3, 3], "kind": "attack", "target": s.units[3].id })
-		check(Game.unit_by_id(s, weak.id) == null, "killed by the counter")
+		check(Game.unit_by_id(s, id_of(weak)) == null, "killed by the counter")
 		check(not ev2.any(func(e: Dictionary) -> bool: return e.t == "rank" and e.id == weak.id), "dead attacker never ranks up")
 	)
 	run("loss: a side that captures its first castle mid-game falls like a castled side (spec: never held a castle)", func() -> void:
 		var s := blank([["p", "hero", 3, 3], ["e", "hero", 4, 4], ["e", "soldier", 1, 4]])
-		s.owner.erase(Vector2i(5, 5))
+		owner_of(s).erase(Vector2i(5, 5))
 		s.tiles[5][5] = "c"
 		s.hadCastle.e = false
 		s.side = "e"
 		Game.do_action(s, { "id": 2, "to": [5, 5], "kind": "capture" })
-		check(s.hadCastle.e, "capturing a castle marks the side")
+		var had: bool = s.hadCastle.e
+		check(had, "capturing a castle marks the side")
 		s.owner[Vector2i(5, 5)] = "p" # we retake it
-		s.units = s.units.filter(func(u: Dictionary) -> bool: return u.id != 2)
+		s.units = units_of(s).filter(func(u: Dictionary) -> bool: return u.id != 2)
 		s.heroDead.e = true
 		eq(Game.loss_reason(s, "e"), "castlesLost", "no castle + commander dead, army left")
 	)
 	run("reach mission: commander dead and no castle to rebuy it = lost (no soft-lock until timeUp)", func() -> void:
 		var s := blank([["p", "soldier", 3, 3], ["e", "soldier", 5, 4]])
 		s.win = { "type": "reach", "at": [[2, 5]] }
-		s.owner.erase(Vector2i(0, 0))
+		owner_of(s).erase(Vector2i(0, 0))
 		s.hadCastle.p = false
 		s.heroDead.p = true
 		eq(Game.loss_reason(s, "p"), "heroFell")
@@ -565,14 +630,16 @@ func rule_tests() -> void:
 		AI.rng = func() -> float: return 0.5
 		var step: Variant = AI.next_step(s, {})
 		AI.rng = AI._gen.randf
-		check(step != null and step.kind == "act" and step.act.id == h.id, "acts with the commander")
-		check(step != null and step.act.to != [0, 0], "leaves the goal tile (got %s)" % [step.act.to if step != null else null])
+		var acts: bool = step != null and step.kind == "act" and step.act.id == h.id
+		check(acts, "acts with the commander")
+		var leaves: bool = step != null and step.act.to != [0, 0]
+		check(leaves, "leaves the goal tile (got %s)" % [step.act.to if step != null else null])
 	)
 	run("AE2 loss: castles gone AND commander dead; hero capture of the last castle wins only then", func() -> void:
 		var s := blank([["p", "soldier", 4, 4], ["p", "hero", 4, 5], ["e", "hero", 1, 4]])
 		s.tiles[3][4] = "v"
-		check(not Game.can_capture(s, s.units[0], 5, 5), "soldier vs castle")
-		check(Game.can_capture(s, s.units[0], 4, 3), "soldier vs village")
+		check(not Game.can_capture(s, unit(s, 0), 5, 5), "soldier vs castle")
+		check(Game.can_capture(s, unit(s, 0), 4, 3), "soldier vs village")
 		Game.do_action(s, { "id": s.units[1].id, "to": [5, 5], "kind": "capture" })
 		eq(s.winner, null, "enemy commander still alive")
 		s.units[2].hp = 1
@@ -585,9 +652,9 @@ func rule_tests() -> void:
 	run("kill leaves grave; shaman raises ghost", func() -> void:
 		var s := blank([["p", "elephant", 1, 1], ["e", "soldier", 2, 1, 10], ["p", "shaman", 1, 3], ["e", "soldier", 5, 4]])
 		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
-		eq(s.graves.size(), 1)
+		eq(graves_of(s).size(), 1)
 		Game.do_action(s, { "id": 3, "to": [2, 2], "kind": "raise", "target": [2, 1] })
-		check(s.units.any(func(u: Dictionary) -> bool: return u.type == "ghost" and u.side == "p"), "ghost raised")
+		check(units_of(s).any(func(u: Dictionary) -> bool: return u.type == "ghost" and u.side == "p"), "ghost raised")
 	)
 	run("income + heal at turn start; buy respects cap", func() -> void:
 		var s := blank([["p", "soldier", 0, 0, 50], ["e", "soldier", 5, 4]])
@@ -599,24 +666,26 @@ func rule_tests() -> void:
 		s.units[0].x = 1
 		s.gold.p = 99999
 		for i in 19:
-			s.units.append({ "id": 100 + i, "side": "p", "type": "soldier", "x": 3, "y": i % 6, "hp": 100, "xp": 0, "rank": 0 })
+			units_of(s).append({ "id": 100 + i, "side": "p", "type": "soldier", "x": 3, "y": i % 6, "hp": 100, "xp": 0, "rank": 0 })
 		check(Game.buy_options(s, "p", 0, 0).all(func(o: Dictionary) -> bool: return not o.ok), "cap blocks buy")
 	)
 	run("AE2 buy: new unit acts at once; buy on own-occupied castle -> must step off", func() -> void:
 		var s := blank([["p", "soldier", 0, 0], ["e", "soldier", 5, 4]])
 		s.gold.p = 5000
 		var ok := func(t: String) -> bool: return Game.buy_options(s, "p", 0, 0).any(func(o: Dictionary) -> bool: return o.type == t and o.ok)
-		check(ok.call("archer"), "buy allowed with our soldier on the castle")
+		var can_archer: bool = ok.call("archer")
+		check(can_archer, "buy allowed with our soldier on the castle")
 		var a: Dictionary = Game.buy(s, 0, 0, "archer")
-		check(not a.acted, "bought unit can act this turn")
-		check(Game.stacked(s, a) and Game.stacked(s, s.units[0]), "both stacked")
+		check(not acted(a), "bought unit can act this turn")
+		check(Game.stacked(s, a) and Game.stacked(s, unit(s, 0)), "both stacked")
 		check(not Game.reachable(s, a).has(Vector2i(0, 0)), "new unit cannot stay on the shared tile")
-		check(not Game.reachable(s, s.units[0]).has(Vector2i(0, 0)), "old unit cannot stay either")
+		check(not Game.reachable(s, unit(s, 0)).has(Vector2i(0, 0)), "old unit cannot stay either")
 		check(Game.buy_options(s, "p", 0, 0).is_empty(), "no 3rd unit on a stacked castle")
 		eq(Game.do_action(s, { "id": a.id, "to": [0, 0], "kind": "wait" }), [], "wait in place rejected")
 		Game.do_action(s, { "id": a.id, "to": [1, 1], "kind": "wait" })
-		check(not Game.stacked(s, s.units[0]), "stack cleared after stepping off")
-		check(ok.call("soldier"), "can buy again on the same castle this turn")
+		check(not Game.stacked(s, unit(s, 0)), "stack cleared after stepping off")
+		var can_again: bool = ok.call("soldier")
+		check(can_again, "can buy again on the same castle this turn")
 		# boxed in: no free tile to step to -> cannot buy on top
 		var b := blank([["p", "soldier", 0, 0], ["p", "soldier", 1, 0], ["p", "soldier", 0, 1], ["p", "soldier", 1, 1],
 			["e", "soldier", 2, 0], ["e", "soldier", 2, 1], ["e", "soldier", 0, 2], ["e", "soldier", 1, 2]])
@@ -636,9 +705,9 @@ func rule_tests() -> void:
 		s.gold.p = 1000
 		var a: Dictionary = Game.buy(s, 0, 0, "archer")
 		check(Game.can_unbuy(s, a), "stacked fresh buy can be taken back")
-		check(Game.unbuy(s, a.id), "unbuy ok")
+		check(Game.unbuy(s, id_of(a)), "unbuy ok")
 		eq(s.gold.p, 1000, "full refund")
-		check(Game.unit_by_id(s, a.id) == null and not Game.stacked(s, s.units[0]), "new unit gone, castle unit alone")
+		check(Game.unit_by_id(s, id_of(a)) == null and not Game.stacked(s, unit(s, 0)), "new unit gone, castle unit alone")
 		var b: Dictionary = Game.buy(s, 0, 0, "archer")
 		Game.do_action(s, { "id": b.id, "to": [1, 0], "kind": "wait" })
 		check(not Game.can_unbuy(s, b), "no take-back once it stepped off")
@@ -651,7 +720,8 @@ func rule_tests() -> void:
 		h.heroDead.p = true
 		var cost := Game.hero_cost(h, "p")
 		var hero: Dictionary = Game.buy(h, 0, 0, "hero")
-		check(Game.unbuy(h, hero.id) and h.heroDead.p and h.gold.p == 1000 and Game.hero_cost(h, "p") == cost, "commander rebuy taken back: dead again, same price")
+		var undone: bool = Game.unbuy(h, id_of(hero)) and h.heroDead.p and h.gold.p == 1000 and Game.hero_cost(h, "p") == cost
+		check(undone, "commander rebuy taken back: dead again, same price")
 	)
 	run("AI moves a unit it bought the same turn", func() -> void:
 		var s := blank([["p", "soldier", 0, 0], ["e", "hero", 4, 4]])
@@ -664,10 +734,12 @@ func rule_tests() -> void:
 			var st: Variant = AI.next_step(s, mem)
 			if st == null: break
 			if st.kind == "buy": bought = true
-			AI.apply_step(s, st)
-		var nu: Array = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type != "hero")
+			var sd: Dictionary = st
+			AI.apply_step(s, sd)
+		var nu: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type != "hero")
 		check(bought and nu.size() == 1, "AI bought")
-		check(nu.size() == 1 and nu[0].acted, "bought unit acted this turn")
+		var nu_acted: bool = nu.size() == 1 and nu[0].acted
+		check(nu_acted, "bought unit acted this turn")
 	)
 	run("AI buys under a unit on its castle (own acted / enemy), never a boat without water", func() -> void:
 		var s := blank([["p", "soldier", 0, 0], ["e", "hero", 5, 5]])
@@ -675,26 +747,31 @@ func rule_tests() -> void:
 		s.gold.e = 300
 		s.units[1].acted = true
 		var st: Variant = AI.next_step(s, {})
-		check(st != null and st.kind == "buy" and st.x == 5 and st.y == 5, "buys under own acted hero (got %s)" % [st])
-		check(st == null or st.type != "boat", "no boat on a dry map")
+		var under_own: bool = st != null and st.kind == "buy" and st.x == 5 and st.y == 5
+		check(under_own, "buys under own acted hero (got %s)" % [st])
+		var no_boat: bool = st == null or st.type != "boat"
+		check(no_boat, "no boat on a dry map")
 		var c := blank([["p", "soldier", 0, 0], ["p", "soldier", 5, 5], ["e", "hero", 3, 0]])
 		c.side = "e"
 		c.gold.e = 150
 		c.units[2].acted = true
 		var st2: Variant = AI.next_step(c, {})
-		check(st2 != null and st2.kind == "buy", "buys under an enemy on its castle (got %s)" % [st2])
+		var under_foe: bool = st2 != null and st2.kind == "buy"
+		check(under_foe, "buys under an enemy on its castle (got %s)" % [st2])
 	)
-	run("AI commander: healthy -> advances through one unit's threat (no retreat to a safe rear tile); hurt -> never ends where it can die", func() -> void:
+	run("AI commander: healthy -> advances through one unit's threat (no retreat to a safe rear tile); "
+		+ "hurt -> never ends where it can die", func() -> void:
 		var wide := func(units: Array) -> Dictionary:
 			var s := blank(units)
 			s.w = 12
 			s.h = 7
-			s.tiles = []
+			var tiles := []
+			s.tiles = tiles
 			for y in 7:
 				var row := []
 				row.resize(12)
 				row.fill(".")
-				s.tiles.append(row)
+				tiles.append(row)
 			s.tiles[0][0] = "c"
 			s.tiles[6][11] = "c"
 			s.owner = { Vector2i(0, 0): "p", Vector2i(11, 6): "e" }
@@ -704,7 +781,9 @@ func rule_tests() -> void:
 		# user report (m07): commander backed off to a tile nobody threatens instead of heading for the fight
 		var a: Dictionary = wide.call([["e", "hero", 8, 3], ["p", "soldier", 0, 3]])
 		var st: Variant = AI.next_step(a, {})
-		var gd := mini(Game.dist(st.act.to[0], st.act.to[1], 0, 3), Game.dist(st.act.to[0], st.act.to[1], 0, 0))
+		var to_a: Array = st.act.to
+		var to := xy(to_a)
+		var gd := mini(Game.dist(to.x, to.y, 0, 3), Game.dist(to.x, to.y, 0, 0))
 		check(gd <= 4, "commander closes in (dist to nearest goal %d, start 8, got %s)" % [gd, st.act])
 		var b: Dictionary = wide.call([["e", "hero", 8, 3, 35], ["p", "soldier", 1, 2], ["p", "soldier", 1, 4], ["p", "archer", 0, 3]])
 		var st2: Variant = AI.next_step(b, {})
@@ -712,9 +791,11 @@ func rule_tests() -> void:
 		h.x = st2.act.to[0]
 		h.y = st2.act.to[1]
 		var worst := 0
-		for e: Dictionary in AI.threat_map(b, "e").get(Vector2i(h.x, h.y), []):
-			worst += Game.damage(b, e, e.x, e.y, e.hp, h, Game.ROLL_TOP)
-		check(worst < h.hp, "hurt commander out of lethal reach (max incoming %d vs hp %d at %s)" % [worst, h.hp, st2.act.to])
+		for e: Dictionary in AI.threat_map(b, "e").get(pos(h), []):
+			var e_hp: int = e.hp
+			worst += Game.damage(b, e, pos(e).x, pos(e).y, e_hp, h, Game.ROLL_TOP)
+		var survives: bool = worst < h.hp
+		check(survives, "hurt commander out of lethal reach (max incoming %d vs hp %d at %s)" % [worst, h.hp, st2.act.to])
 		AI.rng = AI._gen.randf
 	)
 	run("AE2 levels: xp = dmg x (victim atk+atkMax+def); 1 level per fight max, leftover carries, +2 atk/+2 def", func() -> void:
@@ -774,7 +855,8 @@ func rule_tests() -> void:
 		Game.fixed_roll = 0.0
 		Game.do_action(s, { "id": 2, "to": [2, 1], "kind": "attack", "target": 1 })
 		Game.fixed_roll = -1.0
-		check(s.heroDead.p, "dead")
+		var dead: bool = s.heroDead.p
+		check(dead, "dead")
 		eq(s.winner, null, "castle left: not out")
 		eq(Game.hero_cost(s, "p"), 400)
 		s.side = "p"
@@ -786,10 +868,10 @@ func rule_tests() -> void:
 	)
 	run("AE2 unit cap: campaign 100 unless the mission sets one; skirmish keeps its chosen cap", func() -> void:
 		for m: Dictionary in Content.campaign():
-			eq(Game.new_game(m).unitCap, m.get("unitCap", 100), m.id)
+			eq(Game.new_game(m).unitCap, m.get("unitCap", 100), str(m.id))
 		eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false)).unitCap, 15, "skirmish default")
 		eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false, 300, 30)).unitCap, 30, "skirmish chosen")
-		var d: Dictionary = Content.mission("m02").duplicate()
+		var d: Dictionary = mission("m02").duplicate()
 		d.unitCap = 12
 		eq(Game.new_game(d).unitCap, 12, "mission override")
 	)
@@ -815,7 +897,7 @@ func rule_tests() -> void:
 			seen[m.order] = true
 	)
 	run("saves of an older state version / unknown unit type are refused", func() -> void:
-		var s := Game.new_game(Content.mission("m03"))
+		var s := Game.new_game(mission("m03"))
 		var old: Dictionary = s.duplicate(true)
 		old.v = 1
 		check(not Content.save_fits({ "state": old, "ctx": { "kind": "campaign", "id": "m03" } }), "old version refused")
@@ -827,7 +909,7 @@ func rule_tests() -> void:
 		check(not Content.save_fits({ "state": nowin, "ctx": { "kind": "campaign", "id": "m03" } }), "unknown win type refused")
 	)
 	run("v3 save (stamps without amounts) migrates to v4: aura / poison keep their old 10", func() -> void:
-		var s := Game.new_game(Content.mission("m03"))
+		var s := Game.new_game(mission("m03"))
 		var v3: Dictionary = { "state": s.duplicate(true), "ctx": { "kind": "campaign", "id": "m03" } }
 		v3.state.v = 3
 		v3.state.units[0].aura = "p"
@@ -836,20 +918,22 @@ func rule_tests() -> void:
 		Content.migrate_save(v3)
 		eq(v3.state.v, Content.STATE_V)
 		check(Content.save_fits(v3), "migrated v3 fits")
-		eq([Game.aura_atk(v3.state.units[0]), Game.poison_amt(v3.state.units[1])], [10, 10])
-		eq(Game.aura_atk(v3.state.units[2]), 0, "no stamp -> 0")
+		var st3: Dictionary = v3.state
+		eq([Game.aura_atk(unit(st3, 0)), Game.poison_amt(unit(st3, 1))], [10, 10])
+		eq(Game.aura_atk(unit(st3, 2)), 0, "no stamp -> 0")
 	)
 	run("unit flags are data: heavy set, aiWeight on buyables, raise / vsType name real types", func() -> void:
 		var heavy := []
 		for t: String in Rules.UNITS:
-			if Rules.UNITS[t].get("heavy", false):
+			var ut: Dictionary = Rules.UNITS[t]
+			if ut.get("heavy", false):
 				heavy.append(t)
-			var r: Variant = Rules.UNITS[t].get("raise")
+			var r: Variant = ut.get("raise")
 			check(r == null or Rules.UNITS.has(r), "%s raises a known type" % t)
-			for v: String in Rules.UNITS[t].get("vsType", {}):
+			for v: String in ut.get("vsType", {}):
 				check(Rules.UNITS.has(v), "%s vsType %s" % [t, v])
-			if Rules.UNITS[t].get("buyable", true) and t != "hero":
-				check(Rules.UNITS[t].has("aiWeight"), "aiWeight " + t)
+			if ut.get("buyable", true) and t != "hero":
+				check(ut.has("aiWeight"), "aiWeight " + t)
 		eq(heavy, ["hero", "elephant", "catapult", "bird"])
 	)
 	run("a new unit type defined only in UNITS: AI buys it (default weight), its flags work (vsType, aura, poison, raise)", func() -> void:
@@ -864,19 +948,20 @@ func rule_tests() -> void:
 		eq(AI.choose_buy(s, "p"), "monk", "no aiWeight: still bought, no crash")
 		var mk: Dictionary = s.units[0]
 		var foe: Dictionary = s.units[2]
-		var plain := Game.damage(s, s.units[1], 1, 1, 100, foe, 0.0) # soldier 50 - 5 def - 5 field
+		var plain := Game.damage(s, unit(s, 1), 1, 1, 100, foe, 0.0) # soldier 50 - 5 def - 5 field
 		eq(Game.damage(s, mk, 1, 1, 100, foe, 0.0), 30 + 7 - 10, "vsType bonus")
 		Game.fixed_roll = 0.0
 		Game.do_action(s, { "id": mk.id, "to": [1, 1], "kind": "attack", "target": foe.id })
 		eq(Game.poison_amt(foe), 3, "poison amount from data")
-		eq(Game.aura_atk(s.units[1]), 4, "aura amount from data")
-		eq(Game.damage(s, s.units[1], 1, 1, 100, foe, 0.0), plain + 4 + 3, "aura +4, target -3 def")
+		eq(Game.aura_atk(unit(s, 1)), 4, "aura amount from data")
+		eq(Game.damage(s, unit(s, 1), 1, 1, 100, foe, 0.0), plain + 4 + 3, "aura +4, target -3 def")
 		s.graves = [{ "x": 0, "y": 1, "ttl": 3 }]
 		mk.acted = false
 		s.side = "p"
 		Game.do_action(s, { "id": mk.id, "to": [1, 1], "kind": "raise", "target": [0, 1] })
 		var raised: Variant = Game.unit_at(s, 0, 1)
-		check(raised != null and raised.type == "soldier", "raise spawns the type named by `raise`")
+		var raised_ok: bool = raised != null and raised.type == "soldier"
+		check(raised_ok, "raise spawns the type named by `raise`")
 		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
 	)
 	run("objectives registry: a new win type is one entry (loss, round, AI goal, marks, bar)", func() -> void:
@@ -892,12 +977,15 @@ func rule_tests() -> void:
 			if st.turn > 3:
 				return ["e", "late"]
 			return null
+		var ai_goals := func(st: Dictionary, _u: Dictionary) -> Variant:
+			var at: Array = st.win.at
+			return at.duplicate()
 		Objectives.TYPES["flag"] = { "loss": loss,
 			"on_round": on_round,
-			"ai_goals": func(st: Dictionary, _u: Dictionary) -> Variant: return st.win.at.duplicate(),
+			"ai_goals": ai_goals,
 			"marks": func(st: Dictionary) -> Array: return st.win.at, "bar_n": func(_st: Dictionary) -> int: return 7 }
 		eq([Objectives.check(s), Objectives.marks(s), Objectives.bar_n(s)], ["", [[3, 1]], 7])
-		eq(AI.goals_for(s, s.units[0], {}), [[3, 1]], "AI heads for the objective")
+		eq(AI.goals_for(s, unit(s, 0), {}), [[3, 1]], "AI heads for the objective")
 		Game.do_action(s, { "id": 1, "to": [3, 1], "kind": "wait" })
 		eq([s.winner, s.reason], ["p", "flagTaken"], "loss hook")
 		var s2 := blank([["p", "hero", 1, 1], ["e", "soldier", 4, 4]])
@@ -911,19 +999,20 @@ func rule_tests() -> void:
 	run("goal / end texts: every win type has copy, unknown types fall back", func() -> void:
 		for t: String in Objectives.types():
 			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "brief", { "p": "anhhung", "e": "tuonggiac" }) != t, "brief copy " + t)
-			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "bar", { "p": "anhhung", "e": "tuonggiac" }, { "n": 1, "left": 2 }) != t, "bar copy " + t)
+			var bar := Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "bar", { "p": "anhhung", "e": "tuonggiac" }, { "n": 1, "left": 2 })
+			check(bar != t, "bar copy " + t)
 		eq(Content.goal_text({ "type": "teleport" }, "brief", { "p": "anhhung", "e": null }), "teleport")
 		check(Content.tile_note("c").find("tướng") >= 0, "castle note names who captures")
 	)
 	run("save round-trip keeps types", func() -> void:
-		var s := Game.new_game(Content.mission("m02"))
+		var s := Game.new_game(mission("m02"))
 		var back: Dictionary = str_to_var(var_to_str(s))
 		eq(back, s)
-		check(back.owner.keys()[0] is Vector2i, "Vector2i keys")
+		check(owner_of(back).keys()[0] is Vector2i, "Vector2i keys")
 		check(back.units[0].hp is int, "int hp")
 	)
 	run("saves from older content are refused (removed commander / mission), current ones kept", func() -> void:
-		var s := Game.new_game(Content.mission("m03"))
+		var s := Game.new_game(mission("m03"))
 		check(Content.save_fits({ "state": s, "ctx": { "kind": "campaign", "id": "m03" } }), "current save fits")
 		var old: Dictionary = s.duplicate(true)
 		old.heroKey.p = "trungnhi" # unknown commander key
@@ -942,15 +1031,15 @@ func rule_tests() -> void:
 # ---------- missions ----------
 func mission_tests() -> void:
 	run("rout mission: enemy without castle does not lose at start; loses when wiped", func() -> void:
-		var s := Game.new_game(Content.mission("m01"))
+		var s := Game.new_game(mission("m01"))
 		Game.end_turn(s)
 		Game.end_turn(s)
 		eq(s.winner, null)
-		var first_e: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
-		s.units = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" or u.id == first_e.id)
+		var first_e: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
+		s.units = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" or u.id == first_e.id)
 		var last: Dictionary = first_e
 		last.hp = 1
-		var hero: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.type == "hero")[0]
+		var hero: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.type == "hero")[0]
 		hero.x = last.x - 1
 		hero.y = last.y
 		for u: Dictionary in s.units:
@@ -964,11 +1053,11 @@ func mission_tests() -> void:
 		var def: Dictionary = Content.mission("m03")
 		var s := Game.new_game(def)
 		var w: Array = def.waves[0].units[0]
-		Game.spawn(s, "p", "soldier", w[1], w[2])
+		Game.spawn(s, "p", "soldier", xy(w, 1).x, xy(w, 1).y)
 		Game.end_turn(s)
 		Game.end_turn(s)
 		Game.end_turn(s)
-		var spawned: Array = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e")
+		var spawned: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e")
 		eq(spawned.size(), 3)
 		check(not spawned.any(func(u: Dictionary) -> bool: return u.x == w[1] and u.y == w[2]), "occupied tile skipped")
 		for i in 40:
@@ -980,9 +1069,9 @@ func mission_tests() -> void:
 		eq(s.turn, 11)
 	)
 	run("hero mission: killing enemy hero wins even with castles left", func() -> void:
-		var s := Game.new_game(Content.mission("m04"))
-		var eh: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "hero")[0]
-		var el: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "soldier")[0]
+		var s := Game.new_game(mission("m04"))
+		var eh: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "hero")[0]
+		var el: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "soldier")[0]
 		eh.hp = 1
 		el.x = eh.x
 		el.y = eh.y + 1
@@ -995,9 +1084,9 @@ func mission_tests() -> void:
 		eq(s.reason, "heroKilled")
 	)
 	run("guard unit holds until player near", func() -> void:
-		var s := Game.new_game(Content.mission("m04"))
+		var s := Game.new_game(mission("m04"))
 		Game.end_turn(s)
-		var eh: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "hero")[0]
+		var eh: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "hero")[0]
 		var at := [eh.x, eh.y]
 		var n := 0
 		while n < 50:
@@ -1005,13 +1094,15 @@ func mission_tests() -> void:
 			var step: Variant = AI.next_step(s, {})
 			if step == null:
 				break
-			AI.apply_step(s, step)
+			var sd: Dictionary = step
+			AI.apply_step(s, sd)
 		eq([eh.x, eh.y], at)
-		check(eh.guard, "still guarding")
+		var guarding: bool = eh.guard
+		check(guarding, "still guarding")
 	)
 	run("allowed list limits buys", func() -> void:
-		var s := Game.new_game(Content.mission("m02"))
-		s.units = s.units.filter(func(u: Dictionary) -> bool: return not (u.x == 1 and u.y == 2))
+		var s := Game.new_game(mission("m02"))
+		s.units = units_of(s).filter(func(u: Dictionary) -> bool: return not (u.x == 1 and u.y == 2))
 		eq(Game.buy_options(s, "p", 1, 2).map(func(o: Dictionary) -> String: return o.type), ["soldier", "archer"])
 	)
 
@@ -1023,7 +1114,7 @@ func parity_tests() -> void:
 		for line: String in FileAccess.get_file_as_string("res://sim/golden.txt").split("\n", false):
 			var p := line.split(" ", false, 2)
 			golden[p[0] + " " + p[1]] = p[2]
-		var par: RefCounted = load("res://sim/parity.gd").new()
+		var par := Parity.new()
 		par.apply()
 		for key: String in ["m01 0", "m07 1", "sk_dong_bang 0", "naive 0"]:
 			eq(par.replay(key), golden.get(key, "?"), key)

@@ -14,7 +14,8 @@ func _initialize() -> void:
 			var t := float(s)
 			var row := []
 			for k: String in A.tr:
-				row.append("%s=%s" % [k, _num(RigData.sample(A.tr[k], t))])
+				var keys: Array = A.tr[k]
+				row.append("%s=%s" % [k, _num(RigData.sample(keys, t))])
 			print("%s: %s" % [s, " ".join(row)])
 	quit()
 

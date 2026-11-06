@@ -12,7 +12,9 @@ func _initialize() -> void:
 	keys.sort()
 	var bytes := 0
 	for key: String in keys:
-		var pcm := Audio._render(all[key][0], all[key][1], rng)
+		var parts: Array = all[key][0]
+		var gain: float = all[key][1]
+		var pcm := Audio._render(parts, gain, rng)
 		var path := Audio.file_of(key)
 		var err := Audio.to_stream(pcm).save_to_wav(path)
 		if err != OK:
@@ -20,8 +22,11 @@ func _initialize() -> void:
 		if not FileAccess.file_exists(path + ".import"):
 			# import as plain PCM (the default, QOA, is lossy); the importer keeps these params
 			var f := FileAccess.open(path + ".import", FileAccess.WRITE)
-			f.store_string("[remap]\n\nimporter=\"wav\"\ntype=\"AudioStreamWAV\"\n\n[params]\n\ncompress/mode=0\n")
-			f.close()
+			if f == null:
+				push_error("bake_sfx: %s.import -> %s" % [path, error_string(FileAccess.get_open_error())])
+			else:
+				f.store_string("[remap]\n\nimporter=\"wav\"\ntype=\"AudioStreamWAV\"\n\n[params]\n\ncompress/mode=0\n")
+				f.close()
 		bytes += pcm.size()
 	print("bake_sfx: %d sounds, %.1f s of audio -> %s" % [keys.size(), bytes / 2.0 / Audio.SR, Audio.DIR])
 	quit()

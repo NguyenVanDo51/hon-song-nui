@@ -39,7 +39,8 @@ const DEF := {
 	},
 	"tips": [
 		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn đứng gác gần thành địch phía đông nam.",
-		"Mọi quân lội được sông nhưng tốn 3 bước, đứng dưới nước không được thủ. [b]Thủy binh[/b] đi sông 1 bước, dưới nước +10 công, +15 thủ: dùng nó giữ khúc sông.",
+		"Mọi quân lội được sông nhưng tốn 3 bước, đứng dưới nước không được thủ. [b]Thủy binh[/b] đi sông 1 bước, dưới nước +10 công, +15 thủ: "
+			+ "dùng nó giữ khúc sông.",
 		"Thuyền giặc chực sẵn dưới sông. Đừng để Anh hùng một mình đầu cầu.",
 	],
 }

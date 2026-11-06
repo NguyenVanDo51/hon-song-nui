@@ -34,8 +34,10 @@ const DEF := {
 		{ "turn": 3, "units": [["elephant", 13, 4], ["soldier", 12, 0], ["wolf", 13, 9]] },
 		{ "turn": 4, "units": [["catapult", 13, 2], ["soldier", 13, 7, { "rank": 1 }], ["archer", 12, 9], ["soldier", 13, 3, { "rank": 1 }]] },
 		{ "turn": 5, "units": [["drum", 13, 5], ["soldier", 12, 1], ["archer", 13, 8]] },
-		{ "turn": 6, "units": [["hero", 13, 4], ["soldier", 13, 1], ["soldier", 13, 6], ["elephant", 12, 8], ["catapult", 13, 9], ["archer", 12, 2, { "rank": 1 }]] },
-		{ "turn": 8, "units": [["soldier", 13, 2, { "rank": 2 }], ["soldier", 13, 5, { "rank": 1 }], ["wolf", 13, 0], ["archer", 13, 7], ["elephant", 13, 3], ["catapult", 12, 9]] },
+		{ "turn": 6, "units": [["hero", 13, 4], ["soldier", 13, 1], ["soldier", 13, 6], ["elephant", 12, 8], ["catapult", 13, 9],
+			["archer", 12, 2, { "rank": 1 }]] },
+		{ "turn": 8, "units": [["soldier", 13, 2, { "rank": 2 }], ["soldier", 13, 5, { "rank": 1 }], ["wolf", 13, 0], ["archer", 13, 7],
+			["elephant", 13, 3], ["catapult", 12, 9]] },
 	],
 	"story": {
 		"intro": [
@@ -49,7 +51,8 @@ const DEF := {
 	"tips": [
 		"Mục tiêu: [b]giữ thành 10 lượt[/b]. Mất thành mà Anh hùng cũng ngã là thua.",
 		"[b]Máy bắn đá[/b] của giặc không đánh trả, nhưng đã đi thì không ném được. Cho voi lao ra phá ngay khi chúng vừa đặt xuống.",
-		"[b]Rồng[/b] bay qua núi chỉ 1 bước, đi 7 ô, mạnh nhất trận. Chỉ có một con, không mua thêm được. Nỏ thủ bắn rồng +15 công: giữ rồng xa nỏ thủ giặc.",
+		"[b]Rồng[/b] bay qua núi chỉ 1 bước, đi 7 ô, mạnh nhất trận. Chỉ có một con, không mua thêm được. Nỏ thủ bắn rồng +15 công: giữ rồng xa "
+			+ "nỏ thủ giặc.",
 		"Tướng giặc tới ở lượt 6. Lượt 8 giặc có cả [b]sói[/b]: bị cắn thì −10 công, −10 thủ, kéo quân đó về gần thành mà hồi máu.",
 	],
 }

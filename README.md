@@ -70,6 +70,14 @@ Màn đầu chương dễ, giữa chương ~80–90%, trận cuối chương ~50
 ## Luật = AE2 (2026-11-06)
 Luật đã đưa về giống Ancient Empires II theo `docs/review/rules_compare.html` (số liệu từ dữ liệu gốc + mã dịch ngược bản mod; điểm chưa xác nhận ghi trong `docs/spec.md`). Bản port JS cũ + phép đo khớp JS (`sim/legacy/`, `trace_js.cjs`) đã bỏ.
 
+### Logic game gốc ở đâu
+Không có mã nguồn gốc công khai; chỉ có jar gốc + bản mod dịch ngược.
+- **Jar gốc** (Macrospace 2005, v1.0.2): https://github.com/ancient-empires/games-download/blob/main/Java/AE2-en.jar — tên lớp bị làm rối (`c` = Unit, `i` = MainDisplayable, `e` = Renderer); muốn đọc phải disassemble bytecode + giải nén `1.pak` (`units.bin`, `tiles0.prop`). Cách làm + kết quả: `docs/review/ae2_research.md`.
+- **Mã Java đọc được** (bản mod RM 2.5, decompile; cùng cấu trúc + hằng số với gốc, luật mod có lệch): https://github.com/ProjectD8/Ancient-Empires-II-RM — logic chính ở `src/aeii/MainDisplayable.java`, dữ liệu ở `res/res/` (`*.unit`, `tiles0.prop`).
+- **Chữ trong game gốc**: https://github.com/ancient-empires/Java-tools/blob/main/AE2lang/data/AE2/lang.txt
+- **Đối chiếu từng luật vs code mình** (link thẳng tới dòng Java): `docs/review/rules_compare.html`; điểm còn theo bản mod: `docs/spec.md` mục cuối.
+- Ưu tiên: bytecode jar gốc > mã RM > wiki (fandom `ancient-empires.fandom.com`, chỉ tham khảo).
+
 Hồi quy: `sim/trace.gd` chơi AI-vs-AI có seed trên luật hiện tại cho mọi màn + bản đồ đấu tự do, in 1 dòng/ván (hash mọi nước + kết quả). `sim/golden.txt` = kết quả đã chốt; `sim/tests.gd` chơi lại 4 ván mỗi lần chạy. Đổi luật / AI / bản đồ có chủ đích thì tạo lại: `godot --headless --path . -s sim/trace.gd > sim/golden.txt`.
 
 AI một nước (GDScript, máy bàn Mac, trung bình): m01 ~5 ms, m08 ~22 ms, m12 ~30 ms (trước tối ưu 9 / 51 / 39 ms). Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch; nước đi không đổi .

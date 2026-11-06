@@ -19,13 +19,13 @@ const CTRLS := ["human", "ai:easy", "ai:normal", "ai:hard"]
 
 static var _campaign: Array = []
 static var _chapters: Array = []
-static var _themes := {}
+static var _themes := { }
 ## chapter whose skin / map the UI shows; set by the menus and the game screen
 static var active_chapter := "c1"
 
 static func _defs(dir: String) -> Array:
 	var out := []
-	var seen := {}
+	var seen := { }
 	for f in DirAccess.get_files_at(dir):
 		f = f.trim_suffix(".remap") # exported builds list scripts as *.gd.remap
 		if not f.ends_with(".gd") or seen.has(f):
@@ -34,8 +34,10 @@ static func _defs(dir: String) -> Array:
 		var scr: Script = load(dir + "/" + f)
 		out.append(scr.get("DEF"))
 	# sort_custom is not stable: break ties by id so equal `order` values never shuffle (tests flag duplicates)
-	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		return a.order < b.order or (a.order == b.order and str(a.get("id", "")) < str(b.get("id", ""))))
+	out.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			return a.order < b.order or (a.order == b.order and str(a.get("id", "")) < str(b.get("id", ""))),
+	)
 	return out
 
 static func theme() -> Dictionary:
@@ -44,7 +46,7 @@ static func theme() -> Dictionary:
 		var ch: Variant = chapter(active_chapter)
 		if ch != null:
 			var chd: Dictionary = ch
-			var over: Dictionary = chd.get("theme", {})
+			var over: Dictionary = chd.get("theme", { })
 			_deep_merge(t, over)
 			t.chapter = ch
 		_themes[active_chapter] = t
@@ -79,7 +81,10 @@ static func chapter_of(m: Dictionary) -> String:
 	return m.get("chapter", "c1")
 
 static func missions_of(chapter_id: String) -> Array:
-	return campaign().filter(func(m: Dictionary) -> bool: return chapter_of(m) == chapter_id)
+	return campaign().filter(
+		func(m: Dictionary) -> bool:
+			return chapter_of(m) == chapter_id,
+	)
 
 static func use_chapter(id: String) -> void:
 	active_chapter = id if chapter(id) != null else "c1"
@@ -113,11 +118,18 @@ static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 3
 	@warning_ignore("integer_division")
 	var e_gold := gold / 2 if easy else gold
 	return {
-		"id": "skirmish:" + map_id, "title": m.name, "hero": hero_key, "enemyHero": m.get("enemyHero", heroes_of("e")[0]),
+		"id": "skirmish:" + map_id,
+		"title": m.name,
+		"hero": hero_key,
+		"enemyHero": m.get("enemyHero", heroes_of("e")[0]),
 		"chapter": m.get("chapter", "c1"),
-		"map": { "rows": m.rows }, "owner": m.owner, "units": m.units,
-		"gold": { "p": gold, "e": e_gold }, "unitCap": cap,
-		"win": { "type": "castles" }, "skirmish": { "mapId": map_id, "easy": easy },
+		"map": { "rows": m.rows },
+		"owner": m.owner,
+		"units": m.units,
+		"gold": { "p": gold, "e": e_gold },
+		"unitCap": cap,
+		"win": { "type": "castles" },
+		"skirmish": { "mapId": map_id, "easy": easy },
 	}
 
 ## 1 vs 1 (docs/1v1.md): a skirmish map, a commander + controller per side, same gold both sides
@@ -133,7 +145,7 @@ static func duel_def(map_id: String, hero_p: String, hero_e: String, ctrl_e: Str
 # ---------- controllers ----------
 ## no s.ctrl (campaign, skirmish, old saves) = we play p, the AI plays e at normal
 static func ctrl_of(s: Dictionary, side: String) -> String:
-	var ctrl: Dictionary = s.get("ctrl", {})
+	var ctrl: Dictionary = s.get("ctrl", { })
 	return str(ctrl.get(side, "human" if side == "p" else "ai:normal"))
 
 static func is_ai(s: Dictionary, side: String) -> bool:
@@ -146,7 +158,7 @@ static func ai_level(s: Dictionary, side: String) -> String:
 
 ## AI knob overrides for this side's level ({} = built-in AI); Game.new_game stores them in s.aiParams (AI.params reads it)
 static func ai_params_for(s: Dictionary, side: String) -> Dictionary:
-	var p: Dictionary = AI.PRESETS.get(ai_level(s, side), {})
+	var p: Dictionary = AI.PRESETS.get(ai_level(s, side), { })
 	return p
 
 # ---------- looks ----------
@@ -210,15 +222,20 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	if hi > lo:
 		out.append("Công %d–%d: mỗi đòn lăn ngẫu nhiên trong khoảng này." % [lo, hi])
 	if st.rmax > 1:
-		out.append("Đánh xa %d–%d ô. Chỉ quân đứng kề mới đánh trả được." % [st.rmin, st.rmax] if not st.get("siege", false)
-			else "Bắn xa %d–%d ô, nhưng đã di chuyển thì lượt đó không bắn được." % [st.rmin, st.rmax])
+		out.append(
+			(
+				"Đánh xa %d–%d ô. Chỉ quân đứng kề mới đánh trả được." % [st.rmin, st.rmax]
+				if not st.get("siege", false)
+				else "Bắn xa %d–%d ô, nhưng đã di chuyển thì lượt đó không bắn được." % [st.rmin, st.rmax]
+			)
+		)
 	if st.get("siege", false):
 		out.append("Không bao giờ đánh trả: bị áp sát là nguy.")
 	if st.get("aura", 0):
 		out.append("Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta." % st.aura)
 	if st.get("antiAir", 0):
 		out.append("+%d công khi đánh rồng." % st.antiAir)
-	var vs: Dictionary = st.get("vsType", {})
+	var vs: Dictionary = st.get("vsType", { })
 	for t: String in vs:
 		var unit_name: String = theme().units.p[t].name
 		out.append("+%d công khi đánh %s." % [vs[t], unit_name.to_lower()])
@@ -229,8 +246,10 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	if st.get("raise", false):
 		out.append("Gọi hồn: đứng cạnh lính ngã (cả địch) để dựng thành âm binh của ta.")
 	match st.move:
-		"fly": out.append("Bay: mọi ô chỉ tốn 1 bước, vượt cả sông núi.")
-		"water": out.append("Đi trên sông chỉ tốn 1 bước (quân khác tốn 3).")
+		"fly":
+			out.append("Bay: mọi ô chỉ tốn 1 bước, vượt cả sông núi.")
+		"water":
+			out.append("Đi trên sông chỉ tốn 1 bước (quân khác tốn 3).")
 	if st.get("noCap", false):
 		out.append("Không tính vào giới hạn quân.")
 	if st.mv >= 6:
@@ -285,7 +304,7 @@ static func _names(hero_keys: Dictionary) -> Dictionary:
 	return { "hero": hero_look(str(hero_keys.get("p", ""))).name, "eh": hero_look(str(e)).name if e != null else text("noEnemyHero") }
 
 ## objective wording for a win spec; form "brief" (mission opening) or "bar" (top bar). Unknown win types fall back to the type name.
-static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars := {}) -> String:
+static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars := { }) -> String:
 	var w := { "type": "castles" }
 	w.merge(win, true)
 	var v := _names(hero_keys)
@@ -296,14 +315,14 @@ static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars
 		var turns: int = w.turns
 		v.within = " trong %d lượt" % turns
 	v.left_txt = (": còn %s lượt" % str(v.get("left", ""))) if w.has("turns") else ""
-	var goals: Dictionary = theme().get("goals", {})
-	var g: Dictionary = goals.get(w.type, {})
+	var goals: Dictionary = theme().get("goals", { })
+	var g: Dictionary = goals.get(w.type, { })
 	return str(g.get(form, w.type)).format(v)
 
 ## end card line: winner side + engine reason ("" when there is nothing to add)
 static func end_text(winner: Variant, reason: String, hero_keys: Dictionary) -> String:
-	var ends: Dictionary = theme().get("ends", {})
-	var by_side: Dictionary = ends.get(str(winner), {})
+	var ends: Dictionary = theme().get("ends", { })
+	var by_side: Dictionary = ends.get(str(winner), { })
 	var line: String = by_side.get(reason, "")
 	return line.format(_names(hero_keys))
 
@@ -318,25 +337,51 @@ static func tile_note(t: String) -> String:
 		return " hoặc ".join(names)
 	match t:
 		"v":
-			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)),
-				"income": Rules.TERRAIN.v.income })
+			return text("tileVillage").format(
+				{
+					"capV": who.call(
+						func(st: Dictionary, _t: String) -> bool:
+							return st.get("capV", false),
+					),
+					"income": Rules.TERRAIN.v.income,
+				}
+			)
 		"x":
-			return text("tileRuin").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)),
-				"raze": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("raze", false)) })
+			return text("tileRuin").format(
+				{
+					"capV": who.call(
+						func(st: Dictionary, _t: String) -> bool:
+							return st.get("capV", false),
+					),
+					"raze": who.call(
+						func(st: Dictionary, _t: String) -> bool:
+							return st.get("raze", false),
+					),
+				}
+			)
 		"c":
-			var cc: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false))
+			var cc: String = who.call(
+				func(st: Dictionary, _t: String) -> bool:
+					return st.get("capC", false),
+			)
 			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.TERRAIN.c.income })
 		"~":
-			return text("tileWater").format({ "water": who.call(func(st: Dictionary, _t: String) -> bool: return st.move == "water") })
+			return text("tileWater").format(
+				{
+					"water": who.call(
+						func(st: Dictionary, _t: String) -> bool:
+							return st.move == "water",
+					)
+				}
+			)
 		"t":
 			return text("tileTemple").format({ "heal": Rules.RULES.heal })
 	return ""
 
-
 # ---------- saves ----------
 static func migrate_save(v: Dictionary) -> void:
 	var st: Variant = v.get("state")
-	var sd: Dictionary = st if st is Dictionary else {}
+	var sd: Dictionary = st if st is Dictionary else { }
 	var sv: int = type_convert(sd.get("v", 0), TYPE_INT) # lenient like int(): save text is untrusted
 	if st is Dictionary and sv == 3 and sd.get("units") is Array:
 		var units: Array = sd.units
@@ -369,7 +414,21 @@ static func save_fits(v: Dictionary) -> bool:
 	var sv: int = type_convert(sd.get("v", 0), TYPE_INT) # lenient like int(): save text is untrusted
 	if sv != STATE_V:
 		return false
-	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead", "heroDeaths", "heroSaved", "rng"]:
+	for k: String in [
+		"units",
+		"tiles",
+		"owner",
+		"gold",
+		"heroKey",
+		"allowed",
+		"win",
+		"unitCap",
+		"graves",
+		"heroDead",
+		"heroDeaths",
+		"heroSaved",
+		"rng",
+	]:
 		if not sd.has(k):
 			return false
 	var win: Dictionary = sd.win
@@ -385,7 +444,7 @@ static func save_fits(v: Dictionary) -> bool:
 		for t: Variant in sd.allowed[side]:
 			if not Rules.UNITS.has(t):
 				return false
-	var ctx: Dictionary = v.get("ctx", {}) if v.get("ctx") is Dictionary else {}
+	var ctx: Dictionary = v.get("ctx", { }) if v.get("ctx") is Dictionary else { }
 	if ctx.get("kind") == "campaign" and mission(str(ctx.get("id", ""))) == null:
 		return false
 	if ctx.get("kind") == "skirmish" and not heroes_of("p").has(ctx.get("hero")):

@@ -53,7 +53,7 @@ const DEF := {
 	"tips": [
 		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn đích thân giữ đồn giữa rừng: dụ hắn ra chỗ trống rồi hãy đánh.",
 		"[b]Voi chiến[/b] của giặc thủ rất dày, đánh mạnh. Đừng đánh tay đôi: nỏ thủ bắn từ 2 ô (voi không đánh trả được), [b]trống đồng[/b] +10 "
-			+ "công cho cả đội rồi mới xông vào.",
+		+ "công cho cả đội rồi mới xông vào.",
 		"Rừng, đồi +10 thủ, núi +15 thủ nhưng tốn 3 bước. Ai đứng dưới sông thì không được thủ.",
 	],
 }

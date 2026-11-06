@@ -18,11 +18,11 @@ const ART := 1.12 # full-colour art is drawn this much taller than a silhouette
 ## art set: full-colour per-side figures assets/units/styles/<fig_style>/<type>_<side>.svg + terrain assets/terrain/<fig_style>/
 ## (raw SVG, importer "keep", rasterised at runtime). "" = old silhouettes + procedural terrain
 static var fig_style := "chibi"
-static var _rast := {} # "path@px" -> ImageTexture
-static var _rast_old := {}
-static var _has := {} # path -> bool
-static var _tex := {}
-static var _icon_w := {} # "icon|size" -> width, so the hot path never measures strings
+static var _rast := { } # "path@px" -> ImageTexture
+static var _rast_old := { }
+static var _has := { } # path -> bool
+static var _tex := { }
+static var _icon_w := { } # "icon|size" -> width, so the hot path never measures strings
 
 var side := "p"
 var type := "soldier"
@@ -52,7 +52,13 @@ func _draw() -> void:
 ## Rotation redraws every Token icon so its texture moves into the new gen.
 ## white = solid white silhouette (hit flash, like the demo's targetWhite)
 static func raster(path: String, tex_px: float, white := false) -> Texture2D:
-	return raster_svg(path, func() -> String: return FileAccess.get_file_as_string(path), tex_px, white)
+	return raster_svg(
+		path,
+		func() -> String:
+			return FileAccess.get_file_as_string(path),
+		tex_px,
+		white,
+	)
 
 ## same cache for SVG markup built in code (rig parts): `src` returns the 256-viewBox SVG text, only called on a miss
 static func raster_svg(id: String, src: Callable, tex_px: float, white := false) -> Texture2D:
@@ -72,7 +78,7 @@ static func raster_svg(id: String, src: Callable, tex_px: float, white := false)
 		tex = ImageTexture.create_from_image(img)
 	if _rast.size() >= RAST_GEN:
 		_rast_old = _rast
-		_rast = {}
+		_rast = { }
 		var tree := Engine.get_main_loop() as SceneTree
 		if tree:
 			tree.call_group.call_deferred("token_icon", "queue_redraw")
@@ -99,7 +105,7 @@ static func image(path: Variant) -> Texture2D:
 ## o: alpha, bob (px up), glow, flash (0..1), mirror (false = never flip enemy icon), shadow (false = skip it),
 ## halo (false = skip the commander's glow), rs (px per canvas unit to rasterise SVG art at; default = on screen now).
 ## Composes with the item's current transform (Draw.xf).
-static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: String, p_hero: Variant, o := {}) -> void:
+static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: String, p_hero: Variant, o := { }) -> void:
 	var fac: Dictionary = Draw.pal().factions[p_side]
 	var look := Content.unit_type_look(p_side, p_type, p_hero)
 	var hero := p_type == "hero"
@@ -164,8 +170,17 @@ static func fig_h(utype: String, T: float, colour := true) -> float:
 static func draw_shadow(ci: CanvasItem, base: Vector2, T: float, al := 1.0, squash := 1.0) -> void:
 	Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24 * squash, T * 0.075 * squash, Color(0, 0, 0, 0.42 * al))
 
-static func _standee(ci: CanvasItem, c: Vector2, T: float, fac_side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D,
-	o: Dictionary) -> void:
+static func _standee(
+	ci: CanvasItem,
+	c: Vector2,
+	T: float,
+	fac_side: String,
+	hero: bool,
+	foe: bool,
+	fac: Dictionary,
+	fig: Texture2D,
+	o: Dictionary,
+) -> void:
 	var al: float = o.get("alpha", 1.0)
 	var base := c + Vector2(0, T * FOOT)
 	if o.get("shadow", true):
@@ -195,8 +210,20 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, fac_side: String, her
 	var r := Rect2(-h / 2.0, -h, h, h)
 	ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(flip, 1.0), 0.0, foot))
 	var w := maxf(1.0, T * 0.03)
-	for d: Vector2 in ([] if colour else [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7,
-		Vector2(-w, w) * 0.7, Vector2(w, w) * 0.7]):
+	for d: Vector2 in (
+		[]
+		if colour
+		else [
+			Vector2(-w, 0),
+			Vector2(w, 0),
+			Vector2(0, -w),
+			Vector2(0, w),
+			Vector2(-w, -w) * 0.7,
+			Vector2(w, -w) * 0.7,
+			Vector2(-w, w) * 0.7,
+			Vector2(w, w) * 0.7,
+		]
+	):
 		ci.draw_texture_rect(fig, Rect2(r.position + d, r.size), false, ink)
 	ci.draw_texture_rect(fig, r, false, col)
 	var fl: float = o.get("flash", 0.0)
@@ -226,7 +253,7 @@ class Atlas extends RefCounted:
 	var vp: Baked
 	var T := 0.0
 	var key := ""
-	var cells := {} # "side|type" -> Rect2 in texels
+	var cells := { } # "side|type" -> Rect2 in texels
 	var unit := 0.0 # canvas units per cell side
 	var _list := [] # [[cell key, side, type, hero]]
 	var _cpx := 0 # texels per cell side
@@ -286,11 +313,27 @@ class Atlas extends RefCounted:
 		var half := unit * sc / 2.0 * squash
 		var R := T * sc * 0.4
 		var cell: Rect2 = cells.shadow
-		ci.draw_texture_rect_region(vp.get_texture(), Rect2(c + Vector2(-half, R * 0.78 - half), Vector2(half, half) * 2.0), cell, Color(1, 1, 1, alpha))
+		ci.draw_texture_rect_region(
+			vp.get_texture(),
+			Rect2(c + Vector2(-half, R * 0.78 - half), Vector2(half, half) * 2.0),
+			cell,
+			Color(1, 1, 1, alpha),
+		)
 
 	## shadow = false: figure only (drawn under a pose transform); snap = false when that transform is not a pure offset
-	func draw(ci: CanvasItem, st: Transform2D, c: Vector2, side: String, type: String, bob: float, sc: float, alpha: float, tint := Color.WHITE,
-		shadow := true, snap := true) -> bool:
+	func draw(
+		ci: CanvasItem,
+		st: Transform2D,
+		c: Vector2,
+		side: String,
+		type: String,
+		bob: float,
+		sc: float,
+		alpha: float,
+		tint := Color.WHITE,
+		shadow := true,
+		snap := true,
+	) -> bool:
 		var cell: Variant = cells.get("%s|%s" % [side, type])
 		if cell == null:
 			return false

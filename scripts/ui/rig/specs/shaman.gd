@@ -17,21 +17,38 @@ func events(_r: Rig) -> Array:
 	var ring_x: float = ring.x
 	var ring_y: float = ring.y
 	var ev := [
-		[250.0, func(a: Rig) -> void: a.gleam("top")],
-		[t_thrust - 20.0, func(a: Rig) -> void: a.flash(SPIRIT_PALE, 45)],
-		[t_thrust, func(a: Rig) -> void:
-			var q := a.point("tip")
-			a.sound("orb")
-			a.sparks(q.x, q.y, 7, "#8fe39a")
-			a.shockwave(ring_x, ring_y, { "r": 150.0, "ms": 360.0, "color": "#8fe39a" })],
+		[
+			250.0,
+			func(a: Rig) -> void:
+				a.gleam("top"),
+		],
+		[
+			t_thrust - 20.0,
+			func(a: Rig) -> void:
+				a.flash(SPIRIT_PALE, 45),
+		],
+		[
+			t_thrust,
+			func(a: Rig) -> void:
+				var q := a.point("tip")
+				a.sound("orb")
+				a.sparks(q.x, q.y, 7, "#8fe39a")
+				a.shockwave(ring_x, ring_y, { "r": 150.0, "ms": 360.0, "color": "#8fe39a" }),
+		],
 	]
 	var flames: Array = c.FLAMES
 	for i in flames.size():
 		var f: Dictionary = flames[i]
 		# only the last flame is THE hit (shared look); the others are ticks
-		var hit := Rig.with(Rig.HIT if i == flames.size() - 1 else Rig.HIT_SMALL, {})
+		var hit := Rig.with(Rig.HIT if i == flames.size() - 1 else Rig.HIT_SMALL, { })
 		var ft: float = f.t
-		ev.append([ft, func(a: Rig) -> void: a.add(SoulFlame.new(a, f, hit))])
+		ev.append(
+			[
+				ft,
+				func(a: Rig) -> void:
+					a.add(SoulFlame.new(a, f, hit)),
+			]
+		)
 	return ev
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
@@ -65,14 +82,21 @@ class Fl extends RefCounted:
 	static func draw_flame(ctx: RigCtx, m: Transform2D, up: Transform2D, s: float, w: float, alpha: float, eyes: bool) -> void:
 		ctx.set_xf(m)
 		ctx.alpha = alpha
-		ctx.begin_path(); ctx.circle(0, 0, s * 1.7); ctx.fill(GLOW)
-		Fl.flame_shape(ctx, s, w); ctx.fill(SPIRIT); ctx.stroke(RigFx.INK, 5)
+		ctx.begin_path()
+		ctx.circle(0, 0, s * 1.7)
+		ctx.fill(GLOW)
+		Fl.flame_shape(ctx, s, w)
+		ctx.fill(SPIRIT)
+		ctx.stroke(RigFx.INK, 5)
 		ctx.set_xf(m.translated_local(Vector2(s * 0.2, 0)))
-		Fl.flame_shape(ctx, s * 0.55, w); ctx.fill(SPIRIT_PALE)
+		Fl.flame_shape(ctx, s * 0.55, w)
+		ctx.fill(SPIRIT_PALE)
 		if eyes:
 			ctx.set_xf(up)
 			for ex: float in [-s * 0.28, s * 0.3]:
-				ctx.begin_path(); ctx.ellipse(ex, -s * 0.05, s * 0.13, s * 0.2, 0, 0, TAU); ctx.fill(RigFx.INK)
+				ctx.begin_path()
+				ctx.ellipse(ex, -s * 0.05, s * 0.13, s * 0.2, 0, 0, TAU)
+				ctx.fill(RigFx.INK)
 		ctx.alpha = 1.0
 
 ## elliptic arc on the near (front) or far half
@@ -87,15 +111,22 @@ static func arc_half(ctx: RigCtx, cx: float, cy: float, rx: float, ry: float, fr
 static func glyph(ctx: RigCtx, k: int, s: float) -> void:
 	ctx.begin_path()
 	if k == 0:
-		ctx.arc(0, 0, s, 0, TAU); ctx.fill(SPIRIT_PALE); ctx.stroke(RigFx.INK, 3)
-		ctx.begin_path(); ctx.arc(0, 0, s * 0.4, 0, TAU); ctx.fill(RigFx.INK)
+		ctx.arc(0, 0, s, 0, TAU)
+		ctx.fill(SPIRIT_PALE)
+		ctx.stroke(RigFx.INK, 3)
+		ctx.begin_path()
+		ctx.arc(0, 0, s * 0.4, 0, TAU)
+		ctx.fill(RigFx.INK)
 		return
 	if k == 1:
 		ctx.arc(-s * 0.5, 0, s * 0.5, PI, 0)
 		ctx.arc(s * 0.5, 0, s * 0.5, PI, 0, true)
 	else:
-		ctx.move_to(-s, s * 0.6); ctx.line_to(0, -s * 0.6); ctx.line_to(s, s * 0.6)
-	ctx.stroke(RigFx.INK, 7); ctx.stroke(SPIRIT_PALE, 3.5)
+		ctx.move_to(-s, s * 0.6)
+		ctx.line_to(0, -s * 0.6)
+		ctx.line_to(s, s * 0.6)
+	ctx.stroke(RigFx.INK, 7)
+	ctx.stroke(SPIRIT_PALE, 3.5)
 
 # ---------- attack draw: glyph ring at the feet + rising wisps + spirit gathering on the bronze bird ----------
 ## stateless (pure function of t). Hero-attached: every point in the hero frame (w = 0).
@@ -126,7 +157,9 @@ func _ring(ctx: RigCtx, cam: RigCam, r: Rig, t: float, front: bool) -> void:
 	ctx.set_world(0.0)
 	if not front:
 		ctx.alpha = 0.28 * fade * (1.0 + pulse)
-		ctx.begin_path(); ctx.ellipse(RX, RY, rx, ry, 0, 0, TAU); ctx.close_path()
+		ctx.begin_path()
+		ctx.ellipse(RX, RY, rx, ry, 0, 0, TAU)
+		ctx.close_path()
 		ctx.fill(SPIRIT)
 	for kw: Array in [[1.0, 6.0], [0.7, 4.0]]:
 		var k: float = kw[0]
@@ -187,7 +220,9 @@ class SoulFlame extends RigFx.Fx:
 	var has_head := false
 
 	func _init(p_r: Rig, p_f: Dictionary, p_hit: Dictionary) -> void:
-		r = p_r; f = p_f; hit = p_hit
+		r = p_r
+		f = p_f
+		hit = p_hit
 		P0 = r.point("tip")
 		var tg := r.target()
 		var tx: float = tg.x
@@ -196,7 +231,8 @@ class SoulFlame extends RigFx.Fx:
 		var fcx: float = f.cx
 		var fcy: float = f.cy
 		P1 = P0 + Vector2(fcx, fcy)
-		x = P0.x; y = P0.y
+		x = P0.x
+		y = P0.y
 		off0 = (r.point_px("tip") - r.cam.mapv(P0, 0.0)) / r.cam.T
 
 	func bez(u: float) -> Vector2:
@@ -226,7 +262,10 @@ class SoulFlame extends RigFx.Fx:
 		if age > 8.0:
 			head = Vector3(x, y, w)
 			has_head = true
-		x = nx; y = ny; w = uu; z = cos(ph)
+		x = nx
+		y = ny
+		w = uu
+		z = cos(ph)
 		trail.push_front(Vector3(nx, ny, uu))
 		if trail.size() > 9:
 			trail.resize(9)
@@ -250,7 +289,8 @@ class SoulFlame extends RigFx.Fx:
 				else:
 					ctx.line_to(p.x, p.y)
 			ctx.alpha = 0.75
-			ctx.stroke(RigFx.INK, 13.0 * k); ctx.stroke(SPIRIT, 7.0 * k)
+			ctx.stroke(RigFx.INK, 13.0 * k)
+			ctx.stroke(SPIRIT, 7.0 * k)
 			ctx.alpha = 1.0
 		var grow := minf(1.0, age / 60.0)
 		var s := 20.0 * (0.88 + 0.16 * z) * (0.5 + 0.5 * grow)

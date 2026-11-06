@@ -4,14 +4,55 @@ extends RefCounted
 
 ## font sizes text is rasterised at: each distinct (size, outline) is a glyph cache that is never freed, so other
 ## sizes are drawn at the next step up and scaled down
-const SIZES := [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-	36, 40, 44, 48, 56, 64, 72, 80, 96, 112, 128, 160, 192, 256]
+const SIZES := [
+	6,
+	7,
+	8,
+	9,
+	10,
+	11,
+	12,
+	13,
+	14,
+	15,
+	16,
+	17,
+	18,
+	19,
+	20,
+	21,
+	22,
+	23,
+	24,
+	25,
+	26,
+	27,
+	28,
+	29,
+	30,
+	31,
+	32,
+	36,
+	40,
+	44,
+	48,
+	56,
+	64,
+	72,
+	80,
+	96,
+	112,
+	128,
+	160,
+	192,
+	256,
+]
 ## transform the current item is drawn with. draw_set_transform* is absolute, so nested helpers compose with this
 ## (painters that set a transform go through set_xf; every Layer resets it at the start of its _draw)
 static var xf := Transform2D.IDENTITY
 static var _pal_key := ""
-static var _pal := {}
-static var _cols := {}
+static var _pal := { }
+static var _cols := { }
 
 static func set_xf(ci: CanvasItem, m: Transform2D) -> void:
 	xf = m
@@ -50,7 +91,7 @@ static func pal() -> Dictionary:
 
 static func _parse(v: Variant) -> Variant:
 	if v is Dictionary:
-		var out := {}
+		var out := { }
 		for k: Variant in v:
 			out[k] = _parse(v[k])
 		return out
@@ -148,18 +189,49 @@ static func cubic(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, n := 16) -
 	return out
 
 ## text centred on pos (both axes) with optional outline. scale draws the size-`size` text scaled (animated pops)
-static func text_c(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, outline := 0, outline_col := Color.BLACK,
-	scale := 1.0) -> void:
+static func text_c(
+	ci: CanvasItem,
+	font: Font,
+	pos: Vector2,
+	s: String,
+	size: int,
+	color: Color,
+	outline := 0,
+	outline_col := Color.BLACK,
+	scale := 1.0,
+) -> void:
 	_text(ci, font, pos, s, size, color, 0.5, 0.5, outline, outline_col, scale)
 
 ## text with the given anchor: ax 0 left / 0.5 centre / 1 right; top = true puts pos at the text top, else baseline
-static func text_a(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, ax := 0.0, top := false, outline := 0,
-	outline_col := Color.BLACK, scale := 1.0) -> void:
+static func text_a(
+	ci: CanvasItem,
+	font: Font,
+	pos: Vector2,
+	s: String,
+	size: int,
+	color: Color,
+	ax := 0.0,
+	top := false,
+	outline := 0,
+	outline_col := Color.BLACK,
+	scale := 1.0,
+) -> void:
 	_text(ci, font, pos, s, size, color, ax, 1.0 if top else 0.0, outline, outline_col, scale)
 
 ## ay: 0.5 = vertically centred on pos, 1 = pos is the top, 0 = pos is the baseline
-static func _text(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, ax: float, ay: float, outline: int,
-	outline_col: Color, scale: float) -> void:
+static func _text(
+	ci: CanvasItem,
+	font: Font,
+	pos: Vector2,
+	s: String,
+	size: int,
+	color: Color,
+	ax: float,
+	ay: float,
+	outline: int,
+	outline_col: Color,
+	scale: float,
+) -> void:
 	if size <= 0 or size * scale < 1.0:
 		return
 	var q := font_size(size) # scale animates without picking another size

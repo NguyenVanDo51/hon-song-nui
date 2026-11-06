@@ -24,23 +24,36 @@ func events(_r: Rig) -> Array:
 	var t_slam: float = c.T_SLAM
 	var t_hit: float = c.T_HIT
 	return [
-		[400.0, func(a: Rig) -> void:
-			a.dust(70, ground, 5, -1)
-			a.sound("rock")],
-		[430.0, func(a: Rig) -> void: a.shake(3, 260)], # trumpet rumble
-		[t_slam, func(a: Rig) -> void:
-			var f := a.point("foot")
-			a.flash("#fff6dc", 40)
-			a.shake(16, 440) # heavy unit: stronger shake than the shared HIT
-			a.shockwave(f.x + 6, ground, { "r": 120.0, "ms": 340.0 })
-			a.dust(f.x + 20, ground, 4, 1)
-			a.dust(f.x - 30, ground, 3, -1)
-			_clods(a, f.x + 10, 6, ground)],
-		[t_hit, func(a: Rig) -> void:
-			var tx: float = a.target().x
-			a.hit(Rig.with(Rig.HIT, { "dmg": 65 }))
-			a.shockwave(tx, ground, { "r": 110.0, "ms": 300.0 })
-			a.dust(tx - 50, ground, 3, 1)],
+		[
+			400.0,
+			func(a: Rig) -> void:
+				a.dust(70, ground, 5, -1)
+				a.sound("rock"),
+		],
+		[
+			430.0,
+			func(a: Rig) -> void:
+				a.shake(3, 260),
+		], # trumpet rumble
+		[
+			t_slam,
+			func(a: Rig) -> void:
+				var f := a.point("foot")
+				a.flash("#fff6dc", 40)
+				a.shake(16, 440) # heavy unit: stronger shake than the shared HIT
+				a.shockwave(f.x + 6, ground, { "r": 120.0, "ms": 340.0 })
+				a.dust(f.x + 20, ground, 4, 1)
+				a.dust(f.x - 30, ground, 3, -1)
+				_clods(a, f.x + 10, 6, ground),
+		],
+		[
+			t_hit,
+			func(a: Rig) -> void:
+				var tx: float = a.target().x
+				a.hit(Rig.with(Rig.HIT, { "dmg": 65 }))
+				a.shockwave(tx, ground, { "r": 110.0, "ms": 300.0 })
+				a.dust(tx - 50, ground, 3, 1),
+		],
 	]
 
 ## dirt clods kicked toward the target (one-shot fx with own state)
@@ -60,6 +73,7 @@ static func _clods(a: Rig, x: float, n: int, ground: float) -> void:
 
 class Clod extends RigFx.Mote:
 	var ground: float
+
 	func move(s: float) -> void:
 		vy += 1700.0 * s
 		x += vx * s
@@ -69,9 +83,11 @@ class Clod extends RigFx.Mote:
 			y = ground
 			vy *= -0.3
 			vx *= 0.5
+
 	func fade() -> float:
 		var u := age / life
 		return (1.0 - u) / 0.3 if u > 0.7 else 1.0
+
 	func shape(ctx: RigCtx) -> void:
 		ctx.begin_path()
 		for k in 5:

@@ -20,7 +20,7 @@ const SPECS := {
 ## counter-attacks play a little faster than the attack itself
 const COUNTER_SPEED := 1.25
 static var enabled := true
-static var _scripts := {}
+static var _scripts := { }
 
 static func has(type: String, side: String) -> bool:
 	if not enabled or Token.fig_style != "chibi" or not SPECS.has(type):
@@ -48,7 +48,7 @@ static func make(type: String, side: String) -> Rig:
 	r.swap = side == "e" and name == e.p
 	r.part_id = "rig|" + name
 	r.a_type = type
-	var ud: Dictionary = Rules.UNITS.get(type, {})
+	var ud: Dictionary = Rules.UNITS.get(type, { })
 	r.heavy = ud.get("heavy", false)
 	return r
 

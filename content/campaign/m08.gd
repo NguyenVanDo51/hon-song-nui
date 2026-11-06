@@ -12,10 +12,7 @@ const DEF := {
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": {
-		"p": ["soldier", "archer", "drum", "elephant", "catapult"],
-		"e": ["soldier", "archer", "drum", "elephant", "catapult"],
-	},
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "catapult"], "e": ["soldier", "archer", "drum", "elephant", "catapult"] },
 	"gold": { "p": 900, "e": 350 },
 	"win": { "type": "castles" },
 	"map": {
@@ -57,10 +54,7 @@ const DEF := {
 			["danlang", "Thợ làng đóng thêm máy bắn đá. Nay ở thành nào của ta cũng mua được."],
 		],
 		"outro": [
-			[
-				"truyenthuyet",
-				"Tô Định bỏ thành, cắt tóc cạo râu trốn về Nam Hải. Hai Bà lấy lại 65 thành ở Lĩnh Nam.",
-			],
+			["truyenthuyet", "Tô Định bỏ thành, cắt tóc cạo râu trốn về Nam Hải. Hai Bà lấy lại 65 thành ở Lĩnh Nam."],
 			["trungtrac", "Đất này lại là của người Việt. Ta đóng đô ở Mê Linh."],
 		],
 	},

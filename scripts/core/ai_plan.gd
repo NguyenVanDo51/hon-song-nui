@@ -30,7 +30,7 @@ const DEFAULT := {
 }
 ## knob sets for the greedy turn (merged over the side's own knobs); first = as is
 const STYLES := [
-	{},
+	{ },
 	{ "noise": 0.0 },
 	{ "caution": 0.0, "caution_hero": 0.6, "atk_bias": 80.0 },
 	{ "caution": 1.2, "caution_hero": 3.0, "reach_w": 0.9 },
@@ -43,7 +43,7 @@ const MAX_STEPS := 80 # per simulated turn
 const WIN := 1000000.0
 
 ## planner stats of the last plan (probes / tests): rollouts, ms, capped
-static var last := {}
+static var last := { }
 
 static func knob(P: Dictionary, k: String) -> float:
 	var v: float = P.get(k, DEFAULT[k])
@@ -122,7 +122,10 @@ static func legal(s: Dictionary, st: Dictionary) -> bool:
 		else:
 			var gx: int = act.target[0]
 			var gy: int = act.target[1]
-			ok = Game.raisable_graves(s, u, tx, ty).any(func(g: Dictionary) -> bool: return g.x == gx and g.y == gy)
+			ok = Game.raisable_graves(s, u, tx, ty).any(
+				func(g: Dictionary) -> bool:
+					return g.x == gx and g.y == gy,
+			)
 		u.x = ox
 		u.y = oy
 		return ok
@@ -144,8 +147,8 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 	Game.fixed_roll = 0.5
 	for k: String in ["tm", "rc", "df"]:
 		if not mem.has(k):
-			mem[k] = {}
-	var own: Dictionary = {}
+			mem[k] = { }
+	var own: Dictionary = { }
 	for k: String in P:
 		if k != "planner" and not k.begins_with("pl_"):
 			own[k] = P[k]
@@ -166,7 +169,7 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 	var safe := hero_safe_prefix(s, side) if knob(P, "pl_herosafe") > 0.0 else []
 	if not safe.is_empty():
 		cands.append({ "pre": safe, "over": own, "tag": "herosafe" })
-	var best: Dictionary = {}
+	var best: Dictionary = { }
 	var runs := 0
 	var capped := false
 	var ms := knob(P, "pl_ms")
@@ -189,8 +192,14 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 	mem.pl_steps = best.get("steps", [])
 	mem.pl_alive = best.get("alive", [])
 	mem.pl_i = 0
-	last = { "runs": runs, "ms": Time.get_ticks_msec() - t0, "capped": capped, "score": best.get("score", 0.0),
-		"tag": best.get("tag", ""), "mid": mid }
+	last = {
+		"runs": runs,
+		"ms": Time.get_ticks_msec() - t0,
+		"capped": capped,
+		"score": best.get("score", 0.0),
+		"tag": best.get("tag", ""),
+		"mid": mid,
+	}
 
 ## focus fire: for the n most valuable enemies we can reach, the attack sequence that kills it (mid rolls), plus the
 ## best kill chained with a second one. Each = a forced prefix; the greedy AI finishes the turn
@@ -201,10 +210,12 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 	for u: Dictionary in s.units:
 		if u.side != side:
 			foes.append(u)
-	foes.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
-		var va := AI.value(s, a)
-		var vb := AI.value(s, b)
-		return va > vb or (va == vb and a.id < b.id))
+	foes.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			var va := AI.value(s, a)
+			var vb := AI.value(s, b)
+			return va > vb or (va == vb and a.id < b.id),
+	)
 	var out := []
 	for f: Dictionary in foes:
 		if out.size() >= n:
@@ -240,7 +251,7 @@ static func focus(c: Dictionary, side: String, tid: int) -> Array:
 		var t: Dictionary = tv
 		var thp: int = t.hp
 		var tval := AI.value(c, t)
-		var best: Dictionary = {}
+		var best: Dictionary = { }
 		for u: Dictionary in c.units:
 			if u.side != side or u.acted:
 				continue
@@ -285,9 +296,9 @@ static func focus(c: Dictionary, side: String, tid: int) -> Array:
 ## unit that can reach it moves on (AE2: the castle is lost the moment their commander stands on it)
 static func guard_prefix(s: Dictionary, side: String) -> Array:
 	var steps := []
-	var used := {}
+	var used := { }
 	var c: Dictionary = s.duplicate(true)
-	var threatened := {}
+	var threatened := { }
 	for e: Dictionary in c.units:
 		if e.side == side or not Game.stat(c, e).get("capC", false):
 			continue
@@ -366,7 +377,7 @@ static func _rollout(s: Dictionary, side: String, over: Dictionary, pre: Array, 
 	var alive := []
 	for st: Dictionary in pre:
 		if not legal(c, st):
-			return {}
+			return { }
 		AI.apply_step(c, st)
 		steps.append(st)
 		alive.append(alive_ids(c))
@@ -478,7 +489,7 @@ static func _hero_risk(c: Dictionary, sd: String, shared: Dictionary, die_val: f
 		if h.side != sd or h.type != "hero":
 			continue
 		var tm := { "tiles_h": hash(c.tiles), "tm": shared.tm, "rc": shared.rc }
-		var threat := AI.threat_map(c, sd, {}, tm)
+		var threat := AI.threat_map(c, sd, { }, tm)
 		var hx: int = h.x
 		var hy: int = h.y
 		var hurt := AI.expected_hit(c, h, hx, hy, threat.get(Vector2i(hx, hy)), 0.6)

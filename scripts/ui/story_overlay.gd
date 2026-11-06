@@ -44,7 +44,7 @@ static func lines_for(def: Dictionary) -> Array:
 	var history: String = def.get("history", "")
 	if history != "":
 		out.append(["sutich", history])
-	var story: Dictionary = def.get("story", {})
+	var story: Dictionary = def.get("story", { })
 	var intro: Array = story.get("intro", [])
 	out.append_array(intro)
 	out.append(["muctieu", Menus.goal_text(def)])
@@ -114,7 +114,10 @@ func _finish(fade: bool) -> void:
 func _build_title(def: Dictionary) -> void:
 	_title = PanelContainer.new()
 	var bs := Style.box(Color(0.06, 0.035, 0.025, 0.9), Style.BRONZE_2, 0, 18)
-	bs.border_width_left = 0; bs.border_width_right = 0; bs.border_width_top = 2; bs.border_width_bottom = 2
+	bs.border_width_left = 0
+	bs.border_width_right = 0
+	bs.border_width_top = 2
+	bs.border_width_bottom = 2
 	_title.add_theme_stylebox_override("panel", bs)
 	_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_title)
@@ -135,8 +138,11 @@ func _build_title(def: Dictionary) -> void:
 func _build_band() -> void:
 	_band = PanelContainer.new()
 	_band_box = Style.box(Color(0.075, 0.045, 0.03, 0.95), Style.BRONZE_2, 14, 14, 2)
-	_band_box.shadow_color = Color(0, 0, 0, 0.55); _band_box.shadow_size = 18; _band_box.shadow_offset = Vector2(0, 6)
-	_band_box.content_margin_left = 16; _band_box.content_margin_right = 16
+	_band_box.shadow_color = Color(0, 0, 0, 0.55)
+	_band_box.shadow_size = 18
+	_band_box.shadow_offset = Vector2(0, 6)
+	_band_box.content_margin_left = 16
+	_band_box.content_margin_right = 16
 	_band.add_theme_stylebox_override("panel", _band_box)
 	_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_band.visible = false
@@ -170,9 +176,11 @@ func _build_band() -> void:
 	_btn_auto.tooltip_text = "Tự chạy nhanh hết thoại (giữ chuột / Space cũng tua)"
 	_btn_auto.toggle_mode = true
 	_btn_auto.focus_mode = Control.FOCUS_NONE
-	_btn_auto.toggled.connect(func(on: bool) -> void:
-		_auto = on
-		_btn_auto.theme_type_variation = "SegOn" if on else "SegBtn")
+	_btn_auto.toggled.connect(
+		func(on: bool) -> void:
+			_auto = on
+			_btn_auto.theme_type_variation = "SegOn" if on else "SegBtn",
+	)
 	head.add_child(_btn_auto)
 	var sk := Style.button("Bỏ qua ›", "ActBtn")
 	sk.tooltip_text = "Bỏ qua cốt truyện, vào trận (Esc)"
@@ -202,7 +210,10 @@ func _to_talk() -> void:
 	_phase = "talk"
 	var tw := create_tween()
 	tw.tween_property(_title, "modulate:a", 0.0, 0.25)
-	tw.tween_callback(func() -> void: _title.visible = false)
+	tw.tween_callback(
+		func() -> void:
+			_title.visible = false,
+	)
 	_band.visible = true
 	_band.modulate.a = 0.0
 	var tb := create_tween()

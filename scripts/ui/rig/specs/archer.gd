@@ -9,6 +9,7 @@ class Twang extends RigFx.Timed:
 	func _init(p_r: Rig) -> void:
 		r = p_r
 		life = 110.0
+
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
@@ -19,8 +20,11 @@ class Twang extends RigFx.Timed:
 		ctx.set_xf(cam.aimed(r.point_px("muzzle"), cam.u, cam.ca))
 		ctx.alpha = 1.0 - u * u
 		for a: float in [-0.75, 0.0, 0.75]:
-			ctx.begin_path(); ctx.move_to(cos(a) * r0, sin(a) * r0); ctx.line_to(cos(a) * r1, sin(a) * r1)
-			ctx.stroke(RigFx.INK, 9.0); ctx.stroke("#fff6d6", 4.0)
+			ctx.begin_path()
+			ctx.move_to(cos(a) * r0, sin(a) * r0)
+			ctx.line_to(cos(a) * r1, sin(a) * r1)
+			ctx.stroke(RigFx.INK, 9.0)
+			ctx.stroke("#fff6d6", 4.0)
 		ctx.alpha = 1.0
 
 static func bolt(a: Rig, i: int) -> void:
@@ -30,9 +34,19 @@ static func bolt(a: Rig, i: int) -> void:
 	var off: float = OFFS[i]
 	var shots: Array = a.data.consts.SHOTS
 	var last := i == shots.size() - 1
-	a.projectile({ "point": "muzzle", "to": Vector2(tx - 8.0, ty + off), "kind": "arrow", "size": 0.95, "arc": 14.0,
-		"speed": 2500.0, "color": "#4f74c9" if a.swap else "#c9503f", "trail": "#fff6d6",
-		"hit": Rig.with(Rig.HIT, { "dmg": 36 }) if last else Rig.with(Rig.HIT_SMALL, { "dmg": 8 }) })
+	a.projectile(
+		{
+			"point": "muzzle",
+			"to": Vector2(tx - 8.0, ty + off),
+			"kind": "arrow",
+			"size": 0.95,
+			"arc": 14.0,
+			"speed": 2500.0,
+			"color": "#4f74c9" if a.swap else "#c9503f",
+			"trail": "#fff6d6",
+			"hit": Rig.with(Rig.HIT, { "dmg": 36 }) if last else Rig.with(Rig.HIT_SMALL, { "dmg": 8 }),
+		}
+	)
 	a.sound("arrow")
 	a.add(Twang.new(a))
 
@@ -42,15 +56,38 @@ func events(_r: Rig) -> Array:
 	var s1: float = shots[1]
 	var s2: float = shots[2]
 	return [
-		[150.0, func(a: Rig) -> void: a.dust(96, 244, 4, -1)],
-		[210.0, func(a: Rig) -> void: a.gleam("muzzle", 160)],
-		[s0, func(a: Rig) -> void: bolt(a, 0)],
-		[s1, func(a: Rig) -> void: bolt(a, 1)],
-		[s2, func(a: Rig) -> void:
-			bolt(a, 2)
-			a.dust(100, 244, 6, -1)
-			a.shake(3, 120)],
-		[1042.0, func(a: Rig) -> void: a.gleam("nut", 120)],
+		[
+			150.0,
+			func(a: Rig) -> void:
+				a.dust(96, 244, 4, -1),
+		],
+		[
+			210.0,
+			func(a: Rig) -> void:
+				a.gleam("muzzle", 160),
+		],
+		[
+			s0,
+			func(a: Rig) -> void:
+				bolt(a, 0),
+		],
+		[
+			s1,
+			func(a: Rig) -> void:
+				bolt(a, 1),
+		],
+		[
+			s2,
+			func(a: Rig) -> void:
+				bolt(a, 2)
+				a.dust(100, 244, 6, -1)
+				a.shake(3, 120),
+		],
+		[
+			1042.0,
+			func(a: Rig) -> void:
+				a.gleam("nut", 120),
+		],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:

@@ -14,10 +14,7 @@ const DEF := {
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["catapult"],
-	"allowed": {
-		"p": ["soldier", "archer", "drum", "elephant"],
-		"e": ["soldier", "archer", "drum", "elephant", "catapult"],
-	},
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "elephant", "catapult"] },
 	"gold": { "p": 1200, "e": 0 },
 	"win": { "type": "castles" },
 	"map": {

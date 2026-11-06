@@ -27,7 +27,7 @@ var hitstop := 0.0
 var flash_t := 0.0
 var flash_dur := 1.0
 var flash_col := Color.WHITE
-var pose := {}
+var pose := { }
 var fxs: Array = [] # RigFx.Fx objects
 var tgt := { "ox": 0.0, "vx": 0.0, "oy": 0.0, "vy": 0.0, "sy": 1.0, "svy": 0.0, "flash": 0.0, "face": 1.0, "spin": 0.0, "lift": null, "land": null }
 
@@ -51,11 +51,11 @@ var hit_t := -1.0 # attack time of THE hit (-1 = never reached; FX.rig_attack th
 var _ev: Array = [] # [[t, Callable(rig)]]
 var _fired := 0
 var _prev_x := 0.0
-var _sprs := {} # name -> [angle, velocity]
+var _sprs := { } # name -> [angle, velocity]
 var _cam_T := -1.0
-var _parts := {} # part -> [raster cache id, svg source]: built once, not per part per frame
+var _parts := { } # part -> [raster cache id, svg source]: built once, not per part per frame
 var _parts_for := ""
-var _smear_at := {} # smear sample index on the step grid -> [tip, base (character space), root x, root y]
+var _smear_at := { } # smear sample index on the step grid -> [tip, base (character space), root x, root y]
 
 static func thin(v: float) -> float:
 	return 0.08 * (signf(v) if v != 0.0 else 1.0) if absf(v) < 0.08 else v
@@ -77,7 +77,10 @@ func place(p_board: Control, a_xy: Vector2i, d_xy: Vector2i, f: float) -> void:
 	d_tile = d_xy
 	cam.f = f
 	_ev = spec.events(self)
-	_ev.sort_custom(func(p: Array, q: Array) -> bool: return p[0] < q[0])
+	_ev.sort_custom(
+		func(p: Array, q: Array) -> bool:
+			return p[0] < q[0],
+	)
 	_cam_T = -1.0
 	_update_cam()
 
@@ -133,7 +136,7 @@ func rest_pose(breath := 0.0) -> Dictionary:
 
 ## bone matrices in character space (root translation excluded: RigCam.root places it)
 func bones_of(p: Dictionary) -> Dictionary:
-	var R := {}
+	var R := { }
 	var sy: float = p.sy
 	var face: float = p.face
 	var sx: float = (1.0 + (1.0 - sy) * 0.8) * thin(face)
@@ -300,8 +303,14 @@ func target_pose() -> Dictionary:
 	_update_cam()
 	var e := tgt
 	var face: float = e.face
-	return { "shift": cam.u * (e.ox * cam.cd), "lift": -e.oy * cam.cd, "sy": e.sy, "sx": (1.0 + (1.0 - e.sy) * 0.8),
-		"face": thin(face), "flash": e.flash }
+	return {
+		"shift": cam.u * (e.ox * cam.cd),
+		"lift": -e.oy * cam.cd,
+		"sy": e.sy,
+		"sx": (1.0 + (1.0 - e.sy) * 0.8),
+		"face": thin(face),
+		"flash": e.flash,
+	}
 
 # ---------- api (engine `api`) ----------
 func add(o: Variant) -> Variant:
@@ -330,7 +339,7 @@ func flash(color: Variant = "#ffffff", ms := 120.0) -> void:
 
 ## the one place damage lands. small = a tick (no number in game). The first non-small hit is THE hit: it shows the
 ## real amount from the game event and calls on_hit (hp bar drops); later non-small hits show no number.
-func hit(o := {}) -> void:
+func hit(o := { }) -> void:
 	var small: bool = o.get("small", false)
 	var c := target()
 	var cx: float = c.x
@@ -368,15 +377,33 @@ func hit(o := {}) -> void:
 
 func dust(x: float, y: float, n := 6, dir := 0.0) -> void:
 	for i in n:
-		_particle({ "k": "dust", "x": x + randf_range(-30, 30), "y": y - randf_range(0, 8),
-			"vx": (dir if dir != 0.0 else randf_range(-1, 1)) * randf_range(60, 220),
-			"vy": randf_range(-90, -20), "life": randf_range(380, 560), "r": randf_range(9, 15) })
+		_particle(
+			{
+				"k": "dust",
+				"x": x + randf_range(-30, 30),
+				"y": y - randf_range(0, 8),
+				"vx": (dir if dir != 0.0 else randf_range(-1, 1)) * randf_range(60, 220),
+				"vy": randf_range(-90, -20),
+				"life": randf_range(380, 560),
+				"r": randf_range(9, 15),
+			}
+		)
 
 func leaves(x: float, y: float, n := 8, sp := 600.0, color := "#7fb24e") -> void:
 	for i in n:
-		_particle({ "k": "leaf", "x": x + randf_range(-20, 20), "y": y + randf_range(-40, 40), "vx": randf_range(0.3, 1.0) * sp,
-			"vy": randf_range(-380, 60), "rot": randf_range(0, 6), "vr": randf_range(-14, 14), "life": randf_range(600, 1000),
-			"color": Color(color) })
+		_particle(
+			{
+				"k": "leaf",
+				"x": x + randf_range(-20, 20),
+				"y": y + randf_range(-40, 40),
+				"vx": randf_range(0.3, 1.0) * sp,
+				"vy": randf_range(-380, 60),
+				"rot": randf_range(0, 6),
+				"vr": randf_range(-14, 14),
+				"life": randf_range(600, 1000),
+				"color": Color(color),
+			}
+		)
 
 func sparks(x: float, y: float, n := 8, color := "#ffe08a") -> void:
 	for i in n:
@@ -405,17 +432,17 @@ func wave(o: Dictionary) -> Object:
 func projectile(o: Dictionary) -> Object:
 	return add(RigFx.Projectile.new(self, o))
 
-func tornado(o := {}) -> Object:
+func tornado(o := { }) -> Object:
 	return add(RigFx.Tornado.new(self, o))
 
-func ring(o := {}) -> Object:
+func ring(o := { }) -> Object:
 	return add(RigFx.Ring.new(self, o))
 
-func shockwave(x: float, y: float, o := {}) -> Object:
+func shockwave(x: float, y: float, o := { }) -> Object:
 	return add(RigFx.Shock.new(self, x, y, o))
 
 ## shared HIT / HIT_SMALL merged with overrides (engine Object.assign({}, HIT, {...}))
-static func with(base: Dictionary, o := {}) -> Dictionary:
+static func with(base: Dictionary, o := { }) -> Dictionary:
 	var d := base.duplicate()
 	d.merge(o, true)
 	return d

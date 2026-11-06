@@ -16,7 +16,7 @@ const VILLAIN := Color("#2b2630")
 const CRIMSON := Color("#a3201a")
 const BONE := Color("#e8dcc8")
 
-static var _cache := {}
+static var _cache := { }
 
 static func unit(side: String, type: String) -> ArrayMesh:
 	var key := "%s|%s|%s" % [Content.active_chapter, side, type]

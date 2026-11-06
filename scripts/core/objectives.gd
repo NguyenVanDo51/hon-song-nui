@@ -13,11 +13,17 @@ extends RefCounted
 
 static var TYPES := {
 	"castles": { "bar_n": _castles_left },
-	"rout": {},
+	"rout": { },
 	"hero": { "loss": _hero_loss, "check": _hero_check },
 	"survive": { "on_round": _survive_round, "check": _survive_check },
-	"reach": { "loss": _reach_loss, "on_round": _reach_round, "ai_goals": _reach_goals, "ai_tile": _reach_tile,
-		"marks": _reach_marks, "check": _reach_check },
+	"reach": {
+		"loss": _reach_loss,
+		"on_round": _reach_round,
+		"ai_goals": _reach_goals,
+		"ai_tile": _reach_tile,
+		"marks": _reach_marks,
+		"check": _reach_check,
+	},
 }
 
 static func has(type: Variant) -> bool:
@@ -28,7 +34,7 @@ static func types() -> Array:
 
 ## the hook `key` of this game's win type, null if it has none
 static func hook(s: Dictionary, key: String) -> Variant:
-	var entry: Dictionary = TYPES.get(s.win.type, {})
+	var entry: Dictionary = TYPES.get(s.win.type, { })
 	return entry.get(key)
 
 static func loss(s: Dictionary, side: String) -> Variant:

@@ -17,15 +17,23 @@ func play(mid: String) -> void:
 	var s := Game.new_game(def)
 	s.rng = int(lib.seed_v)
 	var last := [0]
-	lib.run_ai(s, false, 60, func(st: Dictionary) -> void:
-		if st.turn % 10 == 0 and st.turn != last[0] and st.side == "p":
-			last[0] = st.turn
-			for side: String in ["p", "e"]:
-				var types := {}
-				for u: Dictionary in st.units:
-					if u.side == side: types[u.type] = types.get(u.type, 0) + 1
-				print("t%d %s castles=%d vil=%d gold=%d hero=%s %s" % [st.turn, side, Game.castles(st, side), Game.villages(st, side), st.gold[side],
-					Game.hero_alive(st, side), types]))
+	lib.run_ai(
+		s,
+		false,
+		60,
+		func(st: Dictionary) -> void:
+			if st.turn % 10 == 0 and st.turn != last[0] and st.side == "p":
+				last[0] = st.turn
+				for side: String in ["p", "e"]:
+					var types := { }
+					for u: Dictionary in st.units:
+						if u.side == side:
+							types[u.type] = types.get(u.type, 0) + 1
+					print(
+						"t%d %s castles=%d vil=%d gold=%d hero=%s %s"
+						% [st.turn, side, Game.castles(st, side), Game.villages(st, side), st.gold[side], Game.hero_alive(st, side), types]
+					),
+	)
 	print("end ", s.winner, " ", s.reason, " t", s.turn)
 	if s.winner == null:
 		var ec: Array = Game.castle_tiles(s, "e")
@@ -34,9 +42,29 @@ func play(mid: String) -> void:
 			print(" e castle ", c, " on=", on.type + "/" + on.side if on != null else "-")
 		for u: Dictionary in s.units:
 			if u.type == "hero":
-				var df := AI.dist_field(s, "foot", ec.map(func(c: Vector2i) -> Array: return [c.x, c.y]))
+				var df := AI.dist_field(
+					s,
+					"foot",
+					ec.map(
+						func(c: Vector2i) -> Array:
+							return [c.x, c.y],
+					),
+				)
 				var ux: int = u.x
 				var uy: int = u.y
-				print(" hero ", u.side, " at ", u.x, ",", u.y, " acted=", u.acted, " dist->ecastle=", df.get(Vector2i(ux, uy)),
-					" reach=", Game.reachable(s, u).size())
-		for row: Array in s.tiles: print(" ", "".join(PackedStringArray(row)))
+				print(
+					" hero ",
+					u.side,
+					" at ",
+					u.x,
+					",",
+					u.y,
+					" acted=",
+					u.acted,
+					" dist->ecastle=",
+					df.get(Vector2i(ux, uy)),
+					" reach=",
+					Game.reachable(s, u).size(),
+				)
+		for row: Array in s.tiles:
+			print(" ", "".join(PackedStringArray(row)))

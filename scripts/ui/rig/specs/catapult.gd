@@ -9,6 +9,7 @@ class Debris extends RigFx.Mote:
 	var feet: float
 	var col: Color
 	var bounced := false
+
 	static func spawn(rig: Rig, tx: float, ty: float, c: Dictionary) -> void:
 		var feet_y: float = rig.target().feet
 		var x0 := tx - rig.cam.xt
@@ -27,6 +28,7 @@ class Debris extends RigFx.Mote:
 			d.feet = feet_y
 			d.life = LIFE
 			rig.add(d)
+
 	func move(s: float) -> void:
 		vy += 1900.0 * s
 		x += vx * s
@@ -38,34 +40,67 @@ class Debris extends RigFx.Mote:
 			vx *= 0.45
 			vr *= 0.5
 			bounced = true
+
 	func xf(cam: RigCam) -> Transform2D:
 		return cam.frame(cam.xt, y, 1.0).translated_local(Vector2(x, 0.0)).rotated_local(rot)
+
 	func fade() -> float:
 		return (LIFE - age) / 220.0 if age > LIFE - 220.0 else 1.0
+
 	func shape(ctx: RigCtx) -> void:
-		ctx.begin_path(); ctx.move_to(-rr, -rr * 0.3); ctx.line_to(-rr * 0.2, -rr); ctx.line_to(rr, -rr * 0.4)
-		ctx.line_to(rr * 0.6, rr * 0.8); ctx.line_to(-rr * 0.7, rr * 0.6); ctx.close_path()
-		ctx.fill(col); ctx.stroke(RigFx.INK, 4)
+		ctx.begin_path()
+		ctx.move_to(-rr, -rr * 0.3)
+		ctx.line_to(-rr * 0.2, -rr)
+		ctx.line_to(rr, -rr * 0.4)
+		ctx.line_to(rr * 0.6, rr * 0.8)
+		ctx.line_to(-rr * 0.7, rr * 0.6)
+		ctx.close_path()
+		ctx.fill(col)
+		ctx.stroke(RigFx.INK, 4)
 
 func events(_r: Rig) -> Array:
 	var c := data.consts
 	var rel: float = c.REL
 	return [
-		[630.0, func(a: Rig) -> void: a.sparks(68, 190, 4, "#e2c36e")],
-		[672.0, func(a: Rig) -> void:
-			a.shake(5, 160)
-			a.dust(220, 244, 4, 1)],
-		[rel, func(a: Rig) -> void:
-			a.sound("rock")
-			a.projectile({ "point": "rock", "kind": "rock", "size": 24.0, "color": c.STONE, "arc": 205.0, "ms": c.FLY, "trail": c.SAND,
-				"hit": Rig.with(Rig.HIT, { "dmg": 60 }),
-				"onArrive": func(to: Vector2) -> void:
-					var f: float = a.target().feet
-					a.shockwave(to.x, f, { "r": 210.0, "ms": 520.0, "color": c.SAND })
-					a.shockwave(to.x, f, { "r": 120.0, "ms": 360.0, "color": "#d9c49a" })
-					Debris.spawn(a, to.x, f - 20.0, c)
-					a.dust(to.x, f, 10, 0) })],
-		[800.0, func(a: Rig) -> void: a.dust(104, 244, 6, -1)],
+		[
+			630.0,
+			func(a: Rig) -> void:
+				a.sparks(68, 190, 4, "#e2c36e"),
+		],
+		[
+			672.0,
+			func(a: Rig) -> void:
+				a.shake(5, 160)
+				a.dust(220, 244, 4, 1),
+		],
+		[
+			rel,
+			func(a: Rig) -> void:
+				a.sound("rock")
+				a.projectile(
+					{
+						"point": "rock",
+						"kind": "rock",
+						"size": 24.0,
+						"color": c.STONE,
+						"arc": 205.0,
+						"ms": c.FLY,
+						"trail": c.SAND,
+						"hit": Rig.with(Rig.HIT, { "dmg": 60 }),
+						"onArrive": func(to: Vector2) -> void:
+							var f: float = a.target().feet
+							a.shockwave(to.x, f, { "r": 210.0, "ms": 520.0, "color": c.SAND })
+							a.shockwave(to.x, f, { "r": 120.0, "ms": 360.0, "color": "#d9c49a" })
+							Debris.spawn(a, to.x, f - 20.0, c)
+							a.dust(to.x, f, 10, 0),
+					}
+				),
+		],
+		[
+			800.0,
+			func(a: Rig) -> void:
+				a.dust(104, 244, 6, -1),
+		],
 	]
 
 func drive(name: String, p: Dictionary, _vx: float, ctx: Dictionary) -> float:
@@ -98,18 +133,24 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 			for s: float in [-1.0, 1.0]:
 				ctx.begin_path()
 				ctx.arc(0, 0, r0 + 7.0 * k, PI * 0.95 if s < 0.0 else -0.25, PI * 1.25 if s < 0.0 else 0.05)
-				ctx.stroke(RigFx.INK, 7); ctx.stroke("#fff6d6", 3)
+				ctx.stroke(RigFx.INK, 7)
+				ctx.stroke("#fff6d6", 3)
 	var f: float = r.target().feet
 	if layer == "back" and t > rel and t < land:
 		var u := (t - rel) / fly
 		ctx.set_xf(cam.frame(cam.xt, f, 1.0))
 		ctx.alpha = 0.12 + 0.3 * u
-		ctx.begin_path(); ctx.ellipse(0, 2, 24 + 56 * u, 7 + 12 * u, 0, 0, TAU); ctx.close_path()
+		ctx.begin_path()
+		ctx.ellipse(0, 2, 24 + 56 * u, 7 + 12 * u, 0, 0, TAU)
+		ctx.close_path()
 		ctx.fill(RigFx.INK)
 	if layer == "back" and t >= land:
 		var u := clampf((t - land) / 700.0, 0.0, 1.0)
 		ctx.set_xf(cam.frame(cam.xt, f, 1.0))
 		ctx.alpha = 0.5 * (1.0 - u * u)
-		ctx.begin_path(); ctx.ellipse(0, 4, 92, 20, 0, 0, TAU); ctx.close_path()
-		ctx.fill("#6b4a2e"); ctx.stroke(RigFx.INK, 4)
+		ctx.begin_path()
+		ctx.ellipse(0, 4, 92, 20, 0, 0, TAU)
+		ctx.close_path()
+		ctx.fill("#6b4a2e")
+		ctx.stroke(RigFx.INK, 4)
 	ctx.alpha = 1.0

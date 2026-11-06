@@ -26,7 +26,10 @@ func _init() -> void:
 	add_child(fx)
 	vig = _rect(VIG_SHADER)
 	resized.connect(_fit)
-	visibility_changed.connect(func() -> void: set_process(is_visible_in_tree()))
+	visibility_changed.connect(
+		func() -> void:
+			set_process(is_visible_in_tree()),
+	)
 	_fit()
 
 func _rect(sh: Shader) -> ColorRect:
@@ -55,7 +58,10 @@ func _process(dt: float) -> void:
 		var ep: float = e.p
 		e.y -= e.v * k
 		e.x += sin(t / 800.0 + ep) * 0.4 * k
-	embers = embers.filter(func(e: Dictionary) -> bool: return e.y > -10)
+	embers = embers.filter(
+		func(e: Dictionary) -> bool:
+			return e.y > -10,
+	)
 	fx.queue_redraw()
 
 func _draw_fx() -> void:

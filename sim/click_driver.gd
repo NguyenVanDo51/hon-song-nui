@@ -122,14 +122,17 @@ func _duel(g: GameScreen) -> void:
 	press("Xuất quân")
 	await wait(0.8)
 	var s: Dictionary = g.s
-	var started: bool = g.visible and s.get("ctrl", {}) == { "p": "human", "e": "human" } and s.side == "p"
+	var started: bool = g.visible and s.get("ctrl", { }) == { "p": "human", "e": "human" } and s.side == "p"
 	ok(started, "1 vs 1 hotseat starts, ctrl %s" % [s.get("ctrl")])
 	ok(await wait_handoff(g), "handoff card before Red's first turn")
 	press("Bắt đầu lượt")
 	ok(await turn_of(g, "p"), "Red to move")
 	ok(g._turn.text.contains(g._side_name("p")), "HUD names Red's turn (%s)" % g._turn.text)
 	# P1: hero moves + waits, then ends the turn
-	var hero: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
+	var hero: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type == "hero",
+	)[0]
 	g._on_tile(pos(hero).x, pos(hero).y)
 	var dest := Vector2i(-1, -1)
 	var reach: Dictionary = board(g).view.reach
@@ -168,11 +171,19 @@ func _duel(g: GameScreen) -> void:
 	g._clear_sel()
 	g.refresh()
 	# P2: a Blue soldier attacks a Red unit next to it
-	var sol: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "soldier" and not u.acted)[0]
-	var foe: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type != "hero")[0]
-	foe.x = sol.x + 1; foe.y = sol.y
+	var sol: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e" and u.type == "soldier" and not u.acted,
+	)[0]
+	var foe: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type != "hero",
+	)[0]
+	foe.x = sol.x + 1
+	foe.y = sol.y
 	if Game.tile_at(s, pos(foe).x, pos(foe).y) == null or Game.unit_at(s, pos(foe).x, pos(foe).y) != foe:
-		foe.x = sol.x; foe.y = sol.y + 1
+		foe.x = sol.x
+		foe.y = sol.y + 1
 	g.refresh()
 	g._on_tile(pos(sol).x, pos(sol).y)
 	g._on_tile(pos(foe).x, pos(foe).y)
@@ -199,7 +210,7 @@ func _duel(g: GameScreen) -> void:
 	await wait(0.6)
 	press("Đánh tiếp")
 	await wait(0.6)
-	var cont_ctrl: Dictionary = g.s.get("ctrl", {})
+	var cont_ctrl: Dictionary = g.s.get("ctrl", { })
 	okv(g.visible and cont_ctrl == { "p": "human", "e": "human" } and g.s.turn == 2, "continue keeps ctrl")
 	ok(await wait_handoff(g), "continued hotseat game opens on the handoff card")
 	press("Bắt đầu lượt")
@@ -214,7 +225,7 @@ func _duel(g: GameScreen) -> void:
 	ok(Store.done_list() == done0, "duel result leaves campaign progress alone")
 	press("Chơi lại")
 	await wait(0.8)
-	var again_ctrl: Dictionary = g.s.get("ctrl", {})
+	var again_ctrl: Dictionary = g.s.get("ctrl", { })
 	okv(g.visible and g.s.turn == 1 and again_ctrl.e == "human", "Chơi lại restarts the duel")
 	# vs AI (hard): Red ends the turn -> the AI plays Blue -> back to Red
 	main.show_title()
@@ -225,7 +236,7 @@ func _duel(g: GameScreen) -> void:
 	await process_frame
 	press("Xuất quân")
 	await wait(0.8)
-	var ai_ctrl: Dictionary = g.s.get("ctrl", {})
+	var ai_ctrl: Dictionary = g.s.get("ctrl", { })
 	okv(ai_ctrl.e == "ai:hard" and g._handoff_layer == null, "vs AI: Blue = ai:hard, no handoff")
 	ok(await turn_of(g, "p"), "vs AI: Red to move")
 	press("Hết lượt")
@@ -239,7 +250,10 @@ func _run() -> void:
 	await wait(1.0)
 	var g: GameScreen = main.game
 	var s: Dictionary = g.s
-	var hero: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
+	var hero: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type == "hero",
+	)[0]
 	# select hero -> reach, hover path
 	g._on_tile(pos(hero).x, pos(hero).y)
 	ok(board(g).view.reach != null and not g._pop.visible, "select hero shows reach, board stays clear (no popup yet)")
@@ -315,8 +329,14 @@ func _run() -> void:
 		newu.acted = false
 		g.cancel()
 	# attack: bring an enemy soldier next to our soldier, then click it
-	var sol: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "soldier")[0]
-	var foe: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type == "soldier")[0]
+	var sol: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type == "soldier",
+	)[0]
+	var foe: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e" and u.type == "soldier",
+	)[0]
 	foe.x = sol.x + 1
 	foe.y = sol.y
 	if Game.unit_at(s, pos(foe).x, pos(foe).y) != foe:
@@ -333,8 +353,14 @@ func _run() -> void:
 	var hit_ok: bool = foe.hp < hp0 or Game.unit_by_id(s, id_of(foe)) == null
 	ok(hit_ok, "attack resolved")
 	# mouse path: rest the pointer on an enemy -> board shows the forecast -> one click attacks
-	var arch: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "archer")[0]
-	var foe2: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.id != foe.id)[0]
+	var arch: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type == "archer",
+	)[0]
+	var foe2: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e" and u.id != foe.id,
+	)[0]
 	foe2.x = arch.x + 2
 	foe2.y = arch.y
 	if Game.tile_at(s, pos(foe2).x, pos(foe2).y) == null or Game.unit_at(s, pos(foe2).x, pos(foe2).y) != foe2:
@@ -364,7 +390,10 @@ func _run() -> void:
 	ok(g._card.visible and g._card_box.get_child_count() > 0, "terrain info in the corner card")
 	g.cancel()
 	# ⓘ on a token: unit card with traits + how to play; next click on the board just closes it
-	var any_u: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
+	var any_u: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e",
+	)[0]
 	g._on_info_requested(id_of(any_u))
 	await process_frame
 	var peek_ok: bool = g.ui.peek == any_u.id and g._pop.visible and g._info.get_child_count() >= 4
@@ -418,18 +447,24 @@ func _run() -> void:
 	ok(total_ok, "gold count-up ends on the real total")
 	# buy on top of a unit standing on our castle; click its own tile = keep, click outside its reach = take back (refund)
 	var cas: Vector2i = Game.castle_tiles(s, "p")[0]
-	var moved := {}
+	var moved := { }
 	for u: Dictionary in s.units: # clear the castle, then park exactly one of ours on it
 		if u.x == cas.x and u.y == cas.y:
 			moved[u.id] = pos(u)
 			u.x = -10 - u.id
-	var on: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type != "hero" and u.x >= 0)[0]
+	var on: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type != "hero" and u.x >= 0,
+	)[0]
 	moved[on.id] = pos(on)
-	on.x = cas.x; on.y = cas.y
+	on.x = cas.x
+	on.y = cas.y
 	s.gold.p += 500
 	var g0: int = s.gold.p
 	var n0: int = units_of(s).size()
-	g._clear_sel(); g.ui.buyAt = [cas.x, cas.y]; g.refresh()
+	g._clear_sel()
+	g.ui.buyAt = [cas.x, cas.y]
+	g.refresh()
 	g.buy_unit("soldier")
 	var nb: Dictionary = s.units[-1]
 	var stack_ok: bool = units_of(s).size() == n0 + 1 and g.ui.sel == nb.id and Game.can_unbuy(s, nb)
@@ -447,9 +482,11 @@ func _run() -> void:
 	ok(refund_ok, "click outside reach takes the buy back, full refund")
 	for u: Dictionary in s.units:
 		if moved.has(u.id):
-			u.x = moved[u.id].x; u.y = moved[u.id].y
+			u.x = moved[u.id].x
+			u.y = moved[u.id].y
 	s.gold.p -= 500
-	g._clear_sel(); g.refresh()
+	g._clear_sel()
+	g.refresh()
 	# save -> title -> continue
 	g.save()
 	main.show_title()

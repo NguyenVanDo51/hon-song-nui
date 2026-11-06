@@ -16,11 +16,35 @@ func runs() -> Array:
 	var out := []
 	for m: Dictionary in Content.campaign():
 		var md := m
-		out.append([md.id, 4, func(_g: int) -> Dictionary: return md, false])
+		out.append(
+			[
+				md.id,
+				4,
+				func(_g: int) -> Dictionary:
+					return md,
+				false,
+			]
+		)
 	for id: String in Content.SKIRMISH.MAPS:
 		var mid := id
-		out.append(["sk_" + id, 4, func(g: int) -> Dictionary: return Content.skirmish_def(mid, "anhhung", g % 2 == 1), false])
-	out.append(["naive", 4, func(_g: int) -> Dictionary: return Content.skirmish_def("dong_bang", "anhhung", false), true])
+		out.append(
+			[
+				"sk_" + id,
+				4,
+				func(g: int) -> Dictionary:
+					return Content.skirmish_def(mid, "anhhung", g % 2 == 1),
+				false,
+			]
+		)
+	out.append(
+		[
+			"naive",
+			4,
+			func(_g: int) -> Dictionary:
+				return Content.skirmish_def("dong_bang", "anhhung", false),
+			true,
+		]
+	)
 	return out
 
 ## one game, keyed like the golden file ("m01 0") -> its trace line
@@ -57,12 +81,17 @@ func play(def: Dictionary, naive: bool) -> String:
 	s.seed = int(seed_v)
 	s.rng = int(seed_v) # combat rolls seeded like the AI
 	var hh := [2166136261] # FNV-1a over every step (array: the lambda cannot rebind a captured local)
-	var steps := run_ai(s, naive, 60, Callable(), func(step: Variant) -> void:
-		var h0: int = hh[0]
-		hh[0] = fnv(h0, step_str(step) + ";"))
+	var steps := run_ai(
+		s,
+		naive,
+		60,
+		Callable(),
+		func(step: Variant) -> void:
+			var h0: int = hh[0]
+			hh[0] = fnv(h0, step_str(step) + ";"),
+	)
 	var h: int = hh[0]
 	for u: Dictionary in s.units:
 		h = fnv(h, "%d:%d,%d:%d:%d:%d;" % [u.id, u.x, u.y, u.hp, u.xp, u.rank])
 	h = fnv(h, "g%d,%d" % [s.gold.p, s.gold.e])
 	return "%s %s t%d n%d %x" % [s.winner if s.winner != null else "draw", s.reason if s.reason != null else "timeout", s.turn, steps, h]
-

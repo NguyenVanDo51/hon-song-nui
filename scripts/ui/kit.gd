@@ -92,7 +92,8 @@ func ball(c: Vector3, r: float, col: Color, seg := 8, rings := 5) -> void:
 		for i in seg:
 			var a0 := TAU * i / seg
 			var a1 := TAU * (i + 1) / seg
-			var v := func(p: float, a: float) -> Vector3: return c + Vector3(cos(p) * cos(a), sin(p), cos(p) * sin(a)) * r
+			var v := func(p: float, a: float) -> Vector3:
+				return c + Vector3(cos(p) * cos(a), sin(p), cos(p) * sin(a)) * r
 			var q0: Vector3 = v.call(p0, a0)
 			var q1: Vector3 = v.call(p0, a1)
 			var q2: Vector3 = v.call(p1, a1)

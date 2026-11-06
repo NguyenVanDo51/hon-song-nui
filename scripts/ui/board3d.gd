@@ -20,8 +20,12 @@ const W := "assets/kaykit/weapons/"
 ## unit type -> [KayKit character, [[hand bone, model]], attack clip, scale]. Both sides field the same troops
 ## (cloth recoloured red / blue); the two commanders differ. Types not listed use the code-built piece.
 const ROSTER := {
-	"soldier": ["Rogue_Hooded.glb", [["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_round_color.gltf"]],
-		"Melee_1H_Attack_Chop", 1.0],
+	"soldier": [
+		"Rogue_Hooded.glb",
+		[["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_round_color.gltf"]],
+		"Melee_1H_Attack_Chop",
+		1.0,
+	],
 	"archer": ["Ranger.glb", [["handslot.l", W + "bow_withString.gltf"]], "Ranged_Bow_Release", 1.0],
 	"drum": ["Rogue.glb", [["handslot.r", "assets/kaykit/hex/decoration/props/flag_%s.gltf"]], "Melee_1H_Attack_Stab", 1.0],
 	"shaman": ["Mage.glb", [["handslot.r", W + "staff.gltf"]], "Ranged_Magic_Shoot", 1.0],
@@ -31,8 +35,12 @@ const ROSTER := {
 	"wolf": ["Barbarian.glb", [["handslot.r", W + "dagger.gltf"]], "Melee_1H_Attack_Chop", 0.95],
 	"ghost": ["Skeleton_Minion.glb", [], "Melee_Unarmed_Attack_Punch_A", 0.95],
 	"hero_p": ["Knight.glb", [["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_badge_color.gltf"]], "Melee_1H_Attack_Chop", 1.15],
-	"hero_e": ["Skeleton_Warrior.glb", [["handslot.r", W + "Skeleton_Axe.gltf"], ["handslot.l", W + "Skeleton_Shield_Large_A.gltf"]],
-		"Melee_1H_Attack_Chop", 1.2],
+	"hero_e": [
+		"Skeleton_Warrior.glb",
+		[["handslot.r", W + "Skeleton_Axe.gltf"], ["handslot.l", W + "Skeleton_Shield_Large_A.gltf"]],
+		"Melee_1H_Attack_Chop",
+		1.2,
+	],
 }
 const SITE_COLOR := { "p": "red", "e": "blue", "n": "yellow" }
 const SITE_BACK := 0.1 # villages / castles sit at the back of their tile, the unit stands in front
@@ -62,17 +70,17 @@ var _ov: SubViewport
 var _ov_paint: Baked.Painter
 var _top: Control
 var _top_add: Control
-var _sites := {} # Vector2i -> { "mi", "own", "flag" }
+var _sites := { } # Vector2i -> { "mi", "own", "flag" }
 var _graves_key := ""
 var _graves := []
 var _lights := []
-var _pieces := {} # key -> MeshInstance3D (code-built piece) or Node3D (KayKit actor)
+var _pieces := { } # key -> MeshInstance3D (code-built piece) or Node3D (KayKit actor)
 var _props := [] # [tile, x, y, top] waiting for their KayKit model (forest, hill, mountain, bridge)
-var _anim := {} # key -> { cur, lock, attacking, knock } animation state of a KayKit actor
+var _anim := { } # key -> { cur, lock, attacking, knock } animation state of a KayKit actor
 var _ov_flash: StandardMaterial3D
 var _ov_dim: StandardMaterial3D
-var _facing := {} # unit id -> yaw
-var _last_pos := {} # unit id -> Vector2 (to face the way it walks)
+var _facing := { } # unit id -> yaw
+var _last_pos := { } # unit id -> Vector2 (to face the way it walks)
 var _shown := [] # this frame's figures: { key, u, x, y, h, ghost_k, off }
 var _sc := 1.0
 var _built := false
@@ -241,10 +249,22 @@ func tile_rect(x: int, y: int) -> Rect2:
 func focus(a: Vector2i, b: Vector2i) -> void:
 	_focus_center = Vector3((a.x + b.x) / 2.0 + 0.5, 0.3, (a.y + b.y) / 2.0 + 0.5)
 	_focus_size = clampf(_base_size * 0.42, 3.2, _base_size)
-	await _ease_focus(320.0, _focus, 1.0, func(v: float) -> void: _focus = v)
+	await _ease_focus(
+		320.0,
+		_focus,
+		1.0,
+		func(v: float) -> void:
+			_focus = v,
+	)
 
 func unfocus() -> void:
-	await _ease_focus(280.0, _focus, 0.0, func(v: float) -> void: _focus = v)
+	await _ease_focus(
+		280.0,
+		_focus,
+		0.0,
+		func(v: float) -> void:
+			_focus = v,
+	)
 
 func _apply_camera(shake: Vector2) -> void:
 	var c := _base_center.lerp(_focus_center, _focus)
@@ -375,8 +395,13 @@ func _build_world() -> void:
 			var h := (WATER_Y + 0.025) if t == "~" else (0.135 if t == "=" else _top_at(x, y) + 0.008)
 			var u0 := Vector2(float(x) / sw, float(y) / sh)
 			var u1 := Vector2(float(x + 1) / sw, float(y + 1) / sh)
-			ok.uv_quad(Vector3(x, h, y), Vector3(x, h, y + 1), Vector3(x + 1, h, y + 1), Vector3(x + 1, h, y),
-				[u0, Vector2(u0.x, u1.y), u1, Vector2(u1.x, u0.y)])
+			ok.uv_quad(
+				Vector3(x, h, y),
+				Vector3(x, h, y + 1),
+				Vector3(x + 1, h, y + 1),
+				Vector3(x + 1, h, y),
+				[u0, Vector2(u0.x, u1.y), u1, Vector2(u1.x, u0.y)],
+			)
 	var om := StandardMaterial3D.new()
 	om.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	om.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
@@ -420,7 +445,13 @@ func _tile_mesh(k: Kit, water: Kit, t: String, x: int, y: int, ter: Dictionary) 
 		".", "v", "c", "x", "t":
 			for i in 5:
 				var q := Vector3(x + 0.1 + Board.hash01(x, y, i) * 0.8, top, y + 0.1 + Board.hash01(x, y, i + 20) * 0.8)
-				k.cone(q, 0.022, 0.05 + Board.hash01(x, y, i + 9) * 0.04, KK_GRASS_SIDE if Board.hash01(x, y, i + 9) > 0.5 else KK_GRASS.darkened(0.15), 4)
+				k.cone(
+					q,
+					0.022,
+					0.05 + Board.hash01(x, y, i + 9) * 0.04,
+					KK_GRASS_SIDE if Board.hash01(x, y, i + 9) > 0.5 else KK_GRASS.darkened(0.15),
+					4,
+				)
 		"r":
 			var road: Dictionary = ter.r
 			_road(k, x, y, road)
@@ -439,12 +470,16 @@ func _place_prop(t: String, x: int, y: int, top: float) -> void:
 			fit_k = 1.05
 			max_h = 0.55
 		"h":
-			path = "hex/decoration/nature/hills_%s%s.gltf" % [["A", "B", "C"][int(Board.hash01(x, y, 3) * 3.0) % 3],
-				"_trees" if Board.hash01(x, y, 4) < 0.35 else ""]
+			path = "hex/decoration/nature/hills_%s%s.gltf" % [
+				["A", "B", "C"][int(Board.hash01(x, y, 3) * 3.0) % 3],
+				"_trees" if Board.hash01(x, y, 4) < 0.35 else "",
+			]
 			fit_k = 1.0
 		"m":
-			path = "hex/decoration/nature/mountain_%s_grass%s.gltf" % [["A", "B", "C"][int(Board.hash01(x, y, 5) * 3.0) % 3],
-				"_trees" if Board.hash01(x, y, 6) < 0.4 else ""]
+			path = "hex/decoration/nature/mountain_%s_grass%s.gltf" % [
+				["A", "B", "C"][int(Board.hash01(x, y, 5) * 3.0) % 3],
+				"_trees" if Board.hash01(x, y, 6) < 0.4 else "",
+			]
 			fit_k = 1.05
 			max_h = 0.7
 		"=":
@@ -515,9 +550,13 @@ func _sync_sites(time: float) -> void:
 						var old_flag: Node3D = old.flag
 						old_flag.queue_free()
 				var col: String = SITE_COLOR.get(own, "yellow")
-				var path := "hex/buildings/yellow/building_church_yellow.gltf" if t == "t" else "hex/buildings/neutral/building_destroyed.gltf" if t == "x" \
-					else ("hex/buildings/%s/building_home_%s_%s.gltf" % [col, "A" if Board.hash01(x, y, 3) < 0.5 else "B", col]) if t == "v" \
-					else ("hex/buildings/%s/building_castle_%s.gltf" % [col, col])
+				var path := (
+					"hex/buildings/yellow/building_church_yellow.gltf"
+					if t == "t"
+					else "hex/buildings/neutral/building_destroyed.gltf" if t == "x" \
+							else ("hex/buildings/%s/building_home_%s_%s.gltf" % [col, "A" if Board.hash01(x, y, 3) < 0.5 else "B", col]) if t == "v" \
+							else ("hex/buildings/%s/building_castle_%s.gltf" % [col, col])
+				)
 				var mi := KK.prop(path, 0.62 if t != "c" else 0.78, 0.5 if t != "c" else 0.75)
 				mi.position = Vector3(x + 0.5, 0.0, y + 0.5 - SITE_BACK)
 				_world.add_child(mi)
@@ -633,7 +672,7 @@ func _make_actor(u: Dictionary) -> Node3D:
 	return a
 
 func _sync_pieces(time: float) -> void:
-	var used := {}
+	var used := { }
 	var sel_id: int = view.sel.id if view.sel != null else -1
 	for it: Dictionary in _shown:
 		var u: Dictionary = it.u
@@ -820,4 +859,3 @@ func _draw_top(ci: CanvasItem) -> void:
 		Draw.set_xf(ci, Transform2D(0.0, Vector2.ONE, 0.0, q - Vector2((ppx + 0.5) * te, ppy * te)))
 		_flat._draw_preview(ci)
 		Draw.set_xf(ci, Transform2D.IDENTITY)
-

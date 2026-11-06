@@ -20,11 +20,18 @@ class SoundRing extends RigFx.Fx:
 	var R0: float
 	var R1: float
 	var sp: float
+
 	func _init(p_r: Rig, p_o: Dictionary) -> void:
-		r = p_r; o = p_o
+		r = p_r
+		o = p_o
 		var p0 := r.point("rim")
-		x = p0.x; x0 = x; y0 = p0.y
-		R0 = o.get("R0", 34.0); R1 = o.get("R1", 84.0); sp = o.get("speed", 1300.0)
+		x = p0.x
+		x0 = x
+		y0 = p0.y
+		R0 = o.get("R0", 34.0)
+		R1 = o.get("R1", 84.0)
+		sp = o.get("speed", 1300.0)
+
 	func upd(s: float, ms: float) -> bool:
 		age += ms
 		x += sp * s * (0.35 if hit else 1.0)
@@ -36,6 +43,7 @@ class SoundRing extends RigFx.Fx:
 		if hit:
 			gone += ms
 		return gone < FADE
+
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
@@ -52,7 +60,9 @@ class SoundRing extends RigFx.Fx:
 			var rx := rr * 0.32
 			var cx := -rx - k * 10.0
 			ctx.alpha = a * (1.0 - k * 0.22)
-			ctx.begin_path(); ctx.ellipse(cx, 0.0, rx, rr, 0.0, 0.0, TAU); ctx.close_path()
+			ctx.begin_path()
+			ctx.ellipse(cx, 0.0, rx, rr, 0.0, 0.0, TAU)
+			ctx.close_path()
 			ctx.stroke(RigFx.INK, 9.0 if k > 0 else 12.0)
 			ctx.stroke(BRONZE if k > 0 else PALE, 4.5 if k > 0 else 6.0)
 			if k == 0:
@@ -71,15 +81,24 @@ static func boom(a: Rig, tip: String, big: bool) -> void:
 
 func events(_r: Rig) -> Array:
 	return [
-		[160.0, func(a: Rig) -> void:
-			a.gleam("tipB")
-			a.gleam("tipF")],
-		[268.0, func(a: Rig) -> void:
-			boom(a, "tipB", false)
-			a.add(SoundRing.new(a, { "R0": 30.0, "R1": 70.0, "hit": Rig.with(Rig.HIT_SMALL, { "dmg": 12 }) }))],
-		[396.0, func(a: Rig) -> void:
-			boom(a, "tipF", true)
-			a.add(SoundRing.new(a, { "R0": 38.0, "R1": 92.0, "scale": 1.0, "hit": Rig.with(Rig.HIT, { "dmg": 26 }) }))],
+		[
+			160.0,
+			func(a: Rig) -> void:
+				a.gleam("tipB")
+				a.gleam("tipF"),
+		],
+		[
+			268.0,
+			func(a: Rig) -> void:
+				boom(a, "tipB", false)
+				a.add(SoundRing.new(a, { "R0": 30.0, "R1": 70.0, "hit": Rig.with(Rig.HIT_SMALL, { "dmg": 12 }) })),
+		],
+		[
+			396.0,
+			func(a: Rig) -> void:
+				boom(a, "tipF", true)
+				a.add(SoundRing.new(a, { "R0": 38.0, "R1": 92.0, "scale": 1.0, "hit": Rig.with(Rig.HIT, { "dmg": 26 }) })),
+		],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
@@ -119,6 +138,9 @@ func draw(ctx: RigCtx, _cam: RigCam, r: Rig, layer: String, _t: float) -> void:
 	for a: float in [-172.0, -150.0, -30.0, -8.0]:
 		var c := cos(a / 57.3)
 		var s2 := sin(a / 57.3) * 0.55
-		ctx.begin_path(); ctx.move_to(f.x + c * r0, f.y - 6.0 + s2 * r0); ctx.line_to(f.x + c * r1, f.y - 6.0 + s2 * r1)
-		ctx.stroke(RigFx.INK, 10); ctx.stroke(BRONZE, 5)
+		ctx.begin_path()
+		ctx.move_to(f.x + c * r0, f.y - 6.0 + s2 * r0)
+		ctx.line_to(f.x + c * r1, f.y - 6.0 + s2 * r1)
+		ctx.stroke(RigFx.INK, 10)
+		ctx.stroke(BRONZE, 5)
 	ctx.alpha = 1.0

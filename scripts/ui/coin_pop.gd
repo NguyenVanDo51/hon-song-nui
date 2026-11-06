@@ -34,7 +34,10 @@ func _process(_dt: float) -> void:
 	if pops.is_empty():
 		return
 	var now := Time.get_ticks_msec() / 1000.0
-	pops = pops.filter(func(p: Dictionary) -> bool: return now - p.t0 < HOLD + FADE)
+	pops = pops.filter(
+		func(p: Dictionary) -> bool:
+			return now - p.t0 < HOLD + FADE,
+	)
 	queue_redraw()
 
 func _draw() -> void:

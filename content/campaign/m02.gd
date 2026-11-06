@@ -48,7 +48,7 @@ const DEF := {
 	"tips": [
 		"Mục tiêu mới: [b]chiếm thành[/b] địch và [b]hạ Tướng giặc[/b]. Chỉ tướng chiếm được thành.",
 		"Bấm vào [b]thành[/b] của ta để [b]mua lính[/b]; lính mới đi và đánh được ngay. Thành đang có quân: bấm quân đó 2 lần rồi chọn [b]Mộ "
-			+ "quân[/b], lính mới phải bước ra ô khác.",
+		+ "quân[/b], lính mới phải bước ra ô khác.",
 		"[b]Nỏ thủ[/b] bắn cách 2 ô thì địch không đánh trả được. Sông lội được nhưng tốn 3 bước, đứng dưới nước không được thủ: đi cầu nhanh hơn.",
 		"Làng +30 vàng, thành +50 vàng mỗi lượt. Tướng ngã thì mua lại ở thành (200 vàng, mỗi lần ngã +200), vẫn giữ cấp.",
 	],

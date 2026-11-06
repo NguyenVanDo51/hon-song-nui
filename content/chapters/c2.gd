@@ -2,7 +2,8 @@ extends RefCounted
 ## chapter 2: Mã Viện's invasion (42–43). Format: content/chapters/c1.gd
 
 const DEF := {
-	"id": "c2", "order": 2,
+	"id": "c2",
+	"order": 2,
 	"title": "Chống Mã Viện",
 	"years": "Năm 42–43",
 	"subtitle": "Năm 42 · Phục Ba tướng quân Mã Viện vượt biển sang Giao Chỉ",
@@ -14,10 +15,7 @@ const DEF := {
 		{ "name": "Sông Đáy", "w": 1.6, "d": "M14,30 C16,40 12,48 16,56 S20,64 18,70" },
 		{ "name": "Sông Thái Bình", "w": 1.6, "d": "M70,33 C74,40 76,46 80,50 S86,54 90,56" },
 	],
-	"lakes": [
-		{ "name": "Biển Đông", "cx": 104, "cy": 50, "rx": 14, "ry": 34 },
-		{ "name": "Lãng Bạc", "cx": 55, "cy": 37, "rx": 2.6, "ry": 1.8 },
-	],
+	"lakes": [{ "name": "Biển Đông", "cx": 104, "cy": 50, "rx": 14, "ry": 34 }, { "name": "Lãng Bạc", "cx": 55, "cy": 37, "rx": 2.6, "ry": 1.8 }],
 	"labels": [
 		{ "text": "GIAO CHỈ", "x": 38, "y": 62, "size": 4 },
 		{ "text": "BIỂN ĐÔNG", "x": 94, "y": 64, "size": 2.6, "river": true },

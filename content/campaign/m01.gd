@@ -15,18 +15,7 @@ const DEF := {
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },
 	"win": { "type": "rout" },
-	"map": {
-		"rows": [
-			"......fff~~",
-			".rv...fhf.~",
-			".rrrrrrv..~",
-			".rfhf..r.~~",
-			".r.f...rh~~",
-			"fv.....rf.~",
-			"hf.....vf.~",
-			".......fh~~",
-		],
-	},
+	"map": { "rows": ["......fff~~", ".rv...fhf.~", ".rrrrrrv..~", ".rfhf..r.~~", ".r.f...rh~~", "fv.....rf.~", "hf.....vf.~", ".......fh~~"] },
 	"units": [
 		["p", "hero", 1, 3],
 		["p", "soldier", 1, 2],
@@ -38,10 +27,7 @@ const DEF := {
 	],
 	"story": {
 		"intro": [
-			[
-				"truyenthuyet",
-				"Thái thú Tô Định tham bạo, giết Thi Sách, chồng bà Trưng Trắc. Thuế nặng, dân Giao Chỉ oán hận.",
-			],
+			["truyenthuyet", "Thái thú Tô Định tham bạo, giết Thi Sách, chồng bà Trưng Trắc. Thuế nặng, dân Giao Chỉ oán hận."],
 			["trungtrac", "Một xin rửa sạch nước thù, hai xin dựng lại nghiệp xưa họ Hùng."],
 			["danlang", "Lính Hán đang lùa thóc thuế ra bến sông Hát! Dân Hát Môn xin theo Hai Bà!"],
 			["trungnhi", "Chị cứ lo việc lớn. Toán lính thu thuế này để em dẹp."],
@@ -51,7 +37,7 @@ const DEF := {
 	"tips": [
 		"Bấm [b]Anh hùng[/b] (viền vàng): ô xanh là chỗ đi được, kẻ địch viền đỏ là đánh được.",
 		"Rê chuột lên lính Hán viền đỏ: bàn cờ hiện đường đi và [b]⚔ gây · ↩ nhận[/b]. [b]Bấm là đánh.[/b] Muốn chọn chỗ đứng: bấm ô xanh trước "
-			+ "rồi bấm địch.",
+		+ "rồi bấm địch.",
 		"Lính đứng trên làng rồi bấm [b]Chiếm[/b]: làng của ta hồi 20 máu mỗi lượt.",
 		"Đòn đánh trúng nhiều hay ít tùy may. Ra lệnh xong cho cả đội thì bấm [b]Hết lượt[/b].",
 	],

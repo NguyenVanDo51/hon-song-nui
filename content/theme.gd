@@ -8,16 +8,61 @@ extends RefCounted
 ## the one troop roster, used by both factions (same name + icon; only the faction colour differs)
 const UNITS := {
 	"hero": null,
-	"soldier": { "name": "Bộ binh", "icon": "🗡️", "fig": "res://assets/units/soldier.svg", "desc": "Lính cầm giáo. Rẻ, chiếm được làng, sửa được làng hỏng." },
-	"archer": { "name": "Nỏ thủ", "icon": "🏹", "fig": "res://assets/units/archer.svg", "desc": "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn rồng." },
-	"boat": { "name": "Thủy binh", "icon": "⛵", "fig": "res://assets/units/soldier.svg", "desc": "Quen sông nước: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ." },
-	"shaman": { "name": "Thầy mo", "icon": "🌿", "fig": "res://assets/units/shaman.svg", "desc": "Gọi hồn lính ngã ngay cạnh thành âm binh đánh cho ta (cả lính địch ngã)." },
-	"drum": { "name": "Trống đồng", "icon": "🥁", "fig": "res://assets/units/drum.svg", "desc": "Đánh trống xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh âm binh." },
-	"wolf": { "name": "Sói", "icon": "🐺", "fig": "res://assets/units/elephant.svg", "desc": "Sói rừng thuần làm quân. Chạy nhanh (6 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta." },
+	"soldier": {
+		"name": "Bộ binh",
+		"icon": "🗡️",
+		"fig": "res://assets/units/soldier.svg",
+		"desc": "Lính cầm giáo. Rẻ, chiếm được làng, sửa được làng hỏng.",
+	},
+	"archer": {
+		"name": "Nỏ thủ",
+		"icon": "🏹",
+		"fig": "res://assets/units/archer.svg",
+		"desc": "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn rồng.",
+	},
+	"boat": {
+		"name": "Thủy binh",
+		"icon": "⛵",
+		"fig": "res://assets/units/soldier.svg",
+		"desc": "Quen sông nước: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ.",
+	},
+	"shaman": {
+		"name": "Thầy mo",
+		"icon": "🌿",
+		"fig": "res://assets/units/shaman.svg",
+		"desc": "Gọi hồn lính ngã ngay cạnh thành âm binh đánh cho ta (cả lính địch ngã).",
+	},
+	"drum": {
+		"name": "Trống đồng",
+		"icon": "🥁",
+		"fig": "res://assets/units/drum.svg",
+		"desc": "Đánh trống xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh âm binh.",
+	},
+	"wolf": {
+		"name": "Sói",
+		"icon": "🐺",
+		"fig": "res://assets/units/elephant.svg",
+		"desc": "Sói rừng thuần làm quân. Chạy nhanh (6 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta.",
+	},
 	"elephant": { "name": "Voi chiến", "icon": "🐘", "fig": "res://assets/units/elephant.svg", "desc": "Thủ rất dày, đánh mạnh. Đắt." },
-	"catapult": { "name": "Máy bắn đá", "icon": "🪨", "fig": "res://assets/units/catapult.svg", "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng hỏng)." },
-	"bird": { "name": "Rồng", "icon": "🐉", "fig": "res://assets/units/bird.svg", "desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 7. Mạnh nhất, đắt nhất. Nỏ thủ bắn rồng +15 công." },
-	"ghost": { "name": "Âm binh", "icon": "🩹", "fig": "res://assets/units/ghost.svg", "desc": "Hồn lính ngã được thầy mo gọi dậy. Không mua được, không tính vào giới hạn quân, không chiếm được làng." },
+	"catapult": {
+		"name": "Máy bắn đá",
+		"icon": "🪨",
+		"fig": "res://assets/units/catapult.svg",
+		"desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng hỏng).",
+	},
+	"bird": {
+		"name": "Rồng",
+		"icon": "🐉",
+		"fig": "res://assets/units/bird.svg",
+		"desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 7. Mạnh nhất, đắt nhất. Nỏ thủ bắn rồng +15 công.",
+	},
+	"ghost": {
+		"name": "Âm binh",
+		"icon": "🩹",
+		"fig": "res://assets/units/ghost.svg",
+		"desc": "Hồn lính ngã được thầy mo gọi dậy. Không mua được, không tính vào giới hạn quân, không chiếm được làng.",
+	},
 }
 
 ## level titles (AE2 renames a unit every 2 levels, 4 tiers): index = min(level / 2, 3) -> 0-1, 2-3, 4-5, 6-9
@@ -81,10 +126,20 @@ const THEME := {
 	},
 	## end card line per winner side + engine reason
 	"ends": {
-		"p": { "routed": "Đã quét sạch quân địch.", "castlesLost": "Đã chiếm hết thành và hạ tướng địch.", "heroKilled": "{eh} đã bị hạ.",
-			"survived": "Đã giữ vững đến cùng.", "reached": "{hero} đã tới nơi an toàn." },
-		"e": { "heroFell": "{hero} đã ngã.", "castlesLost": "Mất hết thành, tướng ta cũng đã ngã.", "heroKilled": "{hero} đã ngã, ta không còn thành nào.", "routed": "Quân ta đã tan.",
-			"timeUp": "Không kịp tới nơi, giặc đã khép vòng vây." },
+		"p": {
+			"routed": "Đã quét sạch quân địch.",
+			"castlesLost": "Đã chiếm hết thành và hạ tướng địch.",
+			"heroKilled": "{eh} đã bị hạ.",
+			"survived": "Đã giữ vững đến cùng.",
+			"reached": "{hero} đã tới nơi an toàn.",
+		},
+		"e": {
+			"heroFell": "{hero} đã ngã.",
+			"castlesLost": "Mất hết thành, tướng ta cũng đã ngã.",
+			"heroKilled": "{hero} đã ngã, ta không còn thành nào.",
+			"routed": "Quân ta đã tan.",
+			"timeUp": "Không kịp tới nơi, giặc đã khép vòng vây.",
+		},
 	},
 	"factions": {
 		"p": {
@@ -113,17 +168,18 @@ const THEME := {
 	},
 	"terrain": {
 		".": { "name": "Đồng lúa", "paint": "field", "base": "#5a7a3a", "line": "#6d8f44" },
-		"r": { "name": "Đường mòn", "paint": "road", "base": "#5a7a3a", "line": "#6d8f44", "dirt": "#a48a58", "dirt2": "#7c6740", "pebble": "#c2ab7a" },
+		"r": {
+			"name": "Đường mòn",
+			"paint": "road",
+			"base": "#5a7a3a",
+			"line": "#6d8f44",
+			"dirt": "#a48a58",
+			"dirt2": "#7c6740",
+			"pebble": "#c2ab7a",
+		},
 		"f": { "name": "Rừng", "paint": "forest", "base": "#3d5a2a", "tree": "#22401b", "tree2": "#2f5523" },
 		"h": { "name": "Đồi", "paint": "hill", "base": "#77733f", "hill": "#959150", "hill2": "#aaa65d" },
-		"m": {
-			"name": "Núi",
-			"paint": "mountain",
-			"base": "#625a4e",
-			"rock": "#8a7f6e",
-			"rock2": "#6f6556",
-			"snow": "#e4ddcd",
-		},
+		"m": { "name": "Núi", "paint": "mountain", "base": "#625a4e", "rock": "#8a7f6e", "rock2": "#6f6556", "snow": "#e4ddcd" },
 		"~": { "name": "Sông", "paint": "water", "base": "#24577a", "wave": "#4c8db0", "deep": "#1c4766" },
 		"=": {
 			"name": "Cầu tre",

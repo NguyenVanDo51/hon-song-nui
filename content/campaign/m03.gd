@@ -36,16 +36,7 @@ const DEF := {
 		{ "turn": 2, "units": [["soldier", 1, 1], ["soldier", 6, 1], ["soldier", 10, 1]] },
 		{ "turn": 4, "units": [["soldier", 11, 4], ["soldier", 11, 5], ["archer", 8, 1]] },
 		{ "turn": 6, "units": [["soldier", 0, 1], ["soldier", 4, 1], ["soldier", 11, 6], ["archer", 7, 1]] },
-		{
-			"turn": 8,
-			"units": [
-				["soldier", 11, 4],
-				["soldier", 11, 7],
-				["soldier", 3, 1],
-				["archer", 9, 1],
-				["soldier", 6, 1, { "rank": 1 }],
-			],
-		},
+		{ "turn": 8, "units": [["soldier", 11, 4], ["soldier", 11, 7], ["soldier", 3, 1], ["archer", 9, 1], ["soldier", 6, 1, { "rank": 1 }]] },
 	],
 	"story": {
 		"intro": [

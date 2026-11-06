@@ -3,11 +3,19 @@ extends SceneTree
 ## units_shot, income_shot): boot main.tscn, wait for the game + boot_wait s, args = main.flags (every k=v after --),
 ## then await _run(game). Subclass: `extends "res://sim/probes/probe_base.gd"` and override _run.
 
-const DIRS := { "right": Vector2i(1, 0), "left": Vector2i(-1, 0), "up": Vector2i(0, -1), "down": Vector2i(0, 1),
-	"ur": Vector2i(1, -1), "dr": Vector2i(1, 1), "ul": Vector2i(-1, -1), "dl": Vector2i(-1, 1) }
+const DIRS := {
+	"right": Vector2i(1, 0),
+	"left": Vector2i(-1, 0),
+	"up": Vector2i(0, -1),
+	"down": Vector2i(0, 1),
+	"ur": Vector2i(1, -1),
+	"dr": Vector2i(1, 1),
+	"ul": Vector2i(-1, -1),
+	"dl": Vector2i(-1, 1),
+}
 
 var main: Main
-var args := {}
+var args := { }
 var boot_wait := 1.5 # s after the game is up (fonts, atlas, first bake)
 var timeout_ms := 0 # > 0: quit(1) past this wall time (a script error must not hang a guarded run)
 
@@ -55,8 +63,10 @@ static func clear_around(s: Dictionary, at: Vector2i, r: int, keep: Array) -> vo
 ## attacker a on tile ax, defender d on dx, plain ground under both, board redrawn
 static func stage(g: GameScreen, a: Dictionary, d: Dictionary, ax: Vector2i, dx: Vector2i) -> void:
 	var s: Dictionary = g.s
-	a.x = ax.x; a.y = ax.y
-	d.x = dx.x; d.y = dx.y
+	a.x = ax.x
+	a.y = ax.y
+	d.x = dx.x
+	d.y = dx.y
 	for c: Vector2i in [ax, dx]:
 		s.tiles[c.y][c.x] = "."
 	refresh_terrain(g)

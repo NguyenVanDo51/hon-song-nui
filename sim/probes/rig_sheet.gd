@@ -40,10 +40,24 @@ func _setup(g: GameScreen) -> void:
 	@warning_ignore("integer_division")
 	var ax := Vector2i(w / 2 - 1, h / 2)
 	var dx := ax + dv
-	var mine: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == side)
-	var pick: Array = mine.filter(func(u: Dictionary) -> bool: return u.type == unit)
-	a = pick[0] if not pick.is_empty() else mine.filter(func(u: Dictionary) -> bool: return u.type != "hero")[0]
-	d = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == foe and u.type != "hero")[0]
+	var mine: Array = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == side,
+	)
+	var pick: Array = mine.filter(
+		func(u: Dictionary) -> bool:
+			return u.type == unit,
+	)
+	a = (pick[0]
+		if not pick.is_empty()
+		else mine.filter(
+			func(u: Dictionary) -> bool:
+				return u.type != "hero",
+		)[0])
+	d = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == foe and u.type != "hero",
+	)[0]
 	a.type = unit
 	d.type = args.get("target", "soldier")
 	clear_around(s, ax, 5, [a.id, d.id])

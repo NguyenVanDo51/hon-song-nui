@@ -54,32 +54,49 @@ func draw_fire(ctx: RigCtx, cam: RigCam, r: Rig, t: float) -> void:
 	var wk := pulse * (1.0 - 0.5 * gone)
 	ctx.set_xf(cam.aimed(m, d, cam.ca))
 	ctx.alpha = 0.3
-	fire_shape(ctx, s0, s1, wk, t, 1.35); ctx.fill(fire.mid) # faint halo
+	fire_shape(ctx, s0, s1, wk, t, 1.35)
+	ctx.fill(fire.mid) # faint halo
 	ctx.alpha = 1.0
-	fire_shape(ctx, s0, s1, wk, t, 1.0); ctx.fill(fire.out); ctx.stroke(RigFx.INK, 6)
-	fire_shape(ctx, s0 + 4.0, s0 + (s1 - s0) * 0.92, wk, t + 90.0, 0.64); ctx.fill(fire.mid)
-	fire_shape(ctx, s0 + 8.0, s0 + (s1 - s0) * 0.74, wk, t + 200.0, 0.3); ctx.fill(fire.core)
+	fire_shape(ctx, s0, s1, wk, t, 1.0)
+	ctx.fill(fire.out)
+	ctx.stroke(RigFx.INK, 6)
+	fire_shape(ctx, s0 + 4.0, s0 + (s1 - s0) * 0.92, wk, t + 90.0, 0.64)
+	ctx.fill(fire.mid)
+	fire_shape(ctx, s0 + 8.0, s0 + (s1 - s0) * 0.74, wk, t + 200.0, 0.3)
+	ctx.fill(fire.core)
 
 ## fire cone as an fx added at T_FIRE: drawn before later hit fx (burst / number stay over the flame)
 func fire_fx(a: Rig) -> void:
 	var t_gone: float = data.consts.T_GONE
-	a.add({
-		"upd": func(_s: float, _ms: float) -> bool: return a.t <= t_gone and a.t > 0.0,
-		"draw": func(ctx: RigCtx, cam: RigCam, layer: String) -> void:
-			if layer == "front" and a.t <= t_gone and a.t > 0.0:
-				draw_fire(ctx, cam, a, a.t),
-	})
+	a.add(
+		{
+			"upd": func(_s: float, _ms: float) -> bool:
+				return a.t <= t_gone and a.t > 0.0,
+			"draw": func(ctx: RigCtx, cam: RigCam, layer: String) -> void:
+				if layer == "front" and a.t <= t_gone and a.t > 0.0:
+					draw_fire(ctx, cam, a, a.t),
+		}
+	)
 
 ## flat flame ball with ink outline (mouth glow); frame = upright at the mouth, highlight stays top-left
 func orb(ctx: RigCtx, cam: RigCam, at: Vector2, r: float) -> void:
 	var fire: Dictionary = data.consts.FIRE
 	ctx.set_xf(cam.at_px(at))
 	ctx.alpha = 0.35
-	ctx.begin_path(); ctx.circle(0, 0, r * 1.7); ctx.fill(fire.mid)
+	ctx.begin_path()
+	ctx.circle(0, 0, r * 1.7)
+	ctx.fill(fire.mid)
 	ctx.alpha = 1.0
-	ctx.begin_path(); ctx.circle(0, 0, r); ctx.fill(fire.out); ctx.stroke(RigFx.INK, 4)
-	ctx.begin_path(); ctx.circle(0, 0, r * 0.62); ctx.fill(fire.mid)
-	ctx.begin_path(); ctx.circle(-r * 0.15, -r * 0.15, r * 0.3); ctx.fill(fire.core)
+	ctx.begin_path()
+	ctx.circle(0, 0, r)
+	ctx.fill(fire.out)
+	ctx.stroke(RigFx.INK, 4)
+	ctx.begin_path()
+	ctx.circle(0, 0, r * 0.62)
+	ctx.fill(fire.mid)
+	ctx.begin_path()
+	ctx.circle(-r * 0.15, -r * 0.15, r * 0.3)
+	ctx.fill(fire.core)
 
 ## rising embers at the target after the final hit (own state -> add); pinned to the target frame (w = 1)
 func embers(a: Rig, n: int) -> void:
@@ -101,18 +118,27 @@ func embers(a: Rig, n: int) -> void:
 
 class Ember extends RigFx.Mote:
 	var col: Color
+
 	func move(s: float) -> void:
 		x += (vx + 30.0 * sin(age / 120.0)) * s
 		y += vy * s
 		vy *= 1.0 - 0.8 * s
 		rot += vr * s
+
 	func fade() -> float:
 		var u := age / life
 		return 1.0 - u * u
+
 	func shape(ctx: RigCtx) -> void:
 		var rad := rr * (1.0 - age / life * 0.6)
-		ctx.begin_path(); ctx.move_to(0, -rad * 1.5); ctx.line_to(rad, 0); ctx.line_to(0, rad); ctx.line_to(-rad, 0); ctx.close_path()
-		ctx.fill(col); ctx.stroke(RigFx.INK, 3)
+		ctx.begin_path()
+		ctx.move_to(0, -rad * 1.5)
+		ctx.line_to(rad, 0)
+		ctx.line_to(0, rad)
+		ctx.line_to(-rad, 0)
+		ctx.close_path()
+		ctx.fill(col)
+		ctx.stroke(RigFx.INK, 3)
 
 # ---------- RigSpec ----------
 func events(_r: Rig) -> Array:
@@ -120,22 +146,56 @@ func events(_r: Rig) -> Array:
 	var t_fire: float = c.T_FIRE
 	var fire: Dictionary = c.FIRE
 	return [
-		[120.0, func(a: Rig) -> void: a.gleam("lipU", 200)],
-		[300.0, func(a: Rig) -> void: a.shake(3, 120)],
-		[t_fire - 20.0, func(a: Rig) -> void: a.flash(fire.mid, 50)],
-		[t_fire, func(a: Rig) -> void:
-			a.sound("orb")
-			fire_fx(a)],
-		[450.0, func(a: Rig) -> void: a.hit(Rig.with(Rig.HIT_SMALL, { "dmg": 8 }))],
-		[540.0, func(a: Rig) -> void: a.hit(Rig.with(Rig.HIT_SMALL, { "dmg": 8 }))],
-		[630.0, func(a: Rig) -> void: a.hit(Rig.with(Rig.HIT_SMALL, { "dmg": 8 }))],
-		[705.0, func(a: Rig) -> void: a.hit(Rig.with(Rig.HIT, { "dmg": 50 }))],
-		[720.0, func(a: Rig) -> void:
-			embers(a, 12)
-			var tx: float = a.target().x
-			var ty: float = a.target().y
-			var col: String = fire.out
-			a.sparks(tx, ty, 6, col)],
+		[
+			120.0,
+			func(a: Rig) -> void:
+				a.gleam("lipU", 200),
+		],
+		[
+			300.0,
+			func(a: Rig) -> void:
+				a.shake(3, 120),
+		],
+		[
+			t_fire - 20.0,
+			func(a: Rig) -> void:
+				a.flash(fire.mid, 50),
+		],
+		[
+			t_fire,
+			func(a: Rig) -> void:
+				a.sound("orb")
+				fire_fx(a),
+		],
+		[
+			450.0,
+			func(a: Rig) -> void:
+				a.hit(Rig.with(Rig.HIT_SMALL, { "dmg": 8 })),
+		],
+		[
+			540.0,
+			func(a: Rig) -> void:
+				a.hit(Rig.with(Rig.HIT_SMALL, { "dmg": 8 })),
+		],
+		[
+			630.0,
+			func(a: Rig) -> void:
+				a.hit(Rig.with(Rig.HIT_SMALL, { "dmg": 8 })),
+		],
+		[
+			705.0,
+			func(a: Rig) -> void:
+				a.hit(Rig.with(Rig.HIT, { "dmg": 50 })),
+		],
+		[
+			720.0,
+			func(a: Rig) -> void:
+				embers(a, 12)
+				var tx: float = a.target().x
+				var ty: float = a.target().y
+				var col: String = fire.out
+				a.sparks(tx, ty, 6, col),
+		],
 	]
 
 ## body wave: hump / tail / fin springs lag the neck snap and swing through
@@ -183,7 +243,8 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 			ctx.begin_path()
 			ctx.move_to(cos(a) * dd, sin(a) * dd)
 			ctx.line_to(cos(a) * (dd + 26.0), sin(a) * (dd + 26.0))
-			ctx.stroke(RigFx.INK, 8); ctx.stroke(fire.core, 4)
+			ctx.stroke(RigFx.INK, 8)
+			ctx.stroke(fire.core, 4)
 		ctx.alpha = 1.0
 	var rr: float
 	if t < t_fire:

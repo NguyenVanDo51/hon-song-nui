@@ -6,17 +6,39 @@ extends RigSpec
 
 func events(_r: Rig) -> Array:
 	return [
-		[120.0, func(a: Rig) -> void: a.gleam("eye", 200)],
-		[236.0, func(a: Rig) -> void: a.dust(70, 244, 7, -1)],
-		[442.0, func(a: Rig) -> void:
-			a.hit(Rig.HIT)
-			a.add(Claw.new(a))],
-		[620.0, func(a: Rig) -> void:
-			# game poisons only on the wolf's own attack + survivor (game.gd); counters run at COUNTER_SPEED
-			if not a.kill and a.time_scale != Rigs.COUNTER_SPEED:
-				a.add(Weak.new(a))],
-		[652.0, func(a: Rig) -> void: a.dust(200, 244, 4, 1)],
-		[890.0, func(a: Rig) -> void: a.dust(128, 244, 6, 0)],
+		[
+			120.0,
+			func(a: Rig) -> void:
+				a.gleam("eye", 200),
+		],
+		[
+			236.0,
+			func(a: Rig) -> void:
+				a.dust(70, 244, 7, -1),
+		],
+		[
+			442.0,
+			func(a: Rig) -> void:
+				a.hit(Rig.HIT)
+				a.add(Claw.new(a)),
+		],
+		[
+			620.0,
+			func(a: Rig) -> void:
+				# game poisons only on the wolf's own attack + survivor (game.gd); counters run at COUNTER_SPEED
+				if not a.kill and a.time_scale != Rigs.COUNTER_SPEED:
+					a.add(Weak.new(a)),
+		],
+		[
+			652.0,
+			func(a: Rig) -> void:
+				a.dust(200, 244, 4, 1),
+		],
+		[
+			890.0,
+			func(a: Rig) -> void:
+				a.dust(128, 244, 6, 0),
+		],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
@@ -63,10 +85,12 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 class Claw extends RigFx.Timed:
 	const LIFE := 360.0
 	var col: Color
+
 	func _init(p_r: Rig) -> void:
 		r = p_r
 		life = LIFE
 		col = RigFx.col(r.data.consts.CLAW)
+
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
@@ -99,6 +123,7 @@ class Weak extends RigFx.Timed:
 	var dark: Color
 	var mid: Color
 	var light: Color
+
 	func _init(p_r: Rig) -> void:
 		r = p_r
 		life = LIFE
@@ -106,12 +131,20 @@ class Weak extends RigFx.Timed:
 		dark = RigFx.col(wk.dark)
 		mid = RigFx.col(wk.mid)
 		light = RigFx.col(wk.light)
+
 	func _arrow(ctx: RigCtx, x: float, y: float, s: float) -> void:
 		ctx.begin_path()
-		ctx.move_to(x - 7 * s, y - 22 * s); ctx.line_to(x + 7 * s, y - 22 * s); ctx.line_to(x + 7 * s, y - 4 * s); ctx.line_to(x + 16 * s, y - 4 * s)
-		ctx.line_to(x, y + 16 * s); ctx.line_to(x - 16 * s, y - 4 * s); ctx.line_to(x - 7 * s, y - 4 * s); ctx.close_path()
+		ctx.move_to(x - 7 * s, y - 22 * s)
+		ctx.line_to(x + 7 * s, y - 22 * s)
+		ctx.line_to(x + 7 * s, y - 4 * s)
+		ctx.line_to(x + 16 * s, y - 4 * s)
+		ctx.line_to(x, y + 16 * s)
+		ctx.line_to(x - 16 * s, y - 4 * s)
+		ctx.line_to(x - 7 * s, y - 4 * s)
+		ctx.close_path()
 		ctx.fill(mid)
 		ctx.stroke(RigFx.INK, 4)
+
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return

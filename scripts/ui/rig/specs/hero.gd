@@ -13,19 +13,46 @@ func events(r: Rig) -> Array:
 	var t_twister := t_wave + roundf((front - wave_x) / wave_vx * 1000.0)
 	var dmg: Dictionary = c.DMG
 	return [
-		[160.0, func(a: Rig) -> void: a.gleam("tip")],
-		[225.0, func(a: Rig) -> void: a.dust(100, 244, 6, -1)],
-		[t_wave, func(a: Rig) -> void:
-			a.flash("#f4fcff", 50)
-			a.sound("slash")
-			a.wave({ "x": wave_x, "y": 150.0, "vx": wave_vx, "R": 118.0, "angle": -16.0, "hit": Rig.with(Rig.HIT_SMALL, { "dmg": dmg.blade }) })],
-		[t_twister, func(a: Rig) -> void:
-			var tx: float = a.target().x
-			a.shockwave(tx, 244, { "r": 130.0, "ms": 360.0, "color": "#f4fcff" })
-			a.dust(tx, 244, 8, 0)
-			a.tornado({ "x0": tx, "travel": c.TW_TRAVEL, "hold": c.TW_HOLD, "lift": 100.0, "ticks": 3,
-				"tick": Rig.with(Rig.HIT_SMALL, { "dmg": dmg.tick }), "final": Rig.with(Rig.HIT, { "dmg": dmg.drop }) })],
-		[t_drop - 70.0, func(a: Rig) -> void: a.gleam("tip", 150)],
+		[
+			160.0,
+			func(a: Rig) -> void:
+				a.gleam("tip"),
+		],
+		[
+			225.0,
+			func(a: Rig) -> void:
+				a.dust(100, 244, 6, -1),
+		],
+		[
+			t_wave,
+			func(a: Rig) -> void:
+				a.flash("#f4fcff", 50)
+				a.sound("slash")
+				a.wave({ "x": wave_x, "y": 150.0, "vx": wave_vx, "R": 118.0, "angle": -16.0, "hit": Rig.with(Rig.HIT_SMALL, { "dmg": dmg.blade }) }),
+		],
+		[
+			t_twister,
+			func(a: Rig) -> void:
+				var tx: float = a.target().x
+				a.shockwave(tx, 244, { "r": 130.0, "ms": 360.0, "color": "#f4fcff" })
+				a.dust(tx, 244, 8, 0)
+				a.tornado(
+					{
+						"x0": tx,
+						"travel": c.TW_TRAVEL,
+						"hold": c.TW_HOLD,
+						"lift": 100.0,
+						"ticks": 3,
+						"tick": Rig.with(Rig.HIT_SMALL, { "dmg": dmg.tick }),
+						"final": Rig.with(Rig.HIT, { "dmg": dmg.drop }),
+					}
+				),
+		],
+		[
+			t_drop - 70.0,
+			func(a: Rig) -> void:
+				a.gleam("tip", 150),
+		],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:

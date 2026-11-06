@@ -31,45 +31,118 @@ const TERRAIN := {
 ##   noCap (not counted toward unitCap); buyable=false; heavy (bigger hit fx / knockback / sound)
 ##   AI: aiWeight (buy weight, default AI.DEFAULT_WEIGHT); aiValue (worth when scoring trades, default cost)
 const UNITS := {
-	"hero": { "cost": 200, "atk": 55, "atkMax": 65, "def": 20, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "capC": true,
-		"heavy": true, "aiValue": 900 },
-	"soldier": { "cost": 150, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true,
-		"aiWeight": 3 },
-	"archer": { "cost": 250, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 2, "move": "foot", "antiAir": 15, "shot": "arrow",
-		"aiWeight": 2 },
-	"boat": { "cost": 300, "atk": 50, "atkMax": 55, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "water", "waterAtk": 10, "waterDef": 15,
-		"aiWeight": 0.8 },
+	"hero": {
+		"cost": 200,
+		"atk": 55,
+		"atkMax": 65,
+		"def": 20,
+		"mv": 5,
+		"rmin": 1,
+		"rmax": 1,
+		"move": "foot",
+		"capV": true,
+		"capC": true,
+		"heavy": true,
+		"aiValue": 900,
+	},
+	"soldier": { "cost": 150, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "aiWeight": 3 },
+	"archer": {
+		"cost": 250,
+		"atk": 50,
+		"atkMax": 55,
+		"def": 5,
+		"mv": 5,
+		"rmin": 1,
+		"rmax": 2,
+		"move": "foot",
+		"antiAir": 15,
+		"shot": "arrow",
+		"aiWeight": 2,
+	},
+	"boat": {
+		"cost": 300,
+		"atk": 50,
+		"atkMax": 55,
+		"def": 10,
+		"mv": 5,
+		"rmin": 1,
+		"rmax": 1,
+		"move": "water",
+		"waterAtk": 10,
+		"waterDef": 15,
+		"aiWeight": 0.8,
+	},
 	"shaman": { "cost": 400, "atk": 40, "atkMax": 45, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "raise": "ghost", "aiWeight": 0.6 },
-	"drum": { "cost": 500, "atk": 35, "atkMax": 40, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "aura": 10, "vsType": { "ghost": 15 },
-		"aiWeight": 0.5 },
+	"drum": {
+		"cost": 500,
+		"atk": 35,
+		"atkMax": 40,
+		"def": 10,
+		"mv": 5,
+		"rmin": 1,
+		"rmax": 1,
+		"move": "foot",
+		"aura": 10,
+		"vsType": { "ghost": 15 },
+		"aiWeight": 0.5,
+	},
 	"wolf": { "cost": 600, "atk": 60, "atkMax": 65, "def": 15, "mv": 6, "rmin": 1, "rmax": 1, "move": "foot", "poison": 10, "aiWeight": 1.2 },
 	"elephant": { "cost": 600, "atk": 60, "atkMax": 70, "def": 30, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "heavy": true, "aiWeight": 1.4 },
-	"catapult": { "cost": 700, "atk": 50, "atkMax": 70, "def": 10, "mv": 4, "rmin": 2, "rmax": 4, "move": "foot", "siege": true, "raze": true,
-		"shot": "rock", "heavy": true, "aiWeight": 0.7 },
+	"catapult": {
+		"cost": 700,
+		"atk": 50,
+		"atkMax": 70,
+		"def": 10,
+		"mv": 4,
+		"rmin": 2,
+		"rmax": 4,
+		"move": "foot",
+		"siege": true,
+		"raze": true,
+		"shot": "rock",
+		"heavy": true,
+		"aiWeight": 0.7,
+	},
 	"bird": { "cost": 1000, "atk": 70, "atkMax": 80, "def": 25, "mv": 7, "rmin": 1, "rmax": 1, "move": "fly", "heavy": true, "aiWeight": 1 },
-	"ghost": { "cost": 150, "atk": 40, "atkMax": 50, "def": 2, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "noGrave": true, "noCap": true,
-		"buyable": false },
+	"ghost": {
+		"cost": 150,
+		"atk": 40,
+		"atkMax": 50,
+		"def": 2,
+		"mv": 5,
+		"rmin": 1,
+		"rmax": 1,
+		"move": "foot",
+		"noGrave": true,
+		"noCap": true,
+		"buyable": false,
+	},
 }
 const BUY_ORDER := ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird"]
 
 ## the two commanders: same stats as UNITS.hero (AE2: every commander is equal). Only names / look / story differ.
 const HEROES := {
-	"anhhung": {}, # ours
-	"tuonggiac": {}, # theirs
+	"anhhung": { }, # ours
+	"tuonggiac": { }, # theirs
 }
 
 const RULES := {
-	"startGold": 300, "heal": 20, # building income: TERRAIN
+	"startGold": 300,
+	"heal": 20, # building income: TERRAIN
 	# graves: ttl counts down at the start of every side's turn (AE2: 3) -> a grave lasts through the next turn of each side
 	"graveRounds": 3,
 	# xp: a hit gives dmg x victim quality; next level needs own quality x XP_SCALE (quality = atk + atkMax + def incl.
 	# rank bonus), leftover carries,
 	# at most 1 level per fight, max level 9, +2 atk / +2 def per level. Confirmed in the original AE2 bytecode
 	# (docs/review/ae2_research.md).
-	"xpScale": 200.0 / 3.0, "maxRank": 9, "rankBonus": 2,
+	"xpScale": 200.0 / 3.0,
+	"maxRank": 9,
+	"rankBonus": 2,
 	"unitCap": 100, # campaign default (AE2 RM MainDisplayable:3310); skirmish passes its own cap
 	# hero rebuy: 200 + 200 per death so far, max 1000; the revived hero keeps its level / xp (AE2)
-	"heroBase": 200, "heroStep": 200, "heroMax": 1000,
+	"heroBase": 200,
+	"heroStep": 200,
+	"heroMax": 1000,
 	# buyAE2: a bought unit acts the same turn; our castle may be bought on while one of our units stands there
 	"buyAE2": true,
 }

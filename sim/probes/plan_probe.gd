@@ -7,7 +7,7 @@ const HARD_V1 := { "hp_cap": 81.2937, "kill_hero": 552.335 }
 var seed_v := 1.0
 
 func _init() -> void:
-	var args := {}
+	var args := { }
 	for a: String in OS.get_cmdline_user_args():
 		var kv := a.split("=", true, 1)
 		args[kv[0]] = kv[1] if kv.size() > 1 else ""
@@ -18,7 +18,7 @@ func _init() -> void:
 	var salt := int(a_salt)
 	var want := int(a_want)
 	AI.rng = rng
-	var tags := {}
+	var tags := { }
 	var plans := 0
 	var replans := 0
 	var turns := 0
@@ -30,7 +30,7 @@ func _init() -> void:
 				var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false))
 				s.rng = int(seed_v)
 				s.aiParams = { v2_side: AI.PRESETS.hard, Game.other(v2_side): HARD_V1 }
-				var mem := {}
+				var mem := { }
 				var turn_start: Dictionary = s.duplicate(true)
 				var turn_steps := []
 				while s.winner == null and s.turn <= 60:
@@ -50,7 +50,7 @@ func _init() -> void:
 							if shown < want and _differs(turn_start, turn_steps, v2_side):
 								shown += 1
 						Game.end_turn(s)
-						mem = {}
+						mem = { }
 						turn_start = s.duplicate(true)
 						turn_steps = []
 						continue
@@ -73,10 +73,11 @@ func _differs(start: Dictionary, v2_steps: Array, side: String) -> bool:
 	var v1: Dictionary = start.duplicate(true)
 	v1.aiParams = { side: HARD_V1 }
 	var prev: Callable = AI.rng
-	AI.rng = func() -> float: return 0.5
+	AI.rng = func() -> float:
+		return 0.5
 	Game.fixed_roll = 0.5
 	var v1_steps := []
-	var mem := {}
+	var mem := { }
 	for i in 80:
 		var stv: Variant = AI.next_step(v1, mem)
 		if stv == null:

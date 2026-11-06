@@ -7,12 +7,25 @@ const ROOT := "res://assets/kaykit/"
 const TEAM_HUE := { "p": 0.0, "e": 0.6 } # red / blue cloth
 const TINT := preload("res://shaders/team_tint.gdshader")
 ## looping clips (the rest play once)
-const LOOPS := ["Idle_A", "Idle_B", "Walking_A", "Walking_B", "Walking_C", "Running_A", "Running_B", "Melee_2H_Idle",
-	"Melee_Unarmed_Idle", "Ranged_Bow_Idle", "Ranged_Bow_Aiming_Idle", "Death_A_Pose", "Death_B_Pose"]
+const LOOPS := [
+	"Idle_A",
+	"Idle_B",
+	"Walking_A",
+	"Walking_B",
+	"Walking_C",
+	"Running_A",
+	"Running_B",
+	"Melee_2H_Idle",
+	"Melee_Unarmed_Idle",
+	"Ranged_Bow_Idle",
+	"Ranged_Bow_Aiming_Idle",
+	"Death_A_Pose",
+	"Death_B_Pose",
+]
 
-static var _scenes := {}
+static var _scenes := { }
 static var _lib: AnimationLibrary
-static var _tints := {} # "texture id|side" -> ShaderMaterial
+static var _tints := { } # "texture id|side" -> ShaderMaterial
 
 static func scene(path: String) -> PackedScene:
 	if not _scenes.has(path):
@@ -43,7 +56,11 @@ static func prop(path: String, fit: float, max_h := 0.0) -> Node3D:
 	var holder := Node3D.new()
 	holder.add_child(n)
 	n.scale = Vector3(s, sy, s)
-	n.position = Vector3(-(b.position.x + b.size.x / 2.0) * s, -b.position.y * sy if b.position.y > -0.05 else 0.0, -(b.position.z + b.size.z / 2.0) * s)
+	n.position = Vector3(
+		-(b.position.x + b.size.x / 2.0) * s,
+		-b.position.y * sy if b.position.y > -0.05 else 0.0,
+		-(b.position.z + b.size.z / 2.0) * s,
+	)
 	return holder
 
 static func anims() -> AnimationLibrary:

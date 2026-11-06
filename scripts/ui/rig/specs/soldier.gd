@@ -5,12 +5,23 @@ extends RigSpec
 func events(_r: Rig) -> Array:
 	var dmg: float = data.consts.DMG
 	return [
-		[130.0, func(a: Rig) -> void: a.dust(160, 244, 3, 1)],
-		[230.0, func(a: Rig) -> void: a.gleam("tip", 115)],
-		[345.0, func(a: Rig) -> void:
-			a.dust(98, 244, 6, -1)
-			a.sound("slash")
-			a.add(Pierce.new(a, dmg))],
+		[
+			130.0,
+			func(a: Rig) -> void:
+				a.dust(160, 244, 3, 1),
+		],
+		[
+			230.0,
+			func(a: Rig) -> void:
+				a.gleam("tip", 115),
+		],
+		[
+			345.0,
+			func(a: Rig) -> void:
+				a.dust(98, 244, 6, -1)
+				a.sound("slash")
+				a.add(Pierce.new(a, dmg)),
+		],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
@@ -94,10 +105,19 @@ class Pierce extends RigFx.Fx:
 		ctx.set_xf(cam.aimed(cam.map(x0, y0, 1.0), cam.u, cam.cd))
 		ctx.alpha = minf(1.0, 0.35 + k)
 		ctx.begin_path()
-		ctx.move_to(xs, 0); ctx.line_to(xm, -w / 2.0); ctx.line_to(xe, 0); ctx.line_to(xm, w / 2.0); ctx.close_path()
-		ctx.fill("#fffdf4"); ctx.stroke(RigFx.INK, 5)
+		ctx.move_to(xs, 0)
+		ctx.line_to(xm, -w / 2.0)
+		ctx.line_to(xe, 0)
+		ctx.line_to(xm, w / 2.0)
+		ctx.close_path()
+		ctx.fill("#fffdf4")
+		ctx.stroke(RigFx.INK, 5)
 		ctx.begin_path()
-		ctx.move_to(xs + 40.0, 0); ctx.line_to(xm, -w * 0.2); ctx.line_to(xe - 40.0, 0); ctx.line_to(xm, w * 0.2); ctx.close_path()
+		ctx.move_to(xs + 40.0, 0)
+		ctx.line_to(xm, -w * 0.2)
+		ctx.line_to(xe - 40.0, 0)
+		ctx.line_to(xm, w * 0.2)
+		ctx.close_path()
 		ctx.fill("#ffe08a")
 		# exit ring on the far side of the target
 		var g := RigFx.out(minf(1.0, u / 160.0))

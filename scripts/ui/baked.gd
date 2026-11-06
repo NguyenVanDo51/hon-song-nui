@@ -7,6 +7,7 @@ var painter: Painter
 
 class Painter extends Control:
 	var fn: Callable
+
 	func _draw() -> void:
 		Draw.xf = Transform2D.IDENTITY
 		if fn.is_valid():

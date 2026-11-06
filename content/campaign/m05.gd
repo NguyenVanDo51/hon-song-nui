@@ -12,10 +12,7 @@ const DEF := {
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": {
-		"p": ["soldier", "archer", "drum", "elephant"],
-		"e": ["soldier", "archer", "drum", "elephant"],
-	},
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "elephant"] },
 	"gold": { "p": 600, "e": 150 },
 	"win": { "type": "castles" },
 	"night": true,

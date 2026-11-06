@@ -12,10 +12,7 @@ const DEF := {
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": {
-		"p": ["soldier", "archer", "drum", "elephant"],
-		"e": ["soldier", "archer", "drum", "elephant"],
-	},
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "elephant"] },
 	"gold": { "p": 750, "e": 100 },
 	"win": { "type": "hero" },
 	"map": {
@@ -48,7 +45,10 @@ const DEF := {
 	"story": {
 		"intro": [
 			["todinh", "Hai người đàn bà mà dám chống triều đình? Lội qua bãi sông, giẫm nát chúng!"],
-			["trungtrac", "Bãi sông này nhiều nhánh nước. Giặc lội thì chậm, đứng dưới nước lại không chỗ nấp. Ta giữ đầu cầu, đợi giặc lội sang mà đánh."],
+			[
+				"trungtrac",
+				"Bãi sông này nhiều nhánh nước. Giặc lội thì chậm, đứng dưới nước lại không chỗ nấp. Ta giữ đầu cầu, đợi giặc lội sang mà đánh.",
+			],
 			["lactuong", "Giữa bãi có ngôi đền cổ. Ai đứng ở đó thì mau lành vết thương, ta hay giặc cũng vậy."],
 		],
 		"outro": [["trungtrac", "Bãi sông đã yên. Tô Định rút về Long Biên."]],

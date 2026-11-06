@@ -15,7 +15,10 @@ func _run(g: GameScreen) -> void:
 	g.refresh()
 	# a hurt unit on one of our buildings: its +hp pops over it, after the coin
 	var owner: Dictionary = s.owner
-	var on_b: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and owner.get(pos(u)) == "p")
+	var on_b: Array = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and owner.get(pos(u)) == "p",
+	)
 	var hu: Dictionary = on_b[0] if on_b.size() else s.units[0]
 	hu.hp = 80
 	var t0 := Time.get_ticks_msec()

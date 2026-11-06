@@ -18,11 +18,11 @@ var ghosts: Array = []
 var shake_until := 0.0
 var shake_mag := 0.0
 var shake_dur := 1.0
-var flash_until := {}
-var offsets := {}
-var knock := {} # unit id -> { dir, t0, dur, mag }: hit reaction the board turns into a shove + lean
-var facing := {} # unit id -> -1 / 1: which way an attacker turned to strike
-var aim := {} # unit id -> Vector2 direction of its current strike (3D board turns the figure to it)
+var flash_until := { }
+var offsets := { }
+var knock := { } # unit id -> { dir, t0, dur, mag }: hit reaction the board turns into a shove + lean
+var facing := { } # unit id -> -1 / 1: which way an attacker turned to strike
+var aim := { } # unit id -> Vector2 direction of its current strike (3D board turns the figure to it)
 var rigs: Array = [] # live code-rigged attacks (Rig), drawn by the 2D board; kept until their sparks fade
 var _gen := 0 # bumped by clear(): delayed effects of an older scene drop out
 var _last := 0.0
@@ -38,8 +38,18 @@ func sleep(ms: float) -> void:
 
 func clear() -> void:
 	_gen += 1
-	parts.clear(); projs.clear(); rings.clear(); floats.clear(); rays.clear(); ghosts.clear()
-	flash_until.clear(); offsets.clear(); knock.clear(); facing.clear(); aim.clear(); shake_until = 0.0
+	parts.clear()
+	projs.clear()
+	rings.clear()
+	floats.clear()
+	rays.clear()
+	ghosts.clear()
+	flash_until.clear()
+	offsets.clear()
+	knock.clear()
+	facing.clear()
+	aim.clear()
+	shake_until = 0.0
 	rigs.clear()
 
 func _play(sfx: String) -> void:
@@ -67,12 +77,21 @@ func burst(x: float, y: float, n: int, o: Dictionary) -> void:
 		var life_max := randf_range(lmin, lmax)
 		var sz := randf_range(smin, smax)
 		var hex: String = cols[randi() % cols.size()] if pick else cols[0]
-		parts.append({
-			"x": px, "y": py, "vx": cos(a) * v, "vy": sin(a) * v - up,
-			"g": o.get("g", 3.0), "drag": o.get("drag", 0.9), "life": 0.0, "max": life_max,
-			"size": sz,
-			"color": Color(hex), "kind": o.get("kind", "spark"),
-		})
+		parts.append(
+			{
+				"x": px,
+				"y": py,
+				"vx": cos(a) * v,
+				"vy": sin(a) * v - up,
+				"g": o.get("g", 3.0),
+				"drag": o.get("drag", 0.9),
+				"life": 0.0,
+				"max": life_max,
+				"size": sz,
+				"color": Color(hex),
+				"kind": o.get("kind", "spark"),
+			}
+		)
 
 func ring(x: float, y: float, color: String, dur := 600.0, max_r := 0.9, width := 0.08) -> void:
 	rings.append({ "x": x, "y": y, "color": Color(color), "t0": now(), "dur": sp(dur), "maxR": max_r, "width": width })
@@ -111,8 +130,8 @@ func projectile(kind: String, fx: float, fy: float, tx: float, ty: float, dur: f
 		await get_tree().process_frame
 
 ## attacker / target: {x, y, id, type, side} from the engine's hit event
-func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
-	var st: Dictionary = Rules.UNITS.get(a.type, {})
+func attack(a: Dictionary, d: Dictionary, amount: int, opts := { }) -> void:
+	var st: Dictionary = Rules.UNITS.get(a.type, { })
 	var ax: float = a.x
 	var ay: float = a.y
 	var dx: float = d.x
@@ -127,18 +146,33 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 	aim[a.id] = dir
 	if shot != "":
 		# draw: lean back, then loose the shot and spring forward
-		await tween(130.0, func(t: float) -> void: offsets[a.id] = -dir * 0.08 * sin(t * PI * 0.5))
+		await tween(
+			130.0,
+			func(t: float) -> void:
+				offsets[a.id] = -dir * 0.08 * sin(t * PI * 0.5),
+		)
 		_play("arrow" if shot == "arrow" else ("orb" if shot == "orb" else "rock"))
-		tween(180.0, func(t: float) -> void:
-			offsets[a.id] = -dir * 0.08 * (1.0 - t) + dir * 0.05 * sin(t * PI)
-			if t >= 1.0:
-				offsets.erase(a.id))
+		tween(
+			180.0,
+			func(t: float) -> void:
+				offsets[a.id] = -dir * 0.08 * (1.0 - t) + dir * 0.05 * sin(t * PI)
+				if t >= 1.0:
+					offsets.erase(a.id),
+		)
 		await projectile(shot, ax, ay, dx, dy, 620.0 if shot == "rock" else (420.0 if shot == "orb" else 300.0))
 	else:
 		# wind-up (crouch back), then a fast lunge with a little leap
-		await tween(120.0, func(t: float) -> void: offsets[a.id] = -dir * 0.12 * (1.0 - (1.0 - t) * (1.0 - t)))
+		await tween(
+			120.0,
+			func(t: float) -> void:
+				offsets[a.id] = -dir * 0.12 * (1.0 - (1.0 - t) * (1.0 - t)),
+		)
 		var reach := Vector2(dx - ax, dy - ay) * 0.42
-		await tween(100.0, func(t: float) -> void: offsets[a.id] = (-dir * 0.12).lerp(reach, t * t) - Vector2(0, sin(t * PI) * 0.14))
+		await tween(
+			100.0,
+			func(t: float) -> void:
+				offsets[a.id] = (-dir * 0.12).lerp(reach, t * t) - Vector2(0, sin(t * PI) * 0.14),
+		)
 		_play("slash")
 		_signature(a, d, dir)
 	knock[d.id] = { "dir": dir, "t0": now(), "dur": sp(380.0), "mag": 1.4 if (heavy or shot == "rock") else 1.0 }
@@ -156,7 +190,7 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 ## code-rigged attack on the 2D board (Rigs.make): the attacker's token is drawn by the rig until its timeline ends;
 ## the target token takes the rig's knock / lift / squash / flash. opts.on_hit fires once, at the rig's one big HIT
 ## (or at the end if it never got there). Returns at the end of the timeline; leftover sparks keep fading after.
-func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
+func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: int, opts := { }) -> void:
 	var f := rig_face(board, a, d)
 	var g := _gen
 	var a_id: int = a.id
@@ -246,7 +280,7 @@ func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
 	var dx: float = d.x
 	var dy: float = d.y
 	var ang := atan2(dy - ay, dx - ax)
-	var r := func(kind: String, dur: float, extra := {}) -> void:
+	var r := func(kind: String, dur: float, extra := { }) -> void:
 		var e := { "kind": kind, "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": now(), "dur": sp(dur) }
 		e.merge(extra, true)
 		rays.append(e)
@@ -256,20 +290,62 @@ func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
 			r.call("slash", 220.0)
 			for i in 14:
 				var k := float(i) / 14.0 * TAU
-				parts.append({ "x": d.x + cos(k) * 0.15, "y": d.y + sin(k) * 0.1, "vx": cos(k + 1.4) * 2.4, "vy": sin(k + 1.4) * 1.4 - 0.8,
-					"g": -0.6, "drag": 0.9, "life": -float(i) * 12.0, "max": 520.0, "size": 0.035, "color": Color("#e8f6ff"), "kind": "spark" })
+				parts.append(
+					{
+						"x": d.x + cos(k) * 0.15,
+						"y": d.y + sin(k) * 0.1,
+						"vx": cos(k + 1.4) * 2.4,
+						"vy": sin(k + 1.4) * 1.4 - 0.8,
+						"g": -0.6,
+						"drag": 0.9,
+						"life": -float(i) * 12.0,
+						"max": 520.0,
+						"size": 0.035,
+						"color": Color("#e8f6ff"),
+						"kind": "spark",
+					}
+				)
 			shake(0.07, 260.0)
 		"soldier": # spear thrust: a straight lance of light through the target
 			r.call("thrust", 240.0)
 		"boat": # paddle-spear from the river: splash + spray
 			r.call("thrust", 220.0, { "col": Color("#9fe3ff") })
-			burst(dx, dy, 16, { "color": ["#7fd0ff", "#c8f0ff", "#3f9bd6"], "vmin": 1.0, "vmax": 3.0, "up": 1.6, "g": 6.0, "lmin": 300.0, "lmax": 650.0,
-				"smin": 0.03, "smax": 0.06 })
+			burst(
+				dx,
+				dy,
+				16,
+				{
+					"color": ["#7fd0ff", "#c8f0ff", "#3f9bd6"],
+					"vmin": 1.0,
+					"vmax": 3.0,
+					"up": 1.6,
+					"g": 6.0,
+					"lmin": 300.0,
+					"lmax": 650.0,
+					"smin": 0.03,
+					"smax": 0.06,
+				},
+			)
 			ring(dx, dy, "#9fe3ff", 420.0, 0.8, 0.06)
 		"shaman": # gọi hồn: green spirit wisps swirl in and strike
 			r.call("spirit", 520.0)
-			burst(dx, dy, 12, { "color": ["#9dffb8", "#4fd38a", "#e6fff0"], "kind": "glow", "vmin": 0.4, "vmax": 1.4, "up": 0.8, "g": -0.8, "lmin": 400.0,
-				"lmax": 800.0, "smin": 0.04, "smax": 0.08 })
+			burst(
+				dx,
+				dy,
+				12,
+				{
+					"color": ["#9dffb8", "#4fd38a", "#e6fff0"],
+					"kind": "glow",
+					"vmin": 0.4,
+					"vmax": 1.4,
+					"up": 0.8,
+					"g": -0.8,
+					"lmin": 400.0,
+					"lmax": 800.0,
+					"smin": 0.04,
+					"smax": 0.08,
+				},
+			)
 		"drum": # bronze drum boom: sound rings rolling from the drummer to the target
 			for i in 3:
 				rays.append({ "kind": "boom", "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": now() + i * sp(70.0), "dur": sp(380.0) })
@@ -278,8 +354,24 @@ func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
 			burst(dx, dy, 8, { "color": ["#ff6b57", "#ffb199"], "vmin": 0.8, "vmax": 2.2, "lmin": 200.0, "lmax": 420.0, "smin": 0.02, "smax": 0.045 })
 		"elephant": # tusk charge + ground stomp: dust ring, cracks, heavy shake
 			r.call("stomp", 520.0)
-			burst(dx, dy + 0.3, 14, { "color": ["#8a7457", "#b39a76", "#6b5a44"], "kind": "smoke", "vmin": 0.6, "vmax": 1.6, "up": 0.2, "g": -0.2,
-				"lmin": 500.0, "lmax": 900.0, "smin": 0.1, "smax": 0.2, "drag": 0.93 })
+			burst(
+				dx,
+				dy + 0.3,
+				14,
+				{
+					"color": ["#8a7457", "#b39a76", "#6b5a44"],
+					"kind": "smoke",
+					"vmin": 0.6,
+					"vmax": 1.6,
+					"up": 0.2,
+					"g": -0.2,
+					"lmin": 500.0,
+					"lmax": 900.0,
+					"smin": 0.1,
+					"smax": 0.2,
+					"drag": 0.93,
+				},
+			)
 			ring(dx, dy, "#d8bb8a", 480.0, 1.3, 0.1)
 			shake(0.12, 300.0)
 		"bird": # dragon fire breath: a cone of flame from the jaws to the target
@@ -289,9 +381,21 @@ func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
 				var spread := randf_range(-0.35, 0.35)
 				var v := dir.rotated(spread) * randf_range(3.0, 5.0)
 				var hex: String = ["#ffe27a", "#ff9a3c", "#ff5a2a", "#fff3c4"][i % 4]
-				parts.append({ "x": a.x + dir.x * 0.3, "y": a.y + dir.y * 0.3 - 0.15, "vx": v.x, "vy": v.y - 0.3, "g": -1.2, "drag": 0.88,
-					"life": -t * 160.0, "max": randf_range(260.0, 420.0), "size": randf_range(0.05, 0.11),
-					"color": Color(hex), "kind": "glow" })
+				parts.append(
+					{
+						"x": a.x + dir.x * 0.3,
+						"y": a.y + dir.y * 0.3 - 0.15,
+						"vx": v.x,
+						"vy": v.y - 0.3,
+						"g": -1.2,
+						"drag": 0.88,
+						"life": -t * 160.0,
+						"max": randf_range(260.0, 420.0),
+						"size": randf_range(0.05, 0.11),
+						"color": Color(hex),
+						"kind": "glow",
+					}
+				)
 			shake(0.08, 280.0)
 		"ghost": # cold dark slash
 			r.call("slash", 260.0, { "col": Color("#b7a6ff") })
@@ -307,11 +411,31 @@ func _impact(d: Dictionary, amount: int, heavy: bool, shot: String, kill: bool) 
 	_play("heavy" if shot == "rock" or (big and heavy) else "hit")
 	var col := ["#c9a2ff", "#8f6bff", "#f0e0ff"] if shot == "orb" else ["#ffd27a", "#ff8a4c", "#fff3c4"]
 	@warning_ignore("integer_division")
-	burst(dx, dy, mini(26, 8 + amount / 3), { "color": col, "vmin": 1.0, "vmax": 4.0 if big else 2.8, "lmin": 250.0, "lmax": 600.0, "smin": 0.025,
-		"smax": 0.06, "g": 4.0 })
+	burst(
+		dx,
+		dy,
+		mini(26, 8 + amount / 3),
+		{ "color": col, "vmin": 1.0, "vmax": 4.0 if big else 2.8, "lmin": 250.0, "lmax": 600.0, "smin": 0.025, "smax": 0.06, "g": 4.0 },
+	)
 	if shot == "rock":
-		burst(dx, dy + 0.2, 14, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c"], "kind": "smoke", "vmin": 0.3, "vmax": 1.2, "up": 0.5, "g": -0.3,
-			"lmin": 600.0, "lmax": 1100.0, "smin": 0.12, "smax": 0.25, "drag": 0.95 })
+		burst(
+			dx,
+			dy + 0.2,
+			14,
+			{
+				"color": ["#7b6a55", "#a08b6e", "#5c4d3c"],
+				"kind": "smoke",
+				"vmin": 0.3,
+				"vmax": 1.2,
+				"up": 0.5,
+				"g": -0.3,
+				"lmin": 600.0,
+				"lmax": 1100.0,
+				"smin": 0.12,
+				"smax": 0.25,
+				"drag": 0.95,
+			},
+		)
 		ring(dx, dy, "#e8c27a", 450.0, 1.2, 0.1)
 	if big:
 		shake(0.16 if shot == "rock" else 0.09, 380.0 if shot == "rock" else 240.0)
@@ -325,18 +449,45 @@ func raze(a: Dictionary, x: int, y: int) -> void:
 	if absf(dir.x) > 0.01:
 		facing[a.id] = signf(dir.x)
 	aim[a.id] = dir
-	await tween(130.0, func(t: float) -> void: offsets[a.id] = -dir * 0.08 * sin(t * PI * 0.5))
+	await tween(
+		130.0,
+		func(t: float) -> void:
+			offsets[a.id] = -dir * 0.08 * sin(t * PI * 0.5),
+	)
 	_play("rock")
-	tween(180.0, func(t: float) -> void:
-		offsets[a.id] = -dir * 0.08 * (1.0 - t)
-		if t >= 1.0:
-			offsets.erase(a.id))
+	tween(
+		180.0,
+		func(t: float) -> void:
+			offsets[a.id] = -dir * 0.08 * (1.0 - t)
+			if t >= 1.0:
+				offsets.erase(a.id),
+	)
 	await projectile("rock", ax, ay, x, y, 620.0)
 	_play("heavy")
-	burst(x, y + 0.1, 22, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c", "#9a948a"], "kind": "smoke", "vmin": 0.3, "vmax": 1.4, "up": 0.6, "g": -0.3,
-		"lmin": 700.0, "lmax": 1300.0, "smin": 0.14, "smax": 0.3, "drag": 0.95 })
-	burst(x, y, 16, { "color": ["#c9b79a", "#8a7560", "#ddd5c4"], "vmin": 1.0, "vmax": 3.2, "lmin": 300.0, "lmax": 650.0, "smin": 0.03, "smax": 0.07,
-		"g": 5.0 })
+	burst(
+		x,
+		y + 0.1,
+		22,
+		{
+			"color": ["#7b6a55", "#a08b6e", "#5c4d3c", "#9a948a"],
+			"kind": "smoke",
+			"vmin": 0.3,
+			"vmax": 1.4,
+			"up": 0.6,
+			"g": -0.3,
+			"lmin": 700.0,
+			"lmax": 1300.0,
+			"smin": 0.14,
+			"smax": 0.3,
+			"drag": 0.95,
+		},
+	)
+	burst(
+		x,
+		y,
+		16,
+		{ "color": ["#c9b79a", "#8a7560", "#ddd5c4"], "vmin": 1.0, "vmax": 3.2, "lmin": 300.0, "lmax": 650.0, "smin": 0.03, "smax": 0.07, "g": 5.0 },
+	)
 	ring(x, y, "#e8c27a", 500.0, 1.3, 0.1)
 	shake(0.18, 400.0)
 
@@ -344,8 +495,22 @@ func raze(a: Dictionary, x: int, y: int) -> void:
 func repair(x: int, y: int) -> void:
 	_play("capture")
 	ring(x, y, "#ffe39a", 600.0, 1.1, 0.08)
-	burst(x, y, 14, { "color": ["#d2b07a", "#fff3c4", "#a87a4c"], "vmin": 0.6, "vmax": 2.0, "up": 1.0, "g": 2.0, "lmin": 400.0, "lmax": 800.0,
-		"smin": 0.03, "smax": 0.06 })
+	burst(
+		x,
+		y,
+		14,
+		{
+			"color": ["#d2b07a", "#fff3c4", "#a87a4c"],
+			"vmin": 0.6,
+			"vmax": 2.0,
+			"up": 1.0,
+			"g": 2.0,
+			"lmin": 400.0,
+			"lmax": 800.0,
+			"smin": 0.03,
+			"smax": 0.06,
+		},
+	)
 
 ## corpse fades + smoke; u = copy of the dying unit
 func death(u: Dictionary) -> void:
@@ -353,37 +518,113 @@ func death(u: Dictionary) -> void:
 	ghosts.append({ "u": u, "t0": now(), "dur": sp(1000.0) })
 	var ux: float = u.x
 	var uy: float = u.y
-	burst(ux, uy, 16, { "color": ["#3a3430", "#6b625a", "#8d837a"], "kind": "smoke", "vmin": 0.2, "vmax": 1.1, "up": 0.6, "g": -0.5, "lmin": 600.0,
-		"lmax": 1200.0, "smin": 0.1, "smax": 0.22, "drag": 0.94 })
-	burst(ux, uy, 6, { "color": "#ffb38a" if u.side == "p" else "#8ff0e8", "kind": "glow", "vmin": 0.1, "vmax": 0.4, "up": 1.2, "g": -0.6,
-		"lmin": 900.0, "lmax": 1400.0, "smin": 0.04, "smax": 0.07 })
+	burst(
+		ux,
+		uy,
+		16,
+		{
+			"color": ["#3a3430", "#6b625a", "#8d837a"],
+			"kind": "smoke",
+			"vmin": 0.2,
+			"vmax": 1.1,
+			"up": 0.6,
+			"g": -0.5,
+			"lmin": 600.0,
+			"lmax": 1200.0,
+			"smin": 0.1,
+			"smax": 0.22,
+			"drag": 0.94,
+		},
+	)
+	burst(
+		ux,
+		uy,
+		6,
+		{
+			"color": "#ffb38a" if u.side == "p" else "#8ff0e8",
+			"kind": "glow",
+			"vmin": 0.1,
+			"vmax": 0.4,
+			"up": 1.2,
+			"g": -0.6,
+			"lmin": 900.0,
+			"lmax": 1400.0,
+			"smin": 0.04,
+			"smax": 0.07,
+		},
+	)
 
 func capture(x: int, y: int, side: String) -> void:
 	_play("capture")
 	var c: String = Content.theme().factions[side].glow
 	ring(x, y, c, 700.0, 1.4, 0.12)
 	var g := _gen
-	get_tree().create_timer(sp(150.0) / 1000.0).timeout.connect(func() -> void:
-		if g == _gen:
-			ring(x, y, "#ffe39a", 600.0, 1.0, 0.06))
-	burst(x, y, 22, { "color": [c, "#ffe39a", "#fff7d6"], "kind": "glow", "vmin": 0.4, "vmax": 1.8, "up": 1.2, "g": -0.4, "lmin": 700.0, "lmax": 1300.0,
-		"smin": 0.03, "smax": 0.06 })
+	get_tree().create_timer(sp(150.0) / 1000.0).timeout.connect(
+		func() -> void:
+			if g == _gen:
+				ring(x, y, "#ffe39a", 600.0, 1.0, 0.06),
+	)
+	burst(
+		x,
+		y,
+		22,
+		{
+			"color": [c, "#ffe39a", "#fff7d6"],
+			"kind": "glow",
+			"vmin": 0.4,
+			"vmax": 1.8,
+			"up": 1.2,
+			"g": -0.4,
+			"lmin": 700.0,
+			"lmax": 1300.0,
+			"smin": 0.03,
+			"smax": 0.06,
+		},
+	)
 
 ## loud: rays + "★ Lên cấp N"; quiet: small stars + "LvN"
 func rank(x: int, y: int, level: int, loud := true) -> void:
 	_play("rank")
 	if loud:
 		rays.append({ "kind": "rays", "x": x, "y": y, "t0": now(), "dur": sp(1100.0) })
-	burst(x, y, 14 if loud else 7, { "color": ["#ffe08a", "#fff6d0"], "kind": "star", "vmin": 0.4, "vmax": 1.6, "up": 1.5, "g": 0.8, "lmin": 700.0,
-		"lmax": 1200.0, "smin": 0.06, "smax": 0.1 })
+	burst(
+		x,
+		y,
+		14 if loud else 7,
+		{
+			"color": ["#ffe08a", "#fff6d0"],
+			"kind": "star",
+			"vmin": 0.4,
+			"vmax": 1.6,
+			"up": 1.5,
+			"g": 0.8,
+			"lmin": 700.0,
+			"lmax": 1200.0,
+			"smin": 0.06,
+			"smax": 0.1,
+		},
+	)
 	float_text(x, y - 0.55, ("★ Lên cấp %d" % level) if loud else ("Lv%d" % level), "#ffe08a", 1300.0 if loud else 800.0)
 
 func raise_fx(x: int, y: int) -> void:
 	_play("raise")
 	for i in 26:
 		var a := float(i) / 26.0 * PI * 4
-		parts.append({ "x": x + cos(a) * 0.5, "y": y + sin(a) * 0.5, "vx": -sin(a) * 1.2, "vy": cos(a) * 1.2 - 0.8, "g": -0.6, "drag": 0.92,
-			"life": -i * 18.0, "max": 900.0, "size": 0.05, "color": Color("#b38cff") if i % 2 else Color("#e4d4ff"), "kind": "glow" })
+		parts.append(
+			{
+				"x": x + cos(a) * 0.5,
+				"y": y + sin(a) * 0.5,
+				"vx": -sin(a) * 1.2,
+				"vy": cos(a) * 1.2 - 0.8,
+				"g": -0.6,
+				"drag": 0.92,
+				"life": -i * 18.0,
+				"max": 900.0,
+				"size": 0.05,
+				"color": Color("#b38cff") if i % 2 else Color("#e4d4ff"),
+				"kind": "glow",
+			}
+		)
 	ring(x, y, "#a37cff", 800.0, 1.1, 0.1)
 
 func heal(x: int, y: int, amount: int) -> void:
@@ -392,29 +633,85 @@ func heal(x: int, y: int, amount: int) -> void:
 
 ## green "+" sparks rising off a healed unit
 func heal_sparkle(x: float, y: float) -> void:
-	burst(x, y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0,
-		"lmax": 1000.0, "smin": 0.06, "smax": 0.08 })
+	burst(
+		x,
+		y + 0.2,
+		6,
+		{
+			"color": ["#9fe08a", "#d6ffc4"],
+			"kind": "plus",
+			"vmin": 0.05,
+			"vmax": 0.3,
+			"up": 0.9,
+			"g": -0.2,
+			"lmin": 700.0,
+			"lmax": 1000.0,
+			"smin": 0.06,
+			"smax": 0.08,
+		},
+	)
 
 func spawn_fx(x: int, y: int) -> void:
 	_play("spawn")
 	ring(x, y, "#6fd6cf", 700.0, 1.0, 0.1)
-	burst(x, y + 0.3, 18, { "color": ["#a8e6ff", "#5fb6d9", "#ffffff"], "vmin": 0.8, "vmax": 2.4, "up": 2.2, "g": 6.0, "lmin": 400.0, "lmax": 800.0,
-		"smin": 0.03, "smax": 0.06 })
+	burst(
+		x,
+		y + 0.3,
+		18,
+		{
+			"color": ["#a8e6ff", "#5fb6d9", "#ffffff"],
+			"vmin": 0.8,
+			"vmax": 2.4,
+			"up": 2.2,
+			"g": 6.0,
+			"lmin": 400.0,
+			"lmax": 800.0,
+			"smin": 0.03,
+			"smax": 0.06,
+		},
+	)
 
 func buy_fx(x: int, y: int) -> void:
 	_play("coin")
 	ring(x, y, "#ffd166", 500.0, 0.9, 0.08)
-	burst(x, y, 12, { "color": ["#ffd166", "#fff0b3", "#e0a43a"], "kind": "coin", "vmin": 0.8, "vmax": 2.0, "up": 2.0, "g": 6.0, "lmin": 500.0,
-		"lmax": 800.0, "smin": 0.05, "smax": 0.07 })
+	burst(
+		x,
+		y,
+		12,
+		{
+			"color": ["#ffd166", "#fff0b3", "#e0a43a"],
+			"kind": "coin",
+			"vmin": 0.8,
+			"vmax": 2.0,
+			"up": 2.0,
+			"g": 6.0,
+			"lmin": 500.0,
+			"lmax": 800.0,
+			"smin": 0.05,
+			"smax": 0.07,
+		},
+	)
 
 ## dust kicked up at a walker's feet: a low puff that spreads sideways and fades
 func dust(x: float, y: float) -> void:
 	for i in 7:
 		var side := -1.0 if i % 2 else 1.0
 		var hex: String = ["#cdb98f", "#b39f76", "#e0d2ae"][i % 3]
-		parts.append({ "x": x + randf_range(-0.12, 0.12), "y": y + 0.3 + randf_range(-0.03, 0.03),
-			"vx": side * randf_range(0.25, 0.7), "vy": -randf_range(0.05, 0.3), "g": -0.15, "drag": 0.9, "life": 0.0,
-			"max": randf_range(380.0, 650.0), "size": randf_range(0.07, 0.12), "color": Color(hex), "kind": "smoke" })
+		parts.append(
+			{
+				"x": x + randf_range(-0.12, 0.12),
+				"y": y + 0.3 + randf_range(-0.03, 0.03),
+				"vx": side * randf_range(0.25, 0.7),
+				"vy": -randf_range(0.05, 0.3),
+				"g": -0.15,
+				"drag": 0.9,
+				"life": 0.0,
+				"max": randf_range(380.0, 650.0),
+				"size": randf_range(0.07, 0.12),
+				"color": Color(hex),
+				"kind": "smoke",
+			}
+		)
 
 # ---------- update + draw ----------
 func update(t: float) -> void:
@@ -423,7 +720,10 @@ func update(t: float) -> void:
 	if not rigs.is_empty():
 		for r: Rig in rigs:
 			r.tick(dt * 1000.0)
-		rigs = rigs.filter(func(r: Rig) -> bool: return not r.done())
+		rigs = rigs.filter(
+			func(r: Rig) -> bool:
+				return not r.done(),
+		)
 	for p: Dictionary in parts:
 		p.life += dt * 1000.0
 		if p.life < 0:
@@ -435,13 +735,28 @@ func update(t: float) -> void:
 		p.vy += p.g * dt
 		p.x += p.vx * dt
 		p.y += p.vy * dt
-	parts = parts.filter(func(p: Dictionary) -> bool: return p.life < p.max)
+	parts = parts.filter(
+		func(p: Dictionary) -> bool:
+			return p.life < p.max,
+	)
 	if parts.size() > 600:
 		parts = parts.slice(parts.size() - 600)
-	rings = rings.filter(func(r: Dictionary) -> bool: return t - r.t0 < r.dur)
-	floats = floats.filter(func(f: Dictionary) -> bool: return t - f.t0 < f.dur)
-	rays = rays.filter(func(r: Dictionary) -> bool: return t - r.t0 < r.dur)
-	ghosts = ghosts.filter(func(g: Dictionary) -> bool: return t - g.t0 < g.dur)
+	rings = rings.filter(
+		func(r: Dictionary) -> bool:
+			return t - r.t0 < r.dur,
+	)
+	floats = floats.filter(
+		func(f: Dictionary) -> bool:
+			return t - f.t0 < f.dur,
+	)
+	rays = rays.filter(
+		func(r: Dictionary) -> bool:
+			return t - r.t0 < r.dur,
+	)
+	ghosts = ghosts.filter(
+		func(g: Dictionary) -> bool:
+			return t - g.t0 < g.dur,
+	)
 	for pr: Dictionary in projs:
 		var k := _proj_k(pr, t)
 		var trail: Array = pr.trail
@@ -450,7 +765,10 @@ func update(t: float) -> void:
 			trail.pop_front()
 		if k >= 1.0:
 			pr.hit = true
-	projs = projs.filter(func(p: Dictionary) -> bool: return not p.hit)
+	projs = projs.filter(
+		func(p: Dictionary) -> bool:
+			return not p.hit,
+	)
 
 static func _proj_k(pr: Dictionary, t: float) -> float:
 	var t0: float = pr.t0
@@ -526,10 +844,21 @@ func draw_over(ci: CanvasItem, T: float, t: float) -> void:
 		if pr.kind == "arrow":
 			var xf := Transform2D((p - q).angle(), X)
 			ci.draw_line(xf * Vector2(-T * 0.3, 0), xf * Vector2(T * 0.12, 0), Draw.col("#3b2a1a"), maxf(1.5, T * 0.04), true)
-			ci.draw_colored_polygon(PackedVector2Array([xf * Vector2(T * 0.2, 0), xf * Vector2(T * 0.1, -T * 0.05), xf * Vector2(T * 0.1, T * 0.05)]),
-				Draw.col("#d8d0c0"))
-			ci.draw_colored_polygon(PackedVector2Array([xf * Vector2(-T * 0.3, -T * 0.04), xf * Vector2(-T * 0.22, -T * 0.04),
-				xf * Vector2(-T * 0.22, T * 0.04), xf * Vector2(-T * 0.3, T * 0.04)]), Draw.col("#c2412f"))
+			ci.draw_colored_polygon(
+				PackedVector2Array([xf * Vector2(T * 0.2, 0), xf * Vector2(T * 0.1, -T * 0.05), xf * Vector2(T * 0.1, T * 0.05)]),
+				Draw.col("#d8d0c0"),
+			)
+			ci.draw_colored_polygon(
+				PackedVector2Array(
+					[
+						xf * Vector2(-T * 0.3, -T * 0.04),
+						xf * Vector2(-T * 0.22, -T * 0.04),
+						xf * Vector2(-T * 0.22, T * 0.04),
+						xf * Vector2(-T * 0.3, T * 0.04),
+					]
+				),
+				Draw.col("#c2412f"),
+			)
 		elif pr.kind == "rock":
 			var gfx: float = pr.fx
 			var gfy: float = pr.fy
@@ -581,8 +910,10 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 				var a := k * 1.2 + TAU / 10.0 * (i + 1)
 				var dir := Vector2(sin(a), -cos(a))
 				var side := Vector2(dir.y, -dir.x) * T * 0.06
-				ci.draw_polygon(PackedVector2Array([c - side, c + dir * T * 1.4, c + side]),
-					PackedColorArray([Color(1, 0.878, 0.541, 0.8 * al), Color(1, 0.878, 0.541, 0.0), Color(1, 0.878, 0.541, 0.8 * al)]))
+				ci.draw_polygon(
+					PackedVector2Array([c - side, c + dir * T * 1.4, c + side]),
+					PackedColorArray([Color(1, 0.878, 0.541, 0.8 * al), Color(1, 0.878, 0.541, 0.0), Color(1, 0.878, 0.541, 0.8 * al)]),
+				)
 		elif r.kind == "slash":
 			var rot: float = r.ang + PI / 2
 			var a0 := -2.2 + k * 1.2 + rot
@@ -597,7 +928,10 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 			var tail := from.lerp(c, 0.35 + k * 0.5)
 			var side := Vector2(-dirv.y, dirv.x) * T * 0.05 * (1.0 - k)
 			var col: Color = r.get("col", Color(1, 0.96, 0.82))
-			ci.draw_polygon(PackedVector2Array([tail + side, tip, tail - side]), PackedColorArray([Color(col, 0.0), Color(col, 1.0 - k), Color(col, 0.0)]))
+			ci.draw_polygon(
+				PackedVector2Array([tail + side, tip, tail - side]),
+				PackedColorArray([Color(col, 0.0), Color(col, 1.0 - k), Color(col, 0.0)]),
+			)
 		elif r.kind == "spirit": # shaman: three green wisps spiralling in onto the target
 			for i in 3:
 				var a := k * 7.0 + i * TAU / 3.0
@@ -620,8 +954,12 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 				var crack_len := T * 0.5 * minf(1.0, k * 2.5)
 				var mid := c + Vector2(cos(a2), sin(a2) * 0.5) * crack_len * 0.5 + Vector2(cos(a2 + 1.2), sin(a2 + 1.2)) * T * 0.04
 				var end := c + Vector2(cos(a2), sin(a2) * 0.5) * crack_len
-				ci.draw_polyline(PackedVector2Array([c + Vector2(0, T * 0.25), mid + Vector2(0, T * 0.25), end + Vector2(0, T * 0.25)]),
-					Color(1.0, 0.85, 0.55, 0.7 * al2), maxf(1.0, T * 0.03), true)
+				ci.draw_polyline(
+					PackedVector2Array([c + Vector2(0, T * 0.25), mid + Vector2(0, T * 0.25), end + Vector2(0, T * 0.25)]),
+					Color(1.0, 0.85, 0.55, 0.7 * al2),
+					maxf(1.0, T * 0.03),
+					true,
+				)
 		elif r.kind == "fire": # dragon: a hot glow along the breath line
 			var from3 := _from_px(r, T, 0.35)
 			var al3 := sin(k * PI)

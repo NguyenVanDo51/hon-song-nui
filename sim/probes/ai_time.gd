@@ -15,14 +15,14 @@ func _init() -> void:
 			var def: Dictionary = Content.mission(id)
 			var s := Game.new_game(def)
 			s.rng = int(lib.seed_v)
-			var mem := {}
+			var mem := { }
 			while s.winner == null and s.turn <= 60:
 				var t0 := Time.get_ticks_usec()
 				var step: Variant = AI.next_step(s, mem)
 				ts.append(Time.get_ticks_usec() - t0)
 				if step == null:
 					Game.end_turn(s)
-					mem = {}
+					mem = { }
 				else:
 					var stp: Dictionary = step
 					AI.apply_step(s, stp)

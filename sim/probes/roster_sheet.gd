@@ -1,4 +1,5 @@
 extends SceneTree
+
 ## all chibi unit SVGs (p row, e row) on grass at 128 px + 64 px -> one PNG. -- <out.png>
 func _init() -> void:
 	var types := ["hero", "soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird", "ghost"]

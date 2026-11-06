@@ -16,12 +16,12 @@ const POP_W := 290.0
 const HUD_M := 10.0 # HUD distance from the screen edge
 
 var main: Main
-var s: Dictionary = {}
-var ctx: Dictionary = {}
-var def: Dictionary = {}
+var s: Dictionary = { }
+var ctx: Dictionary = { }
+var def: Dictionary = { }
 ## bumps on start / leave so stale async turn loops stop
 var gen := 0
-var ui := {}
+var ui := { }
 var stats := { "p": 0, "e": 0 } # units lost per side
 var fx: FX
 var board: BoardBase # Board (2D) or Board3D: same surface (signals, view, fit, set_state, tile_rect, focus)
@@ -32,7 +32,7 @@ var _gold_num: Label
 var _coins: CoinPop
 var _gold_shown := -1 # count-up value on screen; -1 = show s.gold[_me()]
 var _gold_tw: Tween
-var _hp_count := {} # unit id -> hp shown while a heal counts up
+var _hp_count := { } # unit id -> hp shown while a heal counts up
 var _heal_tws: Array[Tween] = []
 var _income: Label
 var _goal: RichTextLabel
@@ -67,7 +67,7 @@ var _pop: PanelContainer
 var _pop_anchor: Variant = null # [x, y] tile the popup belongs to; null = top centre of the board
 var _hover_at := 0
 # reach / best attack tile, memoised per board position: hovering re-asks them every mouse move
-var _memo := {}
+var _memo := { }
 var _memo_fp := 0
 var _intro_on := false
 var _intro_layer: Control = null
@@ -88,8 +88,22 @@ func _ready() -> void:
 	_build()
 
 func _reset_ui() -> void:
-	ui = { "sel": null, "dest": null, "mode": M_IDLE, "target": null, "info": null, "buyAt": null, "busy": false, "hint": null,
-		"hotBuy": null, "hover": ui.get("hover"), "tip": ui.get("tip", 0), "hintKind": null, "peek": null, "raze": null }
+	ui = {
+		"sel": null,
+		"dest": null,
+		"mode": M_IDLE,
+		"target": null,
+		"info": null,
+		"buyAt": null,
+		"busy": false,
+		"hint": null,
+		"hotBuy": null,
+		"hover": ui.get("hover"),
+		"tip": ui.get("tip", 0),
+		"hintKind": null,
+		"peek": null,
+		"raze": null,
+	}
 
 # ---------- layout ----------
 ## HUD never covers the map: wide screen -> left sidebar (⚙ + turn/gold/goal on top, unit card, Hết lượt at the bottom),
@@ -106,8 +120,13 @@ func _build() -> void:
 	add_child(_wrap)
 	_frame = Panel.new()
 	var fs := Style.box(Color.TRANSPARENT, Style.BRONZE_2, 6, 0, 2)
-	fs.shadow_color = Color(0, 0, 0, 0.7); fs.shadow_size = 18; fs.shadow_offset = Vector2(0, 8)
-	fs.expand_margin_left = 2; fs.expand_margin_right = 2; fs.expand_margin_top = 2; fs.expand_margin_bottom = 2
+	fs.shadow_color = Color(0, 0, 0, 0.7)
+	fs.shadow_size = 18
+	fs.shadow_offset = Vector2(0, 8)
+	fs.expand_margin_left = 2
+	fs.expand_margin_right = 2
+	fs.expand_margin_top = 2
+	fs.expand_margin_bottom = 2
 	_frame.add_theme_stylebox_override("panel", fs)
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wrap.add_child(_frame)
@@ -145,15 +164,27 @@ func _build() -> void:
 	# top-right: ⏩ (enemy turn) + ⚙
 	var top_r := Style.hbox(8)
 	top_r.z_index = 40
-	top_r.minimum_size_changed.connect(func() -> void: _place_hud.call_deferred()) # ⏩ shown / hidden
+	top_r.minimum_size_changed.connect(
+		func() -> void:
+			_place_hud.call_deferred(),
+	) # ⏩ shown / hidden
 	add_child(top_r)
 	_hud_tr = top_r
-	_btn_ff = _ibtn("» Tua lượt địch", "Chạy nhanh lượt địch (giữ Space / chuột cũng tua)", func() -> void:
-		_ff = true
-		_btn_ff.visible = false)
+	_btn_ff = _ibtn(
+		"» Tua lượt địch",
+		"Chạy nhanh lượt địch (giữ Space / chuột cũng tua)",
+		func() -> void:
+			_ff = true
+			_btn_ff.visible = false,
+	)
 	_btn_ff.visible = false
 	top_r.add_child(_btn_ff)
-	_gear = _ibtn("", "Menu, cài đặt", func() -> void: _show_menu(not _menu.visible))
+	_gear = _ibtn(
+		"",
+		"Menu, cài đặt",
+		func() -> void:
+			_show_menu(not _menu.visible),
+	)
 	_gear.custom_minimum_size = Vector2(44, 40)
 	var gi := HudWidgets.GearIcon.new() # no gear glyph in the bundled fonts: drawn
 	gi.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -172,20 +203,25 @@ func _build() -> void:
 	_card.add_child(_card_box)
 	# bottom-right: Hết lượt
 	_btn_end = Style.menu_button("Hết lượt", "Còn 0 quân chưa đi", true)
-	var end_title: Label = _btn_end.get_meta("title"); var end_sub: Label = _btn_end.get_meta("sub")
+	var end_title: Label = _btn_end.get_meta("title")
+	var end_sub: Label = _btn_end.get_meta("sub")
 	end_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	end_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_btn_end.custom_minimum_size.x = 190
 	_btn_end.tooltip_text = "Kết thúc lượt (phím E)"
 	_btn_end.z_index = 40 # over the board, under the orders popup
-	_btn_end.pressed.connect(func() -> void:
-		main.audio.play("ui")
-		end_player_turn())
+	_btn_end.pressed.connect(
+		func() -> void:
+			main.audio.play("ui")
+			end_player_turn(),
+	)
 	add_child(_btn_end)
 	# orders popup pinned next to the selected tile
 	_pop = PanelContainer.new()
 	var ps := Style.box(Color(0.075, 0.045, 0.03, 0.96), Style.BRONZE_2, 12, 12)
-	ps.shadow_color = Color(0, 0, 0, 0.55); ps.shadow_size = 14; ps.shadow_offset = Vector2(0, 6)
+	ps.shadow_color = Color(0, 0, 0, 0.55)
+	ps.shadow_size = 14
+	ps.shadow_offset = Vector2(0, 6)
 	_pop_box = ps
 	_pop.add_theme_stylebox_override("panel", ps)
 	_pop.z_index = 50 # above board tokens / FX and the HUD
@@ -221,10 +257,12 @@ func _make_board(three_d: bool) -> void:
 	if _coins != null:
 		_coins.board = board
 	board.tile_clicked.connect(_on_tile_clicked)
-	board.hover_changed.connect(func(t: Variant) -> void:
-		ui.hover = t
-		_hover_at = Time.get_ticks_msec()
-		_build_view())
+	board.hover_changed.connect(
+		func(t: Variant) -> void:
+			ui.hover = t
+			_hover_at = Time.get_ticks_msec()
+			_build_view(),
+	)
 	board.cancel_requested.connect(cancel)
 	board.info_requested.connect(_on_info_requested)
 	_wrap.add_child(board)
@@ -248,8 +286,11 @@ func _board_label() -> void:
 
 func _hud_box() -> StyleBoxFlat:
 	var b := Style.box(Color(0.075, 0.045, 0.03, 0.86), Color(Style.BRONZE_2, 0.7), 10, 10)
-	b.content_margin_top = 7; b.content_margin_bottom = 7
-	b.shadow_color = Color(0, 0, 0, 0.45); b.shadow_size = 10; b.shadow_offset = Vector2(0, 4)
+	b.content_margin_top = 7
+	b.content_margin_bottom = 7
+	b.shadow_color = Color(0, 0, 0, 0.45)
+	b.shadow_size = 10
+	b.shadow_offset = Vector2(0, 4)
 	return b
 
 ## ⚙ dropdown: hint, unit book, speed, sound, 2D/3D, restart, leave
@@ -263,25 +304,43 @@ func _build_menu() -> void:
 	v.custom_minimum_size.x = 230
 	_menu.add_child(v)
 	var item := func(text: String, tip: String, fn: Callable, close := true) -> Button:
-		var b := _ibtn(text, tip, func() -> void:
-			if close:
-				_show_menu(false)
-			fn.call())
+		var b := _ibtn(
+			text,
+			tip,
+			func() -> void:
+				if close:
+					_show_menu(false)
+				fn.call(),
+		)
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.custom_minimum_size.y = 40
 		v.add_child(b)
 		return b
 	_btn_hint = item.call("💬 Gợi ý nước đi", "Gợi ý (phím H)", _on_hint)
-	item.call("📖 Sách lính", "Tính chất từng loại quân", func() -> void: main.menus.open_codex(_me()))
+	item.call(
+		"📖 Sách lính",
+		"Tính chất từng loại quân",
+		func() -> void:
+			main.menus.open_codex(_me()),
+	)
 	_btn_speed = item.call("", "Tốc độ hoạt cảnh", _on_speed, false)
-	_btn_sound = item.call("", "Âm thanh", func() -> void:
-		main.audio.set_muted(not main.audio.muted)
-		_sound_label(), false)
+	_btn_sound = item.call(
+		"",
+		"Âm thanh",
+		func() -> void:
+			main.audio.set_muted(not main.audio.muted)
+			_sound_label(),
+		false,
+	)
 	_btn_board = item.call("", "Sa bàn 3D hoặc bản đồ phẳng 2D", _toggle_3d, false)
 	_btn_restart = item.call("↩ Đánh lại màn này", "Chơi lại màn này từ đầu", _confirm_restart)
-	item.call("🏠 Về menu chính", "Lưu ván và về menu", func() -> void:
-		save()
-		main.show_title())
+	item.call(
+		"🏠 Về menu chính",
+		"Lưu ván và về menu",
+		func() -> void:
+			save()
+			main.show_title(),
+	)
 
 func _show_menu(on: bool) -> void:
 	_menu.visible = on
@@ -328,7 +387,10 @@ func _place_hud() -> void:
 			avoid.append(Rect2(_wrap.position + tile_r.position, tile_r.size).grow(tile_r.size.x * 0.5))
 		for c: Vector2 in cands:
 			var r := Rect2(c, cs)
-			if not avoid.any(func(a: Rect2) -> bool: return r.intersects(a)):
+			if not avoid.any(
+				func(a: Rect2) -> bool:
+					return r.intersects(a),
+			):
 				_card.position = c
 				break
 		if _card_terrain: # card took a top corner: that corner's HUD panel yields
@@ -345,9 +407,11 @@ func _layout() -> void:
 func _ibtn(text: String, tip: String, fn: Callable) -> Button:
 	var b := Style.button(text, "IconBtn")
 	b.tooltip_text = tip
-	b.pressed.connect(func() -> void:
-		main.audio.play("ui")
-		fn.call())
+	b.pressed.connect(
+		func() -> void:
+			main.audio.play("ui")
+			fn.call(),
+	)
 	return b
 
 func _speed_label() -> void:
@@ -361,9 +425,13 @@ func _on_speed() -> void:
 func _confirm_restart() -> void:
 	if s.is_empty() or ui.busy:
 		return
-	main.menus.confirm("Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất." % def.get("title", ""), "Đánh lại", func() -> void:
-		var c := ctx.duplicate()
-		main.start_game(Game.new_game(_def_for(c)), c))
+	main.menus.confirm(
+		"Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất." % def.get("title", ""),
+		"Đánh lại",
+		func() -> void:
+			var c := ctx.duplicate()
+			main.start_game(Game.new_game(_def_for(c)), c),
+	)
 
 ## while the enemy moves: hold Space or a mouse button (or ⏩) to run x4
 func _process(_dt: float) -> void:
@@ -389,13 +457,19 @@ func _fit() -> void:
 func _refresh_end_button(my_turn: bool) -> void:
 	var units: Array = s.units
 	var me := _me()
-	var left: int = units.filter(func(o: Dictionary) -> bool: return o.side == me and not o.acted).size()
+	var left: int = units.filter(
+		func(o: Dictionary) -> bool:
+			return o.side == me and not o.acted,
+	).size()
 	var enemy_busy: bool = ui.busy and _is_ai(_turn_side())
 	_btn_end.disabled = not my_turn
 	var end_title: Label = _btn_end.get_meta("title")
 	end_title.text = "Lượt địch" if enemy_busy else "Hết lượt"
-	var sub := ("%s đang ra quân…" % Content.theme().factions[s.side].short) if enemy_busy else (
-		("Còn %d quân chưa đi" % left) if left > 0 else "Mọi quân đã ra lệnh")
+	var sub := (
+		("%s đang ra quân…" % Content.theme().factions[s.side].short)
+		if enemy_busy
+		else (("Còn %d quân chưa đi" % left) if left > 0 else "Mọi quân đã ra lệnh")
+	)
 	Style.set_sub(_btn_end, sub if (my_turn or enemy_busy) else "")
 	# everyone has moved: the button breathes so the next step is obvious
 	var hot := my_turn and left == 0
@@ -414,10 +488,13 @@ func _def_for(c: Dictionary) -> Dictionary:
 	if c.kind == "campaign":
 		var mid: String = c.id
 		return Content.mission(mid)
-	var map_id: String = c.get("map", "dong_bang"); var hero: String = c.hero
-	var gold: int = c.get("gold", 300); var cap: int = c.get("cap", 15)
+	var map_id: String = c.get("map", "dong_bang")
+	var hero: String = c.hero
+	var gold: int = c.get("gold", 300)
+	var cap: int = c.get("cap", 15)
 	if c.kind == "duel":
-		var hero_e: String = c.heroE; var ctrl_e: String = c.ctrlE
+		var hero_e: String = c.heroE
+		var ctrl_e: String = c.ctrlE
 		return Content.duel_def(map_id, hero, hero_e, ctrl_e, gold, cap)
 	var easy: bool = c.easy
 	return Content.skirmish_def(map_id, hero, easy, gold, cap)
@@ -439,7 +516,8 @@ func start(state: Dictionary, c: Dictionary) -> void:
 		_make_board(Store.board_3d())
 	_reset_ui()
 	stats = { "p": 0, "e": 0 }
-	var view_hide: Dictionary = board.view.hide; var view_hold: Dictionary = board.view.hold
+	var view_hide: Dictionary = board.view.hide
+	var view_hold: Dictionary = board.view.hold
 	view_hide.clear()
 	view_hold.clear()
 	board.view.sprites = []
@@ -588,7 +666,11 @@ func _memo_get(key: String, fn: Callable) -> Variant:
 	return _memo[key]
 
 func _reach(u: Dictionary) -> Dictionary:
-	return _memo_get("r%d" % u.id, func() -> Dictionary: return Game.reachable(s, u))
+	return _memo_get(
+		"r%d" % u.id,
+		func() -> Dictionary:
+			return Game.reachable(s, u),
+	)
 
 func _build_view() -> void:
 	if s.is_empty():
@@ -596,7 +678,7 @@ func _build_view() -> void:
 	var v: Dictionary = board.view
 	v.hpCount = _hp_count
 	var u: Variant = _sel_unit()
-	var su: Dictionary = u if u != null else {} # u typed; read only where u != null
+	var su: Dictionary = u if u != null else { } # u typed; read only where u != null
 	var my_turn: bool = _human_turn() and not ui.busy and s.winner == null
 	v.busy = ui.busy
 	v.sel = u if u != null and not ui.busy else null
@@ -607,17 +689,23 @@ func _build_view() -> void:
 	v.attackable = []
 	if v.selMine and ui.mode == M_IDLE:
 		var reach_now: Dictionary = v.reach
-		v.attackable = _memo_get("a%d" % su.id, func() -> Array: return _attackable_anywhere(su, reach_now))
+		v.attackable = _memo_get(
+			"a%d" % su.id,
+			func() -> Array:
+				return _attackable_anywhere(su, reach_now),
+		)
 	v.dest = ui.dest if u != null and not ui.busy and ui.mode != M_IDLE else null
 	v.targets = []
 	if ui.mode == M_TARGET and u != null:
-		var tdx: int = ui.dest[0]; var tdy: int = ui.dest[1]
+		var tdx: int = ui.dest[0]
+		var tdy: int = ui.dest[1]
 		v.targets = Game.targets_from(s, su, tdx, tdy)
 	v.target = ui.target
 	var stays: bool = ui.mode == M_IDLE or (ui.mode == M_MOVED and ui.dest != null and u != null and ui.dest[0] == u.x and ui.dest[1] == u.y)
 	v.razable = []
 	if v.selMine and stays:
-		var ux: int = su.x; var uy: int = su.y
+		var ux: int = su.x
+		var uy: int = su.y
 		v.razable = Game.razable_from(s, su, ux, uy)
 	v.razeAt = ui.raze
 	v.path = null
@@ -625,7 +713,8 @@ func _build_view() -> void:
 	var plan: Variant = _hover_attack() if v.selMine else null
 	if plan != null:
 		# hovering an enemy we can hit: path to the attack tile + damage preview on the board
-		var pfx: int = plan.from[0]; var pfy: int = plan.from[1]
+		var pfx: int = plan.from[0]
+		var pfy: int = plan.from[1]
 		var ptgt: Dictionary = plan.target
 		var p := Game.preview(s, su, pfx, pfy, ptgt)
 		v.preview = p.merged({ "x": plan.target.x, "y": plan.target.y })
@@ -633,11 +722,13 @@ func _build_view() -> void:
 		if ui.mode == M_IDLE:
 			v.dest = plan.from
 	elif v.selMine and ui.mode == M_IDLE and ui.hover != null and ui.hover in v.reach:
-		var hx: int = ui.hover.x; var hy: int = ui.hover.y
+		var hx: int = ui.hover.x
+		var hy: int = ui.hover.y
 		v.path = Game.path_for(s, su, hx, hy)
 	elif v.selMine and ui.mode != M_IDLE and ui.dest != null:
 		var r := _reach(su)
-		var ddx: int = ui.dest[0]; var ddy: int = ui.dest[1]
+		var ddx: int = ui.dest[0]
+		var ddy: int = ui.dest[1]
 		if r.has(Vector2i(ddx, ddy)):
 			v.path = Game.path_for(s, su, ddx, ddy)
 	v.info = ui.info
@@ -648,11 +739,13 @@ func _build_view() -> void:
 func _hover_attack() -> Variant:
 	if ui.hover == null:
 		return null
-	var hx: int = ui.hover.x; var hy: int = ui.hover.y
+	var hx: int = ui.hover.x
+	var hy: int = ui.hover.y
 	var e: Variant = Game.unit_at(s, hx, hy)
 	if e == null or e.side != _foe():
 		return null
-	var su: Dictionary = _sel_unit(); var ed: Dictionary = e
+	var su: Dictionary = _sel_unit()
+	var ed: Dictionary = e
 	var from: Variant = _attack_from(su, ed)
 	if from == null:
 		return null
@@ -661,16 +754,21 @@ func _hover_attack() -> Variant:
 ## where the selected unit attacks `e` from: the chosen tile if e is in range from it, else the best reachable tile
 func _attack_from(u: Dictionary, e: Dictionary) -> Variant:
 	if ui.mode != M_IDLE and ui.dest != null:
-		var dx: int = ui.dest[0]; var dy: int = ui.dest[1]
-		if Game.targets_from(s, u, dx, dy).any(func(o: Dictionary) -> bool: return o.id == e.id):
+		var dx: int = ui.dest[0]
+		var dy: int = ui.dest[1]
+		if Game.targets_from(s, u, dx, dy).any(
+			func(o: Dictionary) -> bool:
+				return o.id == e.id,
+		):
 			return ui.dest
 	return _best_attack_tile(u, e)
 
 func _attackable_anywhere(u: Dictionary, reach: Dictionary) -> Array:
-	var seen := {}
+	var seen := { }
 	var out := []
 	for r: Dictionary in reach.values():
-		var rx: int = r.x; var ry: int = r.y
+		var rx: int = r.x
+		var ry: int = r.y
 		for e: Dictionary in Game.targets_from(s, u, rx, ry):
 			if not seen.has(e.id):
 				seen[e.id] = true
@@ -678,13 +776,21 @@ func _attackable_anywhere(u: Dictionary, reach: Dictionary) -> Array:
 	return out
 
 func _best_attack_tile(u: Dictionary, target: Dictionary) -> Variant:
-	return _memo_get("b%d_%d" % [u.id, target.id], func() -> Variant: return _best_attack_tile_now(u, target))
+	return _memo_get(
+		"b%d_%d" % [u.id, target.id],
+		func() -> Variant:
+			return _best_attack_tile_now(u, target),
+	)
 
 func _best_attack_tile_now(u: Dictionary, target: Dictionary) -> Variant:
 	var best: Variant = null
 	for r: Dictionary in _reach(u).values():
-		var rx: int = r.x; var ry: int = r.y
-		if not Game.targets_from(s, u, rx, ry).any(func(o: Dictionary) -> bool: return o.id == target.id):
+		var rx: int = r.x
+		var ry: int = r.y
+		if not Game.targets_from(s, u, rx, ry).any(
+			func(o: Dictionary) -> bool:
+				return o.id == target.id,
+		):
 			continue
 		var p := Game.preview(s, u, rx, ry, target)
 		var sc: float = _attack_score(p) + Game.terrain_def(s, u, rx, ry) * 0.3 - r.cost * 0.1
@@ -743,7 +849,7 @@ func cancel() -> void:
 ## selected unit was just bought on top of another unit and has not stepped off: take the buy back (refund)
 func _unbuy_sel() -> bool:
 	var sel: Variant = _sel_unit()
-	var u: Dictionary = sel if sel != null else {}
+	var u: Dictionary = sel if sel != null else { }
 	if sel == null or not _human_turn() or not Game.can_unbuy(s, u):
 		return false
 	var x: int = u.x
@@ -761,15 +867,19 @@ func _unbuy_sel() -> bool:
 
 func _on_tile(x: int, y: int) -> void:
 	var my_turn := _human_turn()
-	var me := _me(); var foe := _foe()
+	var me := _me()
+	var foe := _foe()
 	var clicked: Variant = Game.unit_at(s, x, y)
-	var cd: Dictionary = clicked if clicked != null else {} # clicked typed; read only where clicked != null
+	var cd: Dictionary = clicked if clicked != null else { } # clicked typed; read only where clicked != null
 	var u: Variant = _sel_unit()
 	var info_was: Variant = ui.info
-	ui.hint = null; ui.hotBuy = null; ui.hintKind = null
+	ui.hint = null
+	ui.hotBuy = null
+	ui.hintKind = null
 	if u != null and my_turn and not u.acted and u.side == me:
 		var su: Dictionary = u
-		var ux: int = su.x; var uy: int = su.y
+		var ux: int = su.x
+		var uy: int = su.y
 		if clicked != null and clicked.side == foe:
 			var from: Variant = _attack_from(su, cd)
 			if from != null:
@@ -849,14 +959,22 @@ func _on_tile(x: int, y: int) -> void:
 
 ## something worth doing without moving: capture the tile it stands on, or raise a grave next to it
 func _in_place_work(u: Dictionary) -> bool:
-	var ux: int = u.x; var uy: int = u.y
-	return Game.can_capture(s, u, ux, uy) or Game.raisable_graves(s, u, ux, uy).size() > 0 or Game.can_repair(s, u, ux, uy) \
-		or Game.razable_from(s, u, ux, uy).size() > 0 or _can_buy_here(u)
+	var ux: int = u.x
+	var uy: int = u.y
+	return (
+		Game.can_capture(s, u, ux, uy) or Game.raisable_graves(s, u, ux, uy).size() > 0 or Game.can_repair(s, u, ux, uy) \
+				or Game.razable_from(s, u, ux, uy).size() > 0
+		or _can_buy_here(u)
+	)
 
 ## our unit stands on our castle and something can be bought there (the new unit then steps off)
 func _can_buy_here(u: Dictionary) -> bool:
-	var ux: int = u.x; var uy: int = u.y
-	return u.side == _me() and _human_turn() and Game.buy_options(s, _me(), ux, uy).any(func(o: Dictionary) -> bool: return o.ok)
+	var ux: int = u.x
+	var uy: int = u.y
+	return u.side == _me() and _human_turn() and Game.buy_options(s, _me(), ux, uy).any(
+			func(o: Dictionary) -> bool:
+				return o.ok,
+		)
 
 ## true when the mouse has rested on (x,y) long enough that the board preview was visible
 func _hover_settled(x: int, y: int) -> bool:
@@ -868,9 +986,11 @@ func _best_raze(list: Array) -> Array:
 	var best: Array = list[0]
 	var best_sc := -INF
 	var owners: Dictionary = s.owner
-	var ux: int = u.x; var uy: int = u.y
+	var ux: int = u.x
+	var uy: int = u.y
 	for t: Array in list:
-		var tx: int = t[0]; var ty: int = t[1]
+		var tx: int = t[0]
+		var ty: int = t[1]
 		var sc := (100.0 if owners.get(Vector2i(tx, ty)) == _foe() else 0.0) - Game.dist(ux, uy, tx, ty)
 		if sc > best_sc:
 			best_sc = sc
@@ -883,7 +1003,8 @@ func default_action() -> void:
 	if ui.busy or u == null or u.side != _me() or u.acted or not _human_turn() or s.winner != null:
 		return
 	var su: Dictionary = u
-	var ux: int = su.x; var uy: int = su.y
+	var ux: int = su.x
+	var uy: int = su.y
 	if ui.mode == M_IDLE:
 		ui.dest = [u.x, u.y]
 		ui.mode = M_MOVED
@@ -913,7 +1034,10 @@ func select_next() -> void:
 		return
 	var units: Array = s.units
 	var me := _me()
-	var mine: Array = units.filter(func(o: Dictionary) -> bool: return o.side == me and not o.acted)
+	var mine: Array = units.filter(
+		func(o: Dictionary) -> bool:
+			return o.side == me and not o.acted,
+	)
 	if mine.is_empty():
 		return
 	var i := 0
@@ -956,12 +1080,26 @@ func _unhandled_input(ev: InputEvent) -> void:
 
 ## drop the selection and everything hanging off it (destination, aim, buy / info popups, hint, unit card)
 func _clear_sel() -> void:
-	ui.sel = null; ui.dest = null; ui.mode = M_IDLE; ui.target = null; ui.buyAt = null; ui.info = null; ui.raze = null
-	ui.hint = null; ui.hotBuy = null; ui.hintKind = null; ui.peek = null
+	ui.sel = null
+	ui.dest = null
+	ui.mode = M_IDLE
+	ui.target = null
+	ui.buyAt = null
+	ui.info = null
+	ui.raze = null
+	ui.hint = null
+	ui.hotBuy = null
+	ui.hintKind = null
+	ui.peek = null
 
 ## point the selection: destination, mode, attack target, village to wreck; closes the buy / info popups
 func _aim(dest: Variant, mode: String, target: Variant, raze: Variant) -> void:
-	ui.dest = dest; ui.mode = mode; ui.target = target; ui.buyAt = null; ui.info = null; ui.raze = raze
+	ui.dest = dest
+	ui.mode = mode
+	ui.target = target
+	ui.buyAt = null
+	ui.info = null
+	ui.raze = raze
 
 func _set_dest(x: int, y: int) -> void:
 	_aim([x, y], M_MOVED, null, null)
@@ -1017,7 +1155,7 @@ func _force_stack() -> bool:
 	if st == null:
 		return false
 	var cur: Variant = _sel_unit()
-	var cu: Dictionary = cur if cur != null else {}
+	var cu: Dictionary = cur if cur != null else { }
 	if cur != null and Game.stacked(s, cu) and not cur.acted:
 		return false
 	_clear_sel()
@@ -1027,10 +1165,12 @@ func _force_stack() -> bool:
 
 func _stack_hint() -> void:
 	var sel: Variant = _sel_unit()
-	var u: Dictionary = sel if sel != null else {}
+	var u: Dictionary = sel if sel != null else { }
 	if sel != null and Game.stacked(s, u):
-		ui.hint = "Hai quân đứng chung thành: cho [b]%s[/b] bước ra ô khác%s." % [_name_of(u), \
-			", hoặc bấm ra ngoài vùng đi để hủy mua (hoàn vàng)" if Game.can_unbuy(s, u) else ""]
+		ui.hint = "Hai quân đứng chung thành: cho [b]%s[/b] bước ra ô khác%s." % [
+			_name_of(u),
+			", hoặc bấm ra ngoài vùng đi để hủy mua (hoàn vàng)" if Game.can_unbuy(s, u) else "",
+		]
 
 ## units of ours that could still attack or capture this turn
 func _open_work() -> int:
@@ -1040,7 +1180,8 @@ func _open_work() -> int:
 			continue
 		var reach := _reach(u)
 		for r: Dictionary in reach.values():
-			var rx: int = r.x; var ry: int = r.y
+			var rx: int = r.x
+			var ry: int = r.y
 			if Game.can_capture(s, u, rx, ry) or Game.targets_from(s, u, rx, ry).size() or Game.can_repair(s, u, rx, ry) \
 					or Game.razable_from(s, u, rx, ry).size():
 				n += 1
@@ -1084,8 +1225,12 @@ func _handoff() -> void:
 		return
 	var turn: int = s.turn
 	var side_txt: String = Content.theme().factions[s.side].name
-	_handoff_layer = HudWidgets.Handoff.make(Content.text("handoffTitle").format({ "side": side_txt }),
-		Content.text("handoffSub").format({ "turn": turn }), Style.P_NAME if s.side == "p" else Style.SEA_HI, _handoff_closed.emit)
+	_handoff_layer = HudWidgets.Handoff.make(
+		Content.text("handoffTitle").format({ "side": side_txt }),
+		Content.text("handoffSub").format({ "turn": turn }),
+		Style.P_NAME if s.side == "p" else Style.SEA_HI,
+		_handoff_closed.emit,
+	)
 	add_child(_handoff_layer)
 	main.audio.play("drum")
 	if main.flags.has("shots"):
@@ -1116,7 +1261,8 @@ func _turn_start(ev: Array, before: Dictionary) -> void:
 func ai_turn() -> void:
 	var my := gen
 	var side: String = s.side
-	var game_seed: int = s.get("seed", 0); var turn: int = s.turn
+	var game_seed: int = s.get("seed", 0)
+	var turn: int = s.turn
 	AI.seed_game(game_seed * 1000 + turn) # same game + turn -> same enemy choices after a reload
 	_user_speed = FX.speed
 	_ff = false
@@ -1126,7 +1272,7 @@ func ai_turn() -> void:
 	await fx.sleep(900.0)
 	if gen != my:
 		return
-	var mem := {} # difficulty: s.aiParams (Game.new_game from ctrl)
+	var mem := { } # difficulty: s.aiParams (Game.new_game from ctrl)
 	while s.winner == null and s.side == side:
 		var next: Variant = AI.next_step(s, mem)
 		if next == null:
@@ -1180,7 +1326,7 @@ func _maybe_bot() -> void:
 func _bot_turn() -> void:
 	var my := gen
 	await fx.sleep(400.0)
-	var mem := {}
+	var mem := { }
 	while gen == my and _human_turn() and s.winner == null:
 		var step: Variant = AI.next_step(s, mem)
 		if step == null:
@@ -1195,7 +1341,8 @@ func _bot_turn() -> void:
 			continue
 		ui.sel = step.act.id
 		ui.dest = step.act.to
-		var act: Dictionary = step.act; var rest: Dictionary = act.duplicate()
+		var act: Dictionary = step.act
+		var rest: Dictionary = act.duplicate()
 		rest.erase("id")
 		rest.erase("to")
 		await commit(rest)
@@ -1209,21 +1356,31 @@ func _income_fx() -> void:
 	for k: Vector2i in s.owner:
 		if s.owner[k] == me:
 			items.append({ "x": k.x, "y": k.y, "amount": Game.income_of(s.tiles[k.y][k.x]) })
-	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y or (a.y == b.y and a.x < b.x))
+	items.sort_custom(
+		func(a: Dictionary, b: Dictionary) -> bool:
+			return a.y < b.y or (a.y == b.y and a.x < b.x),
+	)
 	_coins.board = board
 	_coins.play(items)
 	main.audio.play("coin")
 	var from: int = _gold_shown if _gold_shown >= 0 else s.gold[me]
 	if _gold_tw != null:
 		_gold_tw.kill()
-	_gold_tw = _count_up(_gold_num, CoinPop.RISE, 0.9, func(k: float) -> void:
-		var gold_now: float = s.gold[me] # live target: a buy mid-count still ends right
-		_gold_shown = roundi(lerpf(from, gold_now, k))
-		_gold_num.text = str(_gold_shown))
-	_gold_tw.tween_callback(func() -> void:
-		_gold_shown = -1
-		_gold_num.text = str(s.gold[me])
-		_bump_gold())
+	_gold_tw = _count_up(
+		_gold_num,
+		CoinPop.RISE,
+		0.9,
+		func(k: float) -> void:
+			var gold_now: float = s.gold[me] # live target: a buy mid-count still ends right
+			_gold_shown = roundi(lerpf(from, gold_now, k))
+			_gold_num.text = str(_gold_shown),
+	)
+	_gold_tw.tween_callback(
+		func() -> void:
+			_gold_shown = -1
+			_gold_num.text = str(s.gold[me])
+			_bump_gold(),
+	)
 
 ## heal = same pop as income (green +N over the unit, after the coins) + the hp bar counting up
 func _heal_fx(e: Dictionary) -> void:
@@ -1235,21 +1392,29 @@ func _heal_fx(e: Dictionary) -> void:
 	_hp_count[id] = from
 	_coins.board = board
 	_coins.play([{ "x": e.x, "y": e.y, "amount": e.amount }], "heal", 0.3)
-	var ex: float = e.x; var ey: float = e.y
+	var ex: float = e.x
+	var ey: float = e.y
 	fx.heal_sparkle(ex, ey)
 	main.audio.play("heal")
-	var tw := _count_up(self, 0.3 + CoinPop.RISE, 0.7, func(k: float) -> void:
-		var cur: Variant = Game.unit_by_id(s, id)
-		if cur == null:
-			_hp_count.erase(id)
-			return
-		var cur_hp: float = cur.hp
-		_hp_count[id] = roundi(lerpf(from, cur_hp, k))
-		board.queue_redraw())
+	var tw := _count_up(
+		self,
+		0.3 + CoinPop.RISE,
+		0.7,
+		func(k: float) -> void:
+			var cur: Variant = Game.unit_by_id(s, id)
+			if cur == null:
+				_hp_count.erase(id)
+				return
+			var cur_hp: float = cur.hp
+			_hp_count[id] = roundi(lerpf(from, cur_hp, k))
+			board.queue_redraw(),
+	)
 	_heal_tws.append(tw)
-	tw.tween_callback(func() -> void:
-		_hp_count.erase(id)
-		board.queue_redraw())
+	tw.tween_callback(
+		func() -> void:
+			_hp_count.erase(id)
+			board.queue_redraw(),
+	)
 
 ## a shown number counting up: wait delay s, then step(k) for k 0 -> 1 over dur s (ease-out); chain the end on it
 func _count_up(host: Node, delay: float, dur: float, step: Callable) -> Tween:
@@ -1278,7 +1443,7 @@ func banner(text: String, foe := false) -> void:
 
 # ---------- event playback ----------
 func _snapshot() -> Dictionary:
-	var m := {}
+	var m := { }
 	for u: Dictionary in s.units:
 		m[u.id] = u.duplicate()
 	return m
@@ -1286,14 +1451,15 @@ func _snapshot() -> Dictionary:
 func play(events: Array, before: Dictionary) -> void:
 	var my := gen
 	var v: Dictionary = board.view
-	var hp := {}
+	var hp := { }
 	for id: int in before:
 		hp[id] = before[id].hp
 	v.hp = hp
-	var dying := {}
+	var dying := { }
 	for e: Dictionary in events:
 		if e.t == "die" and before.has(e.id):
-			var bu: Dictionary = before[e.id]; var copy: Dictionary = bu.duplicate()
+			var bu: Dictionary = before[e.id]
+			var copy: Dictionary = bu.duplicate()
 			copy.x = e.x
 			copy.y = e.y
 			var sp := { "u": copy, "hidden": false }
@@ -1303,10 +1469,12 @@ func play(events: Array, before: Dictionary) -> void:
 		if e.t == "raise" or e.t == "spawn":
 			v.hide[e.id] = true
 		if e.t == "raze": # keep the village standing until the rock lands
-			var rx: int = e.x; var ry: int = e.y
+			var rx: int = e.x
+			var ry: int = e.y
 			v.hold[Vector2i(rx, ry)] = [e.tile, e.prev]
 		if e.t == "repair":
-			var px: int = e.x; var py: int = e.y
+			var px: int = e.x
+			var py: int = e.y
 			v.hold[Vector2i(px, py)] = [e.tile, null]
 	var dived := false
 	for ei in events.size():
@@ -1320,7 +1488,8 @@ func play(events: Array, before: Dictionary) -> void:
 			await board.unfocus()
 		if e.t == "hit" and not dived and not e.get("counter", false) and _zoom_on():
 			dived = true
-			var zfx: int = e.fx; var zfy: int = e.fy
+			var zfx: int = e.fx
+			var zfy: int = e.fy
 			await board.focus(Vector2i(zfx, zfy), Vector2i(ex, ey))
 		match e.t:
 			"move":
@@ -1338,19 +1507,25 @@ func play(events: Array, before: Dictionary) -> void:
 				main.audio.play("move")
 				var path: Array = e.path
 				if path.size() > 1:
-					var p0x: float = path[0][0]; var p0y: float = path[0][1]
+					var p0x: float = path[0][0]
+					var p0y: float = path[0][1]
 					fx.dust(p0x, p0y) # the first step kicks up dust where it starts
 				for i in range(1, path.size()):
 					var a: Array = path[i - 1]
 					var b: Array = path[i]
-					await fx.tween(95.0, func(t: float) -> void:
-						copy.x = a[0] + (b[0] - a[0]) * t
-						copy.y = a[1] + (b[1] - a[1]) * t)
-					var bx: float = b[0]; var by: float = b[1]
+					await fx.tween(
+						95.0,
+						func(t: float) -> void:
+							copy.x = a[0] + (b[0] - a[0]) * t
+							copy.y = a[1] + (b[1] - a[1]) * t,
+					)
+					var bx: float = b[0]
+					var by: float = b[1]
 					fx.dust(bx, by)
 				if gen != my:
 					return
-				var sprites_now: Array = v.sprites; var hide_now: Dictionary = v.hide
+				var sprites_now: Array = v.sprites
+				var hide_now: Dictionary = v.hide
 				sprites_now.erase(sp)
 				hide_now.erase(e.id)
 				if ds != null:
@@ -1359,17 +1534,32 @@ func play(events: Array, before: Dictionary) -> void:
 					ds.u.y = last[1]
 					ds.hidden = false
 			"hit":
-				var kill := events.any(func(o: Dictionary) -> bool: return o.t == "die" and o.id == e.id)
+				var kill := events.any(
+					func(o: Dictionary) -> bool:
+						return o.t == "die" and o.id == e.id,
+				)
 				var att := { "x": e.fx, "y": e.fy, "id": e.from, "type": e.type, "side": e.side }
 				var eid: int = e.id
 				var tu: Variant = before.get(eid, Game.unit_by_id(s, eid))
 				var dfd := { "x": e.x, "y": e.y, "id": e.id, "type": tu.type if tu != null else "soldier" }
-				var etype: String = e.type; var eside: String = e.side
+				var etype: String = e.type
+				var eside: String = e.side
 				var amount: int = e.amount
 				var rig: Rig = Rigs.make(etype, eside) if board is Board else null
 				if rig != null: # code-rigged attack: hp drops at its big HIT (on_hit runs exactly once)
-					await fx.rig_attack(board, rig, att, dfd, amount, { "counter": e.get("counter", false), "kill": kill,
-						"on_hit": func() -> void: hp[e.id] = hp.get(e.id, 100) - e.amount })
+					await fx.rig_attack(
+						board,
+						rig,
+						att,
+						dfd,
+						amount,
+						{
+							"counter": e.get("counter", false),
+							"kill": kill,
+							"on_hit": func() -> void:
+								hp[e.id] = hp.get(e.id, 100) - e.amount,
+						},
+					)
 				else:
 					await fx.attack(att, dfd, amount, { "counter": e.get("counter", false), "kill": kill })
 					hp[e.id] = hp.get(e.id, 100) - e.amount
@@ -1407,8 +1597,10 @@ func play(events: Array, before: Dictionary) -> void:
 				var eid: int = e.id
 				var u: Variant = Game.unit_by_id(s, eid)
 				if u != null:
-					var ux: int = u.x; var uy: int = u.y
-					var utype: String = u.type; var rank: int = e.rank
+					var ux: int = u.x
+					var uy: int = u.y
+					var utype: String = u.type
+					var rank: int = e.rank
 					# AE2 announces only the renames (even levels <= 6, never the commander); other levels: quiet LvN
 					fx.rank(ux, uy, rank, Content.rank_announced(utype, rank))
 					await fx.sleep(350.0)
@@ -1416,7 +1608,8 @@ func play(events: Array, before: Dictionary) -> void:
 				for id: int in e.ids:
 					var au: Variant = Game.unit_by_id(s, id)
 					if au != null:
-						var ax: float = au.x; var ay: float = au.y
+						var ax: float = au.x
+						var ay: float = au.y
 						fx.ring(ax, ay, "#5fd35a", 500.0, 0.6, 0.06)
 				main.audio.play("ui")
 			"poison":
@@ -1449,7 +1642,10 @@ func play(events: Array, before: Dictionary) -> void:
 	var hold_end: Dictionary = v.hold
 	hold_end.clear()
 	var sprites_end: Array = v.sprites
-	v.sprites = sprites_end.filter(func(sp: Dictionary) -> bool: return not dying.has(sp.u.id))
+	v.sprites = sprites_end.filter(
+		func(sp: Dictionary) -> bool:
+			return not dying.has(sp.u.id),
+	)
 
 ## attacks zoom onto the two units unless fast-forwarding
 func _zoom_on() -> bool:
@@ -1499,7 +1695,8 @@ func _intro_new_units() -> void:
 ## one animated card; returns when the player dismisses it (button, Space/Enter, or a click outside after a moment)
 func _intro_card(u: Dictionary, i: int, n: int) -> void:
 	var hk: Variant = s.heroKey[u.side]
-	var side: String = u.side; var type: String = u.type
+	var side: String = u.side
+	var type: String = u.type
 	var look := Content.unit_type_look(side, type, hk)
 	var st := Content.type_stat(type, hk)
 	var mine: bool = u.side == _me()
@@ -1520,7 +1717,9 @@ func _intro_card(u: Dictionary, i: int, n: int) -> void:
 	layer.add_child(center)
 	var card := PanelContainer.new()
 	var cs := Style.box(Color(0.10, 0.06, 0.04, 0.98), Color(Style.GOLD, 0.7), 16, 22, 2)
-	cs.shadow_color = Color(0, 0, 0, 0.6); cs.shadow_size = 30; cs.shadow_offset = Vector2(0, 10)
+	cs.shadow_color = Color(0, 0, 0, 0.6)
+	cs.shadow_size = 30
+	cs.shadow_offset = Vector2(0, 10)
 	card.add_theme_stylebox_override("panel", cs)
 	card.custom_minimum_size.x = 620
 	center.add_child(card)
@@ -1573,21 +1772,28 @@ func _intro_card(u: Dictionary, i: int, n: int) -> void:
 	br.add_child(Style.lbl("Space / Enter", 12, Style.MUTED))
 	var ok := Style.button("Tiếp ›" if i < n - 1 else "Đã hiểu", "PrimaryBtn")
 	ok.custom_minimum_size = Vector2(150, 48)
-	ok.pressed.connect(func() -> void: _intro_closed.emit())
+	ok.pressed.connect(
+		func() -> void:
+			_intro_closed.emit(),
+	)
 	br.add_child(ok)
 	v.add_child(br)
 	var t0 := Time.get_ticks_msec()
-	layer.gui_input.connect(func(ev: InputEvent) -> void:
-		var mb := ev as InputEventMouseButton
-		if mb != null and mb.pressed and Time.get_ticks_msec() - t0 > 600:
-			_intro_closed.emit())
+	layer.gui_input.connect(
+		func(ev: InputEvent) -> void:
+			var mb := ev as InputEventMouseButton
+			if mb != null and mb.pressed and Time.get_ticks_msec() - t0 > 600:
+				_intro_closed.emit(),
+	)
 	# animate: fade in, card rises, token pops, lines appear one by one
 	main.audio.play("spawn" if not mine else "rank")
 	layer.modulate.a = 0.0
-	card.resized.connect(func() -> void: # phone landscape: shrink to fit, never clip the top
-		var f := minf(1.0, (center.size.y - 16.0) / card.size.y)
-		center.pivot_offset = center.size / 2
-		center.scale = Vector2(f, f))
+	card.resized.connect(
+		func() -> void: # phone landscape: shrink to fit, never clip the top
+			var f := minf(1.0, (center.size.y - 16.0) / card.size.y)
+			center.pivot_offset = center.size / 2
+			center.scale = Vector2(f, f),
+	)
 	card.pivot_offset = Vector2(310, 200)
 	card.scale = Vector2(0.94, 0.94)
 	for l: Control in lines:
@@ -1632,7 +1838,7 @@ func finish() -> void:
 	var buttons := []
 	var outro: Array = []
 	if win:
-		var story: Dictionary = def.get("story", {})
+		var story: Dictionary = def.get("story", { })
 		outro = story.get("outro", [])
 	if ctx.kind == "campaign":
 		var mission_id: String = ctx.id
@@ -1649,29 +1855,59 @@ func finish() -> void:
 			if i + 1 < c.size():
 				var next: Dictionary = c[i + 1]
 				var new_chapter := Content.chapter_of(next) != cid
-				buttons.append(["Chương tiếp ›" if new_chapter else "Màn tiếp ›", func() -> void: main.play_mission(next), true])
+				buttons.append(
+					[
+						"Chương tiếp ›" if new_chapter else "Màn tiếp ›",
+						func() -> void:
+							main.play_mission(next),
+						true,
+					]
+				)
 			else:
 				reason_text += " Toàn bộ chiến dịch đã hoàn thành!"
-			buttons.append(["Bản đồ chiến dịch", func() -> void: main.show_campaign(cid), false])
+			buttons.append(
+				[
+					"Bản đồ chiến dịch",
+					func() -> void:
+						main.show_campaign(cid),
+					false,
+				]
+			)
 		else:
 			var c2 := ctx.duplicate()
 			var retry := func() -> void:
 				var m: Dictionary = Content.mission(mission_id)
 				main.start_game(Game.new_game(m), c2)
 			buttons.append(["Đánh lại", retry, true])
-			buttons.append(["Bản đồ chiến dịch", func() -> void: main.show_campaign(cid), false])
+			buttons.append(
+				[
+					"Bản đồ chiến dịch",
+					func() -> void:
+						main.show_campaign(cid),
+					false,
+				]
+			)
 	elif duel:
 		var c3 := ctx.duplicate()
-		buttons.append(["Chơi lại", func() -> void: main.start_game(Game.new_game(_def_for(c3)), c3), true])
+		buttons.append(
+			[
+				"Chơi lại",
+				func() -> void:
+					main.start_game(Game.new_game(_def_for(c3)), c3),
+				true,
+			]
+		)
 		buttons.append(["Về menu", main.show_title, false])
 	else:
 		buttons.append(["Ván mới", main.show_skirmish, true])
 		buttons.append(["Menu", main.show_title, false])
 	_show_end(win, reason_text, outro, buttons)
 	if main.flags.has("shots"):
-		get_tree().create_timer(1.5).timeout.connect(func() -> void:
-			var tag: String = main.flags.get("tag", "s")
-			main.shot(tag + "_end"))
+		get_tree().create_timer(1.5).timeout.connect(
+			func() -> void:
+				var tag: String = main.flags.get("tag", "s")
+				main.shot(tag + "_end"),
+		)
 
 func _show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 	for c in _end.get_children():
@@ -1685,7 +1921,8 @@ func _show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 	_end.add_child(center)
 	var card := PanelContainer.new()
 	var cs := Style.box(Color("#1f110b"), Style.GOLD if win else Style.SEA, 16, 26)
-	cs.shadow_color = Color(0, 0, 0, 0.55); cs.shadow_size = 30
+	cs.shadow_color = Color(0, 0, 0, 0.55)
+	cs.shadow_size = 30
 	card.add_theme_stylebox_override("panel", cs)
 	card.custom_minimum_size.x = 500
 	card.clip_contents = true
@@ -1726,16 +1963,19 @@ func _show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 	var row := Style.hbox(10)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	for b: Array in buttons:
-		var b_text: String = b[0]; var b_primary: bool = b[2]
+		var b_text: String = b[0]
+		var b_primary: bool = b[2]
 		var btn := Style.menu_button(b_text, "", b_primary)
 		var btn_title: Label = btn.get_meta("title")
 		btn_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		btn.custom_minimum_size.x = maxf(190.0, btn.custom_minimum_size.x)
 		var fn: Callable = b[1]
-		btn.pressed.connect(func() -> void:
-			main.audio.play("ui")
-			_end.visible = false
-			fn.call())
+		btn.pressed.connect(
+			func() -> void:
+				main.audio.play("ui")
+				_end.visible = false
+				fn.call(),
+		)
 		row.add_child(btn)
 	v.add_child(row)
 	_end.visible = true
@@ -1751,7 +1991,7 @@ func _on_hint() -> void:
 	if s.is_empty() or ui.busy or not _human_turn() or s.winner != null:
 		return
 	_reset_ui()
-	var step: Variant = AI.next_step(s.duplicate(true), {}) # next_step may clear guard flags: ask on a copy
+	var step: Variant = AI.next_step(s.duplicate(true), { }) # next_step may clear guard flags: ask on a copy
 	if step == null:
 		ui.hint = "Không còn việc gì đáng làm. Bấm [b]Hết lượt[/b]."
 		refresh()
@@ -1801,16 +2041,18 @@ func _head(token: Control, title: String, sub: String, side := "") -> HBoxContai
 	h.add_child(v)
 	return h
 
-func _act(label: String, fn: Callable, opts := {}) -> Button:
+func _act(label: String, fn: Callable, opts := { }) -> Button:
 	var hot: bool = opts.get("hot", false)
 	var go: bool = opts.get("go", false)
 	var b := Style.button(label, ("ActGoHot" if hot else "ActGo") if go else ("ActHot" if hot else "ActBtn"))
 	b.disabled = opts.get("disabled", false)
 	b.add_theme_font_size_override("font_size", 17)
 	b.custom_minimum_size = Vector2(52, 44)
-	b.pressed.connect(func() -> void:
-		main.audio.play("ui")
-		fn.call())
+	b.pressed.connect(
+		func() -> void:
+			main.audio.play("ui")
+			fn.call(),
+	)
 	if hot:
 		var tw := b.create_tween().set_loops()
 		tw.tween_property(b, "modulate", Color(1.18, 1.12, 1.0), 0.7)
@@ -1818,8 +2060,10 @@ func _act(label: String, fn: Callable, opts := {}) -> Button:
 	return b
 
 func _goal_line() -> String:
-	var win: Dictionary = s.win; var hero_keys: Dictionary = s.heroKey
-	var turns: int = win.get("turns", 0); var turn: int = s.turn
+	var win: Dictionary = s.win
+	var hero_keys: Dictionary = s.heroKey
+	var turns: int = win.get("turns", 0)
+	var turn: int = s.turn
 	var n: Variant = Objectives.bar_n(s)
 	if s.has("ctrl"): # 1 vs 1: goal said from the side on screen (bar_n / goal words read as p)
 		hero_keys = { "p": s.heroKey[_me()], "e": s.heroKey[_foe()] }
@@ -1833,24 +2077,36 @@ func _shown_at(u: Dictionary) -> Array:
 
 ## "Công · Thủ · Đi · Tầm" line with live buffs (unit card + corner card)
 func _stat_note(u: Dictionary, st: Dictionary, b: Dictionary) -> Control:
-	return _note("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [_atk_txt(u, b), _def_txt(u, st, b), st.mv, Style.stat_range(st)], Style.MUTED, 14)
+	return _note(
+		"Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [_atk_txt(u, b), _def_txt(u, st, b), st.mv, Style.stat_range(st)],
+		Style.MUTED,
+		14,
+	)
 
 ## compact unit card for the popup: token + name + side/HP/XP, HP bar, one stat line; full = also the unit's description
 func _unit_info(u: Dictionary, full := false) -> void:
 	var st := Game.stat(s, u)
 	var look := Content.unit_look(s, u)
 	var dt := _shown_at(u)
-	var dtx: int = dt[0]; var dty: int = dt[1]
+	var dtx: int = dt[0]
+	var dty: int = dt[1]
 	var t: String = s.tiles[dty][dtx]
 	var next: Variant = null
 	if u.rank < Rules.RULES.maxRank:
 		next = Game.xp_need(s, u)
-	var look_name: String = look.name; var rank: int = u.rank
-	var side: String = u.side; var type: String = u.type
+	var look_name: String = look.name
+	var rank: int = u.rank
+	var side: String = u.side
+	var type: String = u.type
 	var hp: float = u.hp
 	var title: String = Content.unit_title(look_name, rank, type == "hero")
-	var sub := "Máu %d · KN %d%s · %s +%d thủ" % [u.hp, u.xp, ("/%d" % next) if next != null else " (tối đa)",
-		Content.terrain(t).name, Game.terrain_def(s, u, dtx, dty)]
+	var sub := "Máu %d · KN %d%s · %s +%d thủ" % [
+		u.hp,
+		u.xp,
+		("/%d" % next) if next != null else " (tối đa)",
+		Content.terrain(t).name,
+		Game.terrain_def(s, u, dtx, dty),
+	]
 	_info.add_child(_head(Token.make(side, type, s.heroKey[side], 40), title, sub, side))
 	_info.add_child(Style.Bar.make(hp / 100.0, 6, Color("#5fa83c"), Style.GOOD))
 	var b := Game.buffs_at(s, u, dtx, dty)
@@ -1862,7 +2118,18 @@ func _unit_info(u: Dictionary, full := false) -> void:
 		_info.add_child(_note(desc, Style.MUTED, 13))
 		var traits: Array = Content.traits(type, s.heroKey[side])
 		if traits.size():
-			_info.add_child(_note("\n".join(traits.map(func(x: String) -> String: return "• " + x)), Style.INK, 13))
+			_info.add_child(
+				_note(
+					"\n".join(
+						traits.map(
+							func(x: String) -> String:
+								return "• " + x,
+						)
+					),
+					Style.INK,
+					13,
+				)
+			)
 		_info.add_child(_note("[b]Cách dùng:[/b] " + Content.how_to_play(type), Style.GOLD, 13))
 	if u.get("guard", false):
 		_info.add_child(_note("💤 Đang canh gác: chỉ ra tay khi quân ta tới gần.", Style.MUTED, 13))
@@ -1882,12 +2149,16 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var st := Game.stat(s, cu)
 		var look := Content.unit_look(s, cu)
 		var dt := _shown_at(cu)
-		var ux: int = cu.x; var uy: int = cu.y
-		var dtx: int = dt[0]; var dty: int = dt[1]
+		var ux: int = cu.x
+		var uy: int = cu.y
+		var dtx: int = dt[0]
+		var dty: int = dt[1]
 		_avoid_tile(ux, uy)
 		_avoid_tile(dtx, dty)
-		var look_name: String = look.name; var rank: int = cu.rank
-		var side: String = cu.side; var type: String = cu.type
+		var look_name: String = look.name
+		var rank: int = cu.rank
+		var side: String = cu.side
+		var type: String = cu.type
 		var hp: float = cu.hp
 		var title: String = Content.unit_title(look_name, rank, type == "hero")
 		var side_txt: String = _side_name(side)
@@ -1900,7 +2171,10 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var more := Style.button("📜 Chi tiết", "ChipBtn")
 		more.tooltip_text = "Tính chất, cách dùng, kinh nghiệm"
 		more.size_flags_horizontal = Control.SIZE_SHRINK_END
-		more.pressed.connect(func() -> void: _on_info_requested(id))
+		more.pressed.connect(
+			func() -> void:
+				_on_info_requested(id),
+		)
 		_card_box.add_child(more)
 	elif peek == null and ui.info != null:
 		show_card = true
@@ -1941,7 +2215,8 @@ func _avoid_tile(x: int, y: int) -> void:
 ## "50–55 +10" (roll range incl. level, then live bonus / malus)
 func _atk_txt(u: Dictionary, b: Dictionary) -> String:
 	var r := Game.atk_range(s, u)
-	var lo: int = r[0]; var hi: int = r[1]
+	var lo: int = r[0]
+	var hi: int = r[1]
 	var t := "[b]%s[/b]" % Style.range_txt(lo, hi)
 	var net: int = b.atk - b.poison
 	if net:
@@ -1961,7 +2236,9 @@ func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
 	if b.atk_from == "aura":
 		out.append("[color=#%s]⚔ +%d công[/color] nhờ trống đồng, tới lượt sau của phe mình." % [Board.BUFF_UP.to_html(false), b.aura])
 	if b.def_from == "water":
-		out.append("[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông." % [Board.BUFF_UP.to_html(false), b.def, Game.stat(s, u).get("waterAtk", 0)])
+		out.append(
+			"[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông." % [Board.BUFF_UP.to_html(false), b.def, Game.stat(s, u).get("waterAtk", 0)]
+		)
 	if b.poison:
 		out.append("[color=#%s]🐺 Bị sói cắn: −%d công, −%d thủ[/color] tới lượt sau của phe kia." % [Style.BAD.to_html(false), b.poison, b.poison])
 	return out
@@ -1973,18 +2250,23 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	var stg := Game.stat(s, tgt)
 	var bu := Game.buffs_at(s, u, dx, dy)
 	var r := Game.atk_range(s, u)
-	var lo: int = r[0]; var hi: int = r[1]
+	var lo: int = r[0]
+	var hi: int = r[1]
 	parts.append("công " + Style.range_txt(lo, hi))
 	if bu.atk:
-		parts.append("[color=#%s]+%d công[/color] (%s)" % [Board.BUFF_UP.to_html(false), bu.atk, "trống đồng" if bu.atk_from == "aura" else "dưới sông"])
+		parts.append(
+			"[color=#%s]+%d công[/color] (%s)" % [Board.BUFF_UP.to_html(false), bu.atk, "trống đồng" if bu.atk_from == "aura" else "dưới sông"]
+		)
 	if bu.poison:
 		parts.append("[color=#%s]−%d công[/color] (bị cắn)" % [Style.BAD.to_html(false), bu.poison])
 	if su.get("antiAir", 0) and stg.move == "fly":
 		parts.append("+%d công đánh rồng" % su.antiAir)
-	var vs_type: Dictionary = su.get("vsType", {})
+	var vs_type: Dictionary = su.get("vsType", { })
 	var vs: int = vs_type.get(tgt.type, 0)
-	var tside: String = tgt.side; var ttype: String = tgt.type
-	var tx: int = tgt.x; var ty: int = tgt.y
+	var tside: String = tgt.side
+	var ttype: String = tgt.type
+	var tx: int = tgt.x
+	var ty: int = tgt.y
 	if vs:
 		var tname: String = Content.unit_type_look(tside, ttype, null).name
 		parts.append("+%d công đánh %s" % [vs, tname.to_lower()])
@@ -2032,9 +2314,14 @@ func refresh() -> void:
 		_pop_anchor = [peek.x, peek.y]
 		var pu: Dictionary = peek
 		_unit_info(pu, true)
-		_actions.add_child(_act("✖ Đóng", func() -> void:
-			ui.peek = null
-			refresh()))
+		_actions.add_child(
+			_act(
+				"✖ Đóng",
+				func() -> void:
+					ui.peek = null
+					refresh(),
+			)
+		)
 	elif u != null:
 		var su: Dictionary = u
 		if my_turn and u.side == me and not u.acted and ui.mode != M_IDLE:
@@ -2056,55 +2343,109 @@ func refresh() -> void:
 					if mods != "":
 						_info.add_child(_note(mods, Style.MUTED, 12))
 					var tid: int = tgt.id
-					_actions.add_child(_act("⚔ Đánh", func() -> void: commit({ "kind": "attack", "target": tid }), { "hot": true, "go": true }))
+					_actions.add_child(
+						_act(
+							"⚔ Đánh",
+							func() -> void:
+								commit({ "kind": "attack", "target": tid }),
+							{ "hot": true, "go": true },
+						)
+					)
 				else:
 					_info.add_child(_note("Bấm vào kẻ địch viền đỏ để chọn mục tiêu."))
-				_actions.add_child(_act("↩ Quay lại", func() -> void:
-					ui.mode = M_MOVED
-					ui.target = null
-					refresh()))
+				_actions.add_child(
+					_act(
+						"↩ Quay lại",
+						func() -> void:
+							ui.mode = M_MOVED
+							ui.target = null
+							refresh(),
+					)
+				)
 			else:
 				var hk: Variant = ui.hintKind
 				if targets.size():
-					_actions.add_child(_act("⚔ Đánh (%d)" % targets.size(), func() -> void:
-						ui.mode = M_TARGET
-						var best: Variant = null
-						var best_sc := -INF
-						for t2: Dictionary in targets:
-							var sc2 := _attack_score(Game.preview(s, su, dx, dy, t2))
-							if sc2 > best_sc:
-								best_sc = sc2
-								best = t2
-						ui.target = best.id
-						refresh()))
+					_actions.add_child(
+						_act(
+							"⚔ Đánh (%d)" % targets.size(),
+							func() -> void:
+								ui.mode = M_TARGET
+								var best: Variant = null
+								var best_sc := -INF
+								for t2: Dictionary in targets:
+									var sc2 := _attack_score(Game.preview(s, su, dx, dy, t2))
+									if sc2 > best_sc:
+										best_sc = sc2
+										best = t2
+								ui.target = best.id
+								refresh(),
+						)
+					)
 				if Game.can_capture(s, su, dx, dy):
-					_actions.add_child(_act("🏯 Chiếm thành" if Game.sells(s.tiles[dy][dx]) else "🏠 Chiếm làng", func() -> void: commit({ "kind": "capture" }),
-						{ "hot": hk == "capture" or hk == null, "go": true }))
+					_actions.add_child(
+						_act(
+							"🏯 Chiếm thành" if Game.sells(s.tiles[dy][dx]) else "🏠 Chiếm làng",
+							func() -> void:
+								commit({ "kind": "capture" }),
+							{ "hot": hk == "capture" or hk == null, "go": true },
+						)
+					)
 				if Game.can_repair(s, su, dx, dy):
 					_info.add_child(_note("Làng hỏng: sửa xong thành làng chưa ai chiếm, lượt sau mới chiếm được."))
-					_actions.add_child(_act("🔨 Sửa làng", func() -> void: commit({ "kind": "repair" }), { "hot": hk == "repair" or hk == null, "go": true }))
+					_actions.add_child(
+						_act(
+							"🔨 Sửa làng",
+							func() -> void:
+								commit({ "kind": "repair" }),
+							{ "hot": hk == "repair" or hk == null, "go": true },
+						)
+					)
 				var razes := Game.razable_from(s, su, dx, dy)
 				if razes.size():
 					var rt: Array = ui.raze if ui.raze != null and razes.has(ui.raze) else _best_raze(razes)
 					if ui.raze != null:
 						_info.add_child(_note("Phá làng viền vàng: thành [b]làng hỏng[/b], ai muốn chiếm phải cho lính sửa trước."))
-					_actions.add_child(_act("💥 Phá làng", func() -> void: commit({ "kind": "raze", "target": rt }),
-						{ "hot": ui.raze != null or hk == "raze", "go": true }))
+					_actions.add_child(
+						_act(
+							"💥 Phá làng",
+							func() -> void:
+								commit({ "kind": "raze", "target": rt }),
+							{ "hot": ui.raze != null or hk == "raze", "go": true },
+						)
+					)
 				var graves := Game.raisable_graves(s, su, dx, dy)
 				if graves.size():
 					var g0: Dictionary = graves[0]
-					_actions.add_child(_act(Content.text("raiseButton"), func() -> void: commit({ "kind": "raise", "target": [g0.x, g0.y] }),
-						{ "hot": hk == "raise" }))
+					_actions.add_child(
+						_act(
+							Content.text("raiseButton"),
+							func() -> void:
+								commit({ "kind": "raise", "target": [g0.x, g0.y] }),
+							{ "hot": hk == "raise" },
+						)
+					)
 				if dx == u.x and dy == u.y and _can_buy_here(su):
 					var bx: int = u.x
 					var by: int = u.y
-					_actions.add_child(_act("🏯 Mộ quân", func() -> void:
-						_clear_sel()
-						ui.buyAt = [bx, by]
-						main.audio.play("select")
-						refresh()))
+					_actions.add_child(
+						_act(
+							"🏯 Mộ quân",
+							func() -> void:
+								_clear_sel()
+								ui.buyAt = [bx, by]
+								main.audio.play("select")
+								refresh(),
+						)
+					)
 				if dx != u.x or dy != u.y: # no "wait" on its own tile
-					_actions.add_child(_act("⏳ Chờ", func() -> void: commit({ "kind": "wait" }), { "hot": hk == "wait" }))
+					_actions.add_child(
+						_act(
+							"⏳ Chờ",
+							func() -> void:
+								commit({ "kind": "wait" }),
+							{ "hot": hk == "wait" },
+						)
+					)
 				_actions.add_child(_act("✖ Hủy", cancel))
 		else:
 			pass # stats live in the corner card; choosing where to go = the board (blue tiles, red-ringed enemies)
@@ -2112,8 +2453,9 @@ func refresh() -> void:
 		var x: int = ui.buyAt[0]
 		var y: int = ui.buyAt[1]
 		_pop_anchor = [x, y]
-		_info.add_child(_head(null, Content.text("buyTitle"),
-			"Có %d vàng · Quân %d/%d · lính mới đi được ngay" % [s.gold[me], Game.cap_count(s, me), s.unitCap]))
+		_info.add_child(
+			_head(null, Content.text("buyTitle"), "Có %d vàng · Quân %d/%d · lính mới đi được ngay" % [s.gold[me], Game.cap_count(s, me), s.unitCap])
+		)
 		var grid := GridContainer.new()
 		grid.columns = 1
 		grid.add_theme_constant_override("v_separation", 6)
@@ -2121,7 +2463,12 @@ func refresh() -> void:
 		for o: Dictionary in Game.buy_options(s, me, x, y):
 			var type: String = o.type
 			var look := Content.unit_type_look(me, type, s.heroKey[me])
-			var b := _act("", func() -> void: buy_unit(type), { "disabled": not o.ok or not my_turn, "hot": ui.hotBuy == o.type })
+			var b := _act(
+				"",
+				func() -> void:
+					buy_unit(type),
+				{ "disabled": not o.ok or not my_turn, "hot": ui.hotBuy == o.type },
+			)
 			b.tooltip_text = look.blurb if o.type == "hero" else look.desc
 			b.custom_minimum_size = Vector2(POP_W, 46)
 			var row := Style.hbox(8)
@@ -2151,7 +2498,10 @@ func refresh() -> void:
 		_info.add_child(Style.rich(hint, 14, Style.GOLD, Style.GOLD_HI))
 	_pop.visible = _info.get_child_count() + _actions.get_child_count() > 0
 	var na := _actions.get_child_count()
-	var all_btn := _actions.get_children().all(func(c: Node) -> bool: return c is Button)
+	var all_btn := _actions.get_children().all(
+		func(c: Node) -> bool:
+			return c is Button,
+	)
 	_actions.columns = (2 if na == 4 else mini(na, 3)) if all_btn and na > 0 else 1
 	for c: Node in _actions.get_children():
 		(c as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -2201,8 +2551,10 @@ func _place_pop() -> void:
 			keep.append(tg_r)
 	var gap := 10.0
 	var cands: Array[Vector2] = [
-		tile + Vector2(tw.x + gap, (tw.y - sz.y) / 2), tile + Vector2(-sz.x - gap, (tw.y - sz.y) / 2),
-		tile + Vector2((tw.x - sz.x) / 2, tw.y + gap), tile + Vector2((tw.x - sz.x) / 2, -sz.y - gap),
+		tile + Vector2(tw.x + gap, (tw.y - sz.y) / 2),
+		tile + Vector2(-sz.x - gap, (tw.y - sz.y) / 2),
+		tile + Vector2((tw.x - sz.x) / 2, tw.y + gap),
+		tile + Vector2((tw.x - sz.x) / 2, -sz.y - gap),
 	]
 	var best := cands[0]
 	var best_cost := INF
@@ -2232,14 +2584,19 @@ func _preview_box(p: Dictionary) -> Control:
 	var g := GridContainer.new()
 	g.columns = 2
 	g.add_theme_constant_override("h_separation", 6)
-	var dmg_lo: int = p.dmgMin; var dmg_hi: int = p.dmgMax
-	var ctr_lo: int = p.counterMin; var ctr_hi: int = p.counterMax
-	for cell: Array in [["Gây", Style.range_txt(dmg_lo, dmg_hi), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else ""), Style.GOOD],
-			["Bị đánh trả", Style.range_txt(ctr_lo, ctr_hi), " ngã" if p.die else (" có thể ngã" if p.mayDie else ""), Style.BAD]]:
+	var dmg_lo: int = p.dmgMin
+	var dmg_hi: int = p.dmgMax
+	var ctr_lo: int = p.counterMin
+	var ctr_hi: int = p.counterMax
+	for cell: Array in [
+		["Gây", Style.range_txt(dmg_lo, dmg_hi), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else ""), Style.GOOD],
+		["Bị đánh trả", Style.range_txt(ctr_lo, ctr_hi), " ngã" if p.die else (" có thể ngã" if p.mayDie else ""), Style.BAD],
+	]:
 		var pc := Style.card(Color(0, 0, 0, 0.4), Style.LACQUER_3, 8, 6)
 		pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v := Style.vbox(0)
-		var cell_title: String = cell[0]; var cell_note: String = cell[2]
+		var cell_title: String = cell[0]
+		var cell_note: String = cell[2]
 		var cell_col: Color = cell[3]
 		v.add_child(Style.lbl(cell_title, 12, Style.MUTED))
 		var h := Style.hbox(4)

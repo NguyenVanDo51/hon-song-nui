@@ -11,9 +11,11 @@ const CREDITS := [
 	["Hình quân", "Icons made by Delapouite, HeavenlyDog, Lorc, Cathelineau. Available on game-icons.net · CC BY 3.0."],
 	["Mô hình 3D", "KayKit của Kay Lousberg (www.kaylousberg.com) · CC0."],
 	["Âm thanh", "Tổng hợp bằng mã ngay khi chạy, nhạc nền theo thang ngũ cung."],
-	["Sử liệu",
+	[
+		"Sử liệu",
 		# gdlint:ignore = max-line-length
-		"Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi."],
+		"Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi.",
+	],
 	["Tưởng nhớ", "Hai Bà Trưng và các nữ tướng đã đứng lên giành lại non sông."],
 ]
 ## 1 vs 1: who plays Blue (s.ctrl.e)
@@ -52,9 +54,11 @@ func _sfx(sfx: String) -> void:
 		main.audio.play(sfx)
 
 func _on(b: BaseButton, fn: Callable, sound := "ui") -> BaseButton:
-	b.pressed.connect(func() -> void:
-		_sfx(sound)
-		fn.call())
+	b.pressed.connect(
+		func() -> void:
+			_sfx(sound)
+			fn.call(),
+	)
 	return b
 
 ## fresh scrolling page, content centred at max_w; center_v = title-style vertical centring
@@ -90,7 +94,10 @@ func _page(max_w := 1040.0, center_v := false) -> VBoxContainer:
 	sc.resized.connect(fit)
 	if root:
 		root.resized.connect(fit)
-		sc.tree_exiting.connect(func() -> void: root.resized.disconnect(fit))
+		sc.tree_exiting.connect(
+			func() -> void:
+				root.resized.disconnect(fit),
+		)
 	root.add_child(sc)
 	page = sc
 	# enter: fade + slide up 14px
@@ -144,12 +151,20 @@ func _click_card(content: Control, on_click: Callable, enabled := true, hot := f
 	_ignore_mouse(content)
 	if enabled:
 		p.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		p.mouse_entered.connect(func() -> void: p.add_theme_stylebox_override("panel", hover))
-		p.mouse_exited.connect(func() -> void: p.add_theme_stylebox_override("panel", normal))
-		p.gui_input.connect(func(ev: InputEvent) -> void:
-			var mb := ev as InputEventMouseButton
-			if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
-				on_click.call())
+		p.mouse_entered.connect(
+			func() -> void:
+				p.add_theme_stylebox_override("panel", hover),
+		)
+		p.mouse_exited.connect(
+			func() -> void:
+				p.add_theme_stylebox_override("panel", normal),
+		)
+		p.gui_input.connect(
+			func(ev: InputEvent) -> void:
+				var mb := ev as InputEventMouseButton
+				if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+					on_click.call(),
+		)
 	else:
 		p.modulate = Color(0.75, 0.75, 0.75, 0.5)
 	return p
@@ -167,18 +182,20 @@ func _grid(min_w: float, gap := 12, auto_fit := false) -> GridContainer:
 	g.add_theme_constant_override("h_separation", gap)
 	g.add_theme_constant_override("v_separation", gap)
 	g.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	g.resized.connect(func() -> void:
-		var n := maxi(1, int((g.size.x + gap) / (min_w + gap)))
-		if auto_fit:
-			n = clampi(g.get_child_count(), 1, n)
-		if n != g.columns:
-			g.columns = n)
+	g.resized.connect(
+		func() -> void:
+			var n := maxi(1, int((g.size.x + gap) / (min_w + gap)))
+			if auto_fit:
+				n = clampi(g.get_child_count(), 1, n)
+			if n != g.columns:
+				g.columns = n,
+	)
 	g.columns = 4
 	return g
 
 static func goal_text(def: Dictionary) -> String:
-	var win: Dictionary = def.get("win", {})
-	return Content.goal_text(win, "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, {})
+	var win: Dictionary = def.get("win", { })
+	return Content.goal_text(win, "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, { })
 
 # ---------- title ----------
 func show_title() -> void:
@@ -211,17 +228,28 @@ func show_title() -> void:
 	if sv != null:
 		var svd: Dictionary = sv
 		var sst: Dictionary = svd.state
-		list.add_child(_on(Style.menu_button("Đánh tiếp ván đang dở", "%s · lượt %d" % [svd.get("title", ""), sst.turn], true), func() -> void:
-			var s2: Variant = Store.load_game()
-			if s2 != null:
-				var d2: Dictionary = s2
-				var st2: Dictionary = d2.state
-				var ctx2: Dictionary = d2.ctx
-				main.start_game(st2, ctx2)))
+		list.add_child(
+			_on(
+				Style.menu_button("Đánh tiếp ván đang dở", "%s · lượt %d" % [svd.get("title", ""), sst.turn], true),
+				func() -> void:
+					var s2: Variant = Store.load_game()
+					if s2 != null:
+						var d2: Dictionary = s2
+						var st2: Dictionary = d2.state
+						var ctx2: Dictionary = d2.ctx
+						main.start_game(st2, ctx2),
+			)
+		)
 	list.add_child(_on(Style.menu_button("Chiến dịch", prog, sv == null), show_campaign))
 	list.add_child(_on(Style.menu_button("Đấu tự do", Content.text("skirmishBlurb")), show_skirmish))
 	list.add_child(_on(Style.menu_button("1 đấu 1", Content.text("duelBlurb")), show_duel))
-	list.add_child(_on(Style.menu_button("Sách lính", "Xem tính chất từng loại quân"), func() -> void: open_codex()))
+	list.add_child(
+		_on(
+			Style.menu_button("Sách lính", "Xem tính chất từng loại quân"),
+			func() -> void:
+				open_codex(),
+		)
+	)
 	v.add_child(list)
 	var tg := Style.hbox(8)
 	var snd := Style.button("", "ChipBtn")
@@ -244,21 +272,33 @@ func show_title() -> void:
 		snd.theme_type_variation = "ChipOn" if snd_on else "ChipBtn"
 		mus.theme_type_variation = "ChipOn" if mus_on else "ChipBtn"
 		spd.theme_type_variation = "ChipOn"
-	_on(b3, func() -> void:
-		Store.set_board_3d(not Store.board_3d())
-		sync.call())
-	_on(spd, func() -> void:
-		FX.speed = 2.0 if FX.speed == 1.0 else (3.0 if FX.speed == 2.0 else 1.0)
-		Store.set_v("speed", FX.speed)
-		sync.call())
-	_on(snd, func() -> void:
-		if main and main.audio:
-			main.audio.set_muted(not main.audio.muted)
-		sync.call())
-	_on(mus, func() -> void:
-		if main and main.audio:
-			main.audio.set_music(not main.audio.music_on)
-		sync.call())
+	_on(
+		b3,
+		func() -> void:
+			Store.set_board_3d(not Store.board_3d())
+			sync.call(),
+	)
+	_on(
+		spd,
+		func() -> void:
+			FX.speed = 2.0 if FX.speed == 1.0 else (3.0 if FX.speed == 2.0 else 1.0)
+			Store.set_v("speed", FX.speed)
+			sync.call(),
+	)
+	_on(
+		snd,
+		func() -> void:
+			if main and main.audio:
+				main.audio.set_muted(not main.audio.muted)
+			sync.call(),
+	)
+	_on(
+		mus,
+		func() -> void:
+			if main and main.audio:
+				main.audio.set_music(not main.audio.music_on)
+			sync.call(),
+	)
 	sync.call()
 	tg.add_child(snd)
 	tg.add_child(mus)
@@ -292,13 +332,19 @@ func _open_credits() -> void:
 		v.add_child(r)
 	var close := Style.button("Đóng ✕", "BackBtn")
 	close.size_flags_horizontal = Control.SIZE_SHRINK_END
-	_on(close, func() -> void: ov.queue_free())
+	_on(
+		close,
+		func() -> void:
+			ov.queue_free(),
+	)
 	v.add_child(close)
 	card.add_child(v)
-	dim.gui_input.connect(func(ev: InputEvent) -> void:
-		var mb := ev as InputEventMouseButton
-		if mb != null and mb.pressed:
-			ov.queue_free())
+	dim.gui_input.connect(
+		func(ev: InputEvent) -> void:
+			var mb := ev as InputEventMouseButton
+			if mb != null and mb.pressed:
+				ov.queue_free(),
+	)
 	add_child(ov)
 
 ## gold-leaf logo: shimmer shader label over a dark offset copy (CSS drop-shadow 0 3px 0 #4a2c0e)
@@ -319,9 +365,11 @@ func _logo(text: String) -> Control:
 		holder.add_child(l)
 	shadow.position = Vector2(0, 3)
 	# label size is only known once it is laid out in the tree
-	gold.resized.connect(func() -> void:
-		mat.set_shader_parameter("width", gold.size.x)
-		holder.custom_minimum_size = gold.size + Vector2(0, 3))
+	gold.resized.connect(
+		func() -> void:
+			mat.set_shader_parameter("width", gold.size.x)
+			holder.custom_minimum_size = gold.size + Vector2(0, 3),
+	)
 	return holder
 
 # ---------- campaign ----------
@@ -333,10 +381,17 @@ func show_campaign(chapter_id := "") -> void:
 		var cm0: Dictionary = camp0[mini(open, camp0.size() - 1)]
 		chapter_id = Content.chapter_of(cm0)
 	Content.use_chapter(chapter_id)
-	var ch: Dictionary = Content.theme().get("chapter", {})
+	var ch: Dictionary = Content.theme().get("chapter", { })
 	var v := _page(1040)
 	var ch_title: String = ch.get("title", "Chiến dịch")
-	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), ch_title))
+	v.add_child(
+		_head(
+			"‹ Trở lại",
+			func() -> void:
+				main.show_title(),
+			ch_title,
+		)
+	)
 	# chapter tabs
 	var tabs := Style.hbox(8)
 	var chs := Content.chapters()
@@ -348,7 +403,11 @@ func show_campaign(chapter_id := "") -> void:
 		var b := Style.button(label, "SegOn" if c.id == chapter_id else "SegBtn")
 		b.disabled = not unlocked
 		b.tooltip_text = c.title + ("" if unlocked else " · thắng hết chương trước để mở")
-		_on(b, func() -> void: show_campaign(cid))
+		_on(
+			b,
+			func() -> void:
+				show_campaign(cid),
+		)
 		tabs.add_child(b)
 	v.add_child(tabs)
 	var subtitle: String = ch.get("subtitle", "")
@@ -360,10 +419,12 @@ func show_campaign(chapter_id := "") -> void:
 	var map := CampMap.new()
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map.setup(open)
-	map.picked.connect(func(id: String) -> void:
-		_sfx("ui")
-		var md: Dictionary = Content.mission(id)
-		main.play_mission(md))
+	map.picked.connect(
+		func(id: String) -> void:
+			_sfx("ui")
+			var md: Dictionary = Content.mission(id)
+			main.play_mission(md),
+	)
 	var mv := Style.vbox(6)
 	mv.add_child(map)
 	var note: String = ch.get("note", "")
@@ -374,29 +435,54 @@ func show_campaign(chapter_id := "") -> void:
 # ---------- skirmish ----------
 func show_skirmish() -> void:
 	var v := _page(1040)
-	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), "Đấu tự do"))
+	v.add_child(
+		_head(
+			"‹ Trở lại",
+			func() -> void:
+				main.show_title(),
+			"Đấu tự do",
+		)
+	)
 	var grid := _grid(220, 12, true)
 	var heroes := Content.heroes_of("p")
 	if hero_choice == "" or not heroes.has(hero_choice):
 		hero_choice = heroes[0]
 	for key: String in (heroes if heroes.size() > 1 else []): # one commander: nothing to choose
-		grid.add_child(_hero_card("p", key, key == hero_choice, func() -> void:
-			hero_choice = key
-			show_skirmish()))
+		grid.add_child(
+			_hero_card(
+				"p",
+				key,
+				key == hero_choice,
+				func() -> void:
+					hero_choice = key
+					show_skirmish(),
+			)
+		)
 	v.add_child(grid)
-	v.add_child(_map_cards(map_choice, func(mid: String) -> void: # battlefield
-		map_choice = mid
-		show_skirmish()))
+	v.add_child(
+		_map_cards(
+			map_choice,
+			func(mid: String) -> void: # battlefield
+				map_choice = mid
+				show_skirmish(),
+		)
+	)
 	var row := Style.hbox(10)
 	var seg := Style.hbox(0)
 	var e_btn := Style.button("Dễ", "SegOn" if easy else "SegBtn")
 	var n_btn := Style.button("Thường", "SegBtn" if easy else "SegOn")
-	_on(e_btn, func() -> void:
-		easy = true
-		show_skirmish())
-	_on(n_btn, func() -> void:
-		easy = false
-		show_skirmish())
+	_on(
+		e_btn,
+		func() -> void:
+			easy = true
+			show_skirmish(),
+	)
+	_on(
+		n_btn,
+		func() -> void:
+			easy = false
+			show_skirmish(),
+	)
 	seg.add_child(e_btn)
 	seg.add_child(n_btn)
 	row.add_child(seg)
@@ -406,13 +492,26 @@ func show_skirmish() -> void:
 	row.add_child(note)
 	var go := Style.menu_button("Xuất quân", "", true)
 	go.custom_minimum_size.x = 200
-	_on(go, func() -> void:
-		confirm_start(Game.new_game(Content.skirmish_def(map_choice, hero_choice, easy, sk_gold, sk_cap)),
-			{ "kind": "skirmish", "hero": hero_choice, "easy": easy, "map": map_choice, "gold": sk_gold, "cap": sk_cap }))
-	v.add_child(_gold_cap_row(sk_gold, sk_cap, func(key: String, val: int) -> void:
-		if key == "gold": sk_gold = val
-		else: sk_cap = val
-		show_skirmish()))
+	_on(
+		go,
+		func() -> void:
+			confirm_start(
+				Game.new_game(Content.skirmish_def(map_choice, hero_choice, easy, sk_gold, sk_cap)),
+				{ "kind": "skirmish", "hero": hero_choice, "easy": easy, "map": map_choice, "gold": sk_gold, "cap": sk_cap },
+			),
+	)
+	v.add_child(
+		_gold_cap_row(
+			sk_gold,
+			sk_cap,
+			func(key: String, val: int) -> void:
+				if key == "gold":
+					sk_gold = val
+				else:
+					sk_cap = val
+				show_skirmish(),
+		)
+	)
 	row.add_child(go)
 	v.add_child(row)
 	_settle_page()
@@ -441,9 +540,14 @@ func _hero_card(side: String, key: String, hot: bool, on_pick: Callable, blurb :
 	cv.add_child(top)
 	if blurb:
 		cv.add_child(Style.lbl(h_blurb, 14, Style.INK, null, true))
-	var card := _click_card(cv, func() -> void:
-		_sfx("select")
-		on_pick.call(), true, hot)
+	var card := _click_card(
+		cv,
+		func() -> void:
+			_sfx("select")
+			on_pick.call(),
+		true,
+		hot,
+	)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if not blurb:
 		card.tooltip_text = h_blurb
@@ -459,9 +563,14 @@ func _map_cards(cur: String, on_pick: Callable) -> HBoxContainer:
 		var md_blurb: String = md.get("blurb", "")
 		mv.add_child(Style.lbl(md_name, 18, Style.GOLD, Style.display))
 		mv.add_child(Style.lbl(md_blurb, 13, Style.MUTED, null, true))
-		var mcard := _click_card(mv, func() -> void:
-			_sfx("select")
-			on_pick.call(mid), true, mid == cur)
+		var mcard := _click_card(
+			mv,
+			func() -> void:
+				_sfx("select")
+				on_pick.call(mid),
+			true,
+			mid == cur,
+		)
 		mcard.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		maps.add_child(mcard)
 	return maps
@@ -477,7 +586,11 @@ func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HBoxContainer:
 			var cur: int = gold if spec[2] == "gold" else cap
 			var b := Style.button(str(val), "SegOn" if val == cur else "SegBtn")
 			var key: String = spec[2]
-			_on(b, func() -> void: on_set.call(key, val))
+			_on(
+				b,
+				func() -> void:
+					on_set.call(key, val),
+			)
 			sg.add_child(b)
 		opts.add_child(sg)
 	return opts
@@ -485,21 +598,38 @@ func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HBoxContainer:
 # ---------- 1 vs 1 (docs/1v1.md) ----------
 func show_duel() -> void:
 	var v := _page(1040)
-	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), "1 đấu 1"))
+	v.add_child(
+		_head(
+			"‹ Trở lại",
+			func() -> void:
+				main.show_title(),
+			"1 đấu 1",
+		)
+	)
 	v.add_child(Style.lbl("Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch.", 14, Style.MUTED, null, true))
 	var cols := Style.hbox(12)
 	for side: String in ["p", "e"]:
 		cols.add_child(_duel_side(side))
 	v.add_child(cols)
 	var map_id: String = duel_opts.map
-	v.add_child(_map_cards(map_id, func(mid: String) -> void:
-		duel_opts.map = mid
-		show_duel()))
+	v.add_child(
+		_map_cards(
+			map_id,
+			func(mid: String) -> void:
+				duel_opts.map = mid
+				show_duel(),
+		)
+	)
 	var row := Style.hbox(10)
-	var gold: int = duel_opts.gold; var cap: int = duel_opts.cap
-	var opts := _gold_cap_row(gold, cap, func(key: String, val: int) -> void:
-		duel_opts[key] = val
-		show_duel())
+	var gold: int = duel_opts.gold
+	var cap: int = duel_opts.cap
+	var opts := _gold_cap_row(
+		gold,
+		cap,
+		func(key: String, val: int) -> void:
+			duel_opts[key] = val
+			show_duel(),
+	)
 	opts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(opts)
 	var go := Style.menu_button("Xuất quân", "", true)
@@ -525,11 +655,15 @@ func _duel_side(side: String) -> Control:
 	else:
 		var seg := Style.hbox(0)
 		for o: Array in OPPONENTS:
-			var key: String = o[0]; var label: String = o[1]
+			var key: String = o[0]
+			var label: String = o[1]
 			var b := Style.button(label, "SegOn" if key == ctrl_e else "SegBtn")
-			_on(b, func() -> void:
-				duel_opts.ctrlE = key
-				show_duel())
+			_on(
+				b,
+				func() -> void:
+					duel_opts.ctrlE = key
+					show_duel(),
+			)
 			seg.add_child(b)
 		cv.add_child(seg)
 		cv.add_child(Style.lbl("Người chơi 2, chung máy: đổi tay mỗi lượt." if ctrl_e == "human" else "Máy chơi bên Xanh.", 14, Style.MUTED))
@@ -539,16 +673,26 @@ func _duel_side(side: String) -> Control:
 		duel_opts[hk] = heroes[0]
 	var cur: String = duel_opts[hk]
 	for key: String in heroes:
-		var hc := _hero_card(side, key, key == cur, func() -> void: # no blurb: keeps Xuất quân on a phone screen
-			duel_opts[hk] = key
-			show_duel(), false)
+		var hc := _hero_card(
+			side,
+			key,
+			key == cur,
+			func() -> void: # no blurb: keeps Xuất quân on a phone screen
+				duel_opts[hk] = key
+				show_duel(),
+			false,
+		)
 		hc.set_meta("duel_pick", side + ":" + key) # click driver finds the commander cards by this
 		cv.add_child(hc)
 	return card
 
 func _start_duel() -> void:
-	var map_id: String = duel_opts.map; var hero: String = duel_opts.hero; var hero_e: String = duel_opts.heroE
-	var ctrl_e: String = duel_opts.ctrlE; var gold: int = duel_opts.gold; var cap: int = duel_opts.cap
+	var map_id: String = duel_opts.map
+	var hero: String = duel_opts.hero
+	var hero_e: String = duel_opts.heroE
+	var ctrl_e: String = duel_opts.ctrlE
+	var gold: int = duel_opts.gold
+	var cap: int = duel_opts.cap
 	var ctx := { "kind": "duel", "map": map_id, "hero": hero, "heroE": hero_e, "ctrlE": ctrl_e, "gold": gold, "cap": cap }
 	confirm_start(Game.new_game(Content.duel_def(map_id, hero, hero_e, ctrl_e, gold, cap)), ctx)
 
@@ -566,11 +710,22 @@ func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
 			main.start_game(state, ctx)
 			return
 		# one tap on the map node must not wipe the game in progress
-		confirm("Màn này đang đánh dở [b]lượt %d[/b]." % sst.turn, "Đánh lại từ đầu",
-			func() -> void: main.start_game(state, ctx), "Đánh tiếp", func() -> void: main.start_game(sst, sctx))
+		confirm(
+			"Màn này đang đánh dở [b]lượt %d[/b]." % sst.turn,
+			"Đánh lại từ đầu",
+			func() -> void:
+				main.start_game(state, ctx),
+			"Đánh tiếp",
+			func() -> void:
+				main.start_game(sst, sctx),
+		)
 		return
-	confirm("Ván đang dở [b]%s · lượt %d[/b] sẽ bị thay bằng ván mới." % [svd.get("title", ""), sst.turn], "Xuất quân",
-		func() -> void: main.start_game(state, ctx))
+	confirm(
+		"Ván đang dở [b]%s · lượt %d[/b] sẽ bị thay bằng ván mới." % [svd.get("title", ""), sst.turn],
+		"Xuất quân",
+		func() -> void:
+			main.start_game(state, ctx),
+	)
 
 ## small modal: message + [Thôi] [alt] [yes]
 func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callable()) -> void:
@@ -591,14 +746,30 @@ func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callabl
 	v.add_child(Style.rich(bb, 16, Style.INK, Style.GOLD))
 	var row := Style.hbox(10)
 	row.alignment = BoxContainer.ALIGNMENT_END
-	row.add_child(_on(Style.button("Thôi", "ActBtn"), func() -> void: layer.queue_free()))
+	row.add_child(
+		_on(
+			Style.button("Thôi", "ActBtn"),
+			func() -> void:
+				layer.queue_free(),
+		)
+	)
 	if alt != "":
-		row.add_child(_on(Style.button(alt, "ActBtn"), func() -> void:
-			layer.queue_free()
-			alt_fn.call()))
-	row.add_child(_on(Style.button(yes, "ActGo"), func() -> void:
-		layer.queue_free()
-		fn.call()))
+		row.add_child(
+			_on(
+				Style.button(alt, "ActBtn"),
+				func() -> void:
+					layer.queue_free()
+					alt_fn.call(),
+			)
+		)
+	row.add_child(
+		_on(
+			Style.button(yes, "ActGo"),
+			func() -> void:
+				layer.queue_free()
+				fn.call(),
+		)
+	)
 	v.add_child(row)
 	card.add_child(v)
 	center.add_child(card)
@@ -647,7 +818,11 @@ func add_overlays() -> void:
 		var pair_name: String = pair[1]
 		var b := Style.button(pair_name, "SegBtn")
 		var sd: String = pair[0]
-		_on(b, func() -> void: open_codex(sd))
+		_on(
+			b,
+			func() -> void:
+				open_codex(sd),
+		)
 		seg.add_child(b)
 		_codex_seg.append([sd, b])
 	head.add_child(seg)
@@ -739,7 +914,6 @@ func close_codex() -> void:
 
 func is_codex_open() -> bool:
 	return codex != null and codex.visible
-
 
 ## numbered gold medallion on mission cards (green once won)
 class Medal extends Control:

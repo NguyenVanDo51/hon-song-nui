@@ -21,36 +21,59 @@ const BEAT := 0.62
 const SFX := {
 	"select": [["tone", { "f": 880, "f2": 1320, "type": "triangle", "dur": 0.07, "vol": 0.12 }]],
 	"move": [["noise", { "dur": 0.12, "vol": 0.12, "freq": 600, "f2": 300 }]],
-	"slash": [["noise", { "dur": 0.18, "vol": 0.35, "freq": 3000, "f2": 800, "type": "bandpass", "q": 1.5 }],
-		["tone", { "f": 220, "f2": 90, "type": "square", "dur": 0.12, "vol": 0.08, "at": 0.03 }]],
+	"slash": [
+		["noise", { "dur": 0.18, "vol": 0.35, "freq": 3000, "f2": 800, "type": "bandpass", "q": 1.5 }],
+		["tone", { "f": 220, "f2": 90, "type": "square", "dur": 0.12, "vol": 0.08, "at": 0.03 }],
+	],
 	"hit": [["noise", { "dur": 0.2, "vol": 0.45, "freq": 900, "f2": 200 }], ["tone", { "f": 140, "f2": 60, "dur": 0.18, "vol": 0.3 }]],
 	"heavy": [["noise", { "dur": 0.45, "vol": 0.6, "freq": 500, "f2": 80 }], ["tone", { "f": 90, "f2": 35, "dur": 0.5, "vol": 0.5 }]],
 	"arrow": [["noise", { "dur": 0.22, "vol": 0.18, "freq": 4000, "f2": 1500, "type": "bandpass", "q": 4 }]],
 	"orb": [["tone", { "f": 300, "f2": 900, "type": "sine", "dur": 0.35, "vol": 0.18, "vib": 20 }]],
 	"rock": [["tone", { "f": 200, "f2": 120, "type": "triangle", "dur": 0.3, "vol": 0.12 }]],
-	"die": [["noise", { "dur": 0.5, "vol": 0.3, "freq": 700, "f2": 120 }],
-		["tone", { "f": 330, "f2": 110, "type": "sawtooth", "dur": 0.4, "vol": 0.06 }]],
-	"capture": [["tone", { "f": 196, "dur": 1.6, "vol": 0.18, "vib": 2 }], ["tone", { "f": 294, "dur": 1.6, "vol": 0.18, "at": 0.02, "vib": 2 }],
-		["tone", { "f": 392, "dur": 1.6, "vol": 0.18, "at": 0.04, "vib": 2 }], ["tone", { "f": 784, "type": "triangle", "dur": 0.9, "vol": 0.05 }]],
-	"coin": [["tone", { "f": 988, "type": "square", "dur": 0.08, "vol": 0.07 }],
-		["tone", { "f": 1319, "type": "square", "dur": 0.18, "vol": 0.07, "at": 0.07 }]],
-	"rank": [["tone", { "f": 523, "type": "triangle", "dur": 0.25, "vol": 0.12 }],
+	"die": [
+		["noise", { "dur": 0.5, "vol": 0.3, "freq": 700, "f2": 120 }],
+		["tone", { "f": 330, "f2": 110, "type": "sawtooth", "dur": 0.4, "vol": 0.06 }],
+	],
+	"capture": [
+		["tone", { "f": 196, "dur": 1.6, "vol": 0.18, "vib": 2 }],
+		["tone", { "f": 294, "dur": 1.6, "vol": 0.18, "at": 0.02, "vib": 2 }],
+		["tone", { "f": 392, "dur": 1.6, "vol": 0.18, "at": 0.04, "vib": 2 }],
+		["tone", { "f": 784, "type": "triangle", "dur": 0.9, "vol": 0.05 }],
+	],
+	"coin": [
+		["tone", { "f": 988, "type": "square", "dur": 0.08, "vol": 0.07 }],
+		["tone", { "f": 1319, "type": "square", "dur": 0.18, "vol": 0.07, "at": 0.07 }],
+	],
+	"rank": [
+		["tone", { "f": 523, "type": "triangle", "dur": 0.25, "vol": 0.12 }],
 		["tone", { "f": 659, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.08 }],
 		["tone", { "f": 784, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.16 }],
-		["tone", { "f": 1047, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.24 }]],
-	"raise": [["tone", { "f": 600, "f2": 150, "type": "sine", "dur": 1.0, "vol": 0.18, "vib": 30 }],
-		["noise", { "dur": 0.8, "vol": 0.08, "freq": 2000, "f2": 300, "type": "bandpass", "q": 3 }]],
+		["tone", { "f": 1047, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.24 }],
+	],
+	"raise": [
+		["tone", { "f": 600, "f2": 150, "type": "sine", "dur": 1.0, "vol": 0.18, "vib": 30 }],
+		["noise", { "dur": 0.8, "vol": 0.08, "freq": 2000, "f2": 300, "type": "bandpass", "q": 3 }],
+	],
 	"heal": [["tone", { "f": 660, "f2": 990, "type": "sine", "dur": 0.3, "vol": 0.08 }]],
-	"drum": [["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.6 }], ["noise", { "dur": 0.12, "vol": 0.2, "freq": 400 }],
-		["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.45, "at": 0.28 }]],
+	"drum": [
+		["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.6 }],
+		["noise", { "dur": 0.12, "vol": 0.2, "freq": 400 }],
+		["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.45, "at": 0.28 }],
+	],
 	"spawn": [["noise", { "dur": 0.7, "vol": 0.2, "freq": 300, "f2": 1200, "type": "bandpass", "q": 1 }]],
-	"win": [["tone", { "f": 392, "type": "triangle", "dur": 0.7, "vol": 0.14, "vib": 3 }],
+	"win": [
+		["tone", { "f": 392, "type": "triangle", "dur": 0.7, "vol": 0.14, "vib": 3 }],
 		["tone", { "f": 440, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.14, "vib": 3 }],
 		["tone", { "f": 523, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.28, "vib": 3 }],
 		["tone", { "f": 587, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.42, "vib": 3 }],
-		["tone", { "f": 784, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.56, "vib": 3 }]],
-	"lose": [["tone", { "f": 392, "dur": 0.9, "vol": 0.14, "vib": 4 }], ["tone", { "f": 349, "dur": 0.9, "vol": 0.14, "at": 0.22, "vib": 4 }],
-		["tone", { "f": 294, "dur": 0.9, "vol": 0.14, "at": 0.44, "vib": 4 }], ["tone", { "f": 262, "dur": 0.9, "vol": 0.14, "at": 0.66, "vib": 4 }]],
+		["tone", { "f": 784, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.56, "vib": 3 }],
+	],
+	"lose": [
+		["tone", { "f": 392, "dur": 0.9, "vol": 0.14, "vib": 4 }],
+		["tone", { "f": 349, "dur": 0.9, "vol": 0.14, "at": 0.22, "vib": 4 }],
+		["tone", { "f": 294, "dur": 0.9, "vol": 0.14, "at": 0.44, "vib": 4 }],
+		["tone", { "f": 262, "dur": 0.9, "vol": 0.14, "at": 0.66, "vib": 4 }],
+	],
 	"ui": [["tone", { "f": 660, "type": "triangle", "dur": 0.05, "vol": 0.07 }]],
 }
 
@@ -58,7 +81,7 @@ const DIR := "res://assets/sfx"
 
 var muted: bool
 var music_on: bool
-var _streams := {} # "s:<sfx>" / "m:<note>" -> AudioStreamWAV, filled on first use
+var _streams := { } # "s:<sfx>" / "m:<note>" -> AudioStreamWAV, filled on first use
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _music_players: Array[AudioStreamPlayer] = []
 var _next_sfx := 0
@@ -197,7 +220,7 @@ static func to_stream(pcm: PackedByteArray) -> AudioStreamWAV:
 
 ## every sound: key -> [recipe parts, bus gain]. "s:<name>" = SFX (Audio.play names), "m:<note>" = music
 static func recipes() -> Dictionary:
-	var out := {}
+	var out := { }
 	for sfx: String in SFX:
 		out["s:" + sfx] = [SFX[sfx], SFX_GAIN * MASTER]
 	var g := MUSIC_GAIN * MASTER

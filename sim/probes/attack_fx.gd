@@ -4,16 +4,28 @@ var types := ["hero", "soldier", "boat", "shaman", "drum", "wolf", "elephant", "
 
 func _run(g: GameScreen) -> void:
 	var s: Dictionary = g.s
-	var a: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p" and u.type == "hero")[0]
-	var d: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e" and u.type != "hero")[0]
-	d.x = 6; d.y = 4
+	var a: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type == "hero",
+	)[0]
+	var d: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e" and u.type != "hero",
+	)[0]
+	d.x = 6
+	d.y = 4
 	clear_around(s, Vector2i(6, 4), 2, [a.id, d.id])
 	g.refresh()
 	for type: String in types:
 		a.type = type
-		a.x = 5; a.y = 4
+		a.x = 5
+		a.y = 4
 		g.refresh()
-		g.fx.attack({ "x": a.x, "y": a.y, "id": a.id, "type": a.type, "side": "p" }, { "x": d.x, "y": d.y, "id": d.id, "type": d.type, "side": "e" }, 30)
+		g.fx.attack(
+			{ "x": a.x, "y": a.y, "id": a.id, "type": a.type, "side": "p" },
+			{ "x": d.x, "y": d.y, "id": d.id, "type": d.type, "side": "e" },
+			30,
+		)
 		var t0 := Time.get_ticks_msec()
 		await _at(t0, 300)
 		await _shot(g, "%s_a" % type)

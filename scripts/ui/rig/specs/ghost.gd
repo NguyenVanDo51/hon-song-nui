@@ -11,33 +11,73 @@ var _x_keys: Array = [] # consts.X: drift track shared by tr.x and the afterimag
 func events(_r: Rig) -> Array:
 	var dmg := 45.0 # spec value; the game shows the real amount
 	return [
-		[110.0, func(a: Rig) -> void:
-			var q := a.point("tip")
-			wisps(a, q.x, q.y, 2, { "size": 0.8 })],
-		[200.0, func(a: Rig) -> void: a.gleam("tip")],
-		[250.0, func(a: Rig) -> void: wisps(a, 120, 214, 3, { "vx": -120.0 })],
-		[262.0, func(a: Rig) -> void: a.flash("#d9c6ff", 50)],
-		[265.0, func(a: Rig) -> void:
-			a.sound("slash")
-			a.wave({ "x": 226.0, "y": 150.0, "vx": 1500.0, "R": 116.0, "fill": SPIRIT, "inner": SPIRIT_CORE, "hit": Rig.with(Rig.HIT, { "dmg": dmg }) })],
-		[285.0, func(a: Rig) -> void:
-			var q := a.point("tip")
-			wisps(a, q.x, q.y, 3, { "vx": 160.0 })],
-		[345.0, func(a: Rig) -> void:
-			var c := a.target()
-			var cx: float = c.x
-			var cy: float = c.y
-			wisps(a, cx, cy, 5, { "sx": 34.0, "sy": 34.0, "vx": 120.0 })],
-		[650.0, func(a: Rig) -> void:
-			var h := a.hero()
-			var hx: float = h.x
-			var hy: float = h.y
-			wisps(a, hx, hy + 20.0, 5, { "sx": 40.0, "sy": 50.0, "vx": -90.0 })],
-		[780.0, func(a: Rig) -> void:
-			var h := a.hero()
-			var hx: float = h.x
-			var hy: float = h.y
-			wisps(a, hx - 40.0, hy + 70.0, 2, { "sx": 24.0, "sy": 10.0, "vx": -80.0, "size": 0.8 })],
+		[
+			110.0,
+			func(a: Rig) -> void:
+				var q := a.point("tip")
+				wisps(a, q.x, q.y, 2, { "size": 0.8 }),
+		],
+		[
+			200.0,
+			func(a: Rig) -> void:
+				a.gleam("tip"),
+		],
+		[
+			250.0,
+			func(a: Rig) -> void:
+				wisps(a, 120, 214, 3, { "vx": -120.0 }),
+		],
+		[
+			262.0,
+			func(a: Rig) -> void:
+				a.flash("#d9c6ff", 50),
+		],
+		[
+			265.0,
+			func(a: Rig) -> void:
+				a.sound("slash")
+				a.wave(
+					{
+						"x": 226.0,
+						"y": 150.0,
+						"vx": 1500.0,
+						"R": 116.0,
+						"fill": SPIRIT,
+						"inner": SPIRIT_CORE,
+						"hit": Rig.with(Rig.HIT, { "dmg": dmg }),
+					}
+				),
+		],
+		[
+			285.0,
+			func(a: Rig) -> void:
+				var q := a.point("tip")
+				wisps(a, q.x, q.y, 3, { "vx": 160.0 }),
+		],
+		[
+			345.0,
+			func(a: Rig) -> void:
+				var c := a.target()
+				var cx: float = c.x
+				var cy: float = c.y
+				wisps(a, cx, cy, 5, { "sx": 34.0, "sy": 34.0, "vx": 120.0 }),
+		],
+		[
+			650.0,
+			func(a: Rig) -> void:
+				var h := a.hero()
+				var hx: float = h.x
+				var hy: float = h.y
+				wisps(a, hx, hy + 20.0, 5, { "sx": 40.0, "sy": 50.0, "vx": -90.0 }),
+		],
+		[
+			780.0,
+			func(a: Rig) -> void:
+				var h := a.hero()
+				var hx: float = h.x
+				var hy: float = h.y
+				wisps(a, hx - 40.0, hy + 70.0, 2, { "sx": 24.0, "sy": 10.0, "vx": -80.0, "size": 0.8 }),
+		],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
@@ -84,7 +124,7 @@ func draw_char_under(ctx: RigCtx, cam: RigCam, r: Rig) -> void:
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 ## rising ghost wisps: flame-like teardrop, flat fill + INK, sways up and fades (one-shot fx, owns its state)
-static func wisps(a: Rig, x: float, y: float, n: int, o := {}) -> void:
+static func wisps(a: Rig, x: float, y: float, n: int, o := { }) -> void:
 	var sx: float = o.get("sx", 18.0)
 	var sy: float = o.get("sy", 14.0)
 	for i in n:
@@ -103,20 +143,30 @@ static func wisps(a: Rig, x: float, y: float, n: int, o := {}) -> void:
 
 class Wisp extends RigFx.Mote:
 	var ph := 0.0
+
 	func move(s: float) -> void:
 		vx *= 1.0 - 2.0 * s
 		x += (vx + 40.0 * sin(age / 120.0 + ph)) * s
 		y += vy * s
+
 	func xf(cam: RigCam) -> Transform2D:
 		return cam.frame(x, y, w)
+
 	func fade() -> float:
 		var u := age / life
 		return u / 0.1 if u < 0.1 else 1.0 - (u - 0.1) / 0.9
+
 	func shape(ctx: RigCtx) -> void:
 		var u := age / life
 		var rad := rr * (1.0 - 0.45 * u)
 		var sway := 10.0 * sin(age / 90.0 + ph)
-		ctx.begin_path(); ctx.arc(0, 0, rad, PI, 0, true)
-		ctx.quad_to(rad, -1.7 * rad, sway, -3.3 * rad); ctx.quad_to(-rad * 0.3, -1.4 * rad, -rad, 0); ctx.close_path()
-		ctx.fill(GHOST); ctx.stroke(RigFx.INK, 3)
-		ctx.begin_path(); ctx.arc(0, -rad * 0.1, rad * 0.42, 0, TAU); ctx.fill(SPIRIT)
+		ctx.begin_path()
+		ctx.arc(0, 0, rad, PI, 0, true)
+		ctx.quad_to(rad, -1.7 * rad, sway, -3.3 * rad)
+		ctx.quad_to(-rad * 0.3, -1.4 * rad, -rad, 0)
+		ctx.close_path()
+		ctx.fill(GHOST)
+		ctx.stroke(RigFx.INK, 3)
+		ctx.begin_path()
+		ctx.arc(0, -rad * 0.1, rad * 0.42, 0, TAU)
+		ctx.fill(SPIRIT)

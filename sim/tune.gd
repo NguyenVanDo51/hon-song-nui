@@ -18,7 +18,7 @@ const HELD_OUT := 9000000
 const HARD_V1 := { "hp_cap": 81.2937, "kill_hero": 552.335 }
 
 var seed_v := 1.0
-var args := {}
+var args := { }
 var games_played := 0
 
 func _init() -> void:
@@ -80,12 +80,12 @@ func base_spec(sp: String) -> Dictionary:
 		return t
 	if sp.begins_with("file:"):
 		return load_tuned(sp.substr(5))
-	return {} # default / normal
+	return { } # default / normal
 
 func load_tuned(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
 		push_error("no tuned file %s" % path)
-		return {}
+		return { }
 	var d: Dictionary = str_to_var(FileAccess.get_file_as_string(path))
 	return d.best
 
@@ -106,7 +106,7 @@ func play_match(a: Dictionary, b: Dictionary, games: int, salt: int, verbose := 
 	return [score / n, n]
 
 ## winner side or "draw". timing.side set -> that side's AI wall time (usec) appended to timing.steps / timing.turns
-func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int, timing := {}) -> String:
+func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int, timing := { }) -> String:
 	seed_v = 1000.0 + (salt * 64.0 + k) * 7919.0
 	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false))
 	s.seed = int(seed_v)
@@ -118,7 +118,7 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 			var g0: int = s.gold[side]
 			s.gold[side] = int(g0 * gf)
 	s.aiParams = { "p": pp, "e": pe }
-	var mem := {}
+	var mem := { }
 	var steps := 0
 	var t_side: String = timing.get("side", "")
 	var turn_us := 0
@@ -136,21 +136,25 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 				tt.append(turn_us)
 			turn_us = 0
 			Game.end_turn(s)
-			mem = {}
+			mem = { }
 			continue
 		var st: Dictionary = step
 		AI.apply_step(s, st)
 		steps += 1
 	games_played += 1
 	if args.has("log"): # one line per game: who won, why, when, commander deaths
-		print("    game %s k%d winner %s reason %s turn %d heroDeaths p%d e%d" % [map_id, k, s.winner, s.reason, s.turn,
-			s.heroDeaths.p, s.heroDeaths.e])
+		print(
+			"    game %s k%d winner %s reason %s turn %d heroDeaths p%d e%d" % [map_id, k, s.winner, s.reason, s.turn, s.heroDeaths.p, s.heroDeaths.e]
+		)
 	return s.winner if s.winner != null else "draw"
 
 ## child = best with ~3 knobs scaled by exp(N(0, 0.3)) (small steps: hill climb); hp thresholds stay in 0..100
 func mutate(best: Dictionary, r: RandomNumberGenerator) -> Dictionary:
 	var child := AI.DEFAULT.merged(best, true)
-	var keys := child.keys().filter(func(k: String) -> bool: return not FROZEN.has(k))
+	var keys := child.keys().filter(
+		func(k: String) -> bool:
+			return not FROZEN.has(k),
+	)
 	var changed := 0
 	while changed == 0:
 		for k: String in keys:
@@ -210,8 +214,19 @@ func presets() -> void:
 	var games := int(arg("games", "8"))
 	var salt := int(arg("salt", str(HELD_OUT)))
 	print("row score vs column (win 1, draw 0.5), %d games per pair" % (games * 2 * Content.SKIRMISH.MAPS.size()))
-	print("%-9s %s" % ["", "  ".join(names.map(func(n: String) -> String: return n.rpad(7)))])
-	var m := {}
+	print(
+		"%-9s %s"
+		% [
+			"",
+			"  ".join(
+				names.map(
+					func(n: String) -> String:
+						return n.rpad(7),
+				)
+			),
+		]
+	)
+	var m := { }
 	for i in names.size():
 		for j in range(i + 1, names.size()):
 			var ni: String = names[i]
@@ -246,5 +261,7 @@ func time_ai() -> void:
 		xs.sort()
 		var p95: int = xs[int(xs.size() * 0.95)] if xs.size() else 0
 		var worst: int = xs.back() if xs.size() else 0
-		print("%s %s: n %d  avg %.1f ms  p95 %.1f ms  worst %.1f ms" % [arg("a", "hard_v2"), key, xs.size(),
-			sum / 1000.0 / maxi(1, xs.size()), p95 / 1000.0, worst / 1000.0])
+		print(
+			"%s %s: n %d  avg %.1f ms  p95 %.1f ms  worst %.1f ms"
+			% [arg("a", "hard_v2"), key, xs.size(), sum / 1000.0 / maxi(1, xs.size()), p95 / 1000.0, worst / 1000.0]
+		)

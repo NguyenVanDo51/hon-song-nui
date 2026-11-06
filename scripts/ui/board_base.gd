@@ -8,13 +8,31 @@ signal hover_changed(tile: Variant)
 signal cancel_requested
 signal info_requested(id: int)
 
-var s: Dictionary = {}
+var s: Dictionary = { }
 var fx: FX
 var T := 48.0
 ## what the game screen wants shown (see GameScreen.build_view)
-var view := { "hide": {}, "hold": {}, "razable": [], "razeAt": null, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false,
-	"reach": null, "attackable": [], "dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null,
-	"preview": null }
+var view := {
+	"hide": { },
+	"hold": { },
+	"razable": [],
+	"razeAt": null,
+	"sprites": [],
+	"hp": null,
+	"busy": false,
+	"sel": null,
+	"selMine": false,
+	"reach": null,
+	"attackable": [],
+	"dest": null,
+	"targets": [],
+	"target": null,
+	"path": null,
+	"info": null,
+	"buyAt": null,
+	"hover": null,
+	"preview": null,
+}
 var hover: Variant = null
 var _info_hit_id := -1
 
@@ -87,14 +105,18 @@ func _notification(what: int) -> void:
 ## awaitable close-up amount from -> to over ms: going in eases out (cubic), going back is a smoothstep
 func _ease_focus(ms: float, from: float, to: float, apply: Callable) -> void:
 	var going_in := to > 0.0
-	await fx.tween(ms, func(k: float) -> void: apply.call(lerpf(from, to, 1.0 - pow(1.0 - k, 3.0) if going_in else k * k * (3.0 - 2.0 * k))))
+	await fx.tween(
+		ms,
+		func(k: float) -> void:
+			apply.call(lerpf(from, to, 1.0 - pow(1.0 - k, 3.0) if going_in else k * k * (3.0 - 2.0 * k))),
+	)
 
 ## this frame's figures: live units (minus hidden), moving / dying sprites, fading corpses.
 ## Each { u, x, y, kind "u" | "s" | "g", alpha (-1 = opaque), k (corpse fade 0..1, -1 = not a corpse),
 ## stack (offset of a 2nd unit on one tile, just bought on an occupied castle; the first one moves aside) }
 func _figures(time: float) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var seen := {} # tile -> the unit already there
+	var seen := { } # tile -> the unit already there
 	var hidden_ids: Dictionary = view.hide
 	for u: Dictionary in s.units:
 		if hidden_ids.has(u.id):

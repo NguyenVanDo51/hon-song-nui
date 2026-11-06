@@ -14,7 +14,10 @@ var t := 0.0
 
 func setup(open: int) -> void:
 	open_index = open
-	missions = Content.missions_of(Content.active_chapter).filter(func(m: Dictionary) -> bool: return m.has("pos"))
+	missions = Content.missions_of(Content.active_chapter).filter(
+		func(m: Dictionary) -> bool:
+			return m.has("pos"),
+	)
 	rivers.clear()
 	var ch: Dictionary = Content.theme().chapter
 	for r: Dictionary in ch.get("rivers", []):
@@ -142,7 +145,10 @@ func _draw_info(_s: float) -> void:
 	var status := "ĐÃ THẮNG" if done else ("CHƯA MỞ" if locked else "TRẬN KẾ TIẾP")
 	var status_col := Style.GOOD if done else (Style.MUTED if locked else Style.GOLD)
 	var new_units: Array = m.get("newUnits", [])
-	var nu: Array = new_units.filter(func(x: String) -> bool: return x != "hero")
+	var nu: Array = new_units.filter(
+		func(x: String) -> bool:
+			return x != "hero",
+	)
 	var note := "Lính mới" if nu.size() else ("Tướng mới" if new_units.has("hero") else ("Trận cuối chương" if k == missions.size() - 1 else ""))
 	var hint := "Thắng màn trước để mở" if locked else ("Bấm để chơi lại" if done else "Bấm để vào trận")
 	if note != "":
@@ -306,7 +312,18 @@ func _draw() -> void:
 		draw_arc(c, r, 0, TAU, 32, Color(stroke, al), 0.45 * s, true)
 		Draw.text_c(self, Style.xbold, c, str(missions.find(m) + 1), roundi(2.6 * s), Color(Color("#3a1a10") if cur else Style.INK, al))
 		var place: String = m.get("region", m.get("place", ""))
-		Draw.text_a(self, Style.bold, c + Vector2(0, 5.6 * s), place, roundi(2.5 * s), Color(Style.INK, al), 0.5, false, int(0.7 * s), Color("#1a0f08"))
+		Draw.text_a(
+			self,
+			Style.bold,
+			c + Vector2(0, 5.6 * s),
+			place,
+			roundi(2.5 * s),
+			Color(Style.INK, al),
+			0.5,
+			false,
+			int(0.7 * s),
+			Color("#1a0f08"),
+		)
 	_draw_info(s)
 	# frame
 	draw_style_box(Style.box(Color.TRANSPARENT, Style.BRONZE_2, 12, 0), Rect2(Vector2.ZERO, size))

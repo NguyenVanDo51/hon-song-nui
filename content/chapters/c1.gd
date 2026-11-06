@@ -3,7 +3,8 @@ extends RefCounted
 ## 100 x 70 viewbox, SVG path "M x,y C … S …"), theme (overrides merged over content/theme.gd), outro (shown when its last mission is won)
 
 const DEF := {
-	"id": "c1", "order": 1,
+	"id": "c1",
+	"order": 1,
 	"title": "Khởi nghĩa Hai Bà Trưng",
 	"years": "Năm 40",
 	"subtitle": "Mùa xuân năm 40 · Giao Chỉ dưới ách Đông Hán",

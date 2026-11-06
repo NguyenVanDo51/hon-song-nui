@@ -10,7 +10,7 @@ const MIN_SCALE := 0.8
 var audio: Audio
 var menus: Menus
 var game: GameScreen
-var flags := {}
+var flags := { }
 var _shot_t := 0.0
 var _shot_n := 0
 var _t := 0.0

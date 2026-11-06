@@ -10,7 +10,7 @@ const DEFAULT_WEIGHT := 1.0
 ## 1 vs 1 difficulty: partial overrides of DEFAULT (measured in docs/ai.md: easy < normal < hard)
 const PRESETS := {
 	"easy": { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }, # reckless
-	"normal": {},
+	"normal": { },
 	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2")
 	"hard": { "hp_cap": 81.2937, "kill_hero": 552.335, "planner": 2 },
 }
@@ -19,22 +19,42 @@ const DEFAULT := {
 	"noise": 8.0, # +-noise/2 per candidate: ties break, play varies
 	"goal_w": 12.0, # per tile-cost of distance to the nearest goal
 	"def_w": 0.8, # per terrain def point
-	"caution": 0.6, "caution_hero": 1.3, # x death risk (unit value above hp_cap)
-	"hp_cap": 150.0, "hp_w": 0.6, # hp loss priced as min(value, hp_cap) x hp_w / 100 per hp
+	"caution": 0.6,
+	"caution_hero": 1.3, # x death risk (unit value above hp_cap)
+	"hp_cap": 150.0,
+	"hp_w": 0.6, # hp loss priced as min(value, hp_cap) x hp_w / 100 per hp
 	"reach_w": 0.6, # share of the threat-map damage expected to land
-	"heal_hp": 70.0, "heal_cap": 300.0, "heal_w": 0.004, # on a heal tile below heal_hp: (100-hp) x min(value, cap) x w
+	"heal_hp": 70.0,
+	"heal_cap": 300.0,
+	"heal_w": 0.004, # on a heal tile below heal_hp: (100-hp) x min(value, cap) x w
 	"home_hp": 50.0, # below: goals = own heal tiles (walk home over turns); heal_hp bonus then keeps it there
 	"home_turns": 4.0, # nearest heal tile further than this many moves: no way home -> fight on
 	"aura": 15.0, # per unacted ally within 2 of an aura unit
 	"own_castle": 40.0, # penalty: standing on own castle
 	"block_castle": 600.0, # penalty: parked on an enemy castle it cannot take
 	"guard_castle": 900.0, # standing on an own castle an enemy capturer can reach
-	"cap_castle": 700.0, "cap_village": 220.0, "cap_owned_castle": 400.0, "cap_owned_village": 100.0, "cap_last": 10000.0,
-	"repair": 180.0, "raze": 260.0, "raise": 250.0,
-	"atk_bias": 40.0, "atk_pos_w": 0.3, # attacks: + bias, tile score x pos_w
-	"kill_w": 0.6, "kill_hero": 600.0, "maykill_w": 0.3, "maykill_hero": 300.0, # x target value / flat for a commander
-	"die_w": 1.0, "maydie_w": 0.5, # x own value
-	"buy_aa": 2.0, "buy_takes": 2.0, "buy_takes_per": 3.0, "buy_raise": 0.5, "buy_sea": 1.5, "buy_cost_exp": 0.35,
+	"cap_castle": 700.0,
+	"cap_village": 220.0,
+	"cap_owned_castle": 400.0,
+	"cap_owned_village": 100.0,
+	"cap_last": 10000.0,
+	"repair": 180.0,
+	"raze": 260.0,
+	"raise": 250.0,
+	"atk_bias": 40.0,
+	"atk_pos_w": 0.3, # attacks: + bias, tile score x pos_w
+	"kill_w": 0.6,
+	"kill_hero": 600.0,
+	"maykill_w": 0.3,
+	"maykill_hero": 300.0, # x target value / flat for a commander
+	"die_w": 1.0,
+	"maydie_w": 0.5, # x own value
+	"buy_aa": 2.0,
+	"buy_takes": 2.0,
+	"buy_takes_per": 3.0,
+	"buy_raise": 0.5,
+	"buy_sea": 1.5,
+	"buy_cost_exp": 0.35,
 	"save_hero_units": 4.0, # commander dead + this many units: save gold for the rebuy
 }
 
@@ -46,9 +66,9 @@ static func seed_game(v: int) -> void:
 	_gen.seed = v
 
 ## side's knobs: DEFAULT, or DEFAULT merged with s.aiParams[side] (cached in mem for the turn)
-static func params(s: Dictionary, side: String, mem := {}) -> Dictionary:
-	var all: Dictionary = s.get("aiParams", {})
-	var over: Dictionary = all.get(side, {})
+static func params(s: Dictionary, side: String, mem := { }) -> Dictionary:
+	var all: Dictionary = s.get("aiParams", { })
+	var over: Dictionary = all.get(side, { })
 	if over.is_empty():
 		return DEFAULT
 	var key := "P" + side
@@ -67,7 +87,7 @@ static func value(_s: Dictionary, u: Dictionary) -> float:
 
 ## multi-source terrain distance (ignores units)
 static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dictionary:
-	var d := {}
+	var d := { }
 	var open := []
 	for p: Array in sources:
 		var px: int = p[0]
@@ -95,15 +115,15 @@ static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dic
 	return d
 
 ## tile -> list of enemy attackers that could hit it next turn; mem (one turn) keeps each enemy's reach + hits across steps
-static func threat_map(s: Dictionary, side: String, reach_of := {}, mem := {}) -> Dictionary:
-	var m := {}
+static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { }) -> Dictionary:
+	var m := { }
 	for e: Dictionary in s.units:
 		if e.side == side:
 			continue
 		var st := Game.stat(s, e)
 		var siege: bool = st.get("siege", false)
 		var ck: Variant = null
-		var tm: Dictionary = {}
+		var tm: Dictionary = { }
 		if mem.has("tiles_h"):
 			ck = _local_key(s, e, mem)
 			tm = mem.tm
@@ -120,7 +140,7 @@ static func threat_map(s: Dictionary, side: String, reach_of := {}, mem := {}) -
 			else:
 				for r: Dictionary in _reach_of(s, e, reach_of).values():
 					from.append([r.x, r.y])
-			hit = {}
+			hit = { }
 			var rmax: int = st.rmax
 			for f: Array in from:
 				var fx: int = f[0]
@@ -171,7 +191,7 @@ static func _reach_of(s: Dictionary, e: Dictionary, cache: Dictionary) -> Dictio
 ## dist_field depends only on terrain, move class and goals: memoised for the turn in mem.df
 static func _dist_cached(s: Dictionary, mc: String, goals: Array, mem: Dictionary) -> Dictionary:
 	if not mem.has("df"):
-		mem.df = {}
+		mem.df = { }
 	var key := [mc, goals] # array key: hashed natively, no str() of every goal per unit per step
 	var df: Dictionary = mem.df
 	if not df.has(key):
@@ -236,7 +256,7 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 static func _home_goals(s: Dictionary, u: Dictionary, mem: Dictionary) -> Array:
 	var side: String = u.side
 	if not mem.has("heal"):
-		mem.heal = {}
+		mem.heal = { }
 	var cache: Dictionary = mem.heal
 	if not cache.has(side):
 		var tiles := []
@@ -256,8 +276,8 @@ static func _home_goals(s: Dictionary, u: Dictionary, mem: Dictionary) -> Array:
 	return out
 
 ## own castles an enemy castle-capturer could step on next turn
-static func endangered_castles(s: Dictionary, side: String, reach_of := {}) -> Dictionary:
-	var out := {}
+static func endangered_castles(s: Dictionary, side: String, reach_of := { }) -> Dictionary:
+	var out := { }
 	for e: Dictionary in s.units:
 		if e.side == side or not Game.stat(s, e).get("capC", false):
 			continue
@@ -275,13 +295,13 @@ static func endangered_castles(s: Dictionary, side: String, reach_of := {}) -> D
 static func _risk(hurt: float, hp: float, hp_val: float, die_val: float) -> float:
 	return hurt * hp_val + clampf((hurt / 0.6 / hp - 0.6) / 0.8, 0.0, 1.0) * die_val
 
-static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary, mem := {}) -> Variant:
+static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary, mem := { }) -> Variant:
 	var u_side: String = u.side
 	var P := params(s, u_side, mem)
 	var st := Game.stat(s, u)
 	var reach := _reach_cached(s, u, mem)
 	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
-	var df := {}
+	var df := { }
 	var homeless := false
 	if u.hp < P.home_hp and Objectives.ai_goals(s, u) == null: # wounded: walk home over turns (reach objective first)
 		var home := _home_goals(s, u, mem)
@@ -292,7 +312,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var uy: int = u.y
 		var home_turns: float = P.home_turns
 		if df.get(Vector2i(ux, uy), INF) > home_turns * mv:
-			df = {}
+			df = { }
 			homeless = true
 	if df.is_empty():
 		df = _dist_cached(s, mc, goals_for(s, u, claims), mem)
@@ -421,7 +441,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	return best[0]
 
 ## ok: types buy_options allows at the chosen castle (gold, cap, step-off); null = any allowed type within gold
-static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {}) -> Variant:
+static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := { }) -> Variant:
 	var P := params(s, side, mem)
 	var buy_aa: float = P.buy_aa
 	var buy_takes: float = P.buy_takes
@@ -429,14 +449,14 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {
 	var buy_raise: float = P.buy_raise
 	var buy_sea: float = P.buy_sea
 	var buy_cost_exp: float = P.buy_cost_exp
-	var counts := {}
+	var counts := { }
 	var enemy_fly := false
 	for u: Dictionary in s.units:
 		if u.side == side:
 			counts[u.type] = counts.get(u.type, 0) + 1
 		elif Game.UNITS[u.type].move == "fly":
 			enemy_fly = true
-	var open := {} # cap flag -> buildings needing it that are not ours
+	var open := { } # cap flag -> buildings needing it that are not ours
 	var water := 0
 	var owner: Dictionary = s.owner
 	for y: int in s.h:
@@ -449,7 +469,7 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {
 				var tt: Dictionary = Game.TERRAIN[t]
 				if tt.get("water", false):
 					water += 1
-	var ok_types: Dictionary = {}
+	var ok_types: Dictionary = { }
 	if ok != null:
 		ok_types = ok
 	var graves: Array = s.graves
@@ -516,9 +536,12 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 	var side: String = s.side
 	if not mem.has("claims"):
-		mem.claims = {}
+		mem.claims = { }
 	var units: Array = s.units
-	var mine: Array = units.filter(func(u: Dictionary) -> bool: return u.side == side and not u.acted)
+	var mine: Array = units.filter(
+		func(u: Dictionary) -> bool:
+			return u.side == side and not u.acted,
+	)
 	# guards hold position until an enemy comes close
 	for u: Dictionary in mine:
 		if not u.get("guard", false):
@@ -539,11 +562,11 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 			return { "kind": "act", "act": { "id": u.id, "to": [u.x, u.y], "kind": "wait" } }
 	if mine.size():
 		if not mem.has("tm"):
-			mem.tm = {}
-			mem.rc = {}
+			mem.tm = { }
+			mem.rc = { }
 		mem.tiles_h = hash(s.tiles) # raze / repair change a tile mid-turn
 		mem.erase("heal") # captures change heal tile owners mid-turn
-		var reach_of := {}
+		var reach_of := { }
 		var threat := threat_map(s, side, reach_of, mem)
 		var danger := endangered_castles(s, side, reach_of)
 		var best: Variant = null
@@ -561,7 +584,7 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		return null
 	# AE2: a castle with one unit on it (ours or theirs) still sells; buy_options folds in gold, cap and step-off room
 	for key: Vector2i in Game.castle_tiles(s, side):
-		var ok := {}
+		var ok := { }
 		for o: Dictionary in Game.buy_options(s, side, key.x, key.y):
 			if o.ok:
 				ok[o.type] = true

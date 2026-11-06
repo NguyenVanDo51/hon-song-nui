@@ -13,7 +13,7 @@ func rng() -> float:
 ## before(s) runs at the top of every loop pass; on_step(step) sees each step (null = end of turn) before it applies.
 ## max_steps > 0: stop with a "stuck" error past that many. Returns the steps applied.
 func run_ai(s: Dictionary, naive := false, max_turn := 60, before := Callable(), on_step := Callable(), max_steps := 0) -> int:
-	var mem := {}
+	var mem := { }
 	var steps := 0
 	while s.winner == null and s.turn <= max_turn:
 		if before.is_valid():
@@ -23,7 +23,7 @@ func run_ai(s: Dictionary, naive := false, max_turn := 60, before := Callable(),
 			on_step.call(step)
 		if step == null:
 			Game.end_turn(s)
-			mem = {}
+			mem = { }
 			continue
 		var st: Dictionary = step
 		AI.apply_step(s, st)

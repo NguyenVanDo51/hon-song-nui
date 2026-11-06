@@ -20,10 +20,22 @@ func _run(g: GameScreen) -> void:
 	var dx: Vector2i = ax + DIRS.get(args.get("dir", "right"), Vector2i(1, 0))
 	var att: String = args.get("att", "hero")
 	var dft: String = args.get("def", "hero")
-	var mine: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p")
-	var theirs: Array = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e")
-	var pa: Array = mine.filter(func(u: Dictionary) -> bool: return u.type == att)
-	var pd: Array = theirs.filter(func(u: Dictionary) -> bool: return u.type == dft)
+	var mine: Array = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p",
+	)
+	var theirs: Array = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e",
+	)
+	var pa: Array = mine.filter(
+		func(u: Dictionary) -> bool:
+			return u.type == att,
+	)
+	var pd: Array = theirs.filter(
+		func(u: Dictionary) -> bool:
+			return u.type == dft,
+	)
 	var a: Dictionary = pa[0] if not pa.is_empty() else mine[0]
 	var d: Dictionary = pd[0] if not pd.is_empty() else theirs[0]
 	a.type = att
@@ -37,7 +49,13 @@ func _run(g: GameScreen) -> void:
 	await process_frame
 	var before: Dictionary = g._snapshot()
 	var ev := Game.do_action(s, { "id": a.id, "to": [a.x, a.y], "kind": "attack", "target": d.id })
-	print("[rig_live] events: ", ev.map(func(e: Dictionary) -> String: return "%s %s" % [e.t, e.get("amount", "")]))
+	print(
+		"[rig_live] events: ",
+		ev.map(
+			func(e: Dictionary) -> String:
+				return "%s %s" % [e.t, e.get("amount", "")],
+		),
+	)
 	g.ui.busy = true
 	g.refresh() # as GameScreen.commit: busy view (no 'acted' grey while it plays)
 	var t0 := Time.get_ticks_msec()

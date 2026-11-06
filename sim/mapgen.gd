@@ -47,8 +47,8 @@ static func relayout(id: String, m: Dictionary) -> Array:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(id)
 	# --- fixed + protected tiles
-	var fixed := {}
-	var keep := {}
+	var fixed := { }
+	var keep := { }
 	var castles := []
 	var villages := []
 	for y in h:
@@ -67,7 +67,7 @@ static func relayout(id: String, m: Dictionary) -> Array:
 			keep[_at(u, 1)] = true
 	for gr: Array in m.get("graves", []):
 		keep[_at(gr, 0)] = true
-	var win: Dictionary = m.get("win", {})
+	var win: Dictionary = m.get("win", { })
 	for at: Array in win.get("at", []):
 		keep[_at(at, 0)] = true
 	# rough budget from the old map (only tiles we are allowed to change)
@@ -86,7 +86,7 @@ static func relayout(id: String, m: Dictionary) -> Array:
 	if nodes.size() >= 2:
 		var joined := [nodes[0]]
 		var rest: Array = nodes.slice(1)
-		var road := {}
+		var road := { }
 		while rest.size():
 			var best_path := []
 			var best_i := -1
@@ -137,7 +137,7 @@ static func relayout(id: String, m: Dictionary) -> Array:
 		budget = { "f": 6, "h": 4, "m": 0 }
 	if sym:
 		total = ceili(total / 2.0)
-	var placed := {}
+	var placed := { }
 	var clumps := []
 	var tries := 0
 	while placed.size() < total and free.size() and tries < 400:
@@ -170,7 +170,7 @@ static func relayout(id: String, m: Dictionary) -> Array:
 	var share_m := float(bm) / maxf(1.0, _sum(budget))
 	var share_h := float(bh) / maxf(1.0, _sum(budget))
 	for clump: Array in clumps:
-		var depth := {}
+		var depth := { }
 		for k: Vector2i in clump:
 			var nb := 0
 			for d: Vector2i in DIRS:
@@ -178,7 +178,10 @@ static func relayout(id: String, m: Dictionary) -> Array:
 					nb += 1
 			depth[k] = nb
 		var order: Array = clump.duplicate()
-		order.sort_custom(func(a: Vector2i, b: Vector2i) -> bool: return depth[a] > depth[b])
+		order.sort_custom(
+			func(a: Vector2i, b: Vector2i) -> bool:
+				return depth[a] > depth[b],
+		)
 		var nm := roundi(order.size() * share_m) if order.size() >= 4 else 0
 		var nh := roundi(order.size() * share_h)
 		for i in order.size():
@@ -225,11 +228,11 @@ static func _is_sym(g: Array, w: int, h: int) -> bool:
 
 ## shortest land route (bridges ok, water not) from a to any tile in targets; straight runs and existing paths are cheaper
 static func _route(g: Array, w: int, h: int, a: Vector2i, targets: Array, road: Dictionary) -> Array:
-	var tset := {}
+	var tset := { }
 	for t: Vector2i in targets:
 		tset[t] = true
 	var dist := { a: 0.0 }
-	var prev := {}
+	var prev := { }
 	var open := [[0.0, a]]
 	while open.size():
 		var bi := 0

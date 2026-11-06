@@ -39,8 +39,17 @@ static func box(bg: Color, border := Color.TRANSPARENT, radius := 12, pad := 14.
 	b.anti_aliasing = true
 	return b
 
-static func _btn(t: Theme, type: String, base: String, normal: StyleBoxFlat, hover: StyleBoxFlat, fg: Color, fg_hover := Color.TRANSPARENT,
-	font: Font = null, size := 0) -> void:
+static func _btn(
+	t: Theme,
+	type: String,
+	base: String,
+	normal: StyleBoxFlat,
+	hover: StyleBoxFlat,
+	fg: Color,
+	fg_hover := Color.TRANSPARENT,
+	font: Font = null,
+	size := 0,
+) -> void:
 	t.set_type_variation(type, base)
 	var pressed: StyleBoxFlat = hover.duplicate()
 	pressed.bg_color = pressed.bg_color.darkened(0.15)
@@ -90,45 +99,90 @@ static func make_theme() -> Theme:
 		t.set_stylebox("grabber_pressed", sb, grab_hi)
 	# buttons
 	var mb := box(Color(0.17, 0.10, 0.08, 0.94), BRONZE_2, 12, 0)
-	mb.content_margin_left = 18; mb.content_margin_right = 18; mb.content_margin_top = 12; mb.content_margin_bottom = 12
-	mb.shadow_color = Color(0, 0, 0, 0.4); mb.shadow_size = 8; mb.shadow_offset = Vector2(0, 4)
-	var mbh: StyleBoxFlat = mb.duplicate(); mbh.border_color = GOLD; mbh.bg_color = Color(0.22, 0.13, 0.10, 0.96)
+	mb.content_margin_left = 18
+	mb.content_margin_right = 18
+	mb.content_margin_top = 12
+	mb.content_margin_bottom = 12
+	mb.shadow_color = Color(0, 0, 0, 0.4)
+	mb.shadow_size = 8
+	mb.shadow_offset = Vector2(0, 4)
+	var mbh: StyleBoxFlat = mb.duplicate()
+	mbh.border_color = GOLD
+	mbh.bg_color = Color(0.22, 0.13, 0.10, 0.96)
 	_btn(t, "MenuBtn", "Button", mb, mbh, GOLD, Color.TRANSPARENT, display, 21)
-	var pb: StyleBoxFlat = mb.duplicate(); pb.bg_color = Color("#b1412d"); pb.border_color = Color("#f08a63")
-	var pbh: StyleBoxFlat = pb.duplicate(); pbh.bg_color = Color("#c84a33"); pbh.border_color = GOLD_HI
+	var pb: StyleBoxFlat = mb.duplicate()
+	pb.bg_color = Color("#b1412d")
+	pb.border_color = Color("#f08a63")
+	var pbh: StyleBoxFlat = pb.duplicate()
+	pbh.bg_color = Color("#c84a33")
+	pbh.border_color = GOLD_HI
 	_btn(t, "PrimaryBtn", "Button", pb, pbh, Color("#fff6e3"), Color.TRANSPARENT, display, 21)
 	var act := box(Color("#301d16"), BRONZE_2, 10, 0)
-	act.content_margin_left = 12; act.content_margin_right = 12; act.content_margin_top = 8; act.content_margin_bottom = 8
-	var acth: StyleBoxFlat = act.duplicate(); acth.border_color = GOLD
+	act.content_margin_left = 12
+	act.content_margin_right = 12
+	act.content_margin_top = 8
+	act.content_margin_bottom = 8
+	var acth: StyleBoxFlat = act.duplicate()
+	acth.border_color = GOLD
 	_btn(t, "ActBtn", "Button", act, acth, INK, Color.TRANSPARENT, bold, 14)
-	var hot: StyleBoxFlat = act.duplicate(); hot.border_color = GOLD; hot.set_border_width_all(2)
-	hot.shadow_color = Color(GOLD, 0.35); hot.shadow_size = 10
+	var hot: StyleBoxFlat = act.duplicate()
+	hot.border_color = GOLD
+	hot.set_border_width_all(2)
+	hot.shadow_color = Color(GOLD, 0.35)
+	hot.shadow_size = 10
 	_btn(t, "ActHot", "Button", hot, hot, INK, Color.TRANSPARENT, bold, 14)
-	var go: StyleBoxFlat = act.duplicate(); go.bg_color = Color("#b1412d"); go.border_color = Color("#f08a63")
-	var goh: StyleBoxFlat = go.duplicate(); goh.border_color = GOLD_HI; goh.bg_color = Color("#c84a33")
+	var go: StyleBoxFlat = act.duplicate()
+	go.bg_color = Color("#b1412d")
+	go.border_color = Color("#f08a63")
+	var goh: StyleBoxFlat = go.duplicate()
+	goh.border_color = GOLD_HI
+	goh.bg_color = Color("#c84a33")
 	_btn(t, "ActGo", "Button", go, goh, Color("#fff6e3"), Color.TRANSPARENT, bold, 14)
-	var gohot: StyleBoxFlat = go.duplicate(); gohot.border_color = GOLD; gohot.set_border_width_all(2)
-	gohot.shadow_color = Color(GOLD, 0.4); gohot.shadow_size = 10
+	var gohot: StyleBoxFlat = go.duplicate()
+	gohot.border_color = GOLD
+	gohot.set_border_width_all(2)
+	gohot.shadow_color = Color(GOLD, 0.4)
+	gohot.shadow_size = 10
 	_btn(t, "ActGoHot", "Button", gohot, gohot, Color("#fff6e3"), Color.TRANSPARENT, bold, 14)
 	var ib := box(Color(0, 0, 0, 0.4), LACQUER_3, 8, 0)
-	ib.content_margin_left = 10; ib.content_margin_right = 10; ib.content_margin_top = 6; ib.content_margin_bottom = 6
-	var ibh: StyleBoxFlat = ib.duplicate(); ibh.border_color = BRONZE; ibh.bg_color = LACQUER_3
+	ib.content_margin_left = 10
+	ib.content_margin_right = 10
+	ib.content_margin_top = 6
+	ib.content_margin_bottom = 6
+	var ibh: StyleBoxFlat = ib.duplicate()
+	ibh.border_color = BRONZE
+	ibh.bg_color = LACQUER_3
 	_btn(t, "IconBtn", "Button", ib, ibh, INK, Color.TRANSPARENT, semi, 14)
 	var chip := box(Color(0.13, 0.075, 0.05, 0.8), LACQUER_3, 99, 0)
-	chip.content_margin_left = 12; chip.content_margin_right = 12; chip.content_margin_top = 6; chip.content_margin_bottom = 6
-	var chiph: StyleBoxFlat = chip.duplicate(); chiph.border_color = BRONZE_2
+	chip.content_margin_left = 12
+	chip.content_margin_right = 12
+	chip.content_margin_top = 6
+	chip.content_margin_bottom = 6
+	var chiph: StyleBoxFlat = chip.duplicate()
+	chiph.border_color = BRONZE_2
 	_btn(t, "ChipBtn", "Button", chip, chiph, MUTED, GOLD, body, 13)
-	var chip_on: StyleBoxFlat = chip.duplicate(); chip_on.border_color = BRONZE_2
+	var chip_on: StyleBoxFlat = chip.duplicate()
+	chip_on.border_color = BRONZE_2
 	_btn(t, "ChipOn", "Button", chip_on, chip_on, GOLD, GOLD, body, 13)
 	var back := box(Color.TRANSPARENT, LACQUER_3, 99, 0)
-	back.content_margin_left = 12; back.content_margin_right = 12; back.content_margin_top = 6; back.content_margin_bottom = 6
-	var backh: StyleBoxFlat = back.duplicate(); backh.border_color = BRONZE_2
+	back.content_margin_left = 12
+	back.content_margin_right = 12
+	back.content_margin_top = 6
+	back.content_margin_bottom = 6
+	var backh: StyleBoxFlat = back.duplicate()
+	backh.border_color = BRONZE_2
 	_btn(t, "BackBtn", "Button", back, backh, MUTED, GOLD, body, 14)
 	var seg := box(Color(0.08, 0.043, 0.03, 0.8), LACQUER_3, 99, 0)
-	seg.content_margin_left = 16; seg.content_margin_right = 16; seg.content_margin_top = 8; seg.content_margin_bottom = 8
-	var segh: StyleBoxFlat = seg.duplicate(); segh.border_color = BRONZE_2
+	seg.content_margin_left = 16
+	seg.content_margin_right = 16
+	seg.content_margin_top = 8
+	seg.content_margin_bottom = 8
+	var segh: StyleBoxFlat = seg.duplicate()
+	segh.border_color = BRONZE_2
 	_btn(t, "SegBtn", "Button", seg, segh, MUTED, INK, body, 14)
-	var seg_on: StyleBoxFlat = seg.duplicate(); seg_on.bg_color = LACQUER_3; seg_on.border_color = BRONZE_2
+	var seg_on: StyleBoxFlat = seg.duplicate()
+	seg_on.bg_color = LACQUER_3
+	seg_on.border_color = BRONZE_2
 	_btn(t, "SegOn", "Button", seg_on, seg_on, GOLD, GOLD, semi, 14)
 	var link := StyleBoxEmpty.new()
 	link.set_content_margin_all(4)
@@ -141,10 +195,12 @@ static func make_theme() -> Theme:
 	t.set_font_size("font_size", "LinkBtn", 14)
 	# card-ish buttons (mission, hero pick): text lives in child labels
 	var cb := box(GLASS, LACQUER_3, 12, 14)
-	var cbh: StyleBoxFlat = cb.duplicate(); cbh.border_color = GOLD
+	var cbh: StyleBoxFlat = cb.duplicate()
+	cbh.border_color = GOLD
 	_btn(t, "CardBtn", "Button", cb, cbh, INK)
 	var cbon := box(Color(0.25, 0.18, 0.09, 0.9), GOLD, 12, 14)
-	cbon.shadow_color = Color(GOLD, 0.18); cbon.shadow_size = 14
+	cbon.shadow_color = Color(GOLD, 0.18)
+	cbon.shadow_size = 14
 	_btn(t, "CardOn", "Button", cbon, cbon, INK)
 	return t
 
@@ -209,7 +265,10 @@ static func menu_button(title: String, sub := "", primary := false) -> Button:
 	var v := vbox(2)
 	v.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	v.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	v.offset_left = 18; v.offset_right = -18; v.offset_top = 10; v.offset_bottom = -10
+	v.offset_left = 18
+	v.offset_right = -18
+	v.offset_top = 10
+	v.offset_bottom = -10
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	var t := lbl(title, 21, Color("#fff6e3") if primary else GOLD, display)
 	var s := lbl(sub, 13, Color("#ffd9c4") if primary else MUTED)
@@ -261,7 +320,7 @@ static func stat_bars(rows: Array, size := 13) -> GridContainer:
 	return g
 
 ## unit card for codex + new-unit intro: token, name, description, stat bars, optional tag ribbon
-static func unit_card(side: String, type: String, hero_key: Variant, opts := {}) -> Control:
+static func unit_card(side: String, type: String, hero_key: Variant, opts := { }) -> Control:
 	var base: Dictionary = Rules.UNITS[type]
 	var st := base.duplicate()
 	if type == "hero" and hero_key != null:
@@ -329,7 +388,8 @@ static func dialogue(lines: Array, stagger := 0.35, small := false) -> VBoxConta
 		var bub := PanelContainer.new()
 		var bs := box(GLASS, LACQUER_3, 12, 10)
 		bs.corner_radius_top_left = 4
-		bs.content_margin_left = 12; bs.content_margin_right = 12
+		bs.content_margin_left = 12
+		bs.content_margin_right = 12
 		bub.add_theme_stylebox_override("panel", bs)
 		bub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var bv := vbox(2)
@@ -341,15 +401,15 @@ static func dialogue(lines: Array, stagger := 0.35, small := false) -> VBoxConta
 		row.set_meta("delay", i * stagger)
 		v.add_child(row)
 		i += 1
-	v.ready.connect(func() -> void:
-		for r: Control in v.get_children():
-			var tw := r.create_tween()
-			var delay: float = r.get_meta("delay")
-			tw.tween_interval(delay)
-			tw.tween_property(r, "modulate:a", 1.0, 0.5)
+	v.ready.connect(
+		func() -> void:
+			for r: Control in v.get_children():
+				var tw := r.create_tween()
+				var delay: float = r.get_meta("delay")
+				tw.tween_interval(delay)
+				tw.tween_property(r, "modulate:a", 1.0, 0.5),
 	)
 	return v
-
 
 ## thin rounded progress bar (stat bars, hp)
 class Bar extends Control:
@@ -374,7 +434,11 @@ class Bar extends Control:
 	func _ready() -> void:
 		var tw := create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 		tw.tween_property(self, "shown", frac, 0.8)
-		tw.finished.connect(func() -> void: set_process(false); queue_redraw())
+		tw.finished.connect(
+			func() -> void:
+				set_process(false)
+				queue_redraw(),
+		)
 
 	func _process(_dt: float) -> void:
 		queue_redraw()

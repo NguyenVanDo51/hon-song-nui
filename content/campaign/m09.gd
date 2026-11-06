@@ -2,29 +2,35 @@ extends RefCounted
 ## mission m09: Tin Dữ Hợp Phố. Format: docs/content.md
 
 const DEF := {
-	"id": "m09", "order": 9, "chapter": "c2",
+	"id": "m09",
+	"order": 9,
+	"chapter": "c2",
 	"title": "Tin Dữ Hợp Phố",
 	"place": "Hợp Phố · bờ biển phía đông bắc",
-	"region": "Hợp Phố", "pos": [88, 12],
+	"region": "Hợp Phố",
+	"pos": [88, 12],
 	"history": "Năm 42, Mã Viện tập hợp hai vạn quân và hai nghìn thuyền ở Hợp Phố. Tương truyền nữ tướng Thánh Thiên được Trưng Vương giao "
-		+ "giữ vùng này.",
-	"hero": "anhhung", "enemyHero": null,
+	+ "giữ vùng này.",
+	"hero": "anhhung",
+	"enemyHero": null,
 	"newUnits": ["boat"],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": [] },
 	"gold": { "p": 500, "e": 0 },
 	"win": { "type": "survive", "turns": 9 },
-	"map": { "rows": [
-		"~~~~~~~~~~~~~~",
-		"~~~.......~~~~",
-		"~~.vrr......~~",
-		"~....rrrrrv.~~",
-		"~....rc...r..~",
-		".vrrrr....r..~",
-		"....rv....v..~",
-		"f...rhhf.....~",
-		"hf.fvff..ff..~",
-		"fh.hhf...fhhf~",
-	] },
+	"map": {
+		"rows": [
+			"~~~~~~~~~~~~~~",
+			"~~~.......~~~~",
+			"~~.vrr......~~",
+			"~....rrrrrv.~~",
+			"~....rc...r..~",
+			".vrrrr....r..~",
+			"....rv....v..~",
+			"f...rhhf.....~",
+			"hf.fvff..ff..~",
+			"fh.hhf...fhhf~",
+		]
+	},
 	"owner": [[6, 4, "p"], [3, 2, "p"], [5, 6, "p"], [1, 5, "p"]],
 	"units": [["p", "hero", 6, 5], ["p", "soldier", 5, 4], ["p", "archer", 7, 4], ["p", "drum", 6, 3]],
 	"waves": [

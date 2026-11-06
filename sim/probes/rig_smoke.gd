@@ -21,8 +21,14 @@ func _run(g: GameScreen) -> void:
 	var h: int = s.h
 	@warning_ignore("integer_division")
 	var ax := Vector2i(w / 2 - 1, h / 2)
-	var p_any: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "p")[0]
-	var e_any: Dictionary = units_of(s).filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
+	var p_any: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p",
+	)[0]
+	var e_any: Dictionary = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e",
+	)[0]
 	clear_around(s, ax, 4, [p_any.id, e_any.id])
 	var n := 0
 	for type: String in Rigs.types():
@@ -36,14 +42,26 @@ func _run(g: GameScreen) -> void:
 				var r := Rigs.make(type, side)
 				a.type = type
 				d.type = "soldier"
-				a.x = ax.x; a.y = ax.y
-				d.x = ax.x + dv.x; d.y = ax.y + dv.y
+				a.x = ax.x
+				a.y = ax.y
+				d.x = ax.x + dv.x
+				d.y = ax.y + dv.y
 				g.refresh()
 				var hits := [0]
 				var t0 := Time.get_ticks_msec()
-				await g.fx.rig_attack(g.board, r, { "x": a.x, "y": a.y, "id": a.id, "type": type, "side": side },
-					{ "x": d.x, "y": d.y, "id": d.id, "type": d.type }, 37, { "kill": false, "counter": dv.x < 0,
-					"on_hit": func() -> void: hits[0] += 1 })
+				await g.fx.rig_attack(
+					g.board,
+					r,
+					{ "x": a.x, "y": a.y, "id": a.id, "type": type, "side": side },
+					{ "x": d.x, "y": d.y, "id": d.id, "type": d.type },
+					37,
+					{
+						"kill": false,
+						"counter": dv.x < 0,
+						"on_hit": func() -> void:
+							hits[0] += 1,
+					},
+				)
 				var ms := Time.get_ticks_msec() - t0
 				var ok: bool = hits[0] == 1 and not r.playing and r.hit_t >= 0.0
 				if not ok:

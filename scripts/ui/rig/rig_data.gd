@@ -8,7 +8,7 @@ const DIR := "res://assets/units/rig/"
 const TEAM_SWAP := [["#c9503f", "#4f74c9"], ["#93362b", "#32508f"]]
 const EASES := ["lin", "out", "in", "io", "outExpo", "outBack", "hold"]
 
-static var _cache := {}
+static var _cache := { }
 
 var name := ""
 var feet := 244.0
@@ -18,18 +18,18 @@ var range_tiles := 1.0
 var target_front := 84.0
 var target_cy := 150.0
 var shadow_r := 62.0
-var parts := {} # part -> inner markup
-var raw := {} # part -> true: drawn without the outline group (faces, eyes)
+var parts := { } # part -> inner markup
+var raw := { } # part -> true: drawn without the outline group (faces, eyes)
 var bones := [] # [{name, parent, pivot: Vector2, ch, tx, ty, sc, stretch}] parent before child
 var draw := [] # [[part, bone, alpha channel or ""]]
-var points := {} # name -> [bone, Vector2]
-var springs := {} # name -> {k, c}
-var hooks := {} # idle / order present in the JS spec (the port must implement them)
-var attacks := {} # id -> {id, label, dur, tr: {ch: [[t, v, ease index], ...]}, smear, ev_times, draw, sampled}
+var points := { } # name -> [bone, Vector2]
+var springs := { } # name -> {k, c}
+var hooks := { } # idle / order present in the JS spec (the port must implement them)
+var attacks := { } # id -> {id, label, dur, tr: {ch: [[t, v, ease index], ...]}, smear, ev_times, draw, sampled}
 var attack_ids := []
-var consts := {} # every plain top-level const of the spec (HIT, DMG, timings, colours), evaluated
-var base := {} # channel -> value at rest (engine basePose)
-var _svg := {}
+var consts := { } # every plain top-level const of the spec (HIT, DMG, timings, colours), evaluated
+var base := { } # channel -> value at rest (engine basePose)
+var _svg := { }
 
 static func path_of(spec: String) -> String:
 	return DIR + spec + ".json"
@@ -77,7 +77,7 @@ func _load(spec: String) -> bool:
 	hooks = j.hooks
 	consts = j.consts
 	for a: Dictionary in j.attacks:
-		var tracks := {}
+		var tracks := { }
 		for ch: String in a.tr:
 			var js: Array = a.tr[ch]
 			tracks[ch] = keys_of(js)
@@ -102,12 +102,18 @@ func _load(spec: String) -> bool:
 
 static func ease_i(i: int, u: float) -> float:
 	match i:
-		0: return u
-		1: return 1.0 - pow(1.0 - u, 3.0)
-		2: return u * u * u
-		3: return 4.0 * u * u * u if u < 0.5 else 1.0 - pow(-2.0 * u + 2.0, 3.0) / 2.0
-		4: return 1.0 if u >= 1.0 else 1.0 - pow(2.0, -10.0 * u)
-		5: return 1.0 + 2.9 * pow(u - 1.0, 3.0) + 1.9 * pow(u - 1.0, 2.0)
+		0:
+			return u
+		1:
+			return 1.0 - pow(1.0 - u, 3.0)
+		2:
+			return u * u * u
+		3:
+			return 4.0 * u * u * u if u < 0.5 else 1.0 - pow(-2.0 * u + 2.0, 3.0) / 2.0
+		4:
+			return 1.0 if u >= 1.0 else 1.0 - pow(2.0, -10.0 * u)
+		5:
+			return 1.0 + 2.9 * pow(u - 1.0, 3.0) + 1.9 * pow(u - 1.0, 2.0)
 	return 0.0
 
 static func ease_by_name(n: String, u: float) -> float:
@@ -152,7 +158,10 @@ func part_svg(part: String, swap: bool) -> String:
 	var inner: String = parts[part]
 	if not raw.has(part):
 		inner = '<g stroke="%s" stroke-width="%s" stroke-linejoin="round" stroke-linecap="round">%s</g>' % [
-			"#" + RigFx.INK.to_html(false), _num(outline), inner]
+			"#" + RigFx.INK.to_html(false),
+			_num(outline),
+			inner,
+		]
 	var s := '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">%s</svg>' % inner
 	if swap:
 		for pr: Array in TEAM_SWAP:

@@ -30,18 +30,29 @@ func _init() -> void:
 			ids = [a1]
 		for id: String in ids:
 			var def: Dictionary = Content.mission(id)
-			report("%s %s" % [id, def.title], int(a2) if a2 != "" else 20, func(_g: int) -> Dictionary: return play(def, {}, false))
+			report(
+				"%s %s" % [id, def.title],
+				int(a2) if a2 != "" else 20,
+				func(_g: int) -> Dictionary:
+					return play(def, { }, false),
+			)
 	elif mode == "skirmish":
 		var heroes := Content.heroes_of("p")
-		report("skirmish" + (" easy" if a2 == "easy" else ""), int(a1) if a1 != "" else 12,
+		report(
+			"skirmish" + (" easy" if a2 == "easy" else ""),
+			int(a1) if a1 != "" else 12,
 			func(g: int) -> Dictionary:
 				var hero: String = heroes[g % heroes.size()]
-				return play(Content.skirmish_def("dong_bang", hero, a2 == "easy"), {}, false))
+				return play(Content.skirmish_def("dong_bang", hero, a2 == "easy"), { }, false),
+		)
 	elif mode == "naive":
-		report("random vs AI", int(a1) if a1 != "" else 10,
+		report(
+			"random vs AI",
+			int(a1) if a1 != "" else 10,
 			func(_g: int) -> Dictionary:
 				var hero: String = Content.heroes_of("p")[0]
-				return play(Content.skirmish_def("dong_bang", hero, false), {}, true))
+				return play(Content.skirmish_def("dong_bang", hero, false), { }, true),
+		)
 	printerr("wall %.1fs" % ((Time.get_ticks_msec() - t0) / 1000.0))
 	quit()
 
@@ -53,7 +64,7 @@ func play(def: Dictionary, opts: Dictionary, naive: bool) -> Dictionary:
 func report(label: String, games: int, mk: Callable) -> void:
 	var res := { "p": 0, "e": 0, "draw": 0 }
 	var turns := []
-	var reasons := {}
+	var reasons := { }
 	for g in games:
 		lib.seed_v = 1000.0 + g * 7919
 		var s: Dictionary = mk.call(g)
@@ -66,5 +77,7 @@ func report(label: String, games: int, mk: Callable) -> void:
 	var rs := []
 	for k: String in reasons:
 		rs.append('"%s":%d' % [k, reasons[k]])
-	print("%s p %d/%d  e %d  draw %d  turns med %d [%d-%d]  {%s}" % [label.rpad(22), res.p, games, res.e, res.draw,
-		turns[turns.size() >> 1], turns[0], turns[turns.size() - 1], ",".join(rs)])
+	print(
+		"%s p %d/%d  e %d  draw %d  turns med %d [%d-%d]  {%s}"
+		% [label.rpad(22), res.p, games, res.e, res.draw, turns[turns.size() >> 1], turns[0], turns[turns.size() - 1], ",".join(rs)]
+	)

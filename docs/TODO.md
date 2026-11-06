@@ -13,4 +13,6 @@
   4. `gdformat` toàn repo trong 1 commit riêng, chỉ style -> chạy lại tests + click_driver + rig_smoke.
   5. `tools/lint.sh` + git pre-commit hook (`gdformat --check` + `gdlint`); ghi cách dùng vào README "Kiểm tra".
   - Phương án khác nếu gdtoolkit chậm / thiếu cú pháp 4.7: GDScript Formatter của GDQuest (Rust, có linter).
-- [ ] **Backlog code review 2026-11-06**: `docs/review/code_review_2026-11-06.md` mục Backlog (hiệu năng P1–P8, mở rộng E1–E7, tái sử dụng R1–R5, test). User chọn mục làm.
+- [x] Code review 2026-11-06 backlog: hiệu năng P1–P8 (trừ P9), mở rộng E2/E3/E4/E7, tái sử dụng R1–R5 — merged e5a3520.
+- [ ] Còn lại từ review (`docs/review/code_review_2026-11-06.md`): E1 nhiều phe / đồng minh, E5 tách `game_screen.gd`, E6 i18n; P9 vẽ lại khi idle; spike ~18 ms khi rig đánh lần đầu (raster phần rig); test UI phá/sửa làng/gọi hồn qua click, phím tắt, save giữa ván; đo hiệu năng trên điện thoại thật (web/iOS).
+- [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.

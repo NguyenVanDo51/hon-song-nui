@@ -24,6 +24,9 @@ var battle: BattleView
 var _turn: Label
 var _gold_box: HBoxContainer
 var _gold_num: Label
+var _coins: CoinPop
+var _gold_shown := -1 # count-up value on screen; -1 = show s.gold.p
+var _gold_tw: Tween
 var _income: Label
 var _goal: RichTextLabel
 var _btn_hint: Button
@@ -101,6 +104,8 @@ func _build() -> void:
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wrap.add_child(_frame)
 	_make_board(Store.board_3d())
+	_coins = CoinPop.new(board)
+	_wrap.add_child(_coins)
 	_banner = Banner.new()
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_wrap.add_child(_banner)
@@ -203,6 +208,8 @@ func _make_board(three_d: bool) -> void:
 		board.queue_free()
 	board = Board3D.new() if three_d else Board.new()
 	board.fx = fx
+	if _coins != null:
+		_coins.board = board
 	board.tile_clicked.connect(_on_tile_clicked)
 	board.hover_changed.connect(func(t: Variant) -> void:
 		ui.hover = t
@@ -386,6 +393,10 @@ func _def_for(c: Dictionary) -> Dictionary:
 
 func start(state: Dictionary, c: Dictionary) -> void:
 	gen += 1
+	if _gold_tw != null:
+		_gold_tw.kill()
+	_gold_shown = -1
+	_coins.clear()
 	s = state
 	ctx = c
 	def = _def_for(c)
@@ -849,6 +860,9 @@ func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no
 	_clear_sel()
 	var before := _snapshot()
 	var ev := Game.end_turn(s)
+	for e: Dictionary in ev:
+		if e.t == "income" and e.side == "p" and e.amount:
+			_gold_shown = s.gold.p - e.amount # the total counts up when the coins land
 	save()
 	if s.winner != null:
 		finish()
@@ -935,6 +949,30 @@ func _bot_turn() -> void:
 		await commit(rest)
 	if gen == my and s.winner == null:
 		await end_player_turn(true)
+
+## every paying building pops its own "+N"; the total counts up as they land
+func _income_fx() -> void:
+	var items: Array = []
+	for k: Vector2i in s.owner:
+		if s.owner[k] == "p":
+			var castle: bool = s.tiles[k.y][k.x] == "c"
+			items.append({ "x": k.x, "y": k.y, "amount": Rules.RULES.incomeCastle if castle else Rules.RULES.incomeVillage })
+	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y or (a.y == b.y and a.x < b.x))
+	_coins.board = board
+	_coins.play(items)
+	main.audio.play("coin")
+	var from: int = _gold_shown if _gold_shown >= 0 else s.gold.p
+	if _gold_tw != null:
+		_gold_tw.kill()
+	_gold_tw = _gold_num.create_tween()
+	_gold_tw.tween_interval(CoinPop.RISE)
+	_gold_tw.tween_method(func(k: float) -> void:
+		_gold_shown = roundi(lerpf(from, s.gold.p, k)) # live target: a buy mid-count still ends right
+		_gold_num.text = str(_gold_shown), 0.0, 1.0, 0.9).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	_gold_tw.tween_callback(func() -> void:
+		_gold_shown = -1
+		_gold_num.text = str(s.gold.p)
+		_bump_gold())
 
 func _bump_gold() -> void:
 	var tw := _gold_num.create_tween()
@@ -1094,7 +1132,7 @@ func play(events: Array, before: Dictionary) -> void:
 				main.audio.play("heal")
 			"income":
 				if e.side == "p" and e.amount:
-					_bump_gold()
+					_income_fx()
 	if dived and gen == my:
 		await board.unfocus()
 	v.hp = null
@@ -1640,7 +1678,7 @@ func refresh() -> void:
 		return
 	_build_view()
 	_turn.text = "Lượt %d" % s.turn
-	_gold_num.text = str(s.gold.p)
+	_gold_num.text = str(s.gold.p if _gold_shown < 0 else _gold_shown)
 	_gold_box.visible = s.allowed.p.size() > 0 or Game.castles(s, "p") > 0
 	_income.text = "+%d" % Game.income(s, "p")
 	_goal.text = _goal_line()

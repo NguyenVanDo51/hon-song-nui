@@ -7,7 +7,9 @@
 
 ## Tính năng
 - [x] **Chế độ 1 đấu 1** (`docs/1v1.md`, 2026-11-06): người–người chung máy (màn chuyển tay) + người–máy; bước 1–3 xong.
-  - [x] Bước 4: Dễ / Thường / Khó = `AI.PRESETS` -> `s.aiParams` (docs/1v1.md "Độ khó"; tỉ lệ thắng docs/ai.md). Khó chỉ hơn Thường ~55%: luyện thêm (`tools/tune.sh`, chạy lâu hơn) hoặc cho máy Khó thêm vàng.
+  - [x] Bước 4: Dễ / Thường / Khó = `AI.PRESETS` -> `s.aiParams` (docs/1v1.md "Độ khó"; tỉ lệ thắng docs/ai.md). Khó v1 chỉ hơn Thường ~55% -> xong bằng Khó v2.
+  - [x] **Khó v2** (2026-11-07, `scripts/core/ai_plan.gd`, docs/ai.md "Khó v2"): lập kế hoạch cả lượt (portfolio style + dồn đòn giết + giữ thành, địch đáp 1 lượt, chấm thế cờ). Seed giữ riêng: 0,896 vs Khó v1 (396 ván).
+  - [ ] Khó v2 tiếp: người thật chơi thử (AI-vs-AI ≠ người); đo thời gian trên điện thoại thật (Mac: lượt TB ~0,15 s, tệ nhất ~0,45 s); hàm điểm tune / học (nút thắt hiện tại); ứng viên "mua trước" (lính mua đi ngay, v1 mua cuối lượt); chọn loại lính theo đội hình địch.
   - [ ] Điện thoại ngang: màn thiết lập phải cuộn mới thấy "Xuất quân"; popup mua 9 loại quân tràn ~844x390 (có từ đấu tự do). Nút "Đánh tiếp ván đang dở" chưa ghi rõ 1 đấu 1 hay đấu tự do.
   - [ ] Online: relay chuỗi step + hash.
 - [x] **AI luyện bằng tự đấu** (2026-11-06): `AI.DEFAULT` + `sim/tune.gd` + `tools/tune.sh` (docs/ai.md); lính ít máu về hồi máu (hết nằm góc). Theo dõi: m08 hòa 1 -> 4/24 sau sửa.

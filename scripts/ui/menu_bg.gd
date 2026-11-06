@@ -52,8 +52,9 @@ func _process(dt: float) -> void:
 		embers.append({ "x": randf() * W, "y": H + 10, "v": 0.2 + randf() * 0.6, "p": randf() * 6, "r": 1 + randf() * 2 })
 	var k := dt * 60.0
 	for e: Dictionary in embers:
+		var ep: float = e.p
 		e.y -= e.v * k
-		e.x += sin(t / 800.0 + e.p) * 0.4 * k
+		e.x += sin(t / 800.0 + ep) * 0.4 * k
 	embers = embers.filter(func(e: Dictionary) -> bool: return e.y > -10)
 	fx.queue_redraw()
 
@@ -61,5 +62,9 @@ func _draw_fx() -> void:
 	var H := size.y
 	# (the JS version also drew sun glints on the river; removed: they showed through between the campaign cards as stray dashes)
 	for e: Dictionary in embers:
-		var a := clampf(e.y / H, 0.0, 1.0) * (0.5 + 0.5 * sin(t / 200.0 + e.p))
-		fx.draw_circle(Vector2(e.x, e.y), e.r, Color(1, 0.706, 0.353, a), true, -1.0, true)
+		var ex: float = e.x
+		var ey: float = e.y
+		var ep: float = e.p
+		var er: float = e.r
+		var a := clampf(ey / H, 0.0, 1.0) * (0.5 + 0.5 * sin(t / 200.0 + ep))
+		fx.draw_circle(Vector2(ex, ey), er, Color(1, 0.706, 0.353, a), true, -1.0, true)

@@ -28,30 +28,36 @@ const SFX := {
 	"arrow": [["noise", { "dur": 0.22, "vol": 0.18, "freq": 4000, "f2": 1500, "type": "bandpass", "q": 4 }]],
 	"orb": [["tone", { "f": 300, "f2": 900, "type": "sine", "dur": 0.35, "vol": 0.18, "vib": 20 }]],
 	"rock": [["tone", { "f": 200, "f2": 120, "type": "triangle", "dur": 0.3, "vol": 0.12 }]],
-	"die": [["noise", { "dur": 0.5, "vol": 0.3, "freq": 700, "f2": 120 }], ["tone", { "f": 330, "f2": 110, "type": "sawtooth", "dur": 0.4, "vol": 0.06 }]],
+	"die": [["noise", { "dur": 0.5, "vol": 0.3, "freq": 700, "f2": 120 }],
+		["tone", { "f": 330, "f2": 110, "type": "sawtooth", "dur": 0.4, "vol": 0.06 }]],
 	"capture": [["tone", { "f": 196, "dur": 1.6, "vol": 0.18, "vib": 2 }], ["tone", { "f": 294, "dur": 1.6, "vol": 0.18, "at": 0.02, "vib": 2 }],
 		["tone", { "f": 392, "dur": 1.6, "vol": 0.18, "at": 0.04, "vib": 2 }], ["tone", { "f": 784, "type": "triangle", "dur": 0.9, "vol": 0.05 }]],
-	"coin": [["tone", { "f": 988, "type": "square", "dur": 0.08, "vol": 0.07 }], ["tone", { "f": 1319, "type": "square", "dur": 0.18, "vol": 0.07, "at": 0.07 }]],
-	"rank": [["tone", { "f": 523, "type": "triangle", "dur": 0.25, "vol": 0.12 }], ["tone", { "f": 659, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.08 }],
-		["tone", { "f": 784, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.16 }], ["tone", { "f": 1047, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.24 }]],
+	"coin": [["tone", { "f": 988, "type": "square", "dur": 0.08, "vol": 0.07 }],
+		["tone", { "f": 1319, "type": "square", "dur": 0.18, "vol": 0.07, "at": 0.07 }]],
+	"rank": [["tone", { "f": 523, "type": "triangle", "dur": 0.25, "vol": 0.12 }],
+		["tone", { "f": 659, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.08 }],
+		["tone", { "f": 784, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.16 }],
+		["tone", { "f": 1047, "type": "triangle", "dur": 0.25, "vol": 0.12, "at": 0.24 }]],
 	"raise": [["tone", { "f": 600, "f2": 150, "type": "sine", "dur": 1.0, "vol": 0.18, "vib": 30 }],
 		["noise", { "dur": 0.8, "vol": 0.08, "freq": 2000, "f2": 300, "type": "bandpass", "q": 3 }]],
 	"heal": [["tone", { "f": 660, "f2": 990, "type": "sine", "dur": 0.3, "vol": 0.08 }]],
 	"drum": [["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.6 }], ["noise", { "dur": 0.12, "vol": 0.2, "freq": 400 }],
 		["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.45, "at": 0.28 }]],
 	"spawn": [["noise", { "dur": 0.7, "vol": 0.2, "freq": 300, "f2": 1200, "type": "bandpass", "q": 1 }]],
-	"win": [["tone", { "f": 392, "type": "triangle", "dur": 0.7, "vol": 0.14, "vib": 3 }], ["tone", { "f": 440, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.14, "vib": 3 }],
-		["tone", { "f": 523, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.28, "vib": 3 }], ["tone", { "f": 587, "type": "triangle", "dur": 0.7, "vol": 0.14,
-			"at": 0.42, "vib": 3 }],
+	"win": [["tone", { "f": 392, "type": "triangle", "dur": 0.7, "vol": 0.14, "vib": 3 }],
+		["tone", { "f": 440, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.14, "vib": 3 }],
+		["tone", { "f": 523, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.28, "vib": 3 }],
+		["tone", { "f": 587, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.42, "vib": 3 }],
 		["tone", { "f": 784, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.56, "vib": 3 }]],
 	"lose": [["tone", { "f": 392, "dur": 0.9, "vol": 0.14, "vib": 4 }], ["tone", { "f": 349, "dur": 0.9, "vol": 0.14, "at": 0.22, "vib": 4 }],
 		["tone", { "f": 294, "dur": 0.9, "vol": 0.14, "at": 0.44, "vib": 4 }], ["tone", { "f": 262, "dur": 0.9, "vol": 0.14, "at": 0.66, "vib": 4 }]],
 	"ui": [["tone", { "f": 660, "type": "triangle", "dur": 0.05, "vol": 0.07 }]],
 }
 
+const DIR := "res://assets/sfx"
+
 var muted: bool
 var music_on: bool
-const DIR := "res://assets/sfx"
 var _streams := {} # "s:<sfx>" / "m:<note>" -> AudioStreamWAV, filled on first use
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _music_players: Array[AudioStreamPlayer] = []
@@ -156,7 +162,8 @@ func _play_note(key: String) -> void:
 	p.play()
 
 static func note(deg: int) -> float:
-	return BASE * pow(2.0, (SCALE[((deg % 5) + 5) % 5] + 12 * floori(deg / 5.0)) / 12.0)
+	var semi: int = SCALE[((deg % 5) + 5) % 5]
+	return BASE * pow(2.0, (semi + 12 * floori(deg / 5.0)) / 12.0)
 
 # ---------- baked streams ----------
 static func file_of(key: String) -> String:
@@ -173,7 +180,10 @@ func _stream(key: String) -> AudioStream:
 			if r == null:
 				return null
 			push_warning("audio: %s not baked, rendering it now (run tools/bake_sfx.gd)" % path)
-			st = to_stream(_render(r[0], r[1], RandomNumberGenerator.new()))
+			var rd: Array = r
+			var rparts: Array = rd[0]
+			var rgain: float = rd[1]
+			st = to_stream(_render(rparts, rgain, RandomNumberGenerator.new()))
 		_streams[key] = st
 	return st
 
@@ -209,15 +219,18 @@ static func _render(parts: Array, gain: float, rng: RandomNumberGenerator) -> Pa
 	var total := 0
 	for part: Array in parts:
 		var p: Dictionary = part[1]
-		total = maxi(total, int((float(p.get("at", 0.0)) + float(p.get("dur", 0.2)) + 0.05) * SR) + 1)
+		var at: float = p.get("at", 0.0)
+		var dur: float = p.get("dur", 0.2)
+		total = maxi(total, int((at + dur + 0.05) * SR) + 1)
 	var buf := PackedFloat32Array()
 	buf.resize(total)
 	buf.fill(0.0)
 	for part: Array in parts:
+		var pd: Dictionary = part[1]
 		if part[0] == "tone":
-			buf = _tone(buf, part[1], gain)
+			buf = _tone(buf, pd, gain)
 		else:
-			buf = _noise(buf, part[1], gain, rng)
+			buf = _noise(buf, pd, gain, rng)
 	var peak := 0.0
 	for v in buf:
 		peak = maxf(peak, absf(v))
@@ -242,7 +255,8 @@ static func _tone(buf: PackedFloat32Array, p: Dictionary, gain: float) -> Packed
 	var attack: float = p.get("attack", 0.005)
 	var vib: float = p.get("vib", 0.0)
 	var wave := 0 if type == "sine" else 1 if type == "triangle" else 2 if type == "square" else 3
-	var s0 := int(float(p.get("at", 0.0)) * SR)
+	var at: float = p.get("at", 0.0)
+	var s0 := int(at * SR)
 	var n := mini(int((dur + 0.05) * SR), buf.size() - s0)
 	var nd := maxi(1, int(dur * SR))
 	var na := maxi(1, int(attack * SR))
@@ -288,7 +302,8 @@ static func _noise(buf: PackedFloat32Array, p: Dictionary, gain: float, rng: Ran
 	var band: bool = p.get("type", "lowpass") == "bandpass"
 	var q: float = p.get("q", 0.8)
 	var ql := q if band else pow(10.0, q / 20.0)
-	var s0 := int(float(p.get("at", 0.0)) * SR)
+	var at: float = p.get("at", 0.0)
+	var s0 := int(at * SR)
 	var n := mini(int((dur + 0.05) * SR), buf.size() - s0)
 	var nd := maxi(1, int(dur * SR))
 	var fr := pow(f2 / cut, 1.0 / nd)

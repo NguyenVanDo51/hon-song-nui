@@ -41,19 +41,27 @@ func quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, col: Color, out: Vecto
 ## axis-aligned box centred on c; `top` colours the upward face; `skip` = side directions to leave out (hidden by a neighbour)
 func box(c: Vector3, s: Vector3, col: Color, top: Variant = null, bottom := true, skip: Array = []) -> void:
 	var h := s / 2.0
-	var p := func(x: float, y: float, z: float) -> Vector3: return c + Vector3(h.x * x, h.y * y, h.z * z)
+	# corners named by the sign of x / y / z (n = -1, p = +1)
+	var nnn := c + Vector3(-h.x, -h.y, -h.z)
+	var pnn := c + Vector3(h.x, -h.y, -h.z)
+	var npn := c + Vector3(-h.x, h.y, -h.z)
+	var ppn := c + Vector3(h.x, h.y, -h.z)
+	var nnp := c + Vector3(-h.x, -h.y, h.z)
+	var pnp := c + Vector3(h.x, -h.y, h.z)
+	var npp := c + Vector3(-h.x, h.y, h.z)
+	var ppp := c + Vector3(h.x, h.y, h.z)
 	var tc: Color = top if top != null else col
-	quad(p.call(-1, 1, -1), p.call(1, 1, -1), p.call(1, 1, 1), p.call(-1, 1, 1), tc, Vector3.UP)
+	quad(npn, ppn, ppp, npp, tc, Vector3.UP)
 	if bottom:
-		quad(p.call(-1, -1, -1), p.call(1, -1, -1), p.call(1, -1, 1), p.call(-1, -1, 1), col.darkened(0.3), Vector3.DOWN)
+		quad(nnn, pnn, pnp, nnp, col.darkened(0.3), Vector3.DOWN)
 	if not skip.has(Vector3.BACK):
-		quad(p.call(-1, -1, 1), p.call(1, -1, 1), p.call(1, 1, 1), p.call(-1, 1, 1), col, Vector3.BACK)
+		quad(nnp, pnp, ppp, npp, col, Vector3.BACK)
 	if not skip.has(Vector3.FORWARD):
-		quad(p.call(-1, -1, -1), p.call(1, -1, -1), p.call(1, 1, -1), p.call(-1, 1, -1), col, Vector3.FORWARD)
+		quad(nnn, pnn, ppn, npn, col, Vector3.FORWARD)
 	if not skip.has(Vector3.RIGHT):
-		quad(p.call(1, -1, -1), p.call(1, -1, 1), p.call(1, 1, 1), p.call(1, 1, -1), col, Vector3.RIGHT)
+		quad(pnn, pnp, ppp, ppn, col, Vector3.RIGHT)
 	if not skip.has(Vector3.LEFT):
-		quad(p.call(-1, -1, -1), p.call(-1, -1, 1), p.call(-1, 1, 1), p.call(-1, 1, -1), col, Vector3.LEFT)
+		quad(nnn, nnp, npp, npn, col, Vector3.LEFT)
 
 ## frustum along +y from the base centre b (r1 = 0: cone); caps optional
 func cyl(b: Vector3, r0: float, r1: float, h: float, col: Color, seg := 10, top: Variant = null, cap_bottom := false) -> void:
@@ -115,8 +123,10 @@ func roof(c: Vector3, w: float, d: float, h: float, col: Color, ridge_ext := 0.0
 
 ## flat textured quad (overlay meshes): corners a..d CCW from above, uv0..uv3
 func uv_quad(a: Vector3, b: Vector3, c: Vector3, d: Vector3, uvs: Array) -> void:
+	var corners: Array[Vector3] = [a, b, c, d]
 	for idx: Array in [[0, 2, 1], [0, 3, 2]]: # clockwise seen from above = front
 		for k: int in idx:
+			var kuv: Vector2 = uvs[k]
 			st.set_normal(Vector3.UP)
-			st.set_uv(uvs[k])
-			st.add_vertex([a, b, c, d][k])
+			st.set_uv(kuv)
+			st.add_vertex(corners[k])

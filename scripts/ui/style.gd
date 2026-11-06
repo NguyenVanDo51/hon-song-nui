@@ -39,11 +39,12 @@ static func box(bg: Color, border := Color.TRANSPARENT, radius := 12, pad := 14.
 	b.anti_aliasing = true
 	return b
 
-static func _btn(t: Theme, type: String, base: String, normal: StyleBoxFlat, hover: StyleBoxFlat, fg: Color, fg_hover := Color.TRANSPARENT, font: Font = null, size := 0) -> void:
+static func _btn(t: Theme, type: String, base: String, normal: StyleBoxFlat, hover: StyleBoxFlat, fg: Color, fg_hover := Color.TRANSPARENT,
+	font: Font = null, size := 0) -> void:
 	t.set_type_variation(type, base)
-	var pressed := hover.duplicate()
+	var pressed: StyleBoxFlat = hover.duplicate()
 	pressed.bg_color = pressed.bg_color.darkened(0.15)
-	var disabled := normal.duplicate()
+	var disabled: StyleBoxFlat = normal.duplicate()
 	disabled.bg_color.a *= 0.45
 	disabled.border_color.a *= 0.45
 	t.set_stylebox("normal", type, normal)
@@ -91,43 +92,43 @@ static func make_theme() -> Theme:
 	var mb := box(Color(0.17, 0.10, 0.08, 0.94), BRONZE_2, 12, 0)
 	mb.content_margin_left = 18; mb.content_margin_right = 18; mb.content_margin_top = 12; mb.content_margin_bottom = 12
 	mb.shadow_color = Color(0, 0, 0, 0.4); mb.shadow_size = 8; mb.shadow_offset = Vector2(0, 4)
-	var mbh := mb.duplicate(); mbh.border_color = GOLD; mbh.bg_color = Color(0.22, 0.13, 0.10, 0.96)
+	var mbh: StyleBoxFlat = mb.duplicate(); mbh.border_color = GOLD; mbh.bg_color = Color(0.22, 0.13, 0.10, 0.96)
 	_btn(t, "MenuBtn", "Button", mb, mbh, GOLD, Color.TRANSPARENT, display, 21)
-	var pb := mb.duplicate(); pb.bg_color = Color("#b1412d"); pb.border_color = Color("#f08a63")
-	var pbh := pb.duplicate(); pbh.bg_color = Color("#c84a33"); pbh.border_color = GOLD_HI
+	var pb: StyleBoxFlat = mb.duplicate(); pb.bg_color = Color("#b1412d"); pb.border_color = Color("#f08a63")
+	var pbh: StyleBoxFlat = pb.duplicate(); pbh.bg_color = Color("#c84a33"); pbh.border_color = GOLD_HI
 	_btn(t, "PrimaryBtn", "Button", pb, pbh, Color("#fff6e3"), Color.TRANSPARENT, display, 21)
 	var act := box(Color("#301d16"), BRONZE_2, 10, 0)
 	act.content_margin_left = 12; act.content_margin_right = 12; act.content_margin_top = 8; act.content_margin_bottom = 8
-	var acth := act.duplicate(); acth.border_color = GOLD
+	var acth: StyleBoxFlat = act.duplicate(); acth.border_color = GOLD
 	_btn(t, "ActBtn", "Button", act, acth, INK, Color.TRANSPARENT, bold, 14)
-	var hot := act.duplicate(); hot.border_color = GOLD; hot.set_border_width_all(2)
+	var hot: StyleBoxFlat = act.duplicate(); hot.border_color = GOLD; hot.set_border_width_all(2)
 	hot.shadow_color = Color(GOLD, 0.35); hot.shadow_size = 10
 	_btn(t, "ActHot", "Button", hot, hot, INK, Color.TRANSPARENT, bold, 14)
-	var go := act.duplicate(); go.bg_color = Color("#b1412d"); go.border_color = Color("#f08a63")
-	var goh := go.duplicate(); goh.border_color = GOLD_HI; goh.bg_color = Color("#c84a33")
+	var go: StyleBoxFlat = act.duplicate(); go.bg_color = Color("#b1412d"); go.border_color = Color("#f08a63")
+	var goh: StyleBoxFlat = go.duplicate(); goh.border_color = GOLD_HI; goh.bg_color = Color("#c84a33")
 	_btn(t, "ActGo", "Button", go, goh, Color("#fff6e3"), Color.TRANSPARENT, bold, 14)
-	var gohot := go.duplicate(); gohot.border_color = GOLD; gohot.set_border_width_all(2)
+	var gohot: StyleBoxFlat = go.duplicate(); gohot.border_color = GOLD; gohot.set_border_width_all(2)
 	gohot.shadow_color = Color(GOLD, 0.4); gohot.shadow_size = 10
 	_btn(t, "ActGoHot", "Button", gohot, gohot, Color("#fff6e3"), Color.TRANSPARENT, bold, 14)
 	var ib := box(Color(0, 0, 0, 0.4), LACQUER_3, 8, 0)
 	ib.content_margin_left = 10; ib.content_margin_right = 10; ib.content_margin_top = 6; ib.content_margin_bottom = 6
-	var ibh := ib.duplicate(); ibh.border_color = BRONZE; ibh.bg_color = LACQUER_3
+	var ibh: StyleBoxFlat = ib.duplicate(); ibh.border_color = BRONZE; ibh.bg_color = LACQUER_3
 	_btn(t, "IconBtn", "Button", ib, ibh, INK, Color.TRANSPARENT, semi, 14)
 	var chip := box(Color(0.13, 0.075, 0.05, 0.8), LACQUER_3, 99, 0)
 	chip.content_margin_left = 12; chip.content_margin_right = 12; chip.content_margin_top = 6; chip.content_margin_bottom = 6
-	var chiph := chip.duplicate(); chiph.border_color = BRONZE_2
+	var chiph: StyleBoxFlat = chip.duplicate(); chiph.border_color = BRONZE_2
 	_btn(t, "ChipBtn", "Button", chip, chiph, MUTED, GOLD, body, 13)
-	var chip_on := chip.duplicate(); chip_on.border_color = BRONZE_2
+	var chip_on: StyleBoxFlat = chip.duplicate(); chip_on.border_color = BRONZE_2
 	_btn(t, "ChipOn", "Button", chip_on, chip_on, GOLD, GOLD, body, 13)
 	var back := box(Color.TRANSPARENT, LACQUER_3, 99, 0)
 	back.content_margin_left = 12; back.content_margin_right = 12; back.content_margin_top = 6; back.content_margin_bottom = 6
-	var backh := back.duplicate(); backh.border_color = BRONZE_2
+	var backh: StyleBoxFlat = back.duplicate(); backh.border_color = BRONZE_2
 	_btn(t, "BackBtn", "Button", back, backh, MUTED, GOLD, body, 14)
 	var seg := box(Color(0.08, 0.043, 0.03, 0.8), LACQUER_3, 99, 0)
 	seg.content_margin_left = 16; seg.content_margin_right = 16; seg.content_margin_top = 8; seg.content_margin_bottom = 8
-	var segh := seg.duplicate(); segh.border_color = BRONZE_2
+	var segh: StyleBoxFlat = seg.duplicate(); segh.border_color = BRONZE_2
 	_btn(t, "SegBtn", "Button", seg, segh, MUTED, INK, body, 14)
-	var seg_on := seg.duplicate(); seg_on.bg_color = LACQUER_3; seg_on.border_color = BRONZE_2
+	var seg_on: StyleBoxFlat = seg.duplicate(); seg_on.bg_color = LACQUER_3; seg_on.border_color = BRONZE_2
 	_btn(t, "SegOn", "Button", seg_on, seg_on, GOLD, GOLD, semi, 14)
 	var link := StyleBoxEmpty.new()
 	link.set_content_margin_all(4)
@@ -140,7 +141,7 @@ static func make_theme() -> Theme:
 	t.set_font_size("font_size", "LinkBtn", 14)
 	# card-ish buttons (mission, hero pick): text lives in child labels
 	var cb := box(GLASS, LACQUER_3, 12, 14)
-	var cbh := cb.duplicate(); cbh.border_color = GOLD
+	var cbh: StyleBoxFlat = cb.duplicate(); cbh.border_color = GOLD
 	_btn(t, "CardBtn", "Button", cb, cbh, INK)
 	var cbon := box(Color(0.25, 0.18, 0.09, 0.9), GOLD, 12, 14)
 	cbon.shadow_color = Color(GOLD, 0.18); cbon.shadow_size = 14
@@ -236,7 +237,9 @@ static func range_txt(lo: int, hi: int) -> String:
 	return str(lo) if lo == hi else "%d–%d" % [lo, hi]
 
 static func stat_range(st: Dictionary) -> String:
-	return range_txt(st.rmin, st.rmax)
+	var lo: int = st.rmin
+	var hi: int = st.rmax
+	return range_txt(lo, hi)
 
 ## bars: rows = [[name, value, max] or [name, text]]
 static func stat_bars(rows: Array, size := 13) -> GridContainer:
@@ -245,9 +248,12 @@ static func stat_bars(rows: Array, size := 13) -> GridContainer:
 	g.add_theme_constant_override("h_separation", 8)
 	g.add_theme_constant_override("v_separation", 4)
 	for r: Array in rows:
-		g.add_child(lbl(r[0], size, MUTED))
+		var rname: String = r[0]
+		g.add_child(lbl(rname, size, MUTED))
 		if r.size() == 3:
-			g.add_child(Bar.make(clampf(float(r[1]) / r[2], 0.0, 1.0)))
+			var val: float = r[1]
+			var top: float = r[2]
+			g.add_child(Bar.make(clampf(val / top, 0.0, 1.0)))
 			g.add_child(lbl(str(r[1]), size, INK, semi))
 		else:
 			g.add_child(Control.new())
@@ -256,9 +262,11 @@ static func stat_bars(rows: Array, size := 13) -> GridContainer:
 
 ## unit card for briefing + codex: token, name, description, stat bars, optional tag ribbon
 static func unit_card(side: String, type: String, hero_key: Variant, opts := {}) -> Control:
-	var st: Dictionary = Rules.UNITS[type].duplicate()
+	var base: Dictionary = Rules.UNITS[type]
+	var st := base.duplicate()
 	if type == "hero" and hero_key != null:
-		st.merge(Rules.HEROES[hero_key], true)
+		var hd: Dictionary = Rules.HEROES[hero_key]
+		st.merge(hd, true)
 	var look := Content.unit_type_look(side, type, hero_key)
 	var c := card(GLASS, BRONZE_2, 12, 14)
 	c.add_theme_stylebox_override("panel", box(Color(0.16, 0.10, 0.06, 0.88), BRONZE_2, 12, 14))
@@ -267,7 +275,8 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := {})
 	head.add_child(Token.make(side, type, hero_key, 64))
 	var txt := vbox(2)
 	txt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	txt.add_child(lbl(look.name, 20, GOLD, display))
+	var lname: String = look.name
+	txt.add_child(lbl(lname, 20, GOLD, display))
 	var desc: String = (look.blurb + " Tướng chiếm được cả làng và thành.") if type == "hero" else look.desc
 	txt.add_child(lbl(desc, 14, INK, null, true))
 	head.add_child(txt)
@@ -289,7 +298,7 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := {})
 		ts.content_margin_left = 8
 		ts.content_margin_right = 8
 		tag.add_theme_stylebox_override("panel", ts)
-		tag.add_child(lbl(String(opts.tag).to_upper(), 11, Color("#fff6e3"), xbold))
+		tag.add_child(lbl(str(opts.tag).to_upper(), 11, Color("#fff6e3"), xbold))
 		tag.position = Vector2(12, -10)
 		holder.add_child(tag)
 		outer.add_child(holder)
@@ -300,15 +309,19 @@ static func dialogue(lines: Array, stagger := 0.35, small := false) -> VBoxConta
 	var v := vbox(10)
 	var i := 0
 	for line: Array in lines:
-		var sp := Content.speaker(line[0])
-		var foe := Content.is_foe(line[0])
+		var key: String = line[0]
+		var text: String = line[1]
+		var sp := Content.speaker(key)
+		var foe := Content.is_foe(key)
+		var icon: String = sp.icon
+		var sname: String = sp.name
 		var row := hbox(10)
 		var who := PanelContainer.new()
 		var ws := 34 if small else 44
 		who.custom_minimum_size = Vector2(ws, ws)
 		who.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		who.add_theme_stylebox_override("panel", box(Color("#10353a") if foe else LACQUER_3, SEA_HI if foe else BRONZE_2, 99, 0))
-		var ic := lbl(sp.icon, 18 if small else 24)
+		var ic := lbl(icon, 18 if small else 24)
 		ic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		ic.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		who.add_child(ic)
@@ -320,8 +333,8 @@ static func dialogue(lines: Array, stagger := 0.35, small := false) -> VBoxConta
 		bub.add_theme_stylebox_override("panel", bs)
 		bub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var bv := vbox(2)
-		bv.add_child(lbl(sp.name, 15, SEA_HI if foe else GOLD, display))
-		bv.add_child(lbl(line[1], 14 if small else 15, INK, null, true))
+		bv.add_child(lbl(sname, 15, SEA_HI if foe else GOLD, display))
+		bv.add_child(lbl(text, 14 if small else 15, INK, null, true))
 		bub.add_child(bv)
 		row.add_child(bub)
 		row.modulate.a = 0.0
@@ -331,7 +344,8 @@ static func dialogue(lines: Array, stagger := 0.35, small := false) -> VBoxConta
 	v.ready.connect(func() -> void:
 		for r: Control in v.get_children():
 			var tw := r.create_tween()
-			tw.tween_interval(r.get_meta("delay"))
+			var delay: float = r.get_meta("delay")
+			tw.tween_interval(delay)
 			tw.tween_property(r, "modulate:a", 1.0, 0.5)
 	)
 	return v

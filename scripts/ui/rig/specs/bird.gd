@@ -54,7 +54,7 @@ func draw_fire(ctx: RigCtx, cam: RigCam, r: Rig, t: float) -> void:
 	ctx.alpha = 0.3
 	fire_shape(ctx, s0, s1, wk, t, 1.35); ctx.fill(fire.mid) # faint halo
 	ctx.alpha = 1.0
-	fire_shape(ctx, s0, s1, wk, t, 1.0); ctx.fill(fire.out); ctx.stroke(Rig.INK, 6)
+	fire_shape(ctx, s0, s1, wk, t, 1.0); ctx.fill(fire.out); ctx.stroke(RigFx.INK, 6)
 	fire_shape(ctx, s0 + 4.0, s0 + (s1 - s0) * 0.92, wk, t + 90.0, 0.64); ctx.fill(fire.mid)
 	fire_shape(ctx, s0 + 8.0, s0 + (s1 - s0) * 0.74, wk, t + 200.0, 0.3); ctx.fill(fire.core)
 
@@ -71,11 +71,11 @@ func fire_fx(a: Rig) -> void:
 ## flat flame ball with ink outline (mouth glow); frame = upright at the mouth, highlight stays top-left
 func orb(ctx: RigCtx, cam: RigCam, at: Vector2, r: float) -> void:
 	var fire: Dictionary = data.consts.FIRE
-	ctx.set_xf(Transform2D(Vector2(cam.ca, 0), Vector2(0, cam.ca), at))
+	ctx.set_xf(cam.at_px(at))
 	ctx.alpha = 0.35
 	ctx.begin_path(); ctx.circle(0, 0, r * 1.7); ctx.fill(fire.mid)
 	ctx.alpha = 1.0
-	ctx.begin_path(); ctx.circle(0, 0, r); ctx.fill(fire.out); ctx.stroke(Rig.INK, 4)
+	ctx.begin_path(); ctx.circle(0, 0, r); ctx.fill(fire.out); ctx.stroke(RigFx.INK, 4)
 	ctx.begin_path(); ctx.circle(0, 0, r * 0.62); ctx.fill(fire.mid)
 	ctx.begin_path(); ctx.circle(-r * 0.15, -r * 0.15, r * 0.3); ctx.fill(fire.core)
 
@@ -83,36 +83,34 @@ func orb(ctx: RigCtx, cam: RigCam, at: Vector2, r: float) -> void:
 func embers(a: Rig, n: int) -> void:
 	var fire: Dictionary = data.consts.FIRE
 	var c := a.target()
-	var ps: Array = []
 	for i in n:
-		ps.append({ "x": c.x + randf_range(-55, 55), "y": c.y + randf_range(-50, 20), "vx": randf_range(-60, 60), "vy": randf_range(-360, -160),
-			"r": randf_range(6, 10), "rot": randf_range(0, 6), "vr": randf_range(-6, 6), "age": 0.0, "life": randf_range(650, 1050),
-			"col": fire.out if i % 2 else fire.mid })
-	a.add({
-		"upd": func(s: float, ms: float) -> bool:
-			var alive := false
-			for p: Dictionary in ps:
-				p.age += ms
-				p.x += (p.vx + 30.0 * sin(p.age / 120.0)) * s
-				p.y += p.vy * s
-				p.vy *= 1.0 - 0.8 * s
-				p.rot += p.vr * s
-				alive = alive or p.age < p.life
-			return alive,
-		"draw": func(ctx: RigCtx, cam: RigCam, layer: String) -> void:
-			if layer != "front":
-				return
-			for p: Dictionary in ps:
-				if p.age >= p.life:
-					continue
-				var u: float = p.age / p.life
-				var r: float = p.r * (1.0 - u * 0.6)
-				ctx.set_xf(cam.frame(p.x, p.y, 1.0).rotated_local(p.rot))
-				ctx.alpha = 1.0 - u * u
-				ctx.begin_path(); ctx.move_to(0, -r * 1.5); ctx.line_to(r, 0); ctx.line_to(0, r); ctx.line_to(-r, 0); ctx.close_path()
-				ctx.fill(p.col); ctx.stroke(Rig.INK, 3)
-			ctx.alpha = 1.0,
-	})
+		var m := Ember.new()
+		m.x = c.x + randf_range(-55, 55)
+		m.y = c.y + randf_range(-50, 20)
+		m.vx = randf_range(-60, 60)
+		m.vy = randf_range(-360, -160)
+		m.rr = randf_range(6, 10)
+		m.rot = randf_range(0, 6)
+		m.vr = randf_range(-6, 6)
+		m.life = randf_range(650, 1050)
+		m.col = Color(fire.out if i % 2 else fire.mid)
+		m.w = 1.0
+		a.add(m)
+
+class Ember extends RigFx.Mote:
+	var col: Color
+	func move(s: float) -> void:
+		x += (vx + 30.0 * sin(age / 120.0)) * s
+		y += vy * s
+		vy *= 1.0 - 0.8 * s
+		rot += vr * s
+	func fade() -> float:
+		var u := age / life
+		return 1.0 - u * u
+	func shape(ctx: RigCtx) -> void:
+		var r := rr * (1.0 - age / life * 0.6)
+		ctx.begin_path(); ctx.move_to(0, -r * 1.5); ctx.line_to(r, 0); ctx.line_to(0, r); ctx.line_to(-r, 0); ctx.close_path()
+		ctx.fill(col); ctx.stroke(RigFx.INK, 3)
 
 # ---------- RigSpec ----------
 func events(_r: Rig) -> Array:
@@ -137,7 +135,7 @@ func events(_r: Rig) -> Array:
 
 ## body wave: hump / tail / fin springs lag the neck snap and swing through
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = 1.0 if ctx.idle else 0.0
+	var idle: float = ctx.idle
 	var ck: float = ctx.clock
 	var neck: float = p.neck
 	match name:
@@ -169,7 +167,7 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 	var fire: Dictionary = c.FIRE
 	var m := (r.point_px("throatU") + r.point_px("throatD")) * 0.5
 	if t < t_fire: # air streaks sucked into the mouth
-		ctx.set_xf(Transform2D(Vector2(cam.f * cam.ca, 0), Vector2(0, cam.ca), m))
+		ctx.set_xf(cam.at_px(m, cam.ca, true))
 		for i in 5:
 			var ph := fposmod((t - 90.0) / 240.0 + i / 5.0, 1.0)
 			var dd := 110.0 * (1.0 - ph) + 16.0
@@ -178,7 +176,7 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 			ctx.begin_path()
 			ctx.move_to(cos(a) * dd, sin(a) * dd)
 			ctx.line_to(cos(a) * (dd + 26.0), sin(a) * (dd + 26.0))
-			ctx.stroke(Rig.INK, 8); ctx.stroke(fire.core, 4)
+			ctx.stroke(RigFx.INK, 8); ctx.stroke(fire.core, 4)
 		ctx.alpha = 1.0
 	var rr: float
 	if t < t_fire:

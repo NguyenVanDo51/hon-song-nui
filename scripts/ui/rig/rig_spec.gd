@@ -23,6 +23,24 @@ func idle(_p: Dictionary, _breath: float, _clock: float) -> void:
 func order(_p: Dictionary, list: Array) -> Array:
 	return list
 
+## order() helper: the draw list with part a moved right after part b (unchanged when either is missing)
+static func part_after(list: Array, a: String, b: String) -> Array:
+	var ia := -1
+	for i in list.size():
+		if list[i][0] == a:
+			ia = i
+			break
+	if ia < 0:
+		return list
+	var e: Array = list[ia]
+	list.remove_at(ia)
+	for i in list.size():
+		if list[i][0] == b:
+			list.insert(i + 1, e)
+			return list
+	list.insert(ia, e)
+	return list
+
 ## attack.draw(ctx, cam, api, layer, t): stateless per-layer drawing (layer back | mid | front)
 func draw(_ctx: RigCtx, _cam: RigCam, _r: Rig, _layer: String, _t: float) -> void:
 	pass

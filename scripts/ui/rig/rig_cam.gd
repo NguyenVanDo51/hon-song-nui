@@ -53,6 +53,12 @@ func frame(x: float, y: float, w := -1.0) -> Transform2D:
 	var s := k(w)
 	return Transform2D(Vector2(f * s, 0.0), Vector2(0.0, s), map(x, y, w))
 
+## upright frame at a board px point, k px per local unit (default ca); mirror = local +x follows the art's facing
+func at_px(pt: Vector2, k := -1.0, mirror := false) -> Transform2D:
+	if k < 0.0:
+		k = ca
+	return Transform2D(Vector2(f * k if mirror else k, 0.0), Vector2(0.0, k), pt)
+
 ## frame whose local +x points along a board-space direction (directional shapes: wave crescent, flying blade)
 func aimed(at: Vector2, dir: Vector2, s: float) -> Transform2D:
 	var ang := atan2(dir.y, f * dir.x)

@@ -28,7 +28,7 @@ func events(r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = 1.0 if ctx.idle else 0.0
+	var idle: float = ctx.idle
 	if name == "cape":
 		return clampf(vx * 0.03, -12, 34) + p.lean * 0.5 + idle * 3.0 * sin(ctx.clock / 700.0)
 	if name == "plume":

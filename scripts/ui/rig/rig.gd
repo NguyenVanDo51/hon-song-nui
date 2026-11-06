@@ -9,7 +9,6 @@ extends RefCounted
 ## shared impact for every unit (docs/anim_demo/SHARED.md)
 const HIT := { "stop": 90, "amp": 9, "kx": 420, "debris": "spark", "n": 8, "sparkColor": "#ffe08a", "cut": true, "cutAng": -24 }
 const HIT_SMALL := { "small": true, "stop": 45, "amp": 4, "kx": 0, "debris": "spark", "n": 3, "sparkColor": "#ffe08a", "cut": false }
-const INK := Color("#2b2220")
 
 var data: RigData
 var spec: RigSpec
@@ -196,7 +195,7 @@ func update(dt: float, rdt: float) -> void:
 		for k: String in _sprs:
 			var sp: Dictionary = data.springs[k]
 			var o: Array = _sprs[k]
-			var aim := spec.drive(k, p, vx, { "idle": not playing, "clock": clock })
+			var aim := spec.drive(k, p, vx, { "idle": 0.0 if playing else 1.0, "clock": clock })
 			var h := s / 4.0
 			for i in 4:
 				o[1] += (float(sp.k) * (aim - o[0]) - float(sp.c) * o[1]) * h
@@ -466,7 +465,7 @@ func _draw_smear(ci: CanvasItem) -> void:
 	for i in range(mids.size() - 1, -1, -1):
 		outline.append(mids[i])
 	outline.append(tips[0])
-	var ink := INK
+	var ink := RigFx.INK
 	ink.a *= a
 	RigCtx.stroke_line(ci, outline, ink, maxf(0.8, 4.0 * cam.ca))
 	_strip(ci, inner, mids, inn)

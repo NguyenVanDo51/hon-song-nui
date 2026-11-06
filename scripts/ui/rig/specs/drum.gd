@@ -4,10 +4,9 @@ extends RigSpec
 
 const BRONZE := "#e2c36e"
 const PALE := "#fff6d6"
-const INK := Color("#2b2220")
 
 ## JS soundRing(): upright concentric ellipses rolling forward, hit on reaching the target front.
-## Own frame weight like RigFx.Wave: 0 at the rim -> 1 at the target front (all 3 rings in one undistorted frame).
+## Own frame weight like RigFx.Wave (RigFx.travel_xf): 0 at the rim -> 1 at the target front (3 rings, one frame).
 class SoundRing extends RefCounted:
 	const FADE := 200.0
 	var r: Rig
@@ -26,9 +25,6 @@ class SoundRing extends RefCounted:
 		var p0 := r.point("rim")
 		x = p0.x; x0 = x; y0 = p0.y
 		R0 = o.get("R0", 34.0); R1 = o.get("R1", 84.0); sp = o.get("speed", 1300.0)
-	func w_at(px: float) -> float:
-		var front: float = r.target().front
-		return clampf((px - x0) / maxf(1.0, front - x0), 0.0, 1.0)
 	func upd(s: float, ms: float) -> bool:
 		age += ms
 		x += sp * s * (0.35 if hit else 1.0)
@@ -45,12 +41,7 @@ class SoundRing extends RefCounted:
 		var ry: float = (lerpf(R0, R1, RigFx.out(clampf(age / 120.0, 0.0, 1.0))) + gone * 0.12) * float(o.get("scale", 1.0))
 		var y: float = lerpf(y0, T.y, RigFx.out(clampf(age / 110.0, 0.0, 1.0)))
 		var a := 1.0 - gone / FADE
-		var w := w_at(x)
-		var at := cam.map(x, y, w)
-		var dir := cam.map(x + 4.0, y, w_at(x + 4.0)) - at
-		if dir.length_squared() < 0.0001:
-			dir = cam.u
-		ctx.set_xf(cam.aimed(at, dir, cam.k(w)))
+		ctx.set_xf(RigFx.travel_xf(r, cam, x0, x, y))
 		# 3 concentric rings, outer = leading edge at x
 		for k in 3:
 			var f := 1.0 - k * 0.3
@@ -59,7 +50,7 @@ class SoundRing extends RefCounted:
 			var cx := -rx - k * 10.0
 			ctx.alpha = a * (1.0 - k * 0.22)
 			ctx.begin_path(); ctx.ellipse(cx, 0.0, rx, rr, 0.0, 0.0, TAU); ctx.close_path()
-			ctx.stroke(INK, 9.0 if k > 0 else 12.0)
+			ctx.stroke(RigFx.INK, 9.0 if k > 0 else 12.0)
 			ctx.stroke(BRONZE if k > 0 else PALE, 4.5 if k > 0 else 6.0)
 			if k == 0:
 				ctx.stroke(BRONZE, 2.5)
@@ -90,7 +81,7 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "tails":
-		var idle: float = 1.0 if ctx.idle else 0.0
+		var idle: float = ctx.idle
 		return clampf(vx * 0.03, -14, 30) - p.lean * 0.8 - p.head * 0.6 + float(p.get("kick", 0.0)) + idle * 2.0 * sin(ctx.clock / 650.0)
 	return 0.0
 
@@ -105,19 +96,7 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 ## sticks whipping across the head: draw the face under the arms
 func order(p: Dictionary, list: Array) -> Array:
 	if absf(p.wristB) > 60.0 or absf(p.wristF) > 60.0:
-		var fi := -1
-		for i in list.size():
-			if list[i][0] == "face":
-				fi = i
-				break
-		if fi < 0:
-			return list
-		var f: Array = list[fi]
-		list.remove_at(fi)
-		for i in list.size():
-			if list[i][0] == "head":
-				list.insert(i + 1, f)
-				break
+		return part_after(list, "face", "head")
 	return list
 
 ## drum face flash: short bronze impact lines either side of the face while glow > 0 (hero-attached frame)
@@ -134,5 +113,5 @@ func draw(ctx: RigCtx, _cam: RigCam, r: Rig, layer: String, _t: float) -> void:
 		var c := cos(a / 57.3)
 		var s2 := sin(a / 57.3) * 0.55
 		ctx.begin_path(); ctx.move_to(f.x + c * r0, f.y - 6.0 + s2 * r0); ctx.line_to(f.x + c * r1, f.y - 6.0 + s2 * r1)
-		ctx.stroke(INK, 10); ctx.stroke(BRONZE, 5)
+		ctx.stroke(RigFx.INK, 10); ctx.stroke(BRONZE, 5)
 	ctx.alpha = 1.0

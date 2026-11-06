@@ -1,4 +1,4 @@
-// Chó săn (wolf_p.svg): crouch -> pounce leap -> jaw-snap bite (3 red claw slashes) -> "weakened" puff on target -> hop back.
+// Chó săn (wolf_p.svg, grey wolf look): crouch -> pounce leap -> jaw-snap bite (3 red claw slashes) -> "weakened" puff on target -> hop back.
 // Parts = verbatim blocks of wolf_p.svg; face sits outside the outline <g> -> raw.
 
 // shared impact: same for all units (game-wide hit feel)
@@ -67,44 +67,44 @@ const SPEC = {
   subtitle: 'Thu mình → vồ → đớp (3 vết cào đỏ) → địch suy yếu −10 công/−10 thủ → nhảy lùi',
   feet: 244, cx: 128, range: 1, shadowR: 78,
   parts: {
-    tail: `<path d="M60 162 Q20 158 22 122 Q26 92 54 100 Q70 112 54 130" fill="none" stroke="#2b2220" stroke-width="28"/>
-<path d="M60 162 Q20 158 22 122 Q26 92 54 100 Q70 112 54 130" fill="none" stroke="#c48a4f" stroke-width="14"/>`,
-    legHB: `<rect x="90" y="190" width="24" height="54" rx="10" fill="#8f5f34"/>`,
-    legFB: `<rect x="178" y="186" width="24" height="58" rx="10" fill="#8f5f34"/>`,
-    body: `<ellipse cx="120" cy="174" rx="72" ry="40" fill="#c48a4f"/>
-<path d="M76 140 Q116 126 158 138" fill="none" stroke="#8f5f34" stroke-width="9"/>
-<path d="M66 204 Q120 220 178 200" fill="none" stroke="#8f5f34" stroke-width="5"/>`,
-    legHF: `<ellipse cx="76" cy="186" rx="28" ry="30" fill="#c48a4f"/>
-<rect x="56" y="198" width="30" height="46" rx="12" fill="#c48a4f"/>
-<path d="M66 234 L66 243 M76 234 L76 243" stroke="#8f5f34" stroke-width="4"/>`,
-    legFF: `<rect x="150" y="188" width="30" height="56" rx="12" fill="#c48a4f"/>
-<path d="M160 234 L160 243 M170 234 L170 243" stroke="#8f5f34" stroke-width="4"/>`,
-    cloth: `<path d="M68 148 Q118 134 168 148 L172 198 Q118 212 62 198 Z" fill="#c9503f"/>
-<path d="M74 155 Q118 143 162 155" fill="none" stroke="#93362b" stroke-width="5"/>
-<path d="M86 176 L94 167 L102 176 M134 176 L142 167 L150 176" fill="none" stroke="#93362b" stroke-width="4"/>
-<path d="M64 194 Q118 208 170 194" fill="none" stroke="#e2c36e" stroke-width="10"/>
-<circle cx="118" cy="174" r="12" fill="#e2c36e" stroke-width="5"/>
-<circle cx="118" cy="174" r="5" fill="none" stroke="#93362b" stroke-width="3"/>`,
-    earB: `<path d="M150 102 L142 54 L182 82 Z" fill="#c48a4f"/>
-<path d="M154 92 L150 68 L170 82 Z" fill="#8f5f34" stroke="none"/>`,
-    earF: `<path d="M184 86 L204 42 L222 90 Z" fill="#c48a4f"/>
-<path d="M193 82 L204 58 L212 84 Z" fill="#8f5f34" stroke="none"/>`,
-    mouth: `<path d="M196 144 L240 140 Q238 174 214 178 Q198 170 196 144 Z" fill="#5a2420"/>`,
-    jaw: `<path d="M200 164 Q220 174 240 156 L238 168 Q226 188 200 176 Z" fill="#ecd9b4" stroke-width="5"/>
-<path d="M210 172 Q220 166 230 164" fill="none" stroke="#d9706a" stroke-width="4"/>
-<path d="M219 171 L223 158 L228 169 Z" fill="#f5ecd8" stroke-width="4"/>`,
-    head: `<circle cx="178" cy="124" r="44" fill="#c48a4f"/>
-<ellipse cx="214" cy="130" rx="27" ry="15" fill="#ecd9b4"/>
-<ellipse cx="238" cy="124" rx="8" ry="6" fill="#2b2220" stroke-width="4"/>
-<path d="M205 143 L210 160 L216 143 Z M226 142 L230 157 L235 141 Z" fill="#f5ecd8" stroke-width="4"/>`,
-    collar: `<path d="M144 108 Q138 148 166 176" fill="none" stroke="#2b2220" stroke-width="24"/>
-<path d="M144 108 Q138 148 166 176" fill="none" stroke="#5a4a3c" stroke-width="11"/>
-<path d="M140 118 L124 112 L138 130 Z M137 142 L121 144 L139 154 Z M148 164 L138 178 L156 174 Z" fill="#aab3bd" stroke-width="5"/>
-<circle cx="141" cy="136" r="5" fill="#e2c36e" stroke-width="4"/>`,
-    face: `<path d="M174 104 L198 112" stroke="#2b2220" stroke-width="6" stroke-linecap="round"/>
-<circle cx="188" cy="118" r="6" fill="#2b2220"/>
-<circle cx="190" cy="116" r="2" fill="#fff"/>
-<ellipse cx="180" cy="142" rx="6" ry="4" fill="#f09a88" opacity="0.6"/>`,
+    tail: `<path d="M72 156 Q52 132 24 136 L30 145 L12 146 L22 156 L4 162 L20 168 L8 180 L30 178 L24 190 L44 180 Q60 176 72 168 Z" fill="#8d94a0"/>
+<path d="M24 136 L30 145 L12 146 L22 156 L4 162 L20 168 L8 180 L30 178 L24 190 L34 184 Q26 160 36 140 Z" fill="#4a4f5a" stroke="none"/>
+<path d="M50 150 L44 144 M56 166 L48 170" fill="none" stroke="#5d6370" stroke-width="4"/>`,
+    legHB: `<path d="M92 190 L114 190 L110 226 Q114 240 106 244 L88 244 Q84 238 92 232 Z" fill="#5d6370"/>`,
+    legFB: `<path d="M180 186 L200 186 L198 236 Q200 244 190 244 L176 244 Q172 238 180 234 Z" fill="#5d6370"/>`,
+    body: `<path d="M58 176 Q58 142 102 138 Q148 132 176 148 Q198 166 186 196 Q164 214 120 210 Q80 212 64 198 Q56 188 58 176 Z" fill="#8d94a0"/>
+<path d="M88 202 Q122 212 170 198 Q166 190 154 194 Q124 204 94 196 Z" fill="#dfe2e6" stroke="none"/>
+<path d="M76 146 Q118 132 164 144 Q124 150 84 160 Z" fill="#5d6370" stroke="none"/>`,
+    legHF: `<ellipse cx="78" cy="184" rx="27" ry="30" fill="#8d94a0"/>
+<path d="M64 196 L90 200 L82 226 Q90 238 84 244 L62 244 Q58 238 66 232 Z" fill="#8d94a0"/>
+<path d="M68 238 L68 244 M76 238 L76 244" stroke="#5d6370" stroke-width="4"/>`,
+    legFF: `<path d="M152 186 L178 186 L174 236 Q178 244 168 244 L152 244 Q146 240 152 234 Z" fill="#8d94a0"/>
+<path d="M158 238 L158 244 M166 238 L166 244" stroke="#5d6370" stroke-width="4"/>`,
+    cloth: `<path d="M70 148 Q118 136 166 148 L170 194 Q118 208 64 196 Z" fill="#c9503f"/>
+<path d="M76 155 Q118 145 160 155" fill="none" stroke="#93362b" stroke-width="5"/>
+<path d="M88 176 L96 167 L104 176 M132 176 L140 167 L148 176" fill="none" stroke="#93362b" stroke-width="4"/>
+<path d="M66 192 Q118 206 168 192" fill="none" stroke="#e2c36e" stroke-width="9"/>
+<circle cx="118" cy="172" r="12" fill="#e2c36e" stroke-width="5"/>
+<circle cx="118" cy="172" r="5" fill="none" stroke="#93362b" stroke-width="3"/>`,
+    earB: `<path d="M150 100 L144 44 L180 80 Z" fill="#5d6370"/>`,
+    earF: `<path d="M180 84 L200 28 L220 86 Z" fill="#8d94a0"/>
+<path d="M190 80 L200 46 L210 82 Z" fill="#e4c6bd" stroke="none"/>`,
+    mouth: `<path d="M196 142 L244 136 Q242 172 216 178 Q198 170 196 142 Z" fill="#5a2420"/>`,
+    jaw: `<path d="M198 162 Q222 170 244 154 L242 166 Q228 186 198 176 Z" fill="#dfe2e6" stroke-width="5"/>
+<path d="M210 171 Q222 166 234 162" fill="none" stroke="#d9706a" stroke-width="4"/>
+<path d="M214 170 L218 156 L223 168 Z M230 165 L235 152 L239 162 Z" fill="#f5ecd8" stroke-width="4"/>`,
+    head: `<path d="M140 118 Q140 82 176 78 Q204 76 214 100 L244 112 Q254 120 246 132 L216 146 Q196 160 170 158 Q142 152 140 118 Z" fill="#8d94a0"/>
+<path d="M194 128 Q214 118 246 116 Q252 124 246 130 L216 144 Q198 146 194 128 Z" fill="#dfe2e6" stroke="none"/>
+<path d="M160 92 Q182 82 206 98 L200 106 Q184 94 166 100 Z" fill="#5d6370" stroke="none"/>
+<path d="M150 136 Q164 150 186 150 Q172 140 166 128 Z" fill="#dfe2e6" stroke="none"/>
+<ellipse cx="246" cy="117" rx="8" ry="6" fill="#2b2220" stroke-width="4"/>
+<path d="M206 142 L210 156 L215 142 Z M228 138 L232 152 L237 137 Z" fill="#f5ecd8" stroke-width="4"/>`,
+    collar: `<path d="M150 92 L132 100 L144 110 L124 118 L142 128 L122 140 L144 146 L130 160 L152 160 L146 176 L166 168 L172 182 Q148 158 150 92 Z" fill="#b6bcc6"/>
+<path d="M140 120 L150 122 M138 144 L150 144 M150 160 L158 158" fill="none" stroke="#5d6370" stroke-width="4"/>`,
+    face: `<path d="M172 100 L202 108" stroke="#2b2220" stroke-width="7" stroke-linecap="round"/>
+<path d="M180 116 Q192 106 204 114 Q192 124 180 116 Z" fill="#ffc83d" stroke="#2b2220" stroke-width="3.5" stroke-linejoin="round"/>
+<ellipse cx="193" cy="115" rx="2.6" ry="5" fill="#2b2220"/>
+<circle cx="190" cy="112" r="1.6" fill="#fff"/>`,
   },
   raw: ['face'],
   bones: [
@@ -122,7 +122,7 @@ const SPEC = {
   draw: [['tail', 'tail'], ['legHB', 'legHB'], ['legFB', 'legFB'], ['body', 'all'], ['legHF', 'legHF'], ['legFF', 'legFF'],
          ['cloth', 'all'], ['earB', 'earB'], ['earF', 'earF'], ['mouth', 'head'], ['jaw', 'jaw'], ['head', 'head'],
          ['collar', 'head'], ['face', 'head']],
-  points: { eye: ['head', 190, 116], bite: ['head', 228, 158], nose: ['head', 240, 124] },
+  points: { eye: ['head', 192, 114], bite: ['head', 228, 158], nose: ['head', 246, 117] },
   // tail/ears = springs; tracks push them through additive channels (spring would overwrite a same-named track)
   springs: {
     tail: { k: 150, c: 8, drive: (p, vx, c) => clamp(-vx * .035, -34, 16) + (p.tailX || 0) - p.pitch * .6 + (c.idle ? 9 * Math.sin(c.clock / 170) : 0) },

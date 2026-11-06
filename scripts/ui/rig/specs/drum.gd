@@ -81,8 +81,8 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "tails":
-		var idle: float = ctx.idle
-		return clampf(vx * 0.03, -14, 30) - p.lean * 0.8 - p.head * 0.6 + float(p.get("kick", 0.0)) + idle * 2.0 * sin(ctx.clock / 650.0)
+		var idle_k: float = ctx.idle
+		return clampf(vx * 0.03, -14, 30) - p.lean * 0.8 - p.head * 0.6 + float(p.get("kick", 0.0)) + idle_k * 2.0 * sin(ctx.clock / 650.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:

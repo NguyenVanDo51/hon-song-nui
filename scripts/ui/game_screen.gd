@@ -128,23 +128,23 @@ func _build() -> void:
 	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
 	tv.add_child(_goal)
 	# top-right: ⏩ (enemy turn) + ⚙
-	var tr := Style.hbox(8)
-	tr.z_index = 40
-	tr.minimum_size_changed.connect(func() -> void: _place_hud.call_deferred()) # ⏩ shown / hidden
-	add_child(tr)
-	_hud_tr = tr
+	var top_r := Style.hbox(8)
+	top_r.z_index = 40
+	top_r.minimum_size_changed.connect(func() -> void: _place_hud.call_deferred()) # ⏩ shown / hidden
+	add_child(top_r)
+	_hud_tr = top_r
 	_btn_ff = _ibtn("» Tua lượt địch", "Chạy nhanh lượt địch (giữ Space / chuột cũng tua)", func() -> void:
 		_ff = true
 		_btn_ff.visible = false)
 	_btn_ff.visible = false
-	tr.add_child(_btn_ff)
+	top_r.add_child(_btn_ff)
 	_gear = _ibtn("", "Menu, cài đặt", func() -> void: _show_menu(not _menu.visible))
 	_gear.custom_minimum_size = Vector2(44, 40)
 	var gi := GearIcon.new() # no gear glyph in the bundled fonts: drawn
 	gi.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	gi.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_gear.add_child(gi)
-	tr.add_child(_gear)
+	top_r.add_child(_gear)
 	_build_menu()
 	# bottom-left: what is selected
 	_card = PanelContainer.new()
@@ -197,7 +197,10 @@ func _make_board(three_d: bool) -> void:
 	if board != null:
 		at = board.get_index()
 		board.queue_free()
-	board = Board3D.new() if three_d else Board.new()
+	if three_d:
+		board = Board3D.new()
+	else:
+		board = Board.new()
 	board.fx = fx
 	if _coins != null:
 		_coins.board = board
@@ -301,8 +304,8 @@ func _place_hud() -> void:
 		_card.position = cands[0]
 		var avoid: Array[Rect2] = []
 		for k: Vector2i in _card_avoid:
-			var tr: Rect2 = board.tile_rect(k.x, k.y)
-			avoid.append(Rect2(_wrap.position + tr.position, tr.size).grow(tr.size.x * 0.5))
+			var tile_r: Rect2 = board.tile_rect(k.x, k.y)
+			avoid.append(Rect2(_wrap.position + tile_r.position, tile_r.size).grow(tile_r.size.x * 0.5))
 		for c: Vector2 in cands:
 			var r := Rect2(c, cs)
 			if not avoid.any(func(a: Rect2) -> bool: return r.intersects(a)):
@@ -483,7 +486,9 @@ func _build_view() -> void:
 	v.busy = ui.busy
 	v.sel = u if u != null and not ui.busy else null
 	v.selMine = u != null and my_turn and u.side == "p" and not u.acted
-	v.reach = _reach(u) if u != null and not ui.busy and ui.mode == M_IDLE else null
+	v.reach = null
+	if u != null and not ui.busy and ui.mode == M_IDLE:
+		v.reach = _reach(u)
 	v.attackable = _memo_get("a%d" % u.id, func() -> Array: return _attackable_anywhere(u, v.reach)) if v.selMine and ui.mode == M_IDLE else []
 	v.dest = ui.dest if u != null and not ui.busy and ui.mode != M_IDLE else null
 	v.targets = Game.targets_from(s, u, ui.dest[0], ui.dest[1]) if ui.mode == M_TARGET and u != null else []
@@ -519,7 +524,9 @@ func _hover_attack() -> Variant:
 	if e == null or e.side != "e":
 		return null
 	var from: Variant = _attack_from(_sel_unit(), e)
-	return { "target": e, "from": from } if from != null else null
+	if from == null:
+		return null
+	return { "target": e, "from": from }
 
 ## where the selected unit attacks `e` from: the chosen tile if e is in range from it, else the best reachable tile
 func _attack_from(u: Dictionary, e: Dictionary) -> Variant:
@@ -550,7 +557,9 @@ func _best_attack_tile_now(u: Dictionary, target: Dictionary) -> Variant:
 		var sc: float = _attack_score(p) + Game.terrain_def(s, u, r.x, r.y) * 0.3 - r.cost * 0.1
 		if best == null or sc > best.sc:
 			best = { "sc": sc, "x": r.x, "y": r.y }
-	return [best.x, best.y] if best != null else null
+	if best == null:
+		return null
+	return [best.x, best.y]
 
 ## one yardstick for "which attack is best" (hover tile choice and the ⚔ Đánh button): a kill beats any trade
 func _attack_score(p: Dictionary) -> float:
@@ -574,7 +583,10 @@ func _on_info_requested(id: int) -> void:
 	if s.is_empty() or ui.busy or s.winner != null:
 		return
 	main.audio.play("ui")
-	ui.peek = null if ui.peek == id else id
+	if ui.peek == id:
+		ui.peek = null
+	else:
+		ui.peek = id
 	refresh()
 
 func cancel() -> void:
@@ -1512,17 +1524,17 @@ func _on_hint() -> void:
 	refresh()
 
 # ---------- panel ----------
-func _note(bb: String, color := Style.MUTED, size := 14) -> RichTextLabel:
-	return Style.rich(bb, size, color, Style.INK)
+func _note(bb: String, color := Style.MUTED, fs := 14) -> RichTextLabel:
+	return Style.rich(bb, fs, color, Style.INK)
 
-func _head(token: Control, name: String, sub: String, side := "") -> HBoxContainer:
+func _head(token: Control, title: String, sub: String, side := "") -> HBoxContainer:
 	var h := Style.hbox(10)
 	if token:
 		h.add_child(token)
 	var v := Style.vbox(1)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var col := Style.P_NAME if side == "p" else (Style.SEA_HI if side == "e" else Style.GOLD)
-	v.add_child(Style.lbl(name, 20, col, Style.display))
+	v.add_child(Style.lbl(title, 20, col, Style.display))
 	if sub != "":
 		v.add_child(Style.lbl(sub, 13, Style.MUTED, null, true))
 	h.add_child(v)
@@ -1563,11 +1575,13 @@ func _unit_info(u: Dictionary, full := false) -> void:
 	var look := Content.unit_look(s, u)
 	var dt := _shown_at(u)
 	var t: String = s.tiles[dt[1]][dt[0]]
-	var next: Variant = Game.xp_need(s, u) if u.rank < Rules.RULES.maxRank else null
-	var name: String = Content.unit_title(look.name, u.rank, u.type == "hero")
+	var next: Variant = null
+	if u.rank < Rules.RULES.maxRank:
+		next = Game.xp_need(s, u)
+	var title: String = Content.unit_title(look.name, u.rank, u.type == "hero")
 	var sub := "Máu %d · KN %d%s · %s +%d thủ" % [u.hp, u.xp, ("/%d" % next) if next != null else " (tối đa)",
 		Content.terrain(t).name, Game.terrain_def(s, u, dt[0], dt[1])]
-	_info.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 40), name, sub, u.side))
+	_info.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 40), title, sub, u.side))
 	_info.add_child(Style.Bar.make(u.hp / 100.0, 6, Color("#5fa83c"), Style.GOOD))
 	var b := Game.buffs_at(s, u, dt[0], dt[1])
 	_info.add_child(_stat_note(u, st, b))
@@ -1576,9 +1590,9 @@ func _unit_info(u: Dictionary, full := false) -> void:
 	if full:
 		var desc: String = look.blurb if u.type == "hero" else look.desc
 		_info.add_child(_note(desc, Style.MUTED, 13))
-		var tr: Array = Content.traits(u.type, s.heroKey[u.side])
-		if tr.size():
-			_info.add_child(_note("\n".join(tr.map(func(x: String) -> String: return "• " + x)), Style.INK, 13))
+		var traits: Array = Content.traits(u.type, s.heroKey[u.side])
+		if traits.size():
+			_info.add_child(_note("\n".join(traits.map(func(x: String) -> String: return "• " + x)), Style.INK, 13))
 		_info.add_child(_note("[b]Cách dùng:[/b] " + Content.how_to_play(u.type), Style.GOLD, 13))
 	if u.get("guard", false):
 		_info.add_child(_note("💤 Đang canh gác: chỉ ra tay khi quân ta tới gần.", Style.MUTED, 13))
@@ -1589,19 +1603,19 @@ func _render_card(u: Variant, peek: Variant) -> void:
 	for c in _card_box.get_children():
 		_card_box.remove_child(c)
 		c.queue_free()
-	var show := false
+	var show_card := false
 	_card_avoid.clear()
 	if peek == null and u != null:
-		show = true
+		show_card = true
 		var st := Game.stat(s, u)
 		var look := Content.unit_look(s, u)
 		var dt := _shown_at(u)
 		_avoid_tile(u.x, u.y)
 		_avoid_tile(dt[0], dt[1])
-		var name: String = Content.unit_title(look.name, u.rank, u.type == "hero")
+		var title: String = Content.unit_title(look.name, u.rank, u.type == "hero")
 		var side_txt: String = Content.theme().factions[u.side].short
 		var sub := "%s · Máu %d%s" % [side_txt, u.hp, " · đã đi" if u.side == "p" and u.acted else ""]
-		_card_box.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 38), name, sub, u.side))
+		_card_box.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 38), title, sub, u.side))
 		_card_box.add_child(Style.Bar.make(u.hp / 100.0, 5, Color("#5fa83c"), Style.GOOD))
 		var b := Game.buffs_at(s, u, dt[0], dt[1])
 		_card_box.add_child(_stat_note(u, st, b))
@@ -1612,23 +1626,23 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		more.pressed.connect(func() -> void: _on_info_requested(id))
 		_card_box.add_child(more)
 	elif peek == null and ui.info != null:
-		show = true
+		show_card = true
 		var x: int = ui.info.x
 		var y: int = ui.info.y
 		var t: String = s.tiles[y][x]
 		_avoid_tile(x, y)
 		var own: Variant = s.owner.get(Vector2i(x, y))
-		var tr: Dictionary = Rules.TERRAIN[t]
+		var ter: Dictionary = Rules.TERRAIN[t]
 		var own_txt := ""
-		if tr.has("building"):
+		if ter.has("building"):
 			own_txt = " · " + (("của ta" if own == "p" else "của địch") if own != null else "chưa ai chiếm")
-		_card_box.add_child(_head(null, Content.terrain(t).name + own_txt, "Thủ +%d · Giá đi %s" % [tr.def, "không qua" if tr.cost == INF else str(int(tr.cost))]))
+		_card_box.add_child(_head(null, Content.terrain(t).name + own_txt, "Thủ +%d · Giá đi %s" % [ter.def, "không qua" if ter.cost == INF else str(int(ter.cost))]))
 		var note := Content.tile_note(t)
 		if note != "":
 			_card_box.add_child(_note(note, Style.MUTED, 13))
 		if Game.grave_at(s, x, y) != null:
 			_card_box.add_child(_note(Content.text("graveNote"), Style.MUTED, 13))
-	_card.visible = show
+	_card.visible = show_card
 	_card.reset_size()
 	_place_hud() # swap HUD vs card now, so a click this frame finds the right buttons
 	_place_hud.call_deferred() # wrapped text knows its height after one layout pass
@@ -1862,10 +1876,10 @@ func _place_pop() -> void:
 	if _pop_anchor == null:
 		_pop.position = Vector2(((lim.x - sz.x) / 2.0), board.position.y + 10).floor()
 		return
-	var tr: Rect2 = board.tile_rect(_pop_anchor[0], _pop_anchor[1])
-	var tile := tr.position
-	var tw := tr.size
-	var keep: Array[Rect2] = [tr, Rect2(_card.position, _card.size) if _card.visible else Rect2(_btn_end.position, _btn_end.size)]
+	var tile_r: Rect2 = board.tile_rect(_pop_anchor[0], _pop_anchor[1])
+	var tile := tile_r.position
+	var tw := tile_r.size
+	var keep: Array[Rect2] = [tile_r, Rect2(_card.position, _card.size) if _card.visible else Rect2(_btn_end.position, _btn_end.size)]
 	if ui.mode == M_TARGET and ui.target != null:
 		var tg: Variant = Game.unit_by_id(s, ui.target)
 		if tg != null:
@@ -1929,6 +1943,7 @@ class GearIcon extends Control:
 		var pts := PackedVector2Array()
 		for i in 48:
 			var a := TAU * i / 48.0
+			@warning_ignore("integer_division")
 			var tooth := 1.0 if (i / 3) % 2 == 0 else 0.0
 			pts.append(c + Vector2(cos(a), sin(a)) * r * (1.0 + 0.32 * tooth))
 		draw_colored_polygon(pts, col)

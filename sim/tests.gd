@@ -737,6 +737,7 @@ func rule_tests() -> void:
 		d.rank = 2 # quality 110 + 3 x 2 x 2 = 122
 		a.rank = 1 # quality 116
 		eq(Game.quality(s, d), 122)
+		@warning_ignore("integer_division")
 		eq(Game.xp_need(s, a), 116 * 200 / 3, "own quality incl. rank")
 		Game.fixed_roll = 0.0
 		var ev := Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
@@ -750,6 +751,7 @@ func rule_tests() -> void:
 			for r in Rules.RULES.maxRank + 1:
 				var u := { "side": "p", "type": type, "rank": r }
 				var q := Game.quality(s, u)
+				@warning_ignore("integer_division")
 				eq(Game.xp_need(s, u), q * 200 / 3, "%s rank %d" % [type, r])
 	)
 	run("reach goal: a commander bought on the goal tile must walk off and back", func() -> void:
@@ -882,8 +884,16 @@ func rule_tests() -> void:
 		var s := blank([["p", "hero", 1, 1], ["e", "soldier", 4, 4]])
 		s.win = { "type": "flag", "at": [[3, 1]] }
 		check(Objectives.check(s).begins_with("unknown"), "unknown type flagged")
-		Objectives.TYPES["flag"] = { "loss": func(st: Dictionary, side: String) -> Variant: return "flagTaken" if side == "e" and Game.unit_at(st, 3, 1) != null else null,
-			"on_round": func(st: Dictionary) -> Variant: return ["e", "late"] if st.turn > 3 else null,
+		var loss := func(st: Dictionary, side: String) -> Variant:
+			if side == "e" and Game.unit_at(st, 3, 1) != null:
+				return "flagTaken"
+			return null
+		var on_round := func(st: Dictionary) -> Variant:
+			if st.turn > 3:
+				return ["e", "late"]
+			return null
+		Objectives.TYPES["flag"] = { "loss": loss,
+			"on_round": on_round,
 			"ai_goals": func(st: Dictionary, _u: Dictionary) -> Variant: return st.win.at.duplicate(),
 			"marks": func(st: Dictionary) -> Array: return st.win.at, "bar_n": func(_st: Dictionary) -> int: return 7 }
 		eq([Objectives.check(s), Objectives.marks(s), Objectives.bar_n(s)], ["", [[3, 1]], 7])
@@ -1013,9 +1023,9 @@ func parity_tests() -> void:
 		for line: String in FileAccess.get_file_as_string("res://sim/golden.txt").split("\n", false):
 			var p := line.split(" ", false, 2)
 			golden[p[0] + " " + p[1]] = p[2]
-		var tr: RefCounted = load("res://sim/parity.gd").new()
-		tr.apply()
+		var par: RefCounted = load("res://sim/parity.gd").new()
+		par.apply()
 		for key: String in ["m01 0", "m07 1", "sk_dong_bang 0", "naive 0"]:
-			eq(tr.replay(key), golden.get(key, "?"), key)
-		tr.restore()
+			eq(par.replay(key), golden.get(key, "?"), key)
+		par.restore()
 	)

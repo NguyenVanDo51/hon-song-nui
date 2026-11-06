@@ -53,10 +53,10 @@ static func _parse(v: Variant) -> Variant:
 
 static func arc_points(c: Vector2, rx: float, ry: float, a0 := 0.0, a1 := TAU, rot := 0.0, seg := 28) -> PackedVector2Array:
 	var pts := PackedVector2Array()
-	var tr := Transform2D(rot, c)
+	var rt := Transform2D(rot, c)
 	for i in seg + 1:
 		var a := a0 + (a1 - a0) * i / seg
-		pts.append(tr * Vector2(cos(a) * rx, sin(a) * ry))
+		pts.append(rt * Vector2(cos(a) * rx, sin(a) * ry))
 	return pts
 
 static func ellipse(ci: CanvasItem, c: Vector2, rx: float, ry: float, color: Color, rot := 0.0, seg := 28) -> void:
@@ -81,13 +81,13 @@ static func radial(ci: CanvasItem, c: Vector2, r: float, stops: Array, seg := 28
 	var prev_ring := -1
 	for si in range(1, stops.size()):
 		var t: float = stops[si][0]
-		var col: Color = stops[si][1]
+		var stop_col: Color = stops[si][1]
 		var base := pts.size()
 		for i in seg:
 			var a := TAU * i / seg
 			var p := Vector2(cos(a) * r * t * squash.x, sin(a) * r * t * squash.y)
 			pts.append(c + p + focus * (1.0 - t))
-			cols.append(col)
+			cols.append(stop_col)
 		for i in seg:
 			var j := (i + 1) % seg
 			if prev_ring < 0:

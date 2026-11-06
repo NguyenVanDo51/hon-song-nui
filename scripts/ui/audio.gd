@@ -77,10 +77,10 @@ func _ready() -> void:
 func unlock() -> void:
 	pass # browsers needed a user gesture; Godot does not
 
-func play(name: String) -> void:
+func play(sfx: String) -> void:
 	if muted:
 		return
-	var st := _stream("s:" + name)
+	var st := _stream("s:" + sfx)
 	if st == null:
 		return
 	var p := _sfx_players[_next_sfx]
@@ -125,7 +125,10 @@ func _new_phrase() -> void:
 	for i in 8:
 		d += [-2, -1, 1, 2, 0][randi() % 5]
 		d = clampi(d, 0, 9)
-		_phrase.append(null if randf() < 0.25 else d)
+		if randf() < 0.25:
+			_phrase.append(null)
+		else:
+			_phrase.append(d)
 
 func _music_step() -> void:
 	if _step % 8 == 0:
@@ -185,8 +188,8 @@ static func to_stream(pcm: PackedByteArray) -> AudioStreamWAV:
 ## every sound: key -> [recipe parts, bus gain]. "s:<name>" = SFX (Audio.play names), "m:<note>" = music
 static func recipes() -> Dictionary:
 	var out := {}
-	for name: String in SFX:
-		out["s:" + name] = [SFX[name], SFX_GAIN * MASTER]
+	for sfx: String in SFX:
+		out["s:" + sfx] = [SFX[sfx], SFX_GAIN * MASTER]
 	var g := MUSIC_GAIN * MASTER
 	for d in 10:
 		var f := note(d)

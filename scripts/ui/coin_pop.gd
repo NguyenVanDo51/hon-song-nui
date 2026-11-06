@@ -83,6 +83,7 @@ func _draw() -> void:
 			draw_circle(cc, cr, Color(0.98, 0.78, 0.26, a))
 			draw_circle(cc, cr * 0.55, Color(0.86, 0.6, 0.14, a))
 		var tp := base + Vector2(cr * 2.0 + 3.0, 0)
+		@warning_ignore("integer_division")
 		draw_string_outline(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, maxi(3, fs / 5), ink)
 		draw_string(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.69, 0.93, 0.55, a) if heal else Color(1.0, 0.86, 0.36, a))
 	draw_set_transform(Vector2.ZERO)

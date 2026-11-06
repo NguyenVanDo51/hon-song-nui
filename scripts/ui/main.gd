@@ -148,10 +148,10 @@ func _process(dt: float) -> void:
 	if flags.has("quit_at") and _t >= float(flags.quit_at):
 		get_tree().quit()
 
-func shot(name: String) -> void:
+func shot(shot_name: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return # nothing is rendered (and frame_post_draw never fires)
 	await RenderingServer.frame_post_draw
 	var dir: String = flags.get("shots", "res://shots")
 	DirAccess.make_dir_recursive_absolute(dir)
-	get_viewport().get_texture().get_image().save_png(dir.path_join(name + ".png"))
+	get_viewport().get_texture().get_image().save_png(dir.path_join(shot_name + ".png"))

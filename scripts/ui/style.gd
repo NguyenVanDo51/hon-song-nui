@@ -148,14 +148,14 @@ static func make_theme() -> Theme:
 	return t
 
 # ---------- builders ----------
-static func lbl(text: String, size := 15, color := INK, font: Font = null, wrap := false) -> Label:
+static func lbl(text: String, size := 15, color := INK, font: Font = null, autowrap := false) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", size)
 	l.add_theme_color_override("font_color", color)
 	if font:
 		l.add_theme_font_override("font", font)
-	if wrap:
+	if autowrap:
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return l
@@ -278,9 +278,9 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := {})
 	v.add_child(stat_bars(rows))
 	c.add_child(v)
 	# every card gets the same top gap so tagged and untagged cards line up in a grid; the ribbon sits across the top edge
-	var wrap := MarginContainer.new()
-	wrap.add_theme_constant_override("margin_top", 10)
-	wrap.add_child(c)
+	var outer := MarginContainer.new()
+	outer.add_theme_constant_override("margin_top", 10)
+	outer.add_child(c)
 	if opts.has("tag"):
 		var holder := Control.new()
 		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -292,8 +292,8 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := {})
 		tag.add_child(lbl(String(opts.tag).to_upper(), 11, Color("#fff6e3"), xbold))
 		tag.position = Vector2(12, -10)
 		holder.add_child(tag)
-		wrap.add_child(holder)
-	return wrap
+		outer.add_child(holder)
+	return outer
 
 ## dialogue lines [[speaker, text], ...]; lines slide in one after another
 static func dialogue(lines: Array, stagger := 0.35, small := false) -> VBoxContainer:

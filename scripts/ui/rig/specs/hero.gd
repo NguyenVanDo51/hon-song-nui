@@ -28,11 +28,11 @@ func events(r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = ctx.idle
+	var idle_k: float = ctx.idle
 	if name == "cape":
-		return clampf(vx * 0.03, -12, 34) + p.lean * 0.5 + idle * 3.0 * sin(ctx.clock / 700.0)
+		return clampf(vx * 0.03, -12, 34) + p.lean * 0.5 + idle_k * 3.0 * sin(ctx.clock / 700.0)
 	if name == "plume":
-		return clampf(vx * 0.035, -14, 30) + p.lean * 0.7 + p.head * 0.6 + idle * 1.8 * sin(ctx.clock / 700.0)
+		return clampf(vx * 0.035, -14, 30) + p.lean * 0.7 + p.head * 0.6 + idle_k * 1.8 * sin(ctx.clock / 700.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:

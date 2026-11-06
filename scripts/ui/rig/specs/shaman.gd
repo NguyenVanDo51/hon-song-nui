@@ -33,8 +33,8 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "plume":
-		var idle: float = ctx.idle
-		return clampf(-vx * 0.035, -26, 14) - p.lean * 0.5 - p.head * 0.4 + idle * 2.0 * sin(ctx.clock / 700.0)
+		var idle_k: float = ctx.idle
+		return clampf(-vx * 0.035, -26, 14) - p.lean * 0.5 - p.head * 0.4 + idle_k * 2.0 * sin(ctx.clock / 700.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:

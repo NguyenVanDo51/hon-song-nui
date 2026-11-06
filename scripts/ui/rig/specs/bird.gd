@@ -108,8 +108,8 @@ class Ember extends RigFx.Mote:
 		var u := age / life
 		return 1.0 - u * u
 	func shape(ctx: RigCtx) -> void:
-		var r := rr * (1.0 - age / life * 0.6)
-		ctx.begin_path(); ctx.move_to(0, -r * 1.5); ctx.line_to(r, 0); ctx.line_to(0, r); ctx.line_to(-r, 0); ctx.close_path()
+		var rad := rr * (1.0 - age / life * 0.6)
+		ctx.begin_path(); ctx.move_to(0, -rad * 1.5); ctx.line_to(rad, 0); ctx.line_to(0, rad); ctx.line_to(-rad, 0); ctx.close_path()
 		ctx.fill(col); ctx.stroke(RigFx.INK, 3)
 
 # ---------- RigSpec ----------
@@ -135,20 +135,20 @@ func events(_r: Rig) -> Array:
 
 ## body wave: hump / tail / fin springs lag the neck snap and swing through
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = ctx.idle
+	var idle_k: float = ctx.idle
 	var ck: float = ctx.clock
 	var neck: float = p.neck
 	match name:
 		"hump":
-			return -neck * 0.35 + float(p.get("humpT", 0.0)) + idle * 1.5 * sin(ck / 520.0)
+			return -neck * 0.35 + float(p.get("humpT", 0.0)) + idle_k * 1.5 * sin(ck / 520.0)
 		"tail":
-			return neck * 0.5 - clampf(vx * 0.02, -10, 10) + idle * 3.0 * sin(ck / 520.0 - 1.2)
+			return neck * 0.5 - clampf(vx * 0.02, -10, 10) + idle_k * 3.0 * sin(ck / 520.0 - 1.2)
 		"flame":
-			return -neck * 0.4 + idle * 5.0 * sin(ck / 300.0)
+			return -neck * 0.4 + idle_k * 5.0 * sin(ck / 300.0)
 		"fin":
-			return -neck * 0.45 - clampf(vx * 0.03, -14, 14) + idle * 3.0 * sin(ck / 420.0)
+			return -neck * 0.45 - clampf(vx * 0.03, -14, 14) + idle_k * 3.0 * sin(ck / 420.0)
 		"mane":
-			return -(neck + float(p.head)) * 0.3 - clampf(vx * 0.03, -14, 14) + idle * 2.0 * sin(ck / 600.0)
+			return -(neck + float(p.head)) * 0.3 - clampf(vx * 0.03, -14, 14) + idle_k * 2.0 * sin(ck / 600.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:

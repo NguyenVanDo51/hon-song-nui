@@ -75,21 +75,21 @@ class Clod extends RigFx.Mote:
 		ctx.begin_path()
 		for k in 5:
 			var an := k / 5.0 * TAU
-			var r := rr * (0.75 if k % 2 else 1.0)
+			var rad := rr * (0.75 if k % 2 else 1.0)
 			if k:
-				ctx.line_to(cos(an) * r, sin(an) * r)
+				ctx.line_to(cos(an) * rad, sin(an) * rad)
 			else:
-				ctx.move_to(r, 0)
+				ctx.move_to(rad, 0)
 		ctx.close_path()
 		ctx.fill(CRACK)
 		ctx.stroke(RigFx.INK, 3)
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = ctx.idle
+	var idle_k: float = ctx.idle
 	if name == "ear":
-		return float(p.get("earX", 0.0)) + clampf(vx * 0.02, -10, 14) + idle * 3.0 * sin(ctx.clock / 520.0)
+		return float(p.get("earX", 0.0)) + clampf(vx * 0.02, -10, 14) + idle_k * 3.0 * sin(ctx.clock / 520.0)
 	if name == "tail":
-		return -float(p.lean) * 0.7 + clampf(-vx * 0.03, -20, 20) + idle * 5.0 * sin(ctx.clock / 800.0)
+		return -float(p.lean) * 0.7 + clampf(-vx * 0.03, -20, 20) + idle_k * 5.0 * sin(ctx.clock / 800.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, clock: float) -> void:
@@ -157,7 +157,7 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 		for k in 3:
 			var ph := fposmod((t - tr0) / 200.0 + k / 3.0, 1.0)
 			var d := 16.0 + 56.0 * ph
-			var len := 22.0 - 8.0 * ph
+			var streak := 22.0 - 8.0 * ph
 			ctx.alpha = env * (1.0 - ph * ph)
 			for da: float in [-0.6, 0.0, 0.6]:
 				var an := a0 + da
@@ -165,7 +165,7 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 				var cy := sin(an)
 				ctx.begin_path()
 				ctx.move_to(cx * d, cy * d)
-				ctx.line_to(cx * (d + len), cy * (d + len))
+				ctx.line_to(cx * (d + streak), cy * (d + streak))
 				ctx.stroke(RigFx.INK, 10)
 				ctx.stroke("#fffaf0", 4.5)
 		ctx.alpha = 1.0

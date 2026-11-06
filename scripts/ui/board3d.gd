@@ -420,24 +420,24 @@ func _place_prop(t: String, x: int, y: int, top: float) -> void:
 	var r := func(n: int) -> float: return Board.hash01(x, y, n)
 	var ab := "A" if r.call(1) < 0.5 else "B"
 	var path := ""
-	var fit := 1.0
+	var fit_k := 1.0
 	var max_h := 0.0 # height cap, tiles: tall scenery must not hide the row behind
 	match t:
 		"f":
 			path = "hex/decoration/nature/trees_%s_%s.gltf" % [ab, "large" if r.call(2) < 0.5 else "medium"]
-			fit = 1.05
+			fit_k = 1.05
 			max_h = 0.55
 		"h":
 			path = "hex/decoration/nature/hills_%s%s.gltf" % [["A", "B", "C"][int(r.call(3) * 3.0) % 3], "_trees" if r.call(4) < 0.35 else ""]
-			fit = 1.0
+			fit_k = 1.0
 		"m":
 			path = "hex/decoration/nature/mountain_%s_grass%s.gltf" % [["A", "B", "C"][int(r.call(5) * 3.0) % 3], "_trees" if r.call(6) < 0.4 else ""]
-			fit = 1.05
+			fit_k = 1.05
 			max_h = 0.7
 		"=":
 			path = "hex/buildings/neutral/building_bridge_A.gltf"
-			fit = 1.0
-	var n := KK.prop(path, fit, max_h)
+			fit_k = 1.0
+	var n := KK.prop(path, fit_k, max_h)
 	n.position = Vector3(x + 0.5, top, y + 0.5)
 	if t == "=":
 		var horiz: bool = (Game.tile_at(s, x - 1, y) != "~" or Game.tile_at(s, x + 1, y) != "~") and Game.tile_at(s, x, y - 1) == "~"
@@ -467,9 +467,9 @@ func _road(k: Kit, x: int, y: int, _p: Dictionary) -> void:
 		var nt: Variant = Game.tile_at(s, x + d.x, y + d.y)
 		if nt == null or not links.has(nt):
 			continue
-		var len: float = links[nt]
-		var m := c + Vector3(d.x, 0, d.y) * len / 2.0
-		var sz := Vector3(len, 0.012, w) if d.x != 0 else Vector3(w, 0.012, len)
+		var seg_len: float = links[nt]
+		var m := c + Vector3(d.x, 0, d.y) * seg_len / 2.0
+		var sz := Vector3(seg_len, 0.012, w) if d.x != 0 else Vector3(w, 0.012, seg_len)
 		k.box(m, sz, KK_ROAD2, KK_ROAD, false)
 	for i in 4:
 		var q := Vector3(x + 0.35 + Board.hash01(x, y, i + 40) * 0.3, 0.014, y + 0.35 + Board.hash01(x, y, i + 50) * 0.3)

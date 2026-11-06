@@ -76,14 +76,14 @@ func _load(spec: String) -> bool:
 	hooks = j.hooks
 	consts = j.consts
 	for a: Dictionary in j.attacks:
-		var tr := {}
+		var tracks := {}
 		for ch: String in a.tr:
 			var keys := []
 			for q: Array in a.tr[ch]:
 				keys.append([float(q[0]), float(q[1]), maxi(0, EASES.find(q[2]))])
-			tr[ch] = keys
+			tracks[ch] = keys
 		var o := a.duplicate()
-		o.tr = tr
+		o.tr = tracks
 		attacks[a.id] = o
 		attack_ids.append(a.id)
 	# engine basePose: root channels, bone channels at 0, springs at 0, track-only channels at their t=0 value
@@ -95,10 +95,10 @@ func _load(spec: String) -> bool:
 	for k: String in springs:
 		base[k] = 0.0
 	for id: String in attack_ids:
-		var tr: Dictionary = attacks[id].tr
-		for ch: String in tr:
+		var tracks: Dictionary = attacks[id].tr
+		for ch: String in tracks:
 			if not base.has(ch):
-				base[ch] = tr[ch][0][1]
+				base[ch] = tracks[ch][0][1]
 	return true
 
 static func ease_i(i: int, u: float) -> float:

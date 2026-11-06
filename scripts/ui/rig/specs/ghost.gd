@@ -35,11 +35,11 @@ func events(_r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = ctx.idle
+	var idle_k: float = ctx.idle
 	if name == "tail":
-		return clampf(vx * 0.035, -18, 34) + p.lean * 0.5 + idle * 5.0 * sin(ctx.clock / 520.0)
+		return clampf(vx * 0.035, -18, 34) + p.lean * 0.5 + idle_k * 5.0 * sin(ctx.clock / 520.0)
 	if name == "band":
-		return clampf(vx * 0.04, -14, 30) + p.lean * 0.6 + p.head * 0.6 + idle * 3.0 * sin(ctx.clock / 600.0)
+		return clampf(vx * 0.04, -14, 30) + p.lean * 0.6 + p.head * 0.6 + idle_k * 3.0 * sin(ctx.clock / 600.0)
 	return 0.0
 
 ## hover bob (b = 0 at load -> rest check stays aligned)
@@ -100,9 +100,9 @@ class Wisp extends RigFx.Mote:
 		return u / 0.1 if u < 0.1 else 1.0 - (u - 0.1) / 0.9
 	func shape(ctx: RigCtx) -> void:
 		var u := age / life
-		var r := rr * (1.0 - 0.45 * u)
+		var rad := rr * (1.0 - 0.45 * u)
 		var sway := 10.0 * sin(age / 90.0 + ph)
-		ctx.begin_path(); ctx.arc(0, 0, r, PI, 0, true)
-		ctx.quad_to(r, -1.7 * r, sway, -3.3 * r); ctx.quad_to(-r * 0.3, -1.4 * r, -r, 0); ctx.close_path()
+		ctx.begin_path(); ctx.arc(0, 0, rad, PI, 0, true)
+		ctx.quad_to(rad, -1.7 * rad, sway, -3.3 * rad); ctx.quad_to(-rad * 0.3, -1.4 * rad, -rad, 0); ctx.close_path()
 		ctx.fill(GHOST); ctx.stroke(RigFx.INK, 3)
-		ctx.begin_path(); ctx.arc(0, -r * 0.1, r * 0.42, 0, TAU); ctx.fill(SPIRIT)
+		ctx.begin_path(); ctx.arc(0, -rad * 0.1, rad * 0.42, 0, TAU); ctx.fill(SPIRIT)

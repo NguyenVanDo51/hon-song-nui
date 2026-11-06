@@ -82,8 +82,8 @@ func _run() -> void:
 	await main.shot("ux_float")
 	ok(g._pop.visible and g._actions.get_child_count() >= 2, "popup with orders next to the tile (%d buttons)" % g._actions.get_child_count())
 	var T: float = g.board.T
-	var tr := Rect2(g.board.position + Vector2(dest.x * T, dest.y * T), Vector2(T, T))
-	ok(not Rect2(g._pop.position, g._pop.size).intersects(tr.grow(-2)), "popup does not cover the destination tile")
+	var dest_r := Rect2(g.board.position + Vector2(dest.x * T, dest.y * T), Vector2(T, T))
+	ok(not Rect2(g._pop.position, g._pop.size).intersects(dest_r.grow(-2)), "popup does not cover the destination tile")
 	g._on_tile(dest.x, dest.y) # same tile again = default action (wait here)
 	await idle(g)
 	ok(hero.acted and hero.x == dest.x, "hero moved + waited (click dest twice)")

@@ -40,9 +40,9 @@ func clear() -> void:
 	flash_until.clear(); offsets.clear(); knock.clear(); facing.clear(); aim.clear(); shake_until = 0.0
 	rigs.clear()
 
-func _play(name: String) -> void:
+func _play(sfx: String) -> void:
 	if audio:
-		audio.play(name)
+		audio.play(sfx)
 
 func burst(x: float, y: float, n: int, o: Dictionary) -> void:
 	for i in n:
@@ -190,7 +190,9 @@ func rig_of_attacker(id: int) -> Rig:
 ## the target pose a live rig imposes on unit `id` (null = none)
 func rig_target_pose(id: int) -> Variant:
 	var r := rig_of_target(id)
-	return r.target_pose() if r != null else null
+	if r == null:
+		return null
+	return r.target_pose()
 
 ## the rig acting on unit `id`: a playing one first (a finished one lingers while its number fades)
 func rig_of_target(id: int) -> Rig:
@@ -260,6 +262,7 @@ func _impact(d: Dictionary, amount: int, heavy: bool, shot: String, kill: bool) 
 	var big := amount >= 35 or heavy
 	_play("heavy" if shot == "rock" or (big and heavy) else "hit")
 	var col := ["#c9a2ff", "#8f6bff", "#f0e0ff"] if shot == "orb" else ["#ffd27a", "#ff8a4c", "#fff3c4"]
+	@warning_ignore("integer_division")
 	burst(d.x, d.y, mini(26, 8 + amount / 3), { "color": col, "vmin": 1.0, "vmax": 4.0 if big else 2.8, "lmin": 250.0, "lmax": 600.0, "smin": 0.025, "smax": 0.06, "g": 4.0 })
 	if shot == "rock":
 		burst(d.x, d.y + 0.2, 14, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c"], "kind": "smoke", "vmin": 0.3, "vmax": 1.2, "up": 0.5, "g": -0.3, "lmin": 600.0,
@@ -443,11 +446,11 @@ func draw_over(ci: CanvasItem, T: float, t: float) -> void:
 		var q := _proj_pos(pr, maxf(0.0, k - 0.05))
 		var X := (p + Vector2(0.5, 0.5)) * T
 		if pr.kind == "arrow":
-			var tr := Transform2D((p - q).angle(), X)
-			ci.draw_line(tr * Vector2(-T * 0.3, 0), tr * Vector2(T * 0.12, 0), Draw.col("#3b2a1a"), maxf(1.5, T * 0.04), true)
-			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(T * 0.2, 0), tr * Vector2(T * 0.1, -T * 0.05), tr * Vector2(T * 0.1, T * 0.05)]), Draw.col("#d8d0c0"))
-			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(-T * 0.3, -T * 0.04), tr * Vector2(-T * 0.22, -T * 0.04), tr * Vector2(-T * 0.22, T * 0.04),
-				tr * Vector2(-T * 0.3, T * 0.04)]), Draw.col("#c2412f"))
+			var xf := Transform2D((p - q).angle(), X)
+			ci.draw_line(xf * Vector2(-T * 0.3, 0), xf * Vector2(T * 0.12, 0), Draw.col("#3b2a1a"), maxf(1.5, T * 0.04), true)
+			ci.draw_colored_polygon(PackedVector2Array([xf * Vector2(T * 0.2, 0), xf * Vector2(T * 0.1, -T * 0.05), xf * Vector2(T * 0.1, T * 0.05)]), Draw.col("#d8d0c0"))
+			ci.draw_colored_polygon(PackedVector2Array([xf * Vector2(-T * 0.3, -T * 0.04), xf * Vector2(-T * 0.22, -T * 0.04), xf * Vector2(-T * 0.22, T * 0.04),
+				xf * Vector2(-T * 0.3, T * 0.04)]), Draw.col("#c2412f"))
 		elif pr.kind == "rock":
 			var g := Vector2((pr.fx + (pr.tx - pr.fx) * k + 0.5) * T, (pr.fy + (pr.ty - pr.fy) * k + 0.75) * T)
 			Draw.ellipse(ci, g, T * 0.14, T * 0.06, Color(0, 0, 0, 0.33))
@@ -529,9 +532,9 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 			var al2 := 1.0 - k
 			for i in 6:
 				var a2 := float(i) / 6.0 * TAU + 0.3
-				var len := T * 0.5 * minf(1.0, k * 2.5)
-				var mid := c + Vector2(cos(a2), sin(a2) * 0.5) * len * 0.5 + Vector2(cos(a2 + 1.2), sin(a2 + 1.2)) * T * 0.04
-				var end := c + Vector2(cos(a2), sin(a2) * 0.5) * len
+				var crack_len := T * 0.5 * minf(1.0, k * 2.5)
+				var mid := c + Vector2(cos(a2), sin(a2) * 0.5) * crack_len * 0.5 + Vector2(cos(a2 + 1.2), sin(a2 + 1.2)) * T * 0.04
+				var end := c + Vector2(cos(a2), sin(a2) * 0.5) * crack_len
 				ci.draw_polyline(PackedVector2Array([c + Vector2(0, T * 0.25), mid + Vector2(0, T * 0.25), end + Vector2(0, T * 0.25)]), Color(1.0, 0.85, 0.55, 0.7 * al2),
 					maxf(1.0, T * 0.03), true)
 		elif r.kind == "fire": # dragon: a hot glow along the breath line

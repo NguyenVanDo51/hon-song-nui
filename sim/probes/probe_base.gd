@@ -73,6 +73,7 @@ static func save_sheet(frames: Array[Image], cols: int, out: String, tag: String
 	for k in frames.size():
 		var f := frames[k]
 		f.convert(Image.FORMAT_RGBA8)
+		@warning_ignore("integer_division")
 		sheet.blit_rect(f, Rect2i(Vector2i.ZERO, f.get_size()), Vector2i((k % cols) * (w + 4), (k / cols) * (h + 4)))
 	DirAccess.make_dir_recursive_absolute(out.get_base_dir())
 	sheet.save_png(out)

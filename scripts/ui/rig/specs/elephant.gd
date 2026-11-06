@@ -10,12 +10,13 @@ func _crack_data() -> void:
 	if not _main.is_empty():
 		return
 	for q: Array in data.consts.CRACK_MAIN:
-		_main.append(Vector2(q[0], q[1]))
+		_main.append(RigData.vec2(q))
 	for b: Dictionary in data.consts.CRACK_BR:
 		var pts := PackedVector2Array()
 		for q: Array in b.pts:
-			pts.append(Vector2(q[0], q[1]))
-		_br.append([float(b.at), pts])
+			pts.append(RigData.vec2(q))
+		var at: float = b.at
+		_br.append([at, pts])
 
 func events(_r: Rig) -> Array:
 	var c := data.consts
@@ -36,10 +37,10 @@ func events(_r: Rig) -> Array:
 			a.dust(f.x - 30, ground, 3, -1)
 			_clods(a, f.x + 10, 6, ground)],
 		[t_hit, func(a: Rig) -> void:
-			var tg := a.target()
+			var tx: float = a.target().x
 			a.hit(Rig.with(Rig.HIT, { "dmg": 65 }))
-			a.shockwave(tg.x, ground, { "r": 110.0, "ms": 300.0 })
-			a.dust(tg.x - 50, ground, 3, 1)],
+			a.shockwave(tx, ground, { "r": 110.0, "ms": 300.0 })
+			a.dust(tx - 50, ground, 3, 1)],
 	]
 
 ## dirt clods kicked toward the target (one-shot fx with own state)
@@ -86,10 +87,13 @@ class Clod extends RigFx.Mote:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	var idle_k: float = ctx.idle
+	var ck: float = ctx.clock
 	if name == "ear":
-		return float(p.get("earX", 0.0)) + clampf(vx * 0.02, -10, 14) + idle_k * 3.0 * sin(ctx.clock / 520.0)
+		var ear_x: float = p.get("earX", 0.0)
+		return ear_x + clampf(vx * 0.02, -10, 14) + idle_k * 3.0 * sin(ck / 520.0)
 	if name == "tail":
-		return -float(p.lean) * 0.7 + clampf(-vx * 0.03, -20, 20) + idle_k * 5.0 * sin(ctx.clock / 800.0)
+		var lean: float = p.lean
+		return -lean * 0.7 + clampf(-vx * 0.03, -20, 20) + idle_k * 5.0 * sin(ck / 800.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, clock: float) -> void:
@@ -143,7 +147,9 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 		ctx.fill(Color(RigFx.INK, 0.35))
 		_crack_line(ctx, _main, u, 13, 5)
 		for b: Array in _br:
-			_crack_line(ctx, b[1], clampf((u - b[0]) / 0.25, 0.0, 1.0), 9, 3)
+			var at: float = b[0]
+			var pts: PackedVector2Array = b[1]
+			_crack_line(ctx, pts, clampf((u - at) / 0.25, 0.0, 1.0), 9, 3)
 		ctx.alpha = 1.0
 	# trumpet: sound dashes pulsing out of the raised trunk tip (anchored to the drawn trunk, board px)
 	var tr0: float = c.T_TRUMP[0]

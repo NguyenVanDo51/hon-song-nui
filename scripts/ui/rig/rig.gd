@@ -27,17 +27,13 @@ var hitstop := 0.0
 var flash_t := 0.0
 var flash_dur := 1.0
 var flash_col := Color.WHITE
-var _ev: Array = [] # [[t, Callable(rig)]]
-var _fired := 0
 var pose := {}
-var _prev_x := 0.0
-var _sprs := {} # name -> [angle, velocity]
-var fxs: Array = [] # RigFx objects
+var fxs: Array = [] # RigFx.Fx objects
 var tgt := { "ox": 0.0, "vx": 0.0, "oy": 0.0, "vy": 0.0, "sy": 1.0, "svy": 0.0, "flash": 0.0, "face": 1.0, "spin": 0.0, "lift": null, "land": null }
 
 # ---------- game wiring ----------
 var cam := RigCam.new()
-var board: Control # Board (T, screen scale)
+var board: BoardBase # T, screen scale
 var fxh: FX # board shake + sounds
 var a_tile := Vector2i.ZERO
 var d_tile := Vector2i.ZERO
@@ -51,6 +47,11 @@ var kill := false
 var on_hit := Callable() # called once at that HIT (game drops the hp bar)
 var hit_done := false
 var hit_t := -1.0 # attack time of THE hit (-1 = never reached; FX.rig_attack then applies the damage at the end)
+
+var _ev: Array = [] # [[t, Callable(rig)]]
+var _fired := 0
+var _prev_x := 0.0
+var _sprs := {} # name -> [angle, velocity]
 var _cam_T := -1.0
 var _parts := {} # part -> [raster cache id, svg source]: built once, not per part per frame
 var _parts_for := ""
@@ -117,9 +118,12 @@ func pose_at(at: float) -> Dictionary:
 	var p := base_pose()
 	var tracks: Dictionary = A.tr
 	for k: String in tracks:
-		p[k] = RigData.sample(tracks[k], at)
-	spec.channels(p, at, A.id)
-	p.face *= cos(p.spin)
+		var keys: Array = tracks[k]
+		p[k] = RigData.sample(keys, at)
+	var aid: String = A.id
+	spec.channels(p, at, aid)
+	var spin: float = p.spin
+	p.face *= cos(spin)
 	return p
 
 func rest_pose(breath := 0.0) -> Dictionary:
@@ -130,19 +134,26 @@ func rest_pose(breath := 0.0) -> Dictionary:
 ## bone matrices in character space (root translation excluded: RigCam.root places it)
 func bones_of(p: Dictionary) -> Dictionary:
 	var R := {}
-	var sx: float = (1.0 + (1.0 - p.sy) * 0.8) * thin(p.face)
-	R.root = _about(Transform2D.IDENTITY, Vector2(data.cx, data.feet), Transform2D(Vector2(sx, 0.0), Vector2(0.0, p.sy), Vector2.ZERO))
+	var sy: float = p.sy
+	var face: float = p.face
+	var sx: float = (1.0 + (1.0 - sy) * 0.8) * thin(face)
+	R.root = _about(Transform2D.IDENTITY, Vector2(data.cx, data.feet), Transform2D(Vector2(sx, 0.0), Vector2(0.0, sy), Vector2.ZERO))
 	for b: Dictionary in data.bones:
 		var m: Transform2D = R[b.parent]
+		var pv: Vector2 = b.pivot
 		if b.has("tx") or b.has("ty"):
-			m = m * Transform2D(0.0, Vector2(p.get(b.get("tx", ""), 0.0), p.get(b.get("ty", ""), 0.0)))
+			var tx: float = p.get(b.get("tx", ""), 0.0)
+			var ty: float = p.get(b.get("ty", ""), 0.0)
+			m = m * Transform2D(0.0, Vector2(tx, ty))
 		if b.has("ch"):
-			m = _about(m, b.pivot, Transform2D(deg_to_rad(p[b.ch]), Vector2.ZERO))
+			var deg: float = p[b.ch]
+			m = _about(m, pv, Transform2D(deg_to_rad(deg), Vector2.ZERO))
 		if b.has("sc"):
 			var s: float = 1.0 + p[b.sc]
-			m = _about(m, b.pivot, Transform2D(Vector2(s, 0.0), Vector2(0.0, s), Vector2.ZERO))
+			m = _about(m, pv, Transform2D(Vector2(s, 0.0), Vector2(0.0, s), Vector2.ZERO))
 		if b.get("stretch", false):
-			m = _about(m, b.pivot, Transform2D(Vector2(1.0 + absf(p[b.ch]) / 160.0, 0.0), Vector2(0.0, 1.0), Vector2.ZERO))
+			var st: float = p[b.ch]
+			m = _about(m, pv, Transform2D(Vector2(1.0 + absf(st) / 160.0, 0.0), Vector2(0.0, 1.0), Vector2.ZERO))
 		R[b.name] = m
 	return R
 
@@ -152,14 +163,22 @@ static func _about(m: Transform2D, pv: Vector2, op: Transform2D) -> Transform2D:
 ## engine point(): world coords of a named point for the current pose (root translation = pose x / y)
 func point(name: String) -> Vector2:
 	var q: Array = data.points[name]
-	return bones_of(pose)[q[0]] * q[1] + Vector2(pose.x, pose.y)
+	var m: Transform2D = bones_of(pose)[q[0]]
+	var v: Vector2 = q[1]
+	var px: float = pose.x
+	var py: float = pose.y
+	return m * v + Vector2(px, py)
 
 ## the same point in board px, exactly where it is drawn
 func point_px(name: String, p: Variant = null) -> Vector2:
 	var pp: Dictionary = pose if p == null else p
 	var q: Array = data.points[name]
 	_update_cam()
-	return cam.char_xf(pp.x, pp.y) * (bones_of(pp)[q[0]] * q[1])
+	var m: Transform2D = bones_of(pp)[q[0]]
+	var v: Vector2 = q[1]
+	var px: float = pp.x
+	var py: float = pp.y
+	return cam.char_xf(px, py) * (m * v)
 
 func hero() -> Dictionary:
 	return { "x": data.cx + pose.x, "y": data.target_cy + pose.y, "feet": data.feet }
@@ -190,24 +209,27 @@ func update(dt: float, rdt: float) -> void:
 			cb.call(self)
 		if t >= A.dur:
 			playing = false
-	var p := pose_at(minf(t, A.dur))
+	var dur: float = A.dur
+	var p := pose_at(minf(t, dur))
 	if dt > 0.0:
 		var s := dt / 1000.0
 		var vx: float = (p.x - _prev_x) / s
 		_prev_x = p.x
 		for k: String in _sprs:
 			var sp: Dictionary = data.springs[k]
+			var sk: float = sp.k
+			var sc: float = sp.c
 			var o: Array = _sprs[k]
 			var aim := spec.drive(k, p, vx, { "idle": 0.0 if playing else 1.0, "clock": clock })
 			var h := s / 4.0
 			for i in 4:
-				o[1] += (float(sp.k) * (aim - o[0]) - float(sp.c) * o[1]) * h
+				o[1] += (sk * (aim - o[0]) - sc * o[1]) * h
 				o[0] += o[1] * h
 		_upd_target(s)
 		var cur := fxs
 		fxs = []
 		var keep := []
-		for f: Object in cur:
+		for f: RigFx.Fx in cur:
 			if f.upd(s, dt):
 				keep.append(f)
 		fxs = keep + fxs
@@ -236,7 +258,8 @@ func seek(at: float) -> void:
 
 func _upd_target(s: float) -> void:
 	var e := tgt
-	e.flash = maxf(0.0, e.flash - s * 1000.0 / 150.0)
+	var fl: float = e.flash
+	e.flash = maxf(0.0, fl - s * 1000.0 / 150.0)
 	e.vx += (-120.0 * e.ox - 13.0 * e.vx) * s
 	e.ox += e.vx * s
 	e.svy += (-260.0 * (e.sy - 1.0) - 14.0 * e.svy) * s
@@ -244,15 +267,20 @@ func _upd_target(s: float) -> void:
 	if e.lift != null:
 		var l: Dictionary = e.lift
 		l.t += s * 1000.0
-		e.oy = -l.h * RigData.ease_i(1, clampf(l.t / l.ms, 0.0, 1.0)) + sin(clock / 90.0) * 4.0
+		var lt: float = l.t
+		var lms: float = l.ms
+		e.oy = -l.h * RigData.ease_i(1, clampf(lt / lms, 0.0, 1.0)) + sin(clock / 90.0) * 4.0
 		e.spin += s * 15.0
-		e.face = cos(e.spin)
+		var spin: float = e.spin
+		e.face = cos(spin)
 		e.vy = 0.0
 	elif e.oy < 0.0 or e.vy != 0.0:
 		e.vy += 2600.0 * s
 		e.oy += e.vy * s
-		e.spin += s * 15.0 * clampf(-e.oy / 95.0, 0.0, 1.0)
-		e.face = cos(e.spin)
+		var oy: float = e.oy
+		e.spin += s * 15.0 * clampf(-oy / 95.0, 0.0, 1.0)
+		var spin: float = e.spin
+		e.face = cos(spin)
 		if e.oy >= 0.0:
 			var hard: bool = e.vy > 500.0
 			e.oy = 0.0
@@ -271,13 +299,15 @@ func _upd_target(s: float) -> void:
 func target_pose() -> Dictionary:
 	_update_cam()
 	var e := tgt
+	var face: float = e.face
 	return { "shift": cam.u * (e.ox * cam.cd), "lift": -e.oy * cam.cd, "sy": e.sy, "sx": (1.0 + (1.0 - e.sy) * 0.8),
-		"face": thin(e.face), "flash": e.flash }
+		"face": thin(face), "flash": e.flash }
 
 # ---------- api (engine `api`) ----------
 func add(o: Variant) -> Variant:
 	if o is Dictionary:
-		o = RigFx.Custom.new(o)
+		var d: Dictionary = o
+		o = RigFx.Custom.new(d)
 	fxs.append(o)
 	return o
 
@@ -294,7 +324,7 @@ func stop(ms: float) -> void:
 	hitstop = maxf(hitstop, ms)
 
 func flash(color: Variant = "#ffffff", ms := 120.0) -> void:
-	flash_col = Color(color) if color is String else color
+	flash_col = RigFx.col(color)
 	flash_t = ms
 	flash_dur = ms
 
@@ -303,41 +333,50 @@ func flash(color: Variant = "#ffffff", ms := 120.0) -> void:
 func hit(o := {}) -> void:
 	var small: bool = o.get("small", false)
 	var c := target()
-	stop(o.get("stop", 40.0 if small else 90.0))
-	shake(o.get("amp", 5.0 if small else 11.0), 140.0 if small else 280.0)
+	var cx: float = c.x
+	var cy: float = c.y
+	var stop_ms: float = o.get("stop", 40.0 if small else 90.0)
+	stop(stop_ms)
+	var amp: float = o.get("amp", 5.0 if small else 11.0)
+	shake(amp, 140.0 if small else 280.0)
 	tgt.flash = 1.0
-	tgt.vx += float(o.get("kx", 0.0 if small else 520.0))
+	var kx: float = o.get("kx", 0.0 if small else 520.0)
+	tgt.vx += kx
 	tgt.sy = 0.92 if small else 0.82
 	if not small and not hit_done:
 		hit_done = true
 		hit_t = t
-		number(c.x + randf_range(-16.0, 16.0), c.y - 70.0, "−%d" % amount, false)
+		number(cx + randf_range(-16.0, 16.0), cy - 70.0, "−%d" % amount, false)
 		sound("heavy" if heavy or amount >= 35 else "hit")
 		if on_hit.is_valid():
 			on_hit.call()
 	elif small:
 		sound("hit")
-	burst(c.x + randf_range(-10.0, 10.0), c.y + randf_range(-10.0, 10.0), 0.55 if small else 1.0)
+	burst(cx + randf_range(-10.0, 10.0), cy + randf_range(-10.0, 10.0), 0.55 if small else 1.0)
 	if o.get("cut", not small):
-		cut(c.x, c.y, o.get("cutAng", -24.0))
+		var ang: float = o.get("cutAng", -24.0)
+		cut(cx, cy, ang)
 	var deb: String = o.get("debris", "leaf")
 	var n: int = o.get("n", 3 if small else 9)
 	if deb == "leaf":
-		leaves(c.x, c.y, n, randf_range(-300.0, 300.0) if small else 650.0)
+		leaves(cx, cy, n, randf_range(-300.0, 300.0) if small else 650.0)
 	elif deb == "spark":
-		sparks(c.x, c.y, n, o.get("sparkColor", "#ffe08a"))
+		var sc: String = o.get("sparkColor", "#ffe08a")
+		sparks(cx, cy, n, sc)
 	elif deb == "dust":
-		dust(c.x, data.feet, n, 1.0)
+		dust(cx, data.feet, n, 1.0)
 
 func dust(x: float, y: float, n := 6, dir := 0.0) -> void:
 	for i in n:
-		_particle({ "k": "dust", "x": x + randf_range(-30, 30), "y": y - randf_range(0, 8), "vx": (dir if dir != 0.0 else randf_range(-1, 1)) * randf_range(60, 220),
+		_particle({ "k": "dust", "x": x + randf_range(-30, 30), "y": y - randf_range(0, 8),
+			"vx": (dir if dir != 0.0 else randf_range(-1, 1)) * randf_range(60, 220),
 			"vy": randf_range(-90, -20), "life": randf_range(380, 560), "r": randf_range(9, 15) })
 
 func leaves(x: float, y: float, n := 8, sp := 600.0, color := "#7fb24e") -> void:
 	for i in n:
-		_particle({ "k": "leaf", "x": x + randf_range(-20, 20), "y": y + randf_range(-40, 40), "vx": randf_range(0.3, 1.0) * sp, "vy": randf_range(-380, 60),
-			"rot": randf_range(0, 6), "vr": randf_range(-14, 14), "life": randf_range(600, 1000), "color": Color(color) })
+		_particle({ "k": "leaf", "x": x + randf_range(-20, 20), "y": y + randf_range(-40, 40), "vx": randf_range(0.3, 1.0) * sp,
+			"vy": randf_range(-380, 60), "rot": randf_range(0, 6), "vr": randf_range(-14, 14), "life": randf_range(600, 1000),
+			"color": Color(color) })
 
 func sparks(x: float, y: float, n := 8, color := "#ffe08a") -> void:
 	for i in n:
@@ -394,9 +433,11 @@ func draw_char(ci: CanvasItem) -> void:
 	var p := pose
 	var T := cam.T
 	# ground shadow like Token._standee, under the root, smaller when the figure is in the air
-	var g := cam.root(p.x, 0.0)
+	var px: float = p.x
+	var py: float = p.y
+	var g := cam.root(px, 0.0)
 	var base := g - Vector2(0.0, (data.feet - 256.0) * cam.ca)
-	var ls := clampf(1.0 + p.y / 220.0, 0.45, 1.0)
+	var ls := clampf(1.0 + py / 220.0, 0.45, 1.0)
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	Token.draw_shadow(ci, base, T, 1.0, ls)
 	if a_type == "hero":
@@ -405,23 +446,27 @@ func draw_char(ci: CanvasItem) -> void:
 		spec.draw_char_under(_ctx(ci), cam, self)
 		ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	var R := bones_of(p)
-	var X := cam.char_xf(p.x, p.y)
-	var px := 256.0 * cam.ca * Baked.screen_scale(ci)
+	var X := cam.char_xf(px, py)
+	var tex_px := 256.0 * cam.ca * Baked.screen_scale(ci)
 	var list: Array = data.draw
 	if data.hooks.get("order", false):
 		list = spec.order(p, list.duplicate())
 	for e: Array in list:
 		var al := 1.0
 		if e[2] != "":
-			al = clampf(float(p.get(e[2], 1.0)), 0.0, 1.0)
+			var av: float = p.get(e[2], 1.0)
+			al = clampf(av, 0.0, 1.0)
 		if al <= 0.0:
 			continue
 		var part: String = e[0]
 		var pc: Array = _part_src(part)
-		var tex := Token.raster_svg(pc[0], pc[1], px)
+		var rid: String = pc[0]
+		var src: Callable = pc[1]
+		var tex := Token.raster_svg(rid, src, tex_px)
 		if tex == null:
 			continue
-		ci.draw_set_transform_matrix(X * R[e[1]])
+		var bm: Transform2D = R[e[1]]
+		ci.draw_set_transform_matrix(X * bm)
 		ci.draw_texture_rect(tex, Rect2(0, 0, 256, 256), false, Color(1, 1, 1, al))
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	if A.get("smear") != null and playing:
@@ -441,7 +486,9 @@ func _part_src(part: String) -> Array:
 func _smear_pt(at: float, qt: Array, qb: Array) -> Array:
 	var pp := pose_at(at)
 	var R := bones_of(pp)
-	return [R[qt[0]] * qt[1], R[qb[0]] * qb[1], float(pp.x), float(pp.y)]
+	var px: float = pp.x
+	var py: float = pp.y
+	return [R[qt[0]] * qt[1], R[qb[0]] * qb[1], px, py]
 
 func _draw_smear(ci: CanvasItem) -> void:
 	var sm: Dictionary = A.smear
@@ -461,8 +508,10 @@ func _draw_smear(ci: CanvasItem) -> void:
 	_update_cam()
 	# past samples in the CURRENT frame, root travel turned onto the art's forward axis (demo look): on a vertical attack
 	# line the lunge would otherwise shift each sample across the blade and fill the band into a blob
-	var X := cam.char_xf(pose.x, pose.y)
-	var r0 := cam.root(pose.x, pose.y)
+	var px: float = pose.x
+	var py: float = pose.y
+	var X := cam.char_xf(px, py)
+	var r0 := cam.root(px, py)
 	# exact ends (now, now - window) + the step grid between them: grid samples are memoised, ~4 new poses a frame instead of 13
 	var w := n * step
 	var lo := maxf(from, t - w)
@@ -475,17 +524,21 @@ func _draw_smear(ci: CanvasItem) -> void:
 	if lo < t:
 		samples.append(_smear_pt(lo, qt, qb))
 	for sp: Array in samples:
-		var dy: float = (sp[3] - pose.y) * cam.ca
-		var along := (cam.root(sp[2], sp[3]) - r0 - Vector2(0.0, dy)).dot(cam.u)
+		var sx: float = sp[2]
+		var sy: float = sp[3]
+		var dy: float = (sy - py) * cam.ca
+		var along := (cam.root(sx, sy) - r0 - Vector2(0.0, dy)).dot(cam.u)
 		var d := Vector2(cam.f * along, dy) # board px; = the old mapping on horizontal attacks
-		var tp: Vector2 = X * (sp[0] as Vector2) + d
-		var md: Vector2 = X * (sp[1] as Vector2) + d
+		var tip: Vector2 = sp[0]
+		var mid: Vector2 = sp[1]
+		var tp: Vector2 = X * tip + d
+		var md: Vector2 = X * mid + d
 		tips.append(tp)
 		mids.append(md)
 		inner.append(tp.lerp(md, 0.35))
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
-	var fill := Color(sm.get("fill", "#f4fbff"))
-	var inn := Color(sm.get("inner", "#b9e7f3"))
+	var fill := RigFx.col(sm.get("fill", "#f4fbff"))
+	var inn := RigFx.col(sm.get("inner", "#b9e7f3"))
 	fill.a *= a
 	inn.a *= a
 	_strip(ci, tips, mids, fill)
@@ -515,7 +568,7 @@ static func _strip(ci: CanvasItem, a: PackedVector2Array, b: PackedVector2Array,
 ## VFX layer: back = behind the target token, mid = just over it, front = over every unit
 func draw_layer(ci: CanvasItem, layer: String) -> void:
 	var ctx := _ctx(ci)
-	for f: Object in fxs:
+	for f: RigFx.Fx in fxs:
 		ctx.alpha = 1.0
 		f.draw(ctx, cam, layer)
 	if playing:

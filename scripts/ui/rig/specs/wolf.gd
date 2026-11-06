@@ -21,13 +21,15 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	var idle_k: float = ctx.idle
+	var ck: float = ctx.clock
 	var ears: float = p.get("earsX", 0.0)
 	if name == "tail":
-		return clampf(-vx * 0.035, -34, 16) + float(p.get("tailX", 0.0)) - p.pitch * 0.6 + idle_k * 9.0 * sin(ctx.clock / 170.0)
+		var tail_x: float = p.get("tailX", 0.0)
+		return clampf(-vx * 0.035, -34, 16) + tail_x - p.pitch * 0.6 + idle_k * 9.0 * sin(ck / 170.0)
 	if name == "earB":
-		return clampf(-vx * 0.03, -30, 10) + ears - p.head * 0.4 + idle_k * 2.0 * sin(ctx.clock / 600.0)
+		return clampf(-vx * 0.03, -30, 10) + ears - p.head * 0.4 + idle_k * 2.0 * sin(ck / 600.0)
 	if name == "earF":
-		return clampf(-vx * 0.035, -34, 10) + ears * 1.1 - p.head * 0.5 + idle_k * 2.5 * sin(ctx.clock / 600.0 + 1.0)
+		return clampf(-vx * 0.035, -34, 10) + ears * 1.1 - p.head * 0.5 + idle_k * 2.5 * sin(ck / 600.0 + 1.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -42,13 +44,17 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 		return
 	var u := (t - 250.0) / 220.0
 	var a := u / 0.2 if u < 0.2 else 1.0 - (u - 0.2) / 0.8
-	var at := cam.root(r.pose.x, r.pose.y) + Vector2(0.0, (data.target_cy - data.feet) * cam.ca)
+	var px: float = r.pose.x
+	var py: float = r.pose.y
+	var at := cam.root(px, py) + Vector2(0.0, (data.target_cy - data.feet) * cam.ca)
 	ctx.set_xf(cam.aimed(at, cam.u, cam.ca))
 	ctx.alpha = a
 	for q: Array in [[-40.0, 110.0], [0.0, 150.0], [36.0, 90.0]]:
+		var qy: float = q[0]
+		var ql: float = q[1]
 		ctx.begin_path()
-		ctx.move_to(-70.0, q[0])
-		ctx.line_to(-70.0 - q[1], q[0])
+		ctx.move_to(-70.0, qy)
+		ctx.line_to(-70.0 - ql, qy)
 		ctx.stroke(RigFx.INK, 10)
 		ctx.stroke("#f4fcff", 5)
 	ctx.alpha = 1.0
@@ -60,12 +66,14 @@ class Claw extends RigFx.Timed:
 	func _init(p_r: Rig) -> void:
 		r = p_r
 		life = LIFE
-		col = Color(r.data.consts.CLAW)
+		col = RigFx.col(r.data.consts.CLAW)
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
 		var c := r.target()
-		var base := cam.frame(c.x, c.y, 1.0) # upright frame at the target centre (follows knockback / lift)
+		var cx: float = c.x
+		var cy: float = c.y
+		var base := cam.frame(cx, cy, 1.0) # upright frame at the target centre (follows knockback / lift)
 		for i in 3:
 			var a := age - i * 28.0
 			if a <= 0.0:
@@ -95,9 +103,9 @@ class Weak extends RigFx.Timed:
 		r = p_r
 		life = LIFE
 		var wk: Dictionary = r.data.consts.WEAK
-		dark = Color(wk.dark)
-		mid = Color(wk.mid)
-		light = Color(wk.light)
+		dark = RigFx.col(wk.dark)
+		mid = RigFx.col(wk.mid)
+		light = RigFx.col(wk.light)
 	func _arrow(ctx: RigCtx, x: float, y: float, s: float) -> void:
 		ctx.begin_path()
 		ctx.move_to(x - 7 * s, y - 22 * s); ctx.line_to(x + 7 * s, y - 22 * s); ctx.line_to(x + 7 * s, y - 4 * s); ctx.line_to(x + 16 * s, y - 4 * s)
@@ -111,7 +119,9 @@ class Weak extends RigFx.Timed:
 		var pop := RigData.ease_by_name("outBack", minf(1.0, t / 170.0))
 		var fade := (LIFE - t) / 260.0 if t > LIFE - 260.0 else 1.0
 		var c := r.target()
-		var base := cam.frame(c.x, c.y, 1.0) # upright frame at the target centre (follows knockback / lift)
+		var cx: float = c.x
+		var cy: float = c.y
+		var base := cam.frame(cx, cy, 1.0) # upright frame at the target centre (follows knockback / lift)
 		# JS: x = c.x + 2, y = c.y + 4 + 10 * E.out(t / life), relative to the target centre here
 		var x := 2.0
 		var y := 4.0 + 10.0 * RigFx.out(t / LIFE)
@@ -119,8 +129,11 @@ class Weak extends RigFx.Timed:
 		ctx.set_xf(base.translated_local(Vector2(x, y)).scaled_local(Vector2(pop, pop)))
 		ctx.begin_path()
 		for q: Array in PUFF:
-			ctx.move_to(q[0] + q[2], q[1])
-			ctx.arc(q[0], q[1], q[2], 0.0, TAU)
+			var qx: float = q[0]
+			var qy: float = q[1]
+			var qr: float = q[2]
+			ctx.move_to(qx + qr, qy)
+			ctx.arc(qx, qy, qr, 0.0, TAU)
 		ctx.stroke(RigFx.INK, 9)
 		ctx.fill(dark)
 		ctx.begin_path()

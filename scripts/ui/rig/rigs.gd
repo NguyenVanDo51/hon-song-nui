@@ -26,7 +26,9 @@ static func has(type: String, side: String) -> bool:
 	if not enabled or Token.fig_style != "chibi" or not SPECS.has(type):
 		return false
 	var e: Dictionary = SPECS[type]
-	return RigData.exists(e.get(side, e.p)) and ResourceLoader.exists(e.script)
+	var nm: String = e.get(side, e.p)
+	var path: String = e.script
+	return RigData.exists(nm) and ResourceLoader.exists(path)
 
 ## a fresh attack rig for this unit (null when it has none)
 static func make(type: String, side: String) -> Rig:
@@ -37,13 +39,17 @@ static func make(type: String, side: String) -> Rig:
 	var data := RigData.get_data(name)
 	if data == null:
 		return null
-	if not _scripts.has(e.script):
-		_scripts[e.script] = load(e.script)
-	var r := Rig.new(data, _scripts[e.script].new())
+	var path: String = e.script
+	if not _scripts.has(path):
+		_scripts[path] = load(path)
+	var scr: GDScript = _scripts[path]
+	var spec: RigSpec = scr.new()
+	var r := Rig.new(data, spec)
 	r.swap = side == "e" and name == e.p
 	r.part_id = "rig|" + name
 	r.a_type = type
-	r.heavy = Rules.UNITS.get(type, {}).get("heavy", false)
+	var ud: Dictionary = Rules.UNITS.get(type, {})
+	r.heavy = ud.get("heavy", false)
 	return r
 
 static func types() -> Array:

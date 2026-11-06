@@ -11,19 +11,47 @@ static func out(u: float) -> float:
 static func io(u: float) -> float:
 	return RigData.ease_i(3, u)
 
+## "#hex" or Color -> Color
+static func col(v: Variant) -> Color:
+	if v is String:
+		var s: String = v
+		return Color(s)
+	var c: Color = v
+	return c
+
+## Vector2 or {x, y} -> Vector2
+static func vec(v: Variant) -> Vector2:
+	if v is Vector2:
+		var p: Vector2 = v
+		return p
+	var x: float = v.x
+	var y: float = v.y
+	return Vector2(x, y)
+
+## common base: every entry of Rig.fxs
+class Fx extends RefCounted:
+	func upd(_s: float, _ms: float) -> bool:
+		return false
+	func draw(_ctx: RigCtx, _cam: RigCam, _layer: String) -> void:
+		pass
+
 ## api.add({ upd = func(s, ms) -> bool, draw = func(ctx, cam, layer) }) from a spec port
-class Custom extends RefCounted:
+class Custom extends Fx:
 	var o: Dictionary
 	func _init(p: Dictionary) -> void:
 		o = p
 	func upd(s: float, ms: float) -> bool:
-		return o.upd.call(s, ms) if o.has("upd") else false
+		if not o.has("upd"):
+			return false
+		var cb: Callable = o.upd
+		return cb.call(s, ms)
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if o.has("draw"):
-			o.draw.call(ctx, cam, layer)
+			var cb: Callable = o.draw
+			cb.call(ctx, cam, layer)
 
 ## dust / leaf / spark; frame weight fixed where it was spawned (sparks at the target stay in the target frame)
-class Particle extends RefCounted:
+class Particle extends Fx:
 	var r: Rig
 	var q: Dictionary
 	var w := 0.0
@@ -31,7 +59,8 @@ class Particle extends RefCounted:
 		r = p_r
 		q = p_q
 		q.age = 0.0
-		w = r.cam.w_of(q.x)
+		var qx: float = q.x
+		w = r.cam.w_of(qx)
 	func upd(s: float, ms: float) -> bool:
 		q.age += ms
 		if q.k == "leaf":
@@ -51,8 +80,11 @@ class Particle extends RefCounted:
 		if layer != "front":
 			return
 		var u: float = q.age / q.life
+		var qx: float = q.x
+		var qy: float = q.y
 		if q.k == "leaf":
-			ctx.set_xf(cam.frame(q.x, q.y, w).rotated_local(q.rot))
+			var rot: float = q.rot
+			ctx.set_xf(cam.frame(qx, qy, w).rotated_local(rot))
 			ctx.alpha = 1.0 - u * u
 			ctx.begin_path(); ctx.ellipse(0, 0, 11, 5, 0, 0, TAU); ctx.close_path()
 			ctx.fill(q.color); ctx.stroke(INK, 3)
@@ -60,17 +92,20 @@ class Particle extends RefCounted:
 		elif q.k == "spark":
 			ctx.set_world(w)
 			ctx.alpha = 1.0 - u
-			ctx.begin_path(); ctx.move_to(q.x, q.y); ctx.line_to(q.x - q.vx * 0.04, q.y - q.vy * 0.04)
+			var vx: float = q.vx
+			var vy: float = q.vy
+			ctx.begin_path(); ctx.move_to(qx, qy); ctx.line_to(qx - vx * 0.04, qy - vy * 0.04)
 			ctx.stroke(INK, 8); ctx.stroke(q.color, 4)
 		else:
-			ctx.set_xf(cam.frame(q.x, q.y, w))
+			var rad: float = q.r
+			ctx.set_xf(cam.frame(qx, qy, w))
 			ctx.alpha = (1.0 - u) * 0.9
-			ctx.begin_path(); ctx.circle(0, 0, q.r * (1.0 + u * 1.2))
+			ctx.begin_path(); ctx.circle(0, 0, rad * (1.0 + u * 1.2))
 			ctx.fill("#efe3c8"); ctx.stroke(INK, 3)
 		ctx.alpha = 1.0
 
 ## fixed-life fx base
-class Timed extends RefCounted:
+class Timed extends Fx:
 	var r: Rig
 	var age := 0.0
 	var life := 260.0
@@ -226,7 +261,7 @@ static func crescent(ctx: RigCtx, R: float, T: float, span: float) -> void:
 	ctx.close_path()
 
 ## crescent blade flying toward the target; hits at the target front. Own frame weight: 0 at launch -> 1 at the front
-class Wave extends RefCounted:
+class Wave extends Fx:
 	var r: Rig
 	var o: Dictionary
 	var x: float
@@ -243,14 +278,15 @@ class Wave extends RefCounted:
 	func _init(p_r: Rig, p_o: Dictionary) -> void:
 		r = p_r; o = p_o
 		x = o.x; x0 = x; y = o.get("y", r.data.target_cy); vx = o.get("vx", 1500.0); R = o.get("R", 120.0)
-		ang = o.get("angle", -14.0); fill = Color(o.get("fill", "#f4fcff")); inner = Color(o.get("inner", "#a9e1f0"))
+		ang = o.get("angle", -14.0); fill = RigFx.col(o.get("fill", "#f4fcff")); inner = RigFx.col(o.get("inner", "#a9e1f0"))
 	func upd(s: float, ms: float) -> bool:
 		age += ms
 		x += vx * s
 		if not hit and x >= r.target().front:
 			hit = true
 			if not (o.get("hit") is bool and o.hit == false):
-				r.hit(o.get("hit", {}))
+				var h: Dictionary = o.get("hit", {})
+				r.hit(h)
 		if hit:
 			gone += ms
 		return gone < 220.0 and x < r.cam.xt + 700.0
@@ -267,7 +303,8 @@ class Wave extends RefCounted:
 		for dl: Array in [[-72, 130], [0, 190], [72, 120], [-36, 90], [38, 100]]:
 			var xa := R - 50.0 * k
 			var xb: float = xa - dl[1] * k * grow
-			ctx.begin_path(); ctx.move_to(xa, dl[0] * k); ctx.line_to(xb, dl[0] * k)
+			var dy: float = dl[0]
+			ctx.begin_path(); ctx.move_to(xa, dy * k); ctx.line_to(xb, dy * k)
 			ctx.stroke(INK, 9); ctx.stroke(fill, 4)
 		ctx.set_xf(m.translated_local(Vector2(-R + 30.0 * k, 0)))
 		RigFx.crescent(ctx, R, 44.0 * k, 1.05); ctx.fill(fill); ctx.stroke(INK, 6)
@@ -276,7 +313,7 @@ class Wave extends RefCounted:
 
 ## arrow | spear | rock | orb | custom (o.drawShape = func(ctx, size)). Starts exactly where the point is drawn,
 ## travels in board space to the target (arc = screen up), timing from world distance like the engine.
-class Projectile extends RefCounted:
+class Projectile extends Fx:
 	var r: Rig
 	var o: Dictionary
 	var from: Vector2 # world
@@ -294,16 +331,15 @@ class Projectile extends RefCounted:
 		r = p_r; o = p_o
 		var T := r.cam.T
 		if o.has("from"):
-			var fv: Variant = o.from
-			from = fv if fv is Vector2 else Vector2(fv.x, fv.y)
+			from = RigFx.vec(o.from)
 			from_px = r.cam.mapv(from) / T
 		else:
-			from = r.point(o.point)
-			from_px = r.point_px(o.point) / T
-		var tg := r.target()
-		var tv: Variant = o.get("to", Vector2(tg.x, tg.y))
-		to = tv if tv is Vector2 else Vector2(tv.x, tv.y)
-		dur = o.get("ms", from.distance_to(to) / float(o.get("speed", 1400.0)) * 1000.0)
+			var pt: String = o.point
+			from = r.point(pt)
+			from_px = r.point_px(pt) / T
+		to = RigFx.vec(o.get("to", r.target()))
+		var speed: float = o.get("speed", 1400.0)
+		dur = o.get("ms", from.distance_to(to) / speed * 1000.0)
 		kind = o.get("kind", "arrow")
 		size = o.get("size", 24.0 if kind == "rock" else (20.0 if kind == "orb" else 1.0))
 		at = from_px
@@ -312,7 +348,8 @@ class Projectile extends RefCounted:
 		var a := from_px * T
 		var b := r.cam.mapv(to, 1.0)
 		var k := r.cam.k(u)
-		return a.lerp(b, u) - Vector2(0.0, float(o.get("arc", 0.0)) * 4.0 * u * (1.0 - u) * k)
+		var arc: float = o.get("arc", 0.0)
+		return a.lerp(b, u) - Vector2(0.0, arc * 4.0 * u * (1.0 - u) * k)
 	func upd(_s: float, ms: float) -> bool:
 		age += ms
 		var u := minf(1.0, age / maxf(1.0, dur))
@@ -327,9 +364,11 @@ class Projectile extends RefCounted:
 		if u >= 1.0 and not done:
 			done = true
 			if not (o.get("hit") is bool and o.hit == false):
-				r.hit(o.get("hit", {}))
+				var h: Dictionary = o.get("hit", {})
+				r.hit(h)
 			if o.has("onArrive"):
-				o.onArrive.call(to)
+				var cb: Callable = o.onArrive
+				cb.call(to)
 			if kind == "rock":
 				r.dust(to.x, r.data.feet, 8, 0.0)
 				r.shake(14, 300)
@@ -355,7 +394,8 @@ class Projectile extends RefCounted:
 		var m := Transform2D(Vector2(k, 0), Vector2(0, k), at * T) * Transform2D(deg_to_rad(rot) if kind == "rock" else ang, Vector2.ZERO)
 		ctx.set_xf(m)
 		if o.has("drawShape"):
-			o.drawShape.call(ctx, size)
+			var cb: Callable = o.drawShape
+			cb.call(ctx, size)
 		elif kind == "arrow" or kind == "spear":
 			var L := 110.0 if kind == "spear" else 64.0
 			var s := size
@@ -364,7 +404,8 @@ class Projectile extends RefCounted:
 			ctx.fill("#cdd4da"); ctx.stroke(INK, 3.5)
 			if kind == "arrow":
 				for sg: float in [-1.0, 1.0]:
-					ctx.begin_path(); ctx.move_to(-L * 0.7 * s, 0); ctx.line_to(-L * 0.7 * s - 12 * s, sg * 10 * s); ctx.line_to(-L * 0.7 * s + 8 * s, sg * 2 * s); ctx.close_path()
+					ctx.begin_path(); ctx.move_to(-L * 0.7 * s, 0); ctx.line_to(-L * 0.7 * s - 12 * s, sg * 10 * s)
+					ctx.line_to(-L * 0.7 * s + 8 * s, sg * 2 * s); ctx.close_path()
 					ctx.fill(o.get("color", "#c9503f")); ctx.stroke(INK, 3)
 		elif kind == "rock":
 			ctx.begin_path()
@@ -375,7 +416,7 @@ class Projectile extends RefCounted:
 			ctx.close_path(); ctx.fill(o.get("color", "#9a8f84")); ctx.stroke(INK, 5)
 			ctx.begin_path(); ctx.circle(-size * 0.3, -size * 0.3, size * 0.25); ctx.fill(Color(1, 1, 1, 0.35))
 		else:
-			var col := Color(o.get("color", "#8fe3ff"))
+			var col := RigFx.col(o.get("color", "#8fe3ff"))
 			ctx.begin_path(); ctx.circle(0, 0, size * 1.35); ctx.fill(Color(col, 0.33))
 			ctx.begin_path(); ctx.circle(0, 0, size); ctx.fill(col); ctx.stroke(INK, 5)
 			ctx.begin_path(); ctx.circle(-size * 0.3, -size * 0.3, size * 0.35); ctx.fill(Color.WHITE)
@@ -417,19 +458,23 @@ class Ring extends Timed:
 			return
 		var a := age / 80.0 if age < 80.0 else ((life - age) / 120.0 if age > life - 120.0 else 1.0)
 		var h := r.hero()
-		var ph := age / life * TAU * float(o.get("turns", 2.0))
+		var hx: float = h.x
+		var turns: float = o.get("turns", 2.0)
+		var ph := age / life * TAU * turns
 		var front := layer == "front"
-		var col := Color(o.get("color", "#f4fcff"))
+		var col := RigFx.col(o.get("color", "#f4fcff"))
 		var rx: float = o.get("rx", 150.0)
 		var ry: float = o.get("ry", 38.0)
+		var oy: float = o.get("y", 165.0)
+		var py: float = r.pose.y
 		ctx.set_world(0.0)
 		for k in 3:
-			RigFx.arc_run(ctx, h.x, float(o.get("y", 165.0)) + r.pose.y - k * 22, rx - k * 22, ry - k * 5, -ph * 1.2 + k * 2.1, 2.6, front)
+			RigFx.arc_run(ctx, hx, oy + py - k * 22, rx - k * 22, ry - k * 5, -ph * 1.2 + k * 2.1, 2.6, front)
 			RigFx.band(ctx, 6 - k, col if front else Color("#cfeef6"), a * (1.0 if front else 0.6))
 		ctx.alpha = 1.0
 
 ## tornado: grows at x0, travels to the target, lifts it + ticks, drops it (landing = final hit via target physics)
-class Tornado extends RefCounted:
+class Tornado extends Fx:
 	var r: Rig
 	var o: Dictionary
 	var x0: float
@@ -451,19 +496,23 @@ class Tornado extends RefCounted:
 	func upd(_s: float, ms: float) -> bool:
 		age += ms
 		var t := age
-		x = lerpf(x0, r.target().x - r.tgt.ox, RigFx.io(clampf(t / travel, 0.0, 1.0)))
+		var tx: float = r.target().x
+		var tox: float = r.tgt.ox
+		x = lerpf(x0, tx - tox, RigFx.io(clampf(t / travel, 0.0, 1.0)))
 		s = minf(1.0, t / 180.0) * (maxf(0.0, 1.0 - (t - travel - hold) / 270.0) if t > travel + hold else 1.0)
 		if not lifted and t >= travel:
 			lifted = true
 			r.tgt.lift = { "h": lift, "t": 0.0, "ms": 520.0 }
 		while fired < ticks and t >= travel + hold * (fired + 1) / (ticks + 1):
 			fired += 1
-			r.hit(Rig.with({ "dmg": 9, "small": true }, o.get("tick", {})))
+			var tick: Dictionary = o.get("tick", {})
+			r.hit(Rig.with({ "dmg": 9, "small": true }, tick))
 		if not released and t >= travel + hold:
 			released = true
 			r.tgt.lift = null
 			r.tgt.vy = -260.0
-			r.tgt.land = Rig.with({ "dmg": 21, "kx": 0 }, o.get("final", {}))
+			var fin: Dictionary = o.get("final", {})
+			r.tgt.land = Rig.with({ "dmg": 21, "kx": 0 }, fin)
 		return t < life
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer == "front" or s <= 0.0:
@@ -482,24 +531,39 @@ class Tornado extends RefCounted:
 			ctx.begin_path()
 			for i in n:
 				var b: Dictionary = bands[i]
-				ctx.line_to(b.cx - b.rx, b.cy)
+				var bcx: float = b.cx
+				var brx: float = b.rx
+				var bcy: float = b.cy
+				ctx.line_to(bcx - brx, bcy)
 			for i in range(n - 1, -1, -1):
 				var b: Dictionary = bands[i]
-				ctx.line_to(b.cx + b.rx, b.cy)
+				var bcx: float = b.cx
+				var brx: float = b.rx
+				var bcy: float = b.cy
+				ctx.line_to(bcx + brx, bcy)
 			ctx.close_path()
 			ctx.fill(Color(0.886, 0.957, 0.976, 0.5)); ctx.stroke(Color(0.169, 0.133, 0.125, 0.35), 3)
 		for b: Dictionary in bands:
+			var bcx: float = b.cx
+			var bcy: float = b.cy
+			var brx: float = b.rx
+			var bry: float = b.ry
+			var brot: float = b.rot
 			for kk in 2:
-				RigFx.arc_run(ctx, b.cx, b.cy, b.rx, b.ry, b.rot + kk * PI, 2.2, front)
+				RigFx.arc_run(ctx, bcx, bcy, brx, bry, brot + kk * PI, 2.2, front)
 				RigFx.band(ctx, 6 * s + 1, Color("#f4fcff") if front else Color("#cfeef6"), 1.0 if front else 0.6)
 		ctx.alpha = 1.0
 		for j in 7:
 			var b: Dictionary = bands[1 + (j % (n - 2))]
+			var bcx: float = b.cx
+			var bcy: float = b.cy
+			var brx: float = b.rx
+			var bry: float = b.ry
 			var a := ph * 9 + j * 2.4
 			var y := sin(a)
 			if (y >= 0.0) != front:
 				continue
-			ctx.set_xf(cam.frame(x, by).translated_local(Vector2(b.cx + b.rx * cos(a), b.cy + b.ry * y)).rotated_local(deg_to_rad(a * 80)))
+			ctx.set_xf(cam.frame(x, by).translated_local(Vector2(bcx + brx * cos(a), bcy + bry * y)).rotated_local(deg_to_rad(a * 80)))
 			ctx.begin_path(); ctx.ellipse(0, 0, 10 * s, 4.5 * s, 0, 0, TAU); ctx.close_path()
 			ctx.fill("#7fb24e"); ctx.stroke(INK, 2.5)
 
@@ -510,7 +574,7 @@ class Shock extends Timed:
 	var R: float
 	var col: Color
 	func _init(p_r: Rig, px: float, py: float, o: Dictionary) -> void:
-		r = p_r; x = px; y = py; life = o.get("ms", 380.0); R = o.get("r", 170.0); col = Color(o.get("color", "#f4ead0"))
+		r = p_r; x = px; y = py; life = o.get("ms", 380.0); R = o.get("r", 170.0); col = RigFx.col(o.get("color", "#f4ead0"))
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return

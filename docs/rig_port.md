@@ -1,6 +1,6 @@
 # Rig port guide (Phase B: one unit per agent)
 
-Status 2026-11-06: all 10 types ported (`scripts/ui/rig/specs/*.gd`). Known shared-runtime gaps: smear widens on dir=down; same-row `mid` layer can draw over attacker (boat repaints paddle); `back` ring of shaman over feet on dir=down; token frame −1 faces default before turn-to-target; target white flash weaker than demo.
+Status 2026-11-06: all 11 types ported (hero + 10) (`scripts/ui/rig/specs/*.gd`). Known shared-runtime gaps: smear widens on dir=down; same-row `mid` layer can draw over attacker (boat repaints paddle); `back` ring of shaman over feet on dir=down; token frame −1 faces default before turn-to-target; target white flash weaker than demo.
 
 Attack demos `docs/anim_demo/<unit>.spec.js` -> real-time skeletal rig on the 2D board. Reference port = commander (`hero_p` / `hero_e`): `scripts/ui/rig/specs/hero.gd`.
 Never edit `docs/anim_demo/*` or `assets/units/styles/*`.

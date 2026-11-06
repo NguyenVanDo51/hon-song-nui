@@ -8,6 +8,12 @@ const THEME_SCRIPT := preload("res://content/theme.gd")
 const SKIRMISH := preload("res://content/skirmish_maps.gd")
 const CAMPAIGN_DIR := "res://content/campaign"
 const CHAPTER_DIR := "res://content/chapters"
+const GUIDE := preload("res://content/guide.gd")
+const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when the saved state shape changes
+## v3 -> v4: aura / poison stamps carry their amount (auraAtk / poisonAmt); v3 had them fixed at 10
+const V3_STAMP := 10
+## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
+const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
 
 static var _campaign: Array = []
 static var _chapters: Array = []
@@ -25,7 +31,8 @@ static func _defs(dir: String) -> Array:
 		seen[f] = true
 		out.append(load(dir + "/" + f).DEF)
 	# sort_custom is not stable: break ties by id so equal `order` values never shuffle (tests flag duplicates)
-	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.order < b.order or (a.order == b.order and str(a.get("id", "")) < str(b.get("id", ""))))
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return a.order < b.order or (a.order == b.order and str(a.get("id", "")) < str(b.get("id", ""))))
 	return out
 
 static func theme() -> Dictionary:
@@ -127,8 +134,6 @@ static func hero_look(key: String) -> Dictionary:
 	return theme().heroes.get(key, { "name": key, "icon": "?", "blurb": "", "side": "e" }) # never hard-crash on a stale key
 
 # ---------- unit guide (role, how to play, traits from stats) ----------
-const GUIDE := preload("res://content/guide.gd")
-
 ## full stats of a unit type (hero overrides merged)
 static func type_stat(type: String, hero_key: Variant) -> Dictionary:
 	var st: Dictionary = Rules.UNITS[type].duplicate()
@@ -248,7 +253,8 @@ static func tile_note(t: String) -> String:
 		return " hoặc ".join(names)
 	match t:
 		"v":
-			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.TERRAIN.v.income })
+			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)),
+				"income": Rules.TERRAIN.v.income })
 		"x":
 			return text("tileRuin").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)),
 				"raze": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("raze", false)) })
@@ -263,12 +269,6 @@ static func tile_note(t: String) -> String:
 
 
 # ---------- saves ----------
-const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when the saved state shape changes
-## v3 -> v4: aura / poison stamps carry their amount (auraAtk / poisonAmt); v3 had them fixed at 10
-const V3_STAMP := 10
-
-## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
-const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
 static func migrate_save(v: Dictionary) -> void:
 	var st: Variant = v.get("state")
 	if st is Dictionary and int(st.get("v", 0)) == 3 and st.get("units") is Array:

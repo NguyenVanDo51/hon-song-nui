@@ -4,6 +4,16 @@ extends RefCounted
 ## State is a Dictionary; tile keys are Vector2i. Rules follow AE2 (docs/review/rules_compare.html).
 
 const DIRS := [[1, 0], [-1, 0], [0, 1], [0, -1]]
+## highest roll value: damage(..., ROLL_TOP) = the real max
+const ROLL_TOP := 0.999999
+
+## stat tables the rules read (tests may swap them)
+static var UNITS: Dictionary = Rules.UNITS
+static var HEROES: Dictionary = Rules.HEROES
+static var RULES: Dictionary = Rules.RULES
+static var TERRAIN: Dictionary = Rules.TERRAIN
+## seeded per game: same save -> same rolls. fixed_roll >= 0 overrides (tests / scripted runs): 0 = min, ->1 = atkMax - 1
+static var fixed_roll := -1.0
 static var _hero_stat_cache := {}
 
 static func other(side: String) -> String:
@@ -39,7 +49,8 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 		c.done = false
 		waves.append(c)
 	var s := {
-		"v": Content.STATE_V, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles, "owner": {}, "units": [], "graves": [],
+		"v": Content.STATE_V, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles,
+		"owner": {}, "units": [], "graves": [],
 		"gold": gold, "turn": 1, "side": "p",
 		"heroKey": { "p": _or(opts, "hero", def.get("hero")), "e": def.get("enemyHero") },
 		"heroDead": { "p": false, "e": false }, "heroDeaths": { "p": 0, "e": 0 }, "heroSaved": { "p": {}, "e": {} },
@@ -55,12 +66,6 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 	for side: String in ["p", "e"]:
 		s.hadCastle[side] = castles(s, side) > 0
 	return s
-
-## stat tables the rules read (tests may swap them)
-static var UNITS: Dictionary = Rules.UNITS
-static var HEROES: Dictionary = Rules.HEROES
-static var RULES: Dictionary = Rules.RULES
-static var TERRAIN: Dictionary = Rules.TERRAIN
 
 static func use_tables(units: Dictionary, heroes: Dictionary, rules: Dictionary, terrain: Dictionary) -> void:
 	UNITS = units; HEROES = heroes; RULES = rules; TERRAIN = terrain
@@ -299,11 +304,6 @@ static func damage(s: Dictionary, a: Dictionary, ax: int, ay: int, att_hp: int, 
 	var raw := A + _mods(s, a, ax, ay, d)
 	return clampi(int(floor(raw * att_hp / 100.0)), 0, d.hp)
 
-## seeded per game: same save -> same rolls. fixed_roll >= 0 overrides (tests / scripted runs): 0 = min, ->1 = atkMax - 1
-static var fixed_roll := -1.0
-## highest roll value: damage(..., ROLL_TOP) = the real max
-const ROLL_TOP := 0.999999
-
 static func roll(s: Dictionary) -> float:
 	if fixed_roll >= 0.0:
 		return fixed_roll
@@ -474,7 +474,8 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 			if can_counter(s, d, tx, ty):
 				var c := damage(s, d, d.x, d.y, d.hp, u, roll(s))
 				u.hp -= c
-				ev.append({ "t": "hit", "from": d.id, "fx": d.x, "fy": d.y, "id": u.id, "amount": c, "x": u.x, "y": u.y, "counter": true, "type": d.type, "side": d.side })
+				ev.append({ "t": "hit", "from": d.id, "fx": d.x, "fy": d.y, "id": u.id, "amount": c, "x": u.x, "y": u.y, "counter": true,
+					"type": d.type, "side": d.side })
 				_gain_xp(s, d, c, u)
 				if u.hp <= 0:
 					_kill(s, u, ev)

@@ -3,15 +3,15 @@ extends RefCounted
 ## enemy AI (also the hint button and the sim's player side). Scores use the mid damage roll.
 ## One step at a time so the UI can animate: next_step() -> {kind:'act', act} | {kind:'buy', x, y, type} | null (= end turn).
 
+## buy weight for a type without `aiWeight` (a new unit still gets bought, never crashes the AI)
+const DEFAULT_WEIGHT := 1.0
+
 ## own stream (UI effects draw from the global randf); seeded per game by the screen, swapped by the sims
 static var _gen := RandomNumberGenerator.new()
 static var rng: Callable = _gen.randf
 
 static func seed_game(v: int) -> void:
 	_gen.seed = v
-
-## buy weight for a type without `aiWeight` (a new unit still gets bought, never crashes the AI)
-const DEFAULT_WEIGHT := 1.0
 
 static func weight(type: String) -> float:
 	return float(Game.UNITS[type].get("aiWeight", DEFAULT_WEIGHT))

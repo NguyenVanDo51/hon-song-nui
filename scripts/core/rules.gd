@@ -21,7 +21,8 @@ const TERRAIN := {
 	"t": { "def": 15, "cost": 1, "heals": "any" }, # shrine: heals any side's unit standing on it, no owner, no income
 }
 
-## atk..atkMax = AE2 table attack; a hit rolls atk..atkMax-1 (AE2 never rolls the max). move classes: foot, fly (all cost 1), water (river cost 1, land as foot).
+## atk..atkMax = AE2 table attack; a hit rolls atk..atkMax-1 (AE2 never rolls the max).
+## move classes: foot, fly (all cost 1), water (river cost 1, land as foot).
 ## flags (all optional; a new type needs only cost/atk/atkMax/def/mv/rmin/rmax/move):
 ##   capV/capC capture village/castle (= the TERRAIN `cap` flag); antiAir +atk vs fliers; vsType {type: +atk};
 ##   aura N: after acting, allies within 2 get +N atk until our next turn; poison N: a hit leaves the target -N atk / -N def
@@ -32,17 +33,22 @@ const TERRAIN := {
 const UNITS := {
 	"hero": { "cost": 200, "atk": 55, "atkMax": 65, "def": 20, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "capC": true,
 		"heavy": true, "aiValue": 900 },
-	"soldier": { "cost": 150, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true, "aiWeight": 3 },
-	"archer": { "cost": 250, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 2, "move": "foot", "antiAir": 15, "shot": "arrow", "aiWeight": 2 },
-	"boat": { "cost": 300, "atk": 50, "atkMax": 55, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "water", "waterAtk": 10, "waterDef": 15, "aiWeight": 0.8 },
+	"soldier": { "cost": 150, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "capV": true,
+		"aiWeight": 3 },
+	"archer": { "cost": 250, "atk": 50, "atkMax": 55, "def": 5, "mv": 5, "rmin": 1, "rmax": 2, "move": "foot", "antiAir": 15, "shot": "arrow",
+		"aiWeight": 2 },
+	"boat": { "cost": 300, "atk": 50, "atkMax": 55, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "water", "waterAtk": 10, "waterDef": 15,
+		"aiWeight": 0.8 },
 	"shaman": { "cost": 400, "atk": 40, "atkMax": 45, "def": 5, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "raise": "ghost", "aiWeight": 0.6 },
-	"drum": { "cost": 500, "atk": 35, "atkMax": 40, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "aura": 10, "vsType": { "ghost": 15 }, "aiWeight": 0.5 },
+	"drum": { "cost": 500, "atk": 35, "atkMax": 40, "def": 10, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "aura": 10, "vsType": { "ghost": 15 },
+		"aiWeight": 0.5 },
 	"wolf": { "cost": 600, "atk": 60, "atkMax": 65, "def": 15, "mv": 6, "rmin": 1, "rmax": 1, "move": "foot", "poison": 10, "aiWeight": 1.2 },
 	"elephant": { "cost": 600, "atk": 60, "atkMax": 70, "def": 30, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "heavy": true, "aiWeight": 1.4 },
-	"catapult": { "cost": 700, "atk": 50, "atkMax": 70, "def": 10, "mv": 4, "rmin": 2, "rmax": 4, "move": "foot", "siege": true, "raze": true, "shot": "rock",
-		"heavy": true, "aiWeight": 0.7 },
+	"catapult": { "cost": 700, "atk": 50, "atkMax": 70, "def": 10, "mv": 4, "rmin": 2, "rmax": 4, "move": "foot", "siege": true, "raze": true,
+		"shot": "rock", "heavy": true, "aiWeight": 0.7 },
 	"bird": { "cost": 1000, "atk": 70, "atkMax": 80, "def": 25, "mv": 7, "rmin": 1, "rmax": 1, "move": "fly", "heavy": true, "aiWeight": 1 },
-	"ghost": { "cost": 150, "atk": 40, "atkMax": 50, "def": 2, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "noGrave": true, "noCap": true, "buyable": false },
+	"ghost": { "cost": 150, "atk": 40, "atkMax": 50, "def": 2, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "noGrave": true, "noCap": true,
+		"buyable": false },
 }
 const BUY_ORDER := ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird"]
 

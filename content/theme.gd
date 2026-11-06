@@ -115,6 +115,12 @@ const THEME := {
 		"loseTip_routed": "Mẹo: chiếm làng sớm để có vàng mua quân; đừng đem lính lẻ ra đánh.",
 		"loseTip_timeUp": "Mẹo: đi đường mòn cho nhanh, để bộ binh chặn đường đuổi phía sau.",
 		"loseTip_heroKilled": "",
+		"star_win": "Thắng trận",
+		"star_hero": "Tướng ta không ngã lần nào",
+		"star_turns": "Thắng trong {n} lượt",
+		"star_lost": "Mất không quá {n} lính",
+		"star_lost0": "Không mất lính nào",
+		"star_best": "Kỷ lục: {n}/3 sao",
 	},
 	## win types: brief = goal line of the mission opening, bar = top bar. {eh} enemy commander, {hero} ours, {n} count, {turns} limit, {left} turns left
 	"goals": {

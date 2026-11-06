@@ -32,6 +32,9 @@ var view := {
 	"buyAt": null,
 	"hover": null,
 	"preview": null,
+	"threat": null,
+	"threatFill": null,
+	"danger": [],
 }
 var hover: Variant = null
 var _info_hit_id := -1

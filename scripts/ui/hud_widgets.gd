@@ -117,6 +117,78 @@ class Rays extends Control:
 				Color(0.94, 0.79, 0.42, 0.08),
 			)
 
+## mission stars on the end card: `got` of Stars.MAX, popping in one by one (k: 0 -> MAX, tweened by the owner)
+class StarRow extends Control:
+	var got := 0
+	var k := 0.0:
+		set(v):
+			k = v
+			queue_redraw()
+
+	func _draw() -> void:
+		var r := size.y * 0.42
+		var gap := r * 2.6
+		var x0 := size.x / 2 - gap * (Stars.MAX - 1) / 2.0
+		for i in Stars.MAX:
+			var c := Vector2(x0 + gap * i, size.y / 2)
+			Draw.star(self, c, r, Color(0.12, 0.07, 0.04, 0.9), Color(0.94, 0.79, 0.42, 0.35), 2.0)
+			if i < got:
+				var t := clampf(k - i, 0.0, 1.0)
+				if t > 0.0:
+					var pop := 1.0 + sin(t * PI) * 0.35 # overshoots then settles
+					Draw.glow(self, c, r * 1.6 * t, Color(1.0, 0.85, 0.4, 0.35 * t))
+					Draw.star(self, c, r * pop * t, Color("#ffd96a"), Color("#7a4a12"), 2.0)
+
+## one goal's mark on the win card: gold star = met, dark = missed (the fonts have no check-mark glyph)
+class StarIcon extends Control:
+	var on := false
+
+	func _draw() -> void:
+		var c := size / 2
+		var r := minf(size.x, size.y) * 0.5
+		if on:
+			Draw.star(self, c, r, Color("#ffd96a"), Color("#7a4a12"), 1.2)
+		else:
+			Draw.star(self, c, r, Color(0.16, 0.1, 0.06), Color(0.94, 0.79, 0.42, 0.45), 1.2)
+
+## win card: 3 stars popping in + each goal ticked / missed with the number it was judged on (+ best, if better before)
+static func end_stars(v: VBoxContainer, goals: Array, best_before: int) -> StarRow:
+	var row := StarRow.new()
+	row.got = goals.filter(
+		func(g: Dictionary) -> bool:
+			return g.ok,
+	).size()
+	row.custom_minimum_size = Vector2(240, 54)
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(row)
+	var list := Style.vbox(2)
+	list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	for g: Dictionary in goals:
+		var ok: bool = g.ok
+		var have: int = g.have if g.has("have") else 0
+		var note := ""
+		match str(g.key):
+			"turns":
+				note = " (lượt %d)" % have
+			"lost":
+				note = " (mất %d)" % have
+			"hero":
+				note = "" if ok else " (ngã %d lần)" % have
+		var line := Style.hbox(8)
+		var icon := StarIcon.new()
+		icon.on = ok
+		icon.custom_minimum_size = Vector2(16, 16)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		line.add_child(icon)
+		line.add_child(Style.lbl(str(g.text) + note, 15, Style.GOOD if ok else Style.MUTED))
+		list.add_child(line)
+	v.add_child(list)
+	if best_before > row.got:
+		var best := Style.lbl(Content.text("star_best").format({ "n": best_before }), 13, Style.MUTED)
+		best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		v.add_child(best)
+	return row
+
 ## soft pulsing halo behind the token on the intro card
 class IntroGlow extends Control:
 	var col := Color.WHITE

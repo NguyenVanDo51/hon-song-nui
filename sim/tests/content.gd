@@ -140,6 +140,8 @@ func content_tests() -> void:
 		run(
 			"content valid: %s" % def.id,
 			func() -> void:
+				if Content.mission(str(def.id)) != null: # campaign only
+					eq(Stars.check_def(def), "", "stars bar")
 				var rows: Array = def.map.rows
 				for r: String in rows:
 					var row0: String = rows[0]

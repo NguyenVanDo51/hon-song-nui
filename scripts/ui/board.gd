@@ -296,6 +296,20 @@ func _draw_dyn(ci: CanvasItem) -> void:
 	fx.draw_under(ci, T, time)
 	_draw_units(ci, time)
 
+## border of a set of tiles ({ Vector2i: any }): only edges with no tile of the set on the other side
+func _outline(ci: CanvasItem, zone: Dictionary, col: Color, lw: float) -> void:
+	for key: Vector2i in zone:
+		var x0 := key.x * T
+		var y0 := key.y * T
+		if not zone.has(key + Vector2i(1, 0)):
+			ci.draw_line(Vector2(x0 + T, y0), Vector2(x0 + T, y0 + T), col, lw)
+		if not zone.has(key + Vector2i(-1, 0)):
+			ci.draw_line(Vector2(x0, y0), Vector2(x0, y0 + T), col, lw)
+		if not zone.has(key + Vector2i(0, 1)):
+			ci.draw_line(Vector2(x0, y0 + T), Vector2(x0 + T, y0 + T), col, lw)
+		if not zone.has(key + Vector2i(0, -1)):
+			ci.draw_line(Vector2(x0, y0), Vector2(x0 + T, y0), col, lw)
+
 func _cell(ci: CanvasItem, x: int, y: int, fill: Variant, stroke: Variant, lw := 0.07) -> void:
 	if fill != null:
 		var fc: Color = fill
@@ -370,6 +384,12 @@ func _draw_overlays(ci: CanvasItem, time: float) -> void:
 					if reach.has(Vector2i(rx + e[0], ry + e[1])):
 						continue
 					ci.draw_line(Vector2((rx + e[2]) * T, (ry + e[3]) * T), Vector2((rx + e[4]) * T, (ry + e[5]) * T), oc, lw)
+	if v.threat != null: # enemy picked: red tint (threatFill) + red line round every tile it can hit next turn
+		var fill: Dictionary = v.threatFill if v.threatFill != null else { }
+		for key: Vector2i in fill:
+			_cell(ci, key.x, key.y, Color(ATTACK, 0.2 + pulse * 0.08), null)
+		var th: Dictionary = v.threat
+		_outline(ci, th, Color(ATTACK, 0.9), maxf(1.5, T / 24.0))
 	for e: Dictionary in v.attackable:
 		var ex: int = e.x
 		var ey: int = e.y
@@ -572,6 +592,18 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			if not back_done.has(r):
 				r.draw_layer(ci, "back")
 			r.draw_layer(ci, "mid")
+	if not v.busy: # ours inside the picked enemy's threat zone: red "!" badge, top right
+		for uid: int in v.danger:
+			var du: Variant = Game.unit_by_id(s, uid)
+			if du == null:
+				continue
+			var dx: float = du.x
+			var dy: float = du.y
+			var bc := Vector2((dx + 0.84) * T, (dy + 0.16) * T)
+			var br := T * 0.13
+			ci.draw_circle(bc, br + maxf(1.0, T * 0.02), Color(0.1, 0.03, 0.02, 0.9))
+			ci.draw_circle(bc, br, ATTACK.lightened(0.05 + sin(time / 200.0) * 0.08))
+			Draw.text_c(ci, Style.xbold, bc, "!", roundi(T * 0.2), Color.WHITE)
 
 ## hp bar + number (when hurt), rank stars, sleeping-sentry 💤 around a figure centred at c (tile size ts).
 ## zz = 💤 height above c, tiles (3D projects c at the chest, so it sits higher there)

@@ -53,10 +53,22 @@ static func mark_done(id: String) -> void:
 		d.append(id)
 		set_v("campaign_done", d)
 
-## a finished game: only a campaign win counts (skirmish / 1 vs 1 never touch progress)
-static func record_result(ctx: Dictionary, winner: Variant) -> void:
+## a finished game: only a campaign win counts (skirmish / 1 vs 1 never touch progress); stars keep the best
+static func record_result(ctx: Dictionary, winner: Variant, stars := 0) -> void:
 	if winner == "p" and ctx.get("kind") == "campaign":
-		mark_done(str(ctx.get("id", "")))
+		var id := str(ctx.get("id", ""))
+		mark_done(id)
+		if stars > stars_of(id):
+			var cur: Dictionary = get_v("campaign_stars", { })
+			var all := cur.duplicate()
+			all[id] = stars
+			set_v("campaign_stars", all)
+
+## best stars won on a campaign mission (0 = never won, or won before stars existed)
+static func stars_of(id: String) -> int:
+	var all: Dictionary = get_v("campaign_stars", { })
+	var n: int = all.get(id, 0)
+	return n
 
 ## index of the first mission not yet won
 static func unlocked_index() -> int:

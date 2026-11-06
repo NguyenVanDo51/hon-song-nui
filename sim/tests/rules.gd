@@ -365,6 +365,59 @@ func rule_tests() -> void:
 			eq(Game.targets_from(s, unit(s, 0), 1, 1).size(), 1),
 	)
 	run(
+		"threat zone (UI): tiles in range from any stop tile; siege only from where it stands",
+		func() -> void:
+			var s := blank([["e", "soldier", 5, 0], ["e", "catapult", 3, 3]])
+			var sol := unit(s, 0)
+			var reach := Game.reachable(s, sol)
+			var th := Game.threat_tiles(s, sol, reach)
+			check(th.has(Vector2i(0, 1)) and not reach.has(Vector2i(0, 1)), "6 away: hit, not walked to")
+			check(not th.has(Vector2i(0, 2)), "7 away: out of reach")
+			var cat := unit(s, 1)
+			var tc := Game.threat_tiles(s, cat, Game.reachable(s, cat))
+			check(tc.has(Vector2i(3, 1)) and tc.has(Vector2i(0, 2)), "catapult rings 2..4 round its tile")
+			check(not tc.has(Vector2i(3, 2)) and not tc.has(Vector2i(0, 0)), "not 1 away, not 5+ away (no move then shoot)"),
+	)
+	run(
+		"lost counter: troops that fall count; commanders + raised ghosts do not",
+		func() -> void:
+			var s := blank([["p", "elephant", 1, 1], ["e", "soldier", 2, 1, 10], ["e", "hero", 1, 2, 5], ["p", "soldier", 4, 4]])
+			Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
+			eq(s.lost, { "p": 0, "e": 1 }, "soldier counted")
+			Game._kill(s, unit(s, 1), [])
+			eq(s.lost.e, 1, "commander not counted")
+			eq(s.heroDeaths.e, 1, "commander deaths kept apart")
+			Game._kill(s, { "id": 99, "side": "e", "type": "ghost", "x": 3, "y": 3 }, [])
+			eq(s.lost.e, 1, "ghost not counted"),
+	)
+	run(
+		"mission stars: win · commander never fell · turns / lost bar",
+		func() -> void:
+			var m02: Dictionary = Content.mission("m02")
+			var n: int = m02.stars.turns
+			var s := Game.new_game(m02)
+			s.winner = "p"
+			s.turn = n
+			eq(Stars.count(s, m02), 3, "win on par, commander alive")
+			s.turn = n + 1
+			eq(Stars.count(s, m02), 2, "one turn late")
+			s.heroDeaths.p = 1
+			eq(Stars.count(s, m02), 1, "commander fell once")
+			s.winner = "e"
+			eq(Stars.count(s, m02), 0, "loss = no stars")
+			var m03: Dictionary = Content.mission("m03")
+			var k: int = m03.stars.lost
+			var s3 := Game.new_game(m03)
+			s3.winner = "p"
+			s3.lost.p = k
+			eq(Stars.count(s3, m03), 3, "lost within the bar")
+			s3.lost.p = k + 1
+			eq(Stars.count(s3, m03), 2, "one too many lost")
+			var old := s3.duplicate()
+			old.erase("lost") # save from before the counter
+			eq(Stars.count(old, m03), 3, "old save: no counter = nothing lost"),
+	)
+	run(
 		"rules tables = docs/spec.md (cost, atk, atkMax, def, mv, rmin, rmax; terrain def / cost)",
 		func() -> void:
 			var spec := {

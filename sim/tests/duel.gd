@@ -127,5 +127,17 @@ func duel_tests() -> void:
 			eq(Store.done_list(), [], "campaign loss")
 			Store.record_result({ "kind": "campaign", "id": "m01" }, "p")
 			eq(Store.done_list(), ["m01"], "campaign win counts")
-			Store.set_v("campaign_done", []),
+			Store.set_v("campaign_done", [])
+			Store.set_v("campaign_stars", { })
+			Store.record_result({ "kind": "campaign", "id": "m01" }, "p", 2)
+			Store.record_result({ "kind": "campaign", "id": "m01" }, "p", 1)
+			eq(Store.stars_of("m01"), 2, "stars keep the best")
+			Store.record_result({ "kind": "campaign", "id": "m01" }, "e", 3)
+			eq(Store.stars_of("m01"), 2, "a loss never adds stars")
+			Store.record_result({ "kind": "skirmish", "id": "m01" }, "p", 3)
+			eq(Store.stars_of("m01"), 2, "only campaign games give stars")
+			Store.record_result({ "kind": "campaign", "id": "m01" }, "p", 3)
+			eq(Store.stars_of("m01"), 3, "a better run raises it")
+			Store.set_v("campaign_done", [])
+			Store.set_v("campaign_stars", { }),
 	)

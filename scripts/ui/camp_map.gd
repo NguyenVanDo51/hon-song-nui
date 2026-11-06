@@ -156,12 +156,15 @@ func _draw_info(_s: float) -> void:
 	var head := "MÀN %d / %d" % [k + 1, missions.size()]
 	var title: String = m.title
 	var place: String = m.get("place", "")
+	var goals: Array = Stars.goals(m) if m.has("stars") else []
 	var rows := [
 		[Style.bold, head, 12, Style.MUTED],
 		[Style.display, title, 24, Style.GOLD],
 		[Style.body, place, 14, Style.INK],
 		[Style.semi, hint, 13, Style.MUTED],
 	]
+	for g: Dictionary in goals:
+		rows.append([Style.body, "· " + str(g.text), 13, Style.MUTED])
 	var w := Style.bold.get_string_size(head + "    " + status, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
 	for r: Array in rows:
 		var rf: Font = r[0]
@@ -169,7 +172,7 @@ func _draw_info(_s: float) -> void:
 		var rsize: int = r[2]
 		w = maxf(w, rf.get_string_size(rtext, HORIZONTAL_ALIGNMENT_LEFT, -1, rsize).x)
 	w = minf(w + 32, size.x * 0.45)
-	var h := 16.0 + 18 + 32 + 22 + 20 + 12
+	var h := 16.0 + 18 + 32 + 22 + 20 + 12 + (30.0 + 18 * goals.size() if goals.size() else 0.0)
 	var node_x := _p(_pos(m)).x
 	var x := size.x - w - 14 if node_x < size.x / 2 else 14.0
 	var box := Rect2(x, 14, w, h)
@@ -183,6 +186,15 @@ func _draw_info(_s: float) -> void:
 	Draw.text_a(self, Style.body, Vector2(x + 16, y), place, 14, Style.INK, 0.0, true)
 	y += 22
 	Draw.text_a(self, Style.semi, Vector2(x + 16, y), hint, 13, Style.MUTED, 0.0, true)
+	if goals.size(): # best stars so far, then the 3 goals
+		y += 28
+		var got := Store.stars_of(id)
+		for i in Stars.MAX:
+			var sc := Vector2(x + 26 + i * 24, y + 8)
+			Draw.star(self, sc, 9.0, Color("#ffd96a") if i < got else Color(0.2, 0.13, 0.08), Color(0.94, 0.79, 0.42, 0.6), 1.2)
+		for g: Dictionary in goals:
+			y += 18
+			Draw.text_a(self, Style.body, Vector2(x + 16, y + 6), "· " + str(g.text), 13, Style.INK, 0.0, true)
 
 func _gui_input(ev: InputEvent) -> void:
 	var mm := ev as InputEventMouseMotion
@@ -311,6 +323,18 @@ func _draw() -> void:
 		draw_circle(c, r, Color(fill, al), true, -1.0, true)
 		draw_arc(c, r, 0, TAU, 32, Color(stroke, al), 0.45 * s, true)
 		Draw.text_c(self, Style.xbold, c, str(missions.find(m) + 1), roundi(2.6 * s), Color(Color("#3a1a10") if cur else Style.INK, al))
+		if done: # best stars, a small arc over the node
+			var got := Store.stars_of(mid)
+			for k in Stars.MAX:
+				var sp := c + Vector2((k - 1) * 2.3 * s, -r - (1.2 if k == 1 else 0.7) * s)
+				Draw.star(
+					self,
+					sp,
+					1.15 * s,
+					Color("#ffd96a") if k < got else Color(0.16, 0.1, 0.06, 0.95),
+					Color(0.1, 0.05, 0.02, 0.9),
+					maxf(1.0, 0.18 * s),
+				)
 		var place: String = m.get("region", m.get("place", ""))
 		Draw.text_a(
 			self,

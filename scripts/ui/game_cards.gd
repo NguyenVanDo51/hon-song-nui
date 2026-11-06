@@ -179,7 +179,7 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	layer.queue_free()
 	intro_layer = null
 
-func show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
+func show_end(win: bool, text: String, outro: Array, buttons: Array, star_goals: Array = [], best_before := 0) -> void:
 	for c in end_layer.get_children():
 		c.queue_free()
 	var dim := ColorRect.new()
@@ -210,6 +210,9 @@ func show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 	var title := Style.lbl(title_txt, 34 if duel else 46, Style.GOLD if win else Style.SEA_HI, Style.display_x, duel)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(title)
+	var star_row: HudWidgets.StarRow = null
+	if star_goals.size():
+		star_row = HudWidgets.end_stars(v, star_goals, best_before)
 	if text != "":
 		var t := Style.lbl(text, 16, Style.INK, null, true)
 		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -255,3 +258,7 @@ func show_end(win: bool, text: String, outro: Array, buttons: Array) -> void:
 	var tw := card.create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_property(card, "scale", Vector2.ONE, 0.5)
 	tw.parallel().tween_property(card, "modulate:a", 1.0, 0.3)
+	if star_row != null and star_row.got > 0:
+		var st_tw := star_row.create_tween()
+		st_tw.tween_interval(0.45)
+		st_tw.tween_property(star_row, "k", float(star_row.got), 0.42 * star_row.got)

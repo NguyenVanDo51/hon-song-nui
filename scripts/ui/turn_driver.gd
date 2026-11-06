@@ -227,7 +227,14 @@ func _bot_turn() -> void:
 
 func finish() -> void:
 	Store.clear_game()
-	Store.record_result(gs.ctx, gs.s.winner) # before any await: leaving during the pause must not lose the win
+	var campaign: bool = gs.ctx.kind == "campaign"
+	var star_goals: Array = Stars.check(gs.s, gs.def) if campaign else []
+	var stars := star_goals.filter(
+		func(g: Dictionary) -> bool:
+			return g.ok,
+	).size()
+	var best_before := Store.stars_of(str(gs.ctx.get("id", ""))) if campaign else 0
+	Store.record_result(gs.ctx, gs.s.winner, stars) # before any await: leaving during the pause must not lose the win
 	var duel: bool = gs.ctx.kind == "duel"
 	var win: bool = gs.s.winner == gs._me() or (duel and gs._hotseat()) # two humans: someone at the screen won
 	gs.refresh()
@@ -312,7 +319,7 @@ func finish() -> void:
 	else:
 		buttons.append(["Ván mới", gs.main.show_skirmish, true])
 		buttons.append(["Menu", gs.main.show_title, false])
-	gs.cards.show_end(win, reason_text, outro, buttons)
+	gs.cards.show_end(win, reason_text, outro, buttons, star_goals if win else [], best_before)
 	if gs.main.flags.has("shots"):
 		gs.get_tree().create_timer(1.5).timeout.connect(
 			func() -> void:

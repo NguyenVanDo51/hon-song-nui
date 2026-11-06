@@ -59,6 +59,7 @@ const DEF := {
 	"allowed": { "p": [...], "e": [...] },  # lính được mua mỗi phe (soldier archer boat shaman drum wolf elephant catapult bird)
 	"gold": { "p": 300, "e": 400 },       # vàng đầu trận (độ khó). Thu nhập: làng 30, thành 50 mỗi lượt
 	"win": { "type": "castles" },         # Objectives.TYPES: castles (chiếm hết thành + hạ tướng địch) | rout | hero | survive (+ "turns") | reach (+ "at": [[x, y]], tùy chọn "turns")
+	"stars": { "turns": 12 },             # sao thứ 3: thắng trong ≤ N lượt; màn survive dùng { "lost": K } (mất ≤ K lính). Bắt buộc (test)
 	"unitCap": 15,                        # trần quân mỗi phe (mặc định Rules.RULES.unitCap; âm binh không tính)
 	"night": false,                       # phủ màn đêm
 	"map": { "rows": ["..f~..", ...] },   # . đồng  r đường mòn  f rừng  h đồi  m núi  ~ sông  = cầu  v làng  x làng hỏng  c thành  t đền
@@ -97,3 +98,8 @@ Theo cách AE2 gốc mở quân (m0–m7: màn không mua xen kẽ, quân mới 
 | Rồng | m15 | m15 (1 con) | — (chỉ đấu tự do) |
 
 Kiểm tra: `sim/tests.gd` (validator: hàng đều dài, quân đứng ô đi được, không chồng ô...) + `sim/sim.gd -- mission m09 20` (AI phía ta thắng bao nhiêu %, trung vị số lượt). Lệnh đầy đủ ở README.
+
+## Sao màn (2026-11-06)
+- 3 sao / màn chiến dịch (`scripts/core/stars.gd`): thắng · tướng ta không ngã lần nào (`heroDeaths.p == 0`) · mốc riêng `stars` của màn: `turns` (thắng trong ≤ N lượt) hoặc `lost` (mất ≤ K lính; không tính tướng, âm binh; đếm ở `s.lost`).
+- Lưu sao cao nhất mỗi màn (`Store.stars_of`, khóa `campaign_stars`); thua / đấu tự do / 1v1 không ghi. Thắng trước khi có sao -> 0 sao, chơi lại để lấy.
+- Đặt mốc: lấy trung vị khi AI phe ta thắng: `bash tools/sim_many.sh "m01 … m16" 12 6` (cột `win: turns med …, lost med …`, kèm `stars 0-3 [..]` = số ván được 0/1/2/3 sao). Màn survive kết thúc lượt cố định -> dùng `lost`.

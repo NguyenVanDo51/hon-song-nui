@@ -71,6 +71,7 @@ static func new_game(def: Dictionary, opts := { }) -> Dictionary:
 		"heroDead": { "p": false, "e": false },
 		"heroDeaths": { "p": 0, "e": 0 },
 		"heroSaved": { "p": { }, "e": { } },
+		"lost": { "p": 0, "e": 0 },
 		"winner": null,
 		"reason": null,
 		"nextId": 1,
@@ -265,6 +266,28 @@ static func reachable(s: Dictionary, u: Dictionary) -> Dictionary:
 		var uy: int = u.y
 		best.erase(Vector2i(ux, uy))
 	return best
+
+## UI only: every tile u could hit next turn if nothing else moved: in range from any tile of `reach` (its stop
+## tiles, from reachable()), or only from where it stands for siege units (no shot after moving). { Vector2i: true }
+static func threat_tiles(s: Dictionary, u: Dictionary, reach: Dictionary) -> Dictionary:
+	var st := stat(s, u)
+	var rmin: int = st.rmin
+	var rmax: int = st.rmax
+	var w: int = s.w
+	var h: int = s.h
+	var ux: int = u.x
+	var uy: int = u.y
+	var froms: Array = [Vector2i(ux, uy)] if st.get("siege", false) else reach.keys()
+	var out := { }
+	for f: Vector2i in froms:
+		for dy in range(-rmax, rmax + 1):
+			for dx in range(-rmax, rmax + 1):
+				var d := absi(dx) + absi(dy)
+				var tx := f.x + dx
+				var ty := f.y + dy
+				if d >= rmin and d <= rmax and tx >= 0 and ty >= 0 and tx < w and ty < h:
+					out[Vector2i(tx, ty)] = true
+	return out
 
 ## another unit shares u's tile (only right after buying on an occupied castle)
 static func stacked(s: Dictionary, u: Dictionary) -> bool:
@@ -516,6 +539,11 @@ static func _kill(s: Dictionary, u: Dictionary, ev: Array) -> void:
 		s.heroSaved[u.side] = { "rank": u.rank, "xp": u.xp }
 	else:
 		var base: Dictionary = UNITS[u.type]
+		if base.get("buyable", true): # summons (ghosts) don't count as losses (mission stars)
+			var lost: Dictionary = s.get("lost", { })
+			var nl: int = lost.get(u.side, 0)
+			lost[u.side] = nl + 1
+			s.lost = lost
 		if not base.get("noGrave", false):
 			var graves: Array = s.graves
 			graves = graves.filter(

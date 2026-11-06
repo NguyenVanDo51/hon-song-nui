@@ -65,19 +65,52 @@ func report(label: String, games: int, mk: Callable) -> void:
 	var res := { "p": 0, "e": 0, "draw": 0 }
 	var turns := []
 	var reasons := { }
+	var win_lost := [] # p troops lost in p wins (mission stars calibration)
+	var hero_ok := 0
+	var win_turns := []
+	var stars := [0, 0, 0, 0]
 	for g in games:
 		lib.seed_v = 1000.0 + g * 7919
 		var s: Dictionary = mk.call(g)
 		var w: String = s.winner if s.winner != null else "draw"
 		res[w] += 1
 		turns.append(s.turn)
+		if w == "p":
+			var lost: Dictionary = s.get("lost", { })
+			win_lost.append(lost.get("p", 0))
+			win_turns.append(s.turn)
+			var deaths: Dictionary = s.heroDeaths
+			hero_ok += 1 if deaths.p == 0 else 0
+		var mdef: Variant = Content.mission(str(s.get("scenario", "")))
+		if mdef != null:
+			var md: Dictionary = mdef
+			if md.has("stars"):
+				stars[Stars.count(s, md)] += 1
 		var r: String = s.reason if s.reason != null else "timeout"
 		reasons[r] = reasons.get(r, 0) + 1
 	turns.sort()
 	var rs := []
 	for k: String in reasons:
 		rs.append('"%s":%d' % [k, reasons[k]])
+	win_lost.sort()
+	win_turns.sort()
+	var wt_txt := "-" if win_turns.is_empty() else "%d [%d-%d]" % [win_turns[win_turns.size() >> 1], win_turns[0], win_turns.back()]
+	var lost_txt := "-" if win_lost.is_empty() else "%d [%d-%d]" % [win_lost[win_lost.size() >> 1], win_lost[0], win_lost.back()]
 	print(
-		"%s p %d/%d  e %d  draw %d  turns med %d [%d-%d]  {%s}"
-		% [label.rpad(22), res.p, games, res.e, res.draw, turns[turns.size() >> 1], turns[0], turns[turns.size() - 1], ",".join(rs)]
+		"%s p %d/%d  e %d  draw %d  turns med %d [%d-%d]  {%s}  win: turns med %s, lost med %s, hero ok %d  stars 0-3 %s"
+		% [
+			label.rpad(22),
+			res.p,
+			games,
+			res.e,
+			res.draw,
+			turns[turns.size() >> 1],
+			turns[0],
+			turns[turns.size() - 1],
+			",".join(rs),
+			wt_txt,
+			lost_txt,
+			hero_ok,
+			stars,
+		]
 	)

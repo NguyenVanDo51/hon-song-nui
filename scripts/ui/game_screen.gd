@@ -239,8 +239,41 @@ func _build_view() -> void:
 	v.sel = u if u != null and not ui.busy else null
 	v.selMine = u != null and my_turn and u.side == _me() and not u.acted
 	v.reach = null
+	v.threat = null
+	v.threatFill = null
+	v.danger = []
 	if u != null and not ui.busy and ui.mode == M_IDLE:
 		v.reach = _reach(su)
+		if su.side == _foe(): # enemy picked: where it can hit next turn + which of ours stand there
+			var reach_e: Dictionary = v.reach
+			var th: Dictionary = _memo_get(
+				"t%d" % su.id,
+				func() -> Dictionary:
+					return Game.threat_tiles(s, su, reach_e),
+			)
+			v.threat = th
+			# tint = tiles it hits but cannot walk to; siege fires only from where it stands, so all of them
+			var siege: bool = Game.stat(s, su).get("siege", false)
+			v.threatFill = (
+				th
+				if siege
+				else _memo_get(
+					"tf%d" % su.id,
+					func() -> Dictionary:
+						var only := { }
+						for key: Vector2i in th:
+							if not reach_e.has(key):
+								only[key] = true
+						return only,
+				)
+			)
+			var danger: Array = []
+			for o: Dictionary in s.units:
+				var ox: int = o.x
+				var oy: int = o.y
+				if o.side == _me() and th.has(Vector2i(ox, oy)):
+					danger.append(o.id)
+			v.danger = danger
 	v.attackable = []
 	if v.selMine and ui.mode == M_IDLE:
 		var reach_now: Dictionary = v.reach

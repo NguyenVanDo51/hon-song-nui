@@ -15,6 +15,7 @@ const DEF := {
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "elephant"] },
 	"gold": { "p": 750, "e": 100 },
 	"win": { "type": "hero" },
+	"stars": { "turns": 8 },
 	"map": {
 		"rows": [
 			"...v.~~~~.....",

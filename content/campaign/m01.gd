@@ -15,6 +15,7 @@ const DEF := {
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },
 	"win": { "type": "rout" },
+	"stars": { "turns": 6 },
 	"map": { "rows": ["......fff~~", ".rv...fhf.~", ".rrrrrrv..~", ".rfhf..r.~~", ".r.f...rh~~", "fv.....rf.~", "hf.....vf.~", ".......fh~~"] },
 	"units": [
 		["p", "hero", 1, 3],

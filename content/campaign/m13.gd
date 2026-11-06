@@ -18,6 +18,7 @@ const DEF := {
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },
 	"win": { "type": "reach", "at": [[12, 1]], "turns": 16 },
+	"stars": { "turns": 6 },
 	"map": {
 		"rows": [
 			"f....f.....fhf",

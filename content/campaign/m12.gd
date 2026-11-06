@@ -19,6 +19,7 @@ const DEF := {
 	},
 	"gold": { "p": 900, "e": 300 },
 	"win": { "type": "castles" },
+	"stars": { "turns": 20 },
 	"map": {
 		"rows": [
 			"ffhfffhhf....c..",

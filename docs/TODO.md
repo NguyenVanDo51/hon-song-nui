@@ -5,6 +5,10 @@
 - [ ] **Chơi thử nhịp ra quân mới** (`docs/content.md` mục "Nhịp ra quân mới"): người thật chơi m03–m05 + m09–m13, xem có kịp quen quân cũ trước khi gặp quân mới không. Sim AI không đo được việc học quân.
 - [ ] Sau mỗi lần đổi AI (`scripts/core/ai.gd`): chạy lại `bash tools/sim_many.sh "m01 … m16" 12 8` + cập nhật bảng cân bằng README (số hiện tại đo với AI `31a006e`).
 
+## Tính năng
+- [ ] **Chế độ 1 đấu 1** (`docs/1v1.md`): người–người chung máy + người–máy Dễ / Thường / Khó; online sau. Bắt đầu sau khi lint giai đoạn 3 merge (tránh conflict `game_screen.gd`).
+- [ ] **AI luyện bằng tự đấu**: bảng tham số AI + `sim/tune.gd` (agent đang làm, kèm sửa lính ít máu nằm góc không về hồi máu).
+
 ## Chất lượng code
 - [x] Lint (2026-11-06): gdtoolkit 4.5.0 `gdlint` + Godot warnings = error + `tools/lint.sh` + pre-commit (`tools/install_hooks.sh`). README "Lint".
 - [ ] **Siết lint theo giai đoạn** (mỗi giai đoạn 1 commit; sau mỗi bước: tests + click_driver + rig_smoke + golden giống hệt):

@@ -34,9 +34,6 @@ const RAZE := Color("#ff9a3c") # villages a catapult can wreck
 const TARGET := Color("#ffe08a")
 const PATH := Color("#ffe9a8")
 const BUY := Color("#ffd166")
-const HP_HI := Color("#8fd16a")
-const HP_MID := Color("#ffd166")
-const HP_LO := Color("#ff6b57")
 const STAR := Color("#ffd166")
 const STAR_INK := Color("#2a1606")
 const BLADE_INK := Color("#2a1206")
@@ -773,21 +770,8 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		if rt != null:
 			rig_done[u.id] = true
 			rt.draw_layer(ci, "mid")
-		var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
-		hp = v.get("hpCount", {}).get(u.id, hp) # turn-start heal counting up
 		if it.alpha < 0 or it.alpha > 0.5:
-			var w := T * 0.62
-			var h := maxf(3.0, T * 0.07)
-			var bx := c.x - w / 2
-			var byy := c.y + T * 0.36
-			if hp < 100:
-				ci.draw_rect(Rect2(bx - 1, byy - 1, w + 2, h + 2), Color(0, 0, 0, 0.73))
-				ci.draw_rect(Rect2(bx, byy, w * maxi(0, hp) / 100.0, h), HP_HI if hp > 60 else (HP_MID if hp > 30 else HP_LO))
-				Draw.text_a(ci, Style.xbold, Vector2(c.x + T * 0.48, c.y + T * 0.3), str(maxi(0, hp)), int(round(T * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
-			if u.rank:
-				Draw.text_a(ci, Style.xbold, Vector2(c.x - T * 0.48, c.y - T * 0.5), "★".repeat(u.rank), int(round(T * 0.2)), STAR, 0.0, true, 3, STAR_INK)
-			if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat* below)
-				Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * 0.52), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
+			draw_unit_badges(ci, v, u, c, T)
 			if it.alpha < 0 and off == null and not v.busy and not it.has("die"):
 				_draw_buffs(ci, u, c, int(round(x)), int(round(y)), time)
 	for r: Rig in fx.rigs:
@@ -795,6 +779,24 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			if not back_done.has(r):
 				r.draw_layer(ci, "back")
 			r.draw_layer(ci, "mid")
+
+## hp bar + number (when hurt), rank stars, sleeping-sentry 💤 around a figure centred at c (tile size T).
+## zz = 💤 height above c, tiles (3D projects c at the chest, so it sits higher there)
+static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Vector2, T: float, zz := 0.52) -> void:
+	var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
+	hp = v.get("hpCount", {}).get(u.id, hp) # turn-start heal counting up
+	if hp < 100:
+		var w := T * 0.62
+		var h := maxf(3.0, T * 0.07)
+		var bx := c.x - w / 2
+		var byy := c.y + T * 0.36
+		ci.draw_rect(Rect2(bx - 1, byy - 1, w + 2, h + 2), Color(0, 0, 0, 0.73))
+		ci.draw_rect(Rect2(bx, byy, w * maxi(0, hp) / 100.0, h), Style.hp_color(hp))
+		Draw.text_a(ci, Style.xbold, Vector2(c.x + T * 0.48, c.y + T * 0.3), str(maxi(0, hp)), int(round(T * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
+	if u.rank:
+		Draw.text_a(ci, Style.xbold, Vector2(c.x - T * 0.48, c.y - T * 0.5), "★".repeat(u.rank), int(round(T * 0.2)), STAR, 0.0, true, 3, STAR_INK)
+	if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat*)
+		Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * zz), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
 
 ## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
 ## striking leans into the blow (fx.offsets), getting hit shoves it back (fx.knock), dying topples it over (ghost),

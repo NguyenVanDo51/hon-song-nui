@@ -775,20 +775,7 @@ func _draw_top(ci: CanvasItem) -> void:
 			continue
 		var u: Dictionary = it.u
 		var c := _proj(Vector3(it.x + 0.5, it.h + 0.36, it.y + 0.5))
-		var hp: int = view.hp.get(u.id, u.hp) if view.hp != null else u.hp
-		hp = view.get("hpCount", {}).get(u.id, hp) # turn-start heal counting up
-		if hp < 100:
-			var w := te * 0.62
-			var h := maxf(3.0, te * 0.07)
-			var bx := c.x - w / 2
-			var byy := c.y + te * 0.36
-			ci.draw_rect(Rect2(bx - 1, byy - 1, w + 2, h + 2), Color(0, 0, 0, 0.73))
-			ci.draw_rect(Rect2(bx, byy, w * maxi(0, hp) / 100.0, h), Board.HP_HI if hp > 60 else (Board.HP_MID if hp > 30 else Board.HP_LO))
-			Draw.text_a(ci, Style.xbold, Vector2(c.x + te * 0.48, c.y + te * 0.3), str(maxi(0, hp)), int(round(te * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
-		if u.rank:
-			Draw.text_a(ci, Style.xbold, Vector2(c.x - te * 0.48, c.y - te * 0.5), "★".repeat(u.rank), int(round(te * 0.2)), Board.STAR, 0.0, true, 3, Board.STAR_INK)
-		if u.get("guard", false) and u.side == "e":
-			Draw.text_a(ci, Style.body, Vector2(c.x + te * 0.24, c.y - te * 0.62), "💤", int(round(te * 0.22)), Color.WHITE, 1.0, true)
+		Board.draw_unit_badges(ci, view, u, c, te, 0.62)
 		if it.off == null and not view.busy and it.key.begins_with("u"):
 			_flat._draw_buffs(ci, u, c, u.x, u.y, time)
 	# floating numbers / labels, upright on screen

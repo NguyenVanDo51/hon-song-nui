@@ -5,10 +5,30 @@ extends RefCounted
 
 ## buy weight for a type without `aiWeight` (a new unit still gets bought, never crashes the AI)
 const DEFAULT_WEIGHT := 1.0
-## below HOME_HP a unit heads for its side's heal tiles (the < 70 heal bonus then keeps it there to ~70 hp)
-const HOME_HP := 50
-## nearest free heal tile further than this many moves: no way home -> fight on instead of idling
-const HOME_TURNS := 4
+
+## every scoring knob; a side's override = s.aiParams[side] (partial dict merged over this; absent = DEFAULT, save unchanged)
+const DEFAULT := {
+	"noise": 8.0, # +-noise/2 per candidate: ties break, play varies
+	"goal_w": 12.0, # per tile-cost of distance to the nearest goal
+	"def_w": 0.8, # per terrain def point
+	"caution": 0.6, "caution_hero": 1.3, # x death risk (unit value above hp_cap)
+	"hp_cap": 150.0, "hp_w": 0.6, # hp loss priced as min(value, hp_cap) x hp_w / 100 per hp
+	"reach_w": 0.6, # share of the threat-map damage expected to land
+	"heal_hp": 70.0, "heal_cap": 300.0, "heal_w": 0.004, # on a heal tile below heal_hp: (100-hp) x min(value, cap) x w
+	"home_hp": 50.0, # below: goals = own heal tiles (walk home over turns); heal_hp bonus then keeps it there
+	"home_turns": 4.0, # nearest heal tile further than this many moves: no way home -> fight on
+	"aura": 15.0, # per unacted ally within 2 of an aura unit
+	"own_castle": 40.0, # penalty: standing on own castle
+	"block_castle": 600.0, # penalty: parked on an enemy castle it cannot take
+	"guard_castle": 900.0, # standing on an own castle an enemy capturer can reach
+	"cap_castle": 700.0, "cap_village": 220.0, "cap_owned_castle": 400.0, "cap_owned_village": 100.0, "cap_last": 10000.0,
+	"repair": 180.0, "raze": 260.0, "raise": 250.0,
+	"atk_bias": 40.0, "atk_pos_w": 0.3, # attacks: + bias, tile score x pos_w
+	"kill_w": 0.6, "kill_hero": 600.0, "maykill_w": 0.3, "maykill_hero": 300.0, # x target value / flat for a commander
+	"die_w": 1.0, "maydie_w": 0.5, # x own value
+	"buy_aa": 2.0, "buy_takes": 2.0, "buy_takes_per": 3.0, "buy_raise": 0.5, "buy_sea": 1.5, "buy_cost_exp": 0.35,
+	"save_hero_units": 4.0, # commander dead + this many units: save gold for the rebuy
+}
 
 ## own stream (UI effects draw from the global randf); seeded per game by the screen, swapped by the sims
 static var _gen := RandomNumberGenerator.new()
@@ -16,6 +36,17 @@ static var rng: Callable = _gen.randf
 
 static func seed_game(v: int) -> void:
 	_gen.seed = v
+
+## side's knobs: DEFAULT, or DEFAULT merged with s.aiParams[side] (cached in mem for the turn)
+static func params(s: Dictionary, side: String, mem := {}) -> Dictionary:
+	var all: Dictionary = s.get("aiParams", {})
+	var over: Dictionary = all.get(side, {})
+	if over.is_empty():
+		return DEFAULT
+	var key := "P" + side
+	if not mem.has(key):
+		mem[key] = DEFAULT.merged(over, true)
+	return mem[key]
 
 static func weight(type: String) -> float:
 	var b: Dictionary = Game.UNITS[type]
@@ -139,7 +170,7 @@ static func _dist_cached(s: Dictionary, mc: String, goals: Array, mem: Dictionar
 		df[key] = dist_field(s, mc, goals)
 	return df[key]
 
-static func expected_hit(s: Dictionary, u: Dictionary, x: int, y: int, attackers: Variant) -> float:
+static func expected_hit(s: Dictionary, u: Dictionary, x: int, y: int, attackers: Variant, reach_w := 0.6) -> float:
 	if attackers == null:
 		return 0.0
 	var ox: int = u.x
@@ -155,7 +186,7 @@ static func expected_hit(s: Dictionary, u: Dictionary, x: int, y: int, attackers
 	u.x = ox
 	u.y = oy
 	var uhp: int = u.hp
-	return minf(uhp, sum * 0.6) # not every attacker reaches
+	return minf(uhp, sum * reach_w) # not every attacker reaches
 
 static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array:
 	var st := Game.stat(s, u)
@@ -237,28 +268,33 @@ static func _risk(hurt: float, hp: float, hp_val: float, die_val: float) -> floa
 	return hurt * hp_val + clampf((hurt / 0.6 / hp - 0.6) / 0.8, 0.0, 1.0) * die_val
 
 static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary, mem := {}) -> Variant:
+	var u_side: String = u.side
+	var P := params(s, u_side, mem)
 	var st := Game.stat(s, u)
 	var reach := _reach_cached(s, u, mem)
 	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
 	var df := {}
 	var homeless := false
-	if u.hp < HOME_HP and Objectives.ai_goals(s, u) == null: # wounded: walk home over turns (reach objective first)
+	if u.hp < P.home_hp and Objectives.ai_goals(s, u) == null: # wounded: walk home over turns (reach objective first)
 		var home := _home_goals(s, u, mem)
 		if home.size():
 			df = _dist_cached(s, mc, home, mem)
 		var mv: int = st.mv
 		var ux: int = u.x
 		var uy: int = u.y
-		if df.get(Vector2i(ux, uy), INF) > HOME_TURNS * mv:
+		var home_turns: float = P.home_turns
+		if df.get(Vector2i(ux, uy), INF) > home_turns * mv:
 			df = {}
 			homeless = true
 	if df.is_empty():
 		df = _dist_cached(s, mc, goals_for(s, u, claims), mem)
 	var val := value(s, u)
-	var caution := 1.3 if u.type == "hero" else 0.6
+	var caution: float = P.caution_hero if u.type == "hero" else P.caution
+	var hp_cap: float = P.hp_cap
+	var hp_w: float = P.hp_w
 	# hp heals: every hp costs the same (soldier price); the unit's full value only as death risk -> a healthy commander advances
-	var hp_val := minf(val, 150.0) * 0.6 / 100.0
-	var die_val := maxf(0.0, val - 150.0) * caution # soldier-priced hp already covers a soldier's death
+	var hp_val := minf(val, hp_cap) * hp_w / 100.0
+	var die_val := maxf(0.0, val - hp_cap) * caution # soldier-priced hp already covers a soldier's death
 	if homeless and u.type != "hero":
 		die_val = 0.0 # cannot heal: its hp is all it is worth, spend it rather than idle out of reach
 	var has_df := df.size() > 0
@@ -270,9 +306,37 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	if has_goal_tile:
 		goal_tile = goal_hook
 	var owner: Dictionary = s.owner
+	# hot loop: knobs as typed locals, not a dict lookup per tile
+	var noise: float = P.noise
+	var goal_w: float = P.goal_w
+	var def_w: float = P.def_w
+	var reach_w: float = P.reach_w
+	var heal_hp: float = P.heal_hp
+	var heal_cap: float = P.heal_cap
+	var heal_w: float = P.heal_w
+	var aura_w: float = P.aura
+	var own_castle: float = P.own_castle
+	var block_castle: float = P.block_castle
+	var guard_castle: float = P.guard_castle
+	var cap_castle: float = P.cap_castle
+	var cap_village: float = P.cap_village
+	var cap_owned_castle: float = P.cap_owned_castle
+	var cap_owned_village: float = P.cap_owned_village
+	var cap_last: float = P.cap_last
+	var repair_w: float = P.repair
+	var raze_w: float = P.raze
+	var raise_w: float = P.raise
+	var atk_bias: float = P.atk_bias
+	var atk_pos_w: float = P.atk_pos_w
+	var kill_w: float = P.kill_w
+	var kill_hero: float = P.kill_hero
+	var maykill_w: float = P.maykill_w
+	var maykill_hero: float = P.maykill_hero
+	var die_w: float = P.die_w
+	var maydie_w: float = P.maydie_w
 	var best: Array = [null] # [ {score, act} ]
 	var consider := func(score: float, act: Dictionary) -> void:
-		score += (rng.call() - 0.5) * 8
+		score += (rng.call() - 0.5) * noise
 		if best[0] == null or score > best[0].score:
 			best[0] = { "score": score, "act": act }
 
@@ -283,48 +347,48 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var t: String = s.tiles[ry][rx]
 		var gd: float = df.get(key, 30.0) if has_df else 0.0
 		var tdef: int = Game.TERRAIN[t].def
-		var pos := -gd * 12 + tdef * 0.8
-		var hurt := expected_hit(s, u, rx, ry, threat.get(key))
+		var pos := -gd * goal_w + tdef * def_w
+		var hurt := expected_hit(s, u, rx, ry, threat.get(key), reach_w)
 		var uhp: int = u.hp
 		pos -= _risk(hurt, uhp, hp_val, die_val)
 		var own: Variant = owner.get(key)
-		if Game.heals_at(s, side, rx, ry) and u.hp < 70:
-			pos += (100 - u.hp) * minf(val, 300.0) * 0.004 # capped: a 60-hp commander must not glue to a village
+		if Game.heals_at(s, side, rx, ry) and u.hp < heal_hp:
+			pos += (100 - u.hp) * minf(val, heal_cap) * heal_w # capped: a 60-hp commander must not glue to a village
 		if st.get("aura", 0): # drum: allies within 2 get +atk after it acts
 			for o: Dictionary in s.units:
 				var ox: int = o.x
 				var oy: int = o.y
 				if o.side == u.side and o.id != u.id and not o.acted and Game.dist(ox, oy, rx, ry) <= 2:
-					pos += 15
+					pos += aura_w
 		var castle := Game.sells(t)
 		if castle and own == u.side:
-			pos -= 40 # AE2 sells under one unit: only a nudge to keep moving (it also guards the castle)
+			pos -= own_castle # AE2 sells under one unit: only a nudge to keep moving (it also guards the castle)
 		elif castle and own != null and not st.get(Game.cap_flag(t), false):
-			pos -= 600 # parked on an enemy castle it cannot take: blocks our commander
+			pos -= block_castle # parked on an enemy castle it cannot take: blocks our commander
 
 		if danger.has(key):
-			pos += 900 # block the capture
+			pos += guard_castle # block the capture
 		if has_goal_tile:
 			pos += goal_tile.call(s, u, rx, ry)
 		consider.call(pos, { "id": u.id, "to": [rx, ry], "kind": "wait" })
 
 		if Game.can_capture(s, u, rx, ry):
-			var c := 700 if castle else 220
+			var c := cap_castle if castle else cap_village
 			if own != null:
-				c += 400 if castle else 100
+				c += cap_owned_castle if castle else cap_owned_village
 			if castle and own == Game.other(side) and enemy_castles == 1:
-				c += 10000
-			consider.call(pos + c + gd * 12, { "id": u.id, "to": [rx, ry], "kind": "capture" })
+				c += cap_last
+			consider.call(pos + c + gd * goal_w, { "id": u.id, "to": [rx, ry], "kind": "capture" })
 		if Game.can_repair(s, u, rx, ry):
-			consider.call(pos + 180 + gd * 12, { "id": u.id, "to": [rx, ry], "kind": "repair" })
+			consider.call(pos + repair_w + gd * goal_w, { "id": u.id, "to": [rx, ry], "kind": "repair" })
 		for v: Array in Game.razable_from(s, u, rx, ry):
 			# only enemy villages (their income + healing); unowned ones are worth more captured than wrecked
 			var vx: int = v[0]
 			var vy: int = v[1]
 			if owner.get(Vector2i(vx, vy)) != null:
-				consider.call(pos + 260, { "id": u.id, "to": [rx, ry], "kind": "raze", "target": v })
+				consider.call(pos + raze_w, { "id": u.id, "to": [rx, ry], "kind": "raze", "target": v })
 		for g: Dictionary in Game.raisable_graves(s, u, rx, ry):
-			consider.call(pos + 250, { "id": u.id, "to": [rx, ry], "kind": "raise", "target": [g.x, g.y] })
+			consider.call(pos + raise_w, { "id": u.id, "to": [rx, ry], "kind": "raise", "target": [g.x, g.y] })
 
 		for d: Dictionary in Game.targets_from(s, u, rx, ry):
 			var p := Game.preview(s, u, rx, ry, d)
@@ -333,22 +397,29 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			var dv := value(s, d)
 			var sc: float = (p.dmg / 100.0) * dv - (p.counter / 100.0) * val
 			if p.kill:
-				sc += dv * 0.6 + (600 if d.type == "hero" else 0)
+				sc += dv * kill_w + (kill_hero if d.type == "hero" else 0.0)
 			elif p.mayKill:
-				sc += dv * 0.3 + (300 if d.type == "hero" else 0)
+				sc += dv * maykill_w + (maykill_hero if d.type == "hero" else 0.0)
 			if p.die:
-				sc -= val
+				sc -= val * die_w
 			elif p.mayDie:
-				sc -= val * 0.5
+				sc -= val * maydie_w
 			# after counter, remaining exposure scales with remaining hp
 			var counter: int = p.counter
 			var left := maxi(0, uhp - counter)
 			var exposure := _risk(minf(left, hurt), left, hp_val, die_val) if left > 0 else 0.0
-			consider.call(sc + (-gd * 12 + tdef * 0.8) * 0.3 - exposure + 40, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
+			consider.call(sc + (-gd * goal_w + tdef * def_w) * atk_pos_w - exposure + atk_bias, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
 	return best[0]
 
 ## ok: types buy_options allows at the chosen castle (gold, cap, step-off); null = any allowed type within gold
-static func choose_buy(s: Dictionary, side: String, ok: Variant = null) -> Variant:
+static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {}) -> Variant:
+	var P := params(s, side, mem)
+	var buy_aa: float = P.buy_aa
+	var buy_takes: float = P.buy_takes
+	var buy_takes_per: float = P.buy_takes_per
+	var buy_raise: float = P.buy_raise
+	var buy_sea: float = P.buy_sea
+	var buy_cost_exp: float = P.buy_cost_exp
 	var counts := {}
 	var enemy_fly := false
 	for u: Dictionary in s.units:
@@ -384,18 +455,19 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null) -> Varia
 			continue # no river: a boat is a soldier at twice the price
 		var w := weight(type)
 		if st.get("antiAir", 0) and enemy_fly:
-			w += 2
+			w += buy_aa
 		var takes := 0
 		for f: String in open:
 			if st.get(f, false):
 				takes += open[f]
-		if takes > counts.get(type, 0) * 3:
-			w += 2
+		var n: int = counts.get(type, 0)
+		if takes > n * buy_takes_per:
+			w += buy_takes
 		if st.get("raise", "") and graves.size():
-			w += 0.5
+			w += buy_raise
 		if swims and water * 8 > s.w * s.h:
-			w += 1.5
-		var sc: float = (w / (1 + counts.get(type, 0))) * pow(cost / 300.0, 0.35)
+			w += buy_sea
+		var sc: float = (w / (1 + n)) * pow(cost / 300.0, buy_cost_exp)
 		if best == null or sc > best.sc:
 			best = { "type": type, "sc": sc }
 	return best.type if best != null else null
@@ -481,9 +553,10 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 		if ok.has("hero"):
 			return { "kind": "buy", "x": key.x, "y": key.y, "type": "hero" }
 		var want_hero: bool = s.heroDead[side] and s.heroKey[side] != null
-		if want_hero and s.gold[side] < Game.hero_cost(s, side) and Game.unit_count(s, side) >= 4:
+		var save_units: float = params(s, side, mem).save_hero_units
+		if want_hero and s.gold[side] < Game.hero_cost(s, side) and Game.unit_count(s, side) >= save_units:
 			return null # save up: the commander is the only castle taker
-		var type: Variant = choose_buy(s, side, ok)
+		var type: Variant = choose_buy(s, side, ok, mem)
 		if type != null:
 			return { "kind": "buy", "x": key.x, "y": key.y, "type": type }
 	return null

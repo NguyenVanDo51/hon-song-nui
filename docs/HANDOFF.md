@@ -84,3 +84,11 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Chưa xác nhận bản gốc (lấy theo mã bản mod): công thức KN (×200/3), +15 nỏ vs bay, rồng được thủ địa hình, độc không giảm bước đi, Wisp tầm 1–2.
 - Hồi quy: `sim/legacy` + parity JS bỏ; `sim/golden.txt` mới. Lưu ván cũ (v2) bị từ chối (STATE_V 3).
 - Tiện ích dò lỗi: `sim/probes/stall.gd <màn>` (ván AI-vs-AI kẹt), `sim/probes/units_shot.gd` (ảnh đủ quân mới).
+
+## 2026-11-06 — mở rộng (review E7 / E3 / E2 / E4), hành vi giữ nguyên
+- E7: xoá `battle_view.gd` + cài đặt cảnh đánh 3 chế độ; mọi đòn đánh trên bàn cờ (zoom + rig).
+- E3: cờ dữ liệu trong `UNITS`: `heavy`, `aiWeight` (thiếu -> `AI.DEFAULT_WEIGHT`), `aiValue`, `aura` / `poison` (lượng lưu trên quân: `auraAtk` / `poisonAmt`, lưu ván v4, v3 tự nâng), `raise: "ghost"`, `vsType`. Thưởng mua của AI theo cờ.
+- E2: công trình theo mô tả `TERRAIN` (`income`, `cap`, `heals`, `sells`, `razeTo`, `repairTo`/`repairBy`); thu nhập = tổng ô đang giữ.
+- E4: `scripts/core/objectives.gd` (registry kiểu mục tiêu).
+- Cách thêm quân / công trình / mục tiêu: `docs/content.md`. Golden y hệt sau mỗi bước.
+- Chưa làm (để sau): E1 N phe / đồng minh, E5 tách `game_screen.gd`, E6 i18n. Tầm hào quang (2) vẫn cứng ở `game.gd` + `board.gd` (AE2 cố định).

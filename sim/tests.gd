@@ -159,16 +159,7 @@ func content_tests() -> void:
 					var wst := Game.stat(s, { "type": wu[0], "side": "e" })
 					check(Game.move_cost(wst.move, Game.tile_at(s, wu[1], wu[2])) != INF, "wave %s on impassable %d,%d" % [wu[0], wu[1], wu[2]])
 			# win schema
-			check(Content.WIN_TYPES.has(s.win.type), "win type " + str(s.win.type))
-			if s.win.type == "survive":
-				check(s.win.get("turns") is int and s.win.turns > 0, "survive needs turns")
-			if s.win.type == "hero":
-				check(s.heroKey.e != null, "hero win needs an enemy commander")
-			if s.win.type == "reach":
-				check(s.win.get("at", []).size() > 0, "reach needs at")
-				var hst := Game.stat(s, { "type": "hero", "side": "p" })
-				for g: Array in s.win.get("at", []):
-					check(Game.move_cost(hst.move, Game.tile_at(s, g[0], g[1])) != INF, "reach tile %s impassable" % [g])
+			eq(Objectives.check(s), "", "win spec")
 			for side: String in ["p", "e"]:
 				for t: String in s.allowed[side]:
 					check(Rules.UNITS[t].has("aiWeight"), "no aiWeight (AI falls back to DEFAULT_WEIGHT) for " + t)
@@ -886,8 +877,29 @@ func rule_tests() -> void:
 		check(raised != null and raised.type == "soldier", "raise spawns the type named by `raise`")
 		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
 	)
+	run("objectives registry: a new win type is one entry (loss, round, AI goal, marks, bar)", func() -> void:
+		eq(Objectives.types(), ["castles", "rout", "hero", "survive", "reach"])
+		var s := blank([["p", "hero", 1, 1], ["e", "soldier", 4, 4]])
+		s.win = { "type": "flag", "at": [[3, 1]] }
+		check(Objectives.check(s).begins_with("unknown"), "unknown type flagged")
+		Objectives.TYPES["flag"] = { "loss": func(st: Dictionary, side: String) -> Variant: return "flagTaken" if side == "e" and Game.unit_at(st, 3, 1) != null else null,
+			"on_round": func(st: Dictionary) -> Variant: return ["e", "late"] if st.turn > 3 else null,
+			"ai_goals": func(st: Dictionary, _u: Dictionary) -> Variant: return st.win.at.duplicate(),
+			"marks": func(st: Dictionary) -> Array: return st.win.at, "bar_n": func(_st: Dictionary) -> int: return 7 }
+		eq([Objectives.check(s), Objectives.marks(s), Objectives.bar_n(s)], ["", [[3, 1]], 7])
+		eq(AI.goals_for(s, s.units[0], {}), [[3, 1]], "AI heads for the objective")
+		Game.do_action(s, { "id": 1, "to": [3, 1], "kind": "wait" })
+		eq([s.winner, s.reason], ["p", "flagTaken"], "loss hook")
+		var s2 := blank([["p", "hero", 1, 1], ["e", "soldier", 4, 4]])
+		s2.win = { "type": "flag", "at": [[3, 1]] }
+		for i in 6:
+			Game.end_turn(s2)
+		eq([s2.winner, s2.reason, s2.turn], ["e", "late", 4], "round hook")
+		Objectives.TYPES.erase("flag")
+		eq(Objectives.marks(s), [], "no entry: no marks")
+	)
 	run("goal / end texts: every win type has copy, unknown types fall back", func() -> void:
-		for t: String in Content.WIN_TYPES:
+		for t: String in Objectives.types():
 			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "brief", { "p": "anhhung", "e": "tuonggiac" }) != t, "brief copy " + t)
 			check(Content.goal_text({ "type": t, "turns": 5, "at": [[0, 0]] }, "bar", { "p": "anhhung", "e": "tuonggiac" }, { "n": 1, "left": 2 }) != t, "bar copy " + t)
 		eq(Content.goal_text({ "type": "teleport" }, "brief", { "p": "anhhung", "e": null }), "teleport")

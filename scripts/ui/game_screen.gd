@@ -1539,7 +1539,7 @@ func _act(label: String, fn: Callable, opts := {}) -> Button:
 
 func _goal_line() -> String:
 	var obj := Content.goal_text(s.win, "bar", s.heroKey, {
-		"n": Game.castles(s, "e") if s.win.type == "castles" else Game.unit_count(s, "e"), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) })
+		"n": Objectives.bar_n(s), "left": maxi(0, int(s.win.get("turns", 0)) - s.turn + 1) })
 	return "[color=#%s]🎯[/color] %s" % [Style.GOLD.to_html(false), obj]
 
 ## compact unit card for the popup: token + name + side/HP/XP, HP bar, one stat line; full = also the unit's description

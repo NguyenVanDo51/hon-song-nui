@@ -649,14 +649,11 @@ static func hero_on_goal(s: Dictionary) -> bool:
 	return false
 
 ## a reason string when `side` has lost, else null.
-## AE2: out = commander dead and no castle left, or no unit and no castle left. Mission goals (hero / reach) on top.
+## AE2: out = commander dead and no castle left, or no unit and no castle left. Mission goals (Objectives) on top.
 static func loss_reason(s: Dictionary, side: String) -> Variant:
-	if side == "e" and s.win.type == "hero" and s.heroDead.e:
-		return "heroKilled"
-	if side == "e" and s.win.type == "reach" and hero_on_goal(s):
-		return "reached"
-	if side == "p" and s.win.type == "reach" and s.heroDead.p and castles(s, "p") == 0:
-		return "heroFell" # reach needs the commander and no castle is left to rebuy it
+	var goal: Variant = Objectives.loss(s, side)
+	if goal != null:
+		return goal
 	var c := castles(s, side)
 	if c > 0:
 		return null
@@ -707,15 +704,11 @@ static func end_turn(s: Dictionary) -> Array:
 	s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.ttl > 0)
 	if s.side == "p":
 		s.turn += 1
-		if s.win.type == "survive" and s.turn > s.win.turns:
-			s.winner = "p"
-			s.reason = "survived"
-			ev.append({ "t": "win", "side": "p", "reason": "survived" })
-			return ev
-		if s.win.type == "reach" and s.win.has("turns") and s.turn > s.win.turns:
-			s.winner = "e"
-			s.reason = "timeUp"
-			ev.append({ "t": "win", "side": "e", "reason": "timeUp" })
+		var w: Variant = Objectives.on_round(s) # [winner, reason]: survive / time limits
+		if w != null:
+			s.winner = w[0]
+			s.reason = w[1]
+			ev.append({ "t": "win", "side": w[0], "reason": w[1] })
 			return ev
 	else:
 		for w: Dictionary in s.waves:

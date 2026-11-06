@@ -26,7 +26,7 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 
 ## Thắng / thua
 - Một phe bị loại khi: hết thành **và** tướng đã chết; hoặc hết quân **và** hết thành. Phe chưa từng có thành (một số màn) chỉ thua khi hết quân.
-- Màn chiến dịch thêm mục tiêu: `hero` (hạ tướng địch), `survive` N lượt, `reach` (đưa tướng tới ô), `rout`; `waves` = quân phục kích theo lượt.
+- Màn chiến dịch thêm mục tiêu: `hero` (hạ tướng địch), `survive` N lượt, `reach` (đưa tướng tới ô), `rout`; `waves` = quân phục kích theo lượt. Mỗi kiểu = 1 mục trong `scripts/core/objectives.gd`.
 
 ## Địa hình (thủ +, giá đi)
 Đồng 5/1 · Đường 0/1 · Rừng 10/2 · Đồi 10/2 · Núi 15/3 (mọi quân) · Sông 0/3 (thủy binh 1) · Cầu 5/1 · Làng 15/1 · Thành 15/1 · Làng hỏng 15/1 · Đền 15/1 (không chiếm, hồi máu mọi phe). Rồng: mọi ô 1.

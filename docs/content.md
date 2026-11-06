@@ -35,6 +35,13 @@ Luật đọc mô tả trong `scripts/core/rules.gd` `TERRAIN`, không đọc k�
 
 Trước: `Game` / `AI` / UI so ký tự `v` / `c` / `x` / `t` ở ~15 chỗ, thu nhập = (ô sở hữu − thành) × 30 + thành × 50 trong `RULES`.
 
+## Thêm kiểu mục tiêu (win.type)
+1. `scripts/core/objectives.gd` `TYPES`: 1 mục, mọi khóa tùy chọn (hàm static): `loss(s, side)` -> lý do thua | null (xét trước luật AE2 chung), `on_round(s)` -> `[phe thắng, lý do]` | null (đầu mỗi vòng), `ai_goals(s, u)` (ô AI nhắm thay đích thường), `ai_tile(s, u, x, y)` (điểm cộng AI khi đứng ô đó), `marks(s)` (ô cờ vàng trên bàn 2D + 3D), `bar_n(s)` (`{n}` trên thanh mục tiêu), `check(s)` (lỗi nội dung, test tự gọi).
+2. `content/theme.gd`: `goals[type]` (`brief` giới thiệu màn, `bar` thanh trên), `ends[phe][lý do]`, `text.loseTip_<lý do>`.
+3. Màn: `"win": { "type": "<type>", ... }`.
+
+Trước: sửa 7 chỗ (`Game.loss_reason` + `end_turn`, `AI.goals_for` + `best_for_unit`, `board.gd` + `board3d.gd` vẽ ô đích, `game_screen._goal_line`, `Content.WIN_TYPES`, validator trong `sim/tests.gd`) + theme.
+
 ## Thêm màn chiến dịch
 Tạo `content/campaign/mNN.gd` (game tự gom mọi file trong thư mục, xếp theo `order`; `"chapter": "c2"` gắn màn vào chương, mặc định c1):
 
@@ -51,7 +58,7 @@ const DEF := {
 	"newUnits": ["wolf"],                 # thẻ "Lính mới" ở màn giới thiệu (màn đầu tiên có loại lính đó)
 	"allowed": { "p": [...], "e": [...] },  # lính được mua mỗi phe (soldier archer boat shaman drum wolf elephant catapult bird)
 	"gold": { "p": 300, "e": 400 },       # vàng đầu trận (độ khó). Thu nhập: làng 30, thành 50 mỗi lượt
-	"win": { "type": "castles" },         # castles (chiếm hết thành + hạ tướng địch) | rout | hero | survive (+ "turns") | reach (+ "at": [[x, y]], tùy chọn "turns")
+	"win": { "type": "castles" },         # Objectives.TYPES: castles (chiếm hết thành + hạ tướng địch) | rout | hero | survive (+ "turns") | reach (+ "at": [[x, y]], tùy chọn "turns")
 	"unitCap": 15,                        # trần quân mỗi phe (mặc định Rules.RULES.unitCap; âm binh không tính)
 	"night": false,                       # phủ màn đêm
 	"map": { "rows": ["..f~..", ...] },   # . đồng  r đường mòn  f rừng  h đồi  m núi  ~ sông  = cầu  v làng  x làng hỏng  c thành  t đền

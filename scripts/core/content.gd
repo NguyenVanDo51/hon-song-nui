@@ -267,7 +267,6 @@ static func tile_note(t: String) -> String:
 const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when the saved state shape changes
 ## v3 -> v4: aura / poison stamps carry their amount (auraAtk / poisonAmt); v3 had them fixed at 10
 const V3_STAMP := 10
-const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
 
 ## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
 const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
@@ -296,7 +295,7 @@ static func save_fits(v: Dictionary) -> bool:
 	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead", "heroDeaths", "heroSaved", "rng"]:
 		if not st.has(k):
 			return false
-	if not WIN_TYPES.has(str(st.win.get("type", ""))):
+	if not Objectives.has(str(st.win.get("type", ""))):
 		return false
 	for u: Variant in st.units:
 		if not (u is Dictionary) or not Rules.UNITS.has(u.get("type")):

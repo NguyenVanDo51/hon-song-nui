@@ -25,9 +25,12 @@ class Twang extends RigFx.Timed:
 
 static func bolt(a: Rig, i: int) -> void:
 	var tg := a.target()
+	var tx: float = tg.x
+	var ty: float = tg.y
+	var off: float = OFFS[i]
 	var shots: Array = a.data.consts.SHOTS
 	var last := i == shots.size() - 1
-	a.projectile({ "point": "muzzle", "to": Vector2(tg.x - 8.0, tg.y + OFFS[i]), "kind": "arrow", "size": 0.95, "arc": 14.0,
+	a.projectile({ "point": "muzzle", "to": Vector2(tx - 8.0, ty + off), "kind": "arrow", "size": 0.95, "arc": 14.0,
 		"speed": 2500.0, "color": "#4f74c9" if a.swap else "#c9503f", "trail": "#fff6d6",
 		"hit": Rig.with(Rig.HIT, { "dmg": 36 }) if last else Rig.with(Rig.HIT_SMALL, { "dmg": 8 }) })
 	a.sound("arrow")
@@ -35,12 +38,15 @@ static func bolt(a: Rig, i: int) -> void:
 
 func events(_r: Rig) -> Array:
 	var shots: Array = data.consts.SHOTS
+	var s0: float = shots[0]
+	var s1: float = shots[1]
+	var s2: float = shots[2]
 	return [
 		[150.0, func(a: Rig) -> void: a.dust(96, 244, 4, -1)],
 		[210.0, func(a: Rig) -> void: a.gleam("muzzle", 160)],
-		[float(shots[0]), func(a: Rig) -> void: bolt(a, 0)],
-		[float(shots[1]), func(a: Rig) -> void: bolt(a, 1)],
-		[float(shots[2]), func(a: Rig) -> void:
+		[s0, func(a: Rig) -> void: bolt(a, 0)],
+		[s1, func(a: Rig) -> void: bolt(a, 1)],
+		[s2, func(a: Rig) -> void:
 			bolt(a, 2)
 			a.dust(100, 244, 6, -1)
 			a.shake(3, 120)],
@@ -49,11 +55,12 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	var idle_k: float = ctx.idle
+	var ck: float = ctx.clock
 	var kick: float = p.get("kick", 0.0)
 	if name == "tails":
-		return clampf(vx * 0.03, -14, 30) + p.lean * 0.6 + p.head * 0.5 + kick * -1.2 + idle_k * 3.0 * sin(ctx.clock / 650.0)
+		return clampf(vx * 0.03, -14, 30) + p.lean * 0.6 + p.head * 0.5 + kick * -1.2 + idle_k * 3.0 * sin(ck / 650.0)
 	if name == "quiv":
-		return clampf(vx * 0.02, -8, 12) + p.lean * 0.4 + kick * -0.5 + idle_k * 0.8 * sin(ctx.clock / 800.0)
+		return clampf(vx * 0.02, -8, 12) + p.lean * 0.4 + kick * -0.5 + idle_k * 0.8 * sin(ck / 800.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -64,6 +71,7 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 
 ## stock raised to the cheek -> crossbow + arm in front of the face
 func order(p: Dictionary, list: Array) -> Array:
-	if float(p.get("raise", 0.0)) >= -1.0:
+	var rs: float = p.get("raise", 0.0)
+	if rs >= -1.0:
 		return list
 	return part_after(list, "face", "head")

@@ -156,17 +156,19 @@ func stroke(col: Variant, width: float) -> void:
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	var w := maxf(0.6, width * _scale)
 	var both := _subs_now()
-	for i in both[0].size():
-		var pts: PackedVector2Array = both[0][i]
+	var subs: Array = both[0]
+	var closed: Array = both[1]
+	for i in subs.size():
+		var pts: PackedVector2Array = subs[i]
 		if pts.size() < 2:
 			continue
-		if both[1][i]:
+		if closed[i]:
 			pts = pts.duplicate()
 			pts.append(pts[0])
 		stroke_line(ci, pts, c, w)
 
 func _col(col: Variant) -> Color:
-	var c: Color = Color(col) if col is String else col
+	var c := RigFx.col(col)
 	c.a *= alpha
 	return c
 
@@ -209,4 +211,4 @@ func text(x: float, y: float, s: String, size: float, col: Color, ink: Color, ou
 	var o := ink
 	o.a *= alpha
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
-	Draw.text_c(ci, Style.xbold, p, s, maxi(6, int(round(size * _scale))), c, maxi(1, int(round(outline * _scale))), o, scale)
+	Draw.text_c(ci, Style.xbold, p, s, maxi(6, roundi(size * _scale)), c, maxi(1, roundi(outline * _scale)), o, scale)

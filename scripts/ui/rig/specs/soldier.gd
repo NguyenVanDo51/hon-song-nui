@@ -15,10 +15,11 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	var idle_k: float = ctx.idle
+	var ck: float = ctx.clock
 	if name == "crest":
-		return clampf(vx * 0.035, -14, 30) + p.lean * 0.7 + p.head * 0.6 + idle_k * 1.8 * sin(ctx.clock / 700.0)
+		return clampf(vx * 0.035, -14, 30) + p.lean * 0.7 + p.head * 0.6 + idle_k * 1.8 * sin(ck / 700.0)
 	if name == "tassel": # hangs with gravity (cancels spear angle) + trails the thrust
-		return -(p.lean + p.arm + p.wrist) * 0.9 + clampf(vx * 0.03, -12, 40) + idle_k * 3.0 * sin(ctx.clock / 600.0)
+		return -(p.lean + p.arm + p.wrist) * 0.9 + clampf(vx * 0.03, -12, 40) + idle_k * 3.0 * sin(ck / 600.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -31,7 +32,7 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 ## JS pierceFx: armed at thrust start; THE hit when the tip crosses the target front, then the lance through it.
 ## Speed lines: character frame (stay on the drawn spear). Lance + exit ring: target frame aimed along the real
 ## attack line (horizontal = the JS world drawing; up/down stay a lance, not a collapsed sliver).
-class Pierce extends RefCounted:
+class Pierce extends RigFx.Fx:
 	var r: Rig
 	var dmg: float
 	var age := 0.0
@@ -48,7 +49,8 @@ class Pierce extends RefCounted:
 		if hit < 0.0:
 			var tp := r.point("tip")
 			# spear reach caps at the demo's range-1 front (rmax = 1; only off-range probes, e.g. diagonal, differ)
-			if tp.x >= minf(float(r.target().front), 256.0 + r.data.target_front):
+			var front: float = r.target().front
+			if tp.x >= minf(front, 256.0 + r.data.target_front):
 				hit = 0.0
 				x0 = tp.x
 				y0 = tp.y
@@ -60,17 +62,22 @@ class Pierce extends RefCounted:
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		var pre: float = minf(1.0, age / 30.0) if hit < 0.0 else maxf(0.0, 1.0 - hit / 140.0)
 		if layer == "mid" and pre > 0.0:
-			var root := Vector2(r.pose.x, r.pose.y)
+			var px: float = r.pose.x
+			var py: float = r.pose.y
+			var root := Vector2(px, py)
 			var tp := r.point("tip") - root
 			var hd := r.point("hand") - root
-			ctx.set_xf(cam.char_xf(r.pose.x, r.pose.y))
+			ctx.set_xf(cam.char_xf(px, py))
 			ctx.alpha = pre
 			for q: Array in [[-26.0, 0.05, 0.7], [24.0, 0.15, 0.8], [-48.0, 0.3, 0.62]]:
-				var a := hd.lerp(tp, q[1])
-				var b := hd.lerp(tp, q[2])
+				var dy: float = q[0]
+				var u0: float = q[1]
+				var u1: float = q[2]
+				var a := hd.lerp(tp, u0)
+				var b := hd.lerp(tp, u1)
 				ctx.begin_path()
-				ctx.move_to(a.x - 40.0, a.y + q[0])
-				ctx.line_to(b.x - 40.0, b.y + q[0])
+				ctx.move_to(a.x - 40.0, a.y + dy)
+				ctx.line_to(b.x - 40.0, b.y + dy)
 				ctx.stroke(RigFx.INK, 9)
 				ctx.stroke("#fffdf4", 4)
 			ctx.alpha = 1.0
@@ -94,7 +101,8 @@ class Pierce extends RefCounted:
 		ctx.fill("#ffe08a")
 		# exit ring on the far side of the target
 		var g := RigFx.out(minf(1.0, u / 160.0))
-		var xr: float = float(r.target().x) + 46.0 + 30.0 * g - x0
+		var tx: float = r.target().x
+		var xr: float = tx + 46.0 + 30.0 * g - x0
 		ctx.alpha = maxf(0.0, 1.0 - u / 260.0)
 		ctx.begin_path()
 		ctx.ellipse(xr, 0, 8.0 + 12.0 * g, 22.0 + 38.0 * g, 0, 0, TAU)

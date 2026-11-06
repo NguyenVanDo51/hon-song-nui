@@ -7,7 +7,7 @@ const PALE := "#fff6d6"
 
 ## JS soundRing(): upright concentric ellipses rolling forward, hit on reaching the target front.
 ## Own frame weight like RigFx.Wave (RigFx.travel_xf): 0 at the rim -> 1 at the target front (3 rings, one frame).
-class SoundRing extends RefCounted:
+class SoundRing extends RigFx.Fx:
 	const FADE := 200.0
 	var r: Rig
 	var o: Dictionary
@@ -28,18 +28,21 @@ class SoundRing extends RefCounted:
 	func upd(s: float, ms: float) -> bool:
 		age += ms
 		x += sp * s * (0.35 if hit else 1.0)
-		if not hit and x >= float(r.target().front):
+		var front: float = r.target().front
+		if not hit and x >= front:
 			hit = true
-			r.hit(o.hit)
+			var h: Dictionary = o.hit
+			r.hit(h)
 		if hit:
 			gone += ms
 		return gone < FADE
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
 		if layer != "front":
 			return
-		var T := r.target()
-		var ry: float = (lerpf(R0, R1, RigFx.out(clampf(age / 120.0, 0.0, 1.0))) + gone * 0.12) * float(o.get("scale", 1.0))
-		var y: float = lerpf(y0, T.y, RigFx.out(clampf(age / 110.0, 0.0, 1.0)))
+		var ty: float = r.target().y
+		var sc: float = o.get("scale", 1.0)
+		var ry: float = (lerpf(R0, R1, RigFx.out(clampf(age / 120.0, 0.0, 1.0))) + gone * 0.12) * sc
+		var y: float = lerpf(y0, ty, RigFx.out(clampf(age / 110.0, 0.0, 1.0)))
 		var a := 1.0 - gone / FADE
 		ctx.set_xf(RigFx.travel_xf(r, cam, x0, x, y))
 		# 3 concentric rings, outer = leading edge at x
@@ -82,7 +85,9 @@ func events(_r: Rig) -> Array:
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "tails":
 		var idle_k: float = ctx.idle
-		return clampf(vx * 0.03, -14, 30) - p.lean * 0.8 - p.head * 0.6 + float(p.get("kick", 0.0)) + idle_k * 2.0 * sin(ctx.clock / 650.0)
+		var ck: float = ctx.clock
+		var kick: float = p.get("kick", 0.0)
+		return clampf(vx * 0.03, -14, 30) - p.lean * 0.8 - p.head * 0.6 + kick + idle_k * 2.0 * sin(ck / 650.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -95,7 +100,9 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 
 ## sticks whipping across the head: draw the face under the arms
 func order(p: Dictionary, list: Array) -> Array:
-	if absf(p.wristB) > 60.0 or absf(p.wristF) > 60.0:
+	var wb: float = p.wristB
+	var wf: float = p.wristF
+	if absf(wb) > 60.0 or absf(wf) > 60.0:
 		return part_after(list, "face", "head")
 	return list
 

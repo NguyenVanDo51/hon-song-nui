@@ -23,7 +23,7 @@ class Debris extends RigFx.Mote:
 			d.rr = randf_range(7, 14)
 			d.rot = randf_range(0, 6)
 			d.vr = randf_range(-12, 12)
-			d.col = Color(c.STONE_D) if (i % 3) / 2.0 > 0.6 else Color(c.STONE)
+			d.col = RigFx.col(c.STONE_D if (i % 3) / 2.0 > 0.6 else c.STONE)
 			d.feet = feet_y
 			d.life = LIFE
 			rig.add(d)
@@ -72,7 +72,9 @@ func drive(name: String, p: Dictionary, _vx: float, ctx: Dictionary) -> float:
 	if name == "bucket":
 		return p.arm * 0.4
 	if name == "flag":
-		return -p.tilt * 3.0 + float(p.get("flagX", 0.0)) + (7.0 * sin(ctx.clock / 420.0) if ctx.idle else 0.0)
+		var flag_x: float = p.get("flagX", 0.0)
+		var ck: float = ctx.clock
+		return -p.tilt * 3.0 + flag_x + (7.0 * sin(ck / 420.0) if ctx.idle else 0.0)
 	return 0.0
 
 ## machine never breathes (no sy); only the crew + flag move at idle
@@ -88,9 +90,10 @@ func draw(ctx: RigCtx, cam: RigCam, r: Rig, layer: String, t: float) -> void:
 	var fly: float = c.FLY
 	var land: float = c.LAND
 	if layer == "front" and t > 200.0 and t < 610.0:
-		var k := int(floor(t / 55.0)) % 2
+		var k := floori(t / 55.0) % 2
 		for q: Array in [["hub", 26.0], ["mid", 30.0]]:
-			ctx.set_xf(cam.at_px(r.point_px(q[0])))
+			var pt: String = q[0]
+			ctx.set_xf(cam.at_px(r.point_px(pt)))
 			var r0: float = q[1]
 			for s: float in [-1.0, 1.0]:
 				ctx.begin_path()

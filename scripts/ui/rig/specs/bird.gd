@@ -40,7 +40,9 @@ func draw_fire(ctx: RigCtx, cam: RigCam, r: Rig, t: float) -> void:
 	var fire: Dictionary = c.FIRE
 	var m := (r.point_px("lipU") + r.point_px("lipD")) * 0.5
 	var tg := r.target()
-	var d := cam.map(tg.x + 40.0, tg.y + 6.0, 1.0) - m
+	var tx: float = tg.x
+	var ty: float = tg.y
+	var d := cam.map(tx + 40.0, ty + 6.0, 1.0) - m
 	var L := d.length() / cam.ca # local units (1 = attacker art unit) -> tip lands on the target token
 	var grow := RigData.ease_i(4, clampf((t - t_fire) / (t_full - t_fire), 0.0, 1.0))
 	var gone := RigData.ease_i(2, clampf((t - t_end) / (t_gone - t_end), 0.0, 1.0))
@@ -93,7 +95,7 @@ func embers(a: Rig, n: int) -> void:
 		m.rot = randf_range(0, 6)
 		m.vr = randf_range(-6, 6)
 		m.life = randf_range(650, 1050)
-		m.col = Color(fire.out if i % 2 else fire.mid)
+		m.col = RigFx.col(fire.out if i % 2 else fire.mid)
 		m.w = 1.0
 		a.add(m)
 
@@ -130,7 +132,10 @@ func events(_r: Rig) -> Array:
 		[705.0, func(a: Rig) -> void: a.hit(Rig.with(Rig.HIT, { "dmg": 50 }))],
 		[720.0, func(a: Rig) -> void:
 			embers(a, 12)
-			a.sparks(a.target().x, a.target().y, 6, fire.out)],
+			var tx: float = a.target().x
+			var ty: float = a.target().y
+			var col: String = fire.out
+			a.sparks(tx, ty, 6, col)],
 	]
 
 ## body wave: hump / tail / fin springs lag the neck snap and swing through
@@ -140,7 +145,8 @@ func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	var neck: float = p.neck
 	match name:
 		"hump":
-			return -neck * 0.35 + float(p.get("humpT", 0.0)) + idle_k * 1.5 * sin(ck / 520.0)
+			var hump_t: float = p.get("humpT", 0.0)
+			return -neck * 0.35 + hump_t + idle_k * 1.5 * sin(ck / 520.0)
 		"tail":
 			return neck * 0.5 - clampf(vx * 0.02, -10, 10) + idle_k * 3.0 * sin(ck / 520.0 - 1.2)
 		"flame":
@@ -148,7 +154,8 @@ func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 		"fin":
 			return -neck * 0.45 - clampf(vx * 0.03, -14, 14) + idle_k * 3.0 * sin(ck / 420.0)
 		"mane":
-			return -(neck + float(p.head)) * 0.3 - clampf(vx * 0.03, -14, 14) + idle_k * 2.0 * sin(ck / 600.0)
+			var head: float = p.head
+			return -(neck + head) * 0.3 - clampf(vx * 0.03, -14, 14) + idle_k * 2.0 * sin(ck / 600.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:

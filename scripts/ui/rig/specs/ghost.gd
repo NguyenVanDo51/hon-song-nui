@@ -25,21 +25,28 @@ func events(_r: Rig) -> Array:
 			wisps(a, q.x, q.y, 3, { "vx": 160.0 })],
 		[345.0, func(a: Rig) -> void:
 			var c := a.target()
-			wisps(a, c.x, c.y, 5, { "sx": 34.0, "sy": 34.0, "vx": 120.0 })],
+			var cx: float = c.x
+			var cy: float = c.y
+			wisps(a, cx, cy, 5, { "sx": 34.0, "sy": 34.0, "vx": 120.0 })],
 		[650.0, func(a: Rig) -> void:
 			var h := a.hero()
-			wisps(a, h.x, h.y + 20.0, 5, { "sx": 40.0, "sy": 50.0, "vx": -90.0 })],
+			var hx: float = h.x
+			var hy: float = h.y
+			wisps(a, hx, hy + 20.0, 5, { "sx": 40.0, "sy": 50.0, "vx": -90.0 })],
 		[780.0, func(a: Rig) -> void:
 			var h := a.hero()
-			wisps(a, h.x - 40.0, h.y + 70.0, 2, { "sx": 24.0, "sy": 10.0, "vx": -80.0, "size": 0.8 })],
+			var hx: float = h.x
+			var hy: float = h.y
+			wisps(a, hx - 40.0, hy + 70.0, 2, { "sx": 24.0, "sy": 10.0, "vx": -80.0, "size": 0.8 })],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	var idle_k: float = ctx.idle
+	var ck: float = ctx.clock
 	if name == "tail":
-		return clampf(vx * 0.035, -18, 34) + p.lean * 0.5 + idle_k * 5.0 * sin(ctx.clock / 520.0)
+		return clampf(vx * 0.035, -18, 34) + p.lean * 0.5 + idle_k * 5.0 * sin(ck / 520.0)
 	if name == "band":
-		return clampf(vx * 0.04, -14, 30) + p.lean * 0.6 + p.head * 0.6 + idle_k * 3.0 * sin(ctx.clock / 600.0)
+		return clampf(vx * 0.04, -14, 30) + p.lean * 0.6 + p.head * 0.6 + idle_k * 3.0 * sin(ck / 600.0)
 	return 0.0
 
 ## hover bob (b = 0 at load -> rest check stays aligned)
@@ -57,18 +64,23 @@ func draw_char_under(ctx: RigCtx, cam: RigCam, r: Rig) -> void:
 	if t < 250.0 or t > 420.0: # forward drift only (rest-pose echoes clash with the faded body on the way back)
 		return
 	if _x_keys.is_empty():
-		_x_keys = RigData.keys_of(data.consts.X.track)
+		var js: Array = data.consts.X.track
+		_x_keys = RigData.keys_of(js)
 	var ci := ctx.ci
 	var tex := Token.raster("res://assets/units/styles/chibi/ghost_%s.svg" % ("e" if r.swap else "p"), 256.0 * cam.ca * Baked.screen_scale(ci))
 	if tex == null:
 		return
 	var fade := 1.0 - maxf(0.0, t - 330.0) / 90.0
+	var px: float = r.pose.x
+	var py: float = r.pose.y
 	for la: Array in [[45.0, 0.32], [95.0, 0.16]]:
-		var dx := RigData.sample(_x_keys, maxf(0.0, t - float(la[0])))
-		if absf(dx - float(r.pose.x)) < 4.0:
+		var lag: float = la[0]
+		var al: float = la[1]
+		var dx := RigData.sample(_x_keys, maxf(0.0, t - lag))
+		if absf(dx - px) < 4.0:
 			continue
-		ci.draw_set_transform_matrix(cam.char_xf(dx, r.pose.y))
-		ci.draw_texture_rect(tex, Rect2(0, 0, 256, 256), false, Color(1, 1, 1, float(la[1]) * fade * ctx.alpha))
+		ci.draw_set_transform_matrix(cam.char_xf(dx, py))
+		ci.draw_texture_rect(tex, Rect2(0, 0, 256, 256), false, Color(1, 1, 1, al * fade * ctx.alpha))
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 
 ## rising ghost wisps: flame-like teardrop, flat fill + INK, sways up and fades (one-shot fx, owns its state)
@@ -79,9 +91,11 @@ static func wisps(a: Rig, x: float, y: float, n: int, o := {}) -> void:
 		var m := Wisp.new()
 		m.x = x + randf_range(-sx, sx)
 		m.y = y + randf_range(-sy, sy)
-		m.vx = float(o.get("vx", 0.0)) + randf_range(-40, 40)
+		var ovx: float = o.get("vx", 0.0)
+		var size: float = o.get("size", 1.0)
+		m.vx = ovx + randf_range(-40, 40)
 		m.vy = -randf_range(60, 130)
-		m.rr = randf_range(9, 15) * float(o.get("size", 1.0))
+		m.rr = randf_range(9, 15) * size
 		m.life = randf_range(520, 820)
 		m.ph = randf_range(0, 6)
 		m.w = a.cam.w_of(m.x)

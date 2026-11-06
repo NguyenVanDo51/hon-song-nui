@@ -20,13 +20,15 @@ func events(_r: Rig) -> Array:
 			Drop.spawn(a, x, GROUND - 14.0, 9, { "sx": 26.0, "vx0": 60.0, "vx1": 380.0, "vy0": -560.0, "vy1": -220.0, "r0": 4.0, "r1": 8.0 })
 			a.shockwave(x, GROUND, { "color": WATER, "r": 80.0, "ms": 320.0 })
 			# demo x0 = 250 at range 1; keep the same gap to the real front (diagonal)
-			a.add(WaveFx.new(a, 250.0 + float(a.target().front) - DEMO_FRONT))],
+			var front: float = a.target().front
+			a.add(WaveFx.new(a, 250.0 + front - DEMO_FRONT))],
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "plume":
 		var idle_k: float = ctx.idle
-		return clampf(vx * 0.035, -14, 30) + p.lean * 0.8 + p.head * 0.6 + idle_k * 2.0 * sin(ctx.clock / 700.0)
+		var ck: float = ctx.clock
+		return clampf(vx * 0.035, -14, 30) + p.lean * 0.8 + p.head * 0.6 + idle_k * 2.0 * sin(ck / 700.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -40,13 +42,19 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 class Drop extends RigFx.Mote:
 	static func spawn(rig: Rig, px: float, py: float, n: int, o := {}) -> void:
 		var sx: float = o.get("sx", 20.0)
+		var vx0: float = o.get("vx0", -150.0)
+		var vx1: float = o.get("vx1", 350.0)
+		var vy0: float = o.get("vy0", -620.0)
+		var vy1: float = o.get("vy1", -260.0)
+		var r0: float = o.get("r0", 5.0)
+		var r1: float = o.get("r1", 10.0)
 		for i in n:
 			var d := Drop.new()
 			d.x = px + randf_range(-sx, sx)
 			d.y = py + randf_range(-10, 10)
-			d.vx = randf_range(o.get("vx0", -150.0), o.get("vx1", 350.0))
-			d.vy = randf_range(o.get("vy0", -620.0), o.get("vy1", -260.0))
-			d.rr = randf_range(o.get("r0", 5.0), o.get("r1", 10.0))
+			d.vx = randf_range(vx0, vx1)
+			d.vy = randf_range(vy0, vy1)
+			d.rr = randf_range(r0, r1)
 			d.life = randf_range(650, 1000)
 			d.w = rig.cam.w_of(d.x)
 			rig.add(d)
@@ -73,7 +81,7 @@ class Drop extends RigFx.Mote:
 		ctx.begin_path(); ctx.circle(rad * 0.2, -rad * 0.35, rad * 0.3); ctx.fill(FOAM)
 
 ## wave: rises + curls toward the target, crashes (THE shared HIT), then collapses into foam
-class WaveFx extends RefCounted:
+class WaveFx extends RigFx.Fx:
 	const RISE := 150.0
 	const FALL := 340.0
 	const HMAX := 200.0
@@ -91,9 +99,11 @@ class WaveFx extends RefCounted:
 		if not hit and age >= RISE:
 			hit = true
 			var c := r.target()
+			var cx: float = c.x
+			var cy: float = c.y
 			r.hit(Rig.with(Rig.HIT, { "dmg": 52 }))
-			Drop.spawn(r, c.x, c.y - 30.0, 16, { "sx": 34.0, "vx0": -180.0, "vx1": 420.0, "vy0": -700.0, "vy1": -280.0, "r0": 6.0, "r1": 11.0 })
-			r.shockwave(c.x, GROUND, { "color": WATER, "r": 150.0, "ms": 460.0 })
+			Drop.spawn(r, cx, cy - 30.0, 16, { "sx": 34.0, "vx0": -180.0, "vx1": 420.0, "vy0": -700.0, "vy1": -280.0, "r0": 6.0, "r1": 11.0 })
+			r.shockwave(cx, GROUND, { "color": WATER, "r": 150.0, "ms": 460.0 })
 		return age < RISE + FALL
 
 	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
@@ -145,17 +155,24 @@ class WaveFx extends RefCounted:
 		# foam bubbles off the lip
 		for b: Array in [[0.08, -0.1, 0.05], [-0.02, 0.02, 0.035], [0.12, 0.06, 0.03]]:
 			var at: Vector2 = P.call(tip.x + b[0], tip.y + b[1])
-			ctx.begin_path(); ctx.circle(at.x, at.y, maxf(4.0, b[2] * H)); ctx.fill(FOAM); ctx.stroke(RigFx.INK, 3)
+			var br: float = b[2]
+			ctx.begin_path(); ctx.circle(at.x, at.y, maxf(4.0, br * H)); ctx.fill(FOAM); ctx.stroke(RigFx.INK, 3)
 		ctx.alpha = 1.0
 
 	static func _lip(ctx: RigCtx, P: Callable, tip: Vector2, c: float) -> void:
 		_bz(ctx, P.call(0.25, -1.02), P.call(tip.x + 0.06, -1.0 + 0.2 * c), P.call(tip.x, tip.y))
 
-	static func _mv(ctx: RigCtx, v: Vector2) -> void:
+	## points come straight from P.call (Variant)
+	static func _mv(ctx: RigCtx, pv: Variant) -> void:
+		var v: Vector2 = pv
 		ctx.move_to(v.x, v.y)
 
-	static func _ln(ctx: RigCtx, v: Vector2) -> void:
+	static func _ln(ctx: RigCtx, pv: Variant) -> void:
+		var v: Vector2 = pv
 		ctx.line_to(v.x, v.y)
 
-	static func _bz(ctx: RigCtx, a: Vector2, b: Vector2, e: Vector2) -> void:
+	static func _bz(ctx: RigCtx, pa: Variant, pb: Variant, pe: Variant) -> void:
+		var a: Vector2 = pa
+		var b: Vector2 = pb
+		var e: Vector2 = pe
 		ctx.bezier_to(a.x, a.y, b.x, b.y, e.x, e.y)

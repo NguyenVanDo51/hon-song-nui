@@ -14,6 +14,8 @@ func events(_r: Rig) -> Array:
 	var c := data.consts
 	var t_thrust: float = c.T_THRUST
 	var ring: Dictionary = c.RING
+	var ring_x: float = ring.x
+	var ring_y: float = ring.y
 	var ev := [
 		[250.0, func(a: Rig) -> void: a.gleam("top")],
 		[t_thrust - 20.0, func(a: Rig) -> void: a.flash(SPIRIT_PALE, 45)],
@@ -21,20 +23,22 @@ func events(_r: Rig) -> Array:
 			var q := a.point("tip")
 			a.sound("orb")
 			a.sparks(q.x, q.y, 7, "#8fe39a")
-			a.shockwave(float(ring.x), float(ring.y), { "r": 150.0, "ms": 360.0, "color": "#8fe39a" })],
+			a.shockwave(ring_x, ring_y, { "r": 150.0, "ms": 360.0, "color": "#8fe39a" })],
 	]
 	var flames: Array = c.FLAMES
 	for i in flames.size():
 		var f: Dictionary = flames[i]
 		# only the last flame is THE hit (shared look); the others are ticks
 		var hit := Rig.with(Rig.HIT if i == flames.size() - 1 else Rig.HIT_SMALL, {})
-		ev.append([float(f.t), func(a: Rig) -> void: a.add(SoulFlame.new(a, f, hit))])
+		var ft: float = f.t
+		ev.append([ft, func(a: Rig) -> void: a.add(SoulFlame.new(a, f, hit))])
 	return ev
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "plume":
 		var idle_k: float = ctx.idle
-		return clampf(-vx * 0.035, -26, 14) - p.lean * 0.5 - p.head * 0.4 + idle_k * 2.0 * sin(ctx.clock / 700.0)
+		var ck: float = ctx.clock
+		return clampf(-vx * 0.035, -26, 14) - p.lean * 0.5 - p.head * 0.4 + idle_k * 2.0 * sin(ck / 700.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -162,7 +166,7 @@ func _ring(ctx: RigCtx, cam: RigCam, r: Rig, t: float, front: bool) -> void:
 
 ## one soul flame: bursts up/forward from the staff tip along a bezier, spiralling, then dives into the target.
 ## World path as the JS; own frame weight w = path progress (0 at the drawn tip -> 1 on the target token).
-class SoulFlame extends RefCounted:
+class SoulFlame extends RigFx.Fx:
 	const MS := 330.0
 	const R := 30.0
 	var r: Rig
@@ -186,8 +190,12 @@ class SoulFlame extends RefCounted:
 		r = p_r; f = p_f; hit = p_hit
 		P0 = r.point("tip")
 		var tg := r.target()
-		P2 = Vector2(tg.x - 8.0, tg.y - 6.0)
-		P1 = P0 + Vector2(f.cx, f.cy)
+		var tx: float = tg.x
+		var ty: float = tg.y
+		P2 = Vector2(tx - 8.0, ty - 6.0)
+		var fcx: float = f.cx
+		var fcy: float = f.cy
+		P1 = P0 + Vector2(fcx, fcy)
 		x = P0.x; y = P0.y
 		off0 = (r.point_px("tip") - r.cam.mapv(P0, 0.0)) / r.cam.T
 
@@ -210,7 +218,8 @@ class SoulFlame extends RefCounted:
 		var L := tv.length()
 		if L == 0.0:
 			L = 1.0
-		var ph: float = float(f.ph) + uu * PI * 3.2
+		var fph: float = f.ph
+		var ph: float = fph + uu * PI * 3.2
 		var o := R * pow(sin(PI * uu), 0.7) * sin(ph)
 		var nx := b.x - tv.y / L * o
 		var ny := b.y + tv.x / L * o
@@ -234,7 +243,8 @@ class SoulFlame extends RefCounted:
 		if trail.size() > 1:
 			ctx.begin_path()
 			for i in trail.size():
-				var p := px(trail[i])
+				var q: Vector3 = trail[i]
+				var p := px(q)
 				if i == 0:
 					ctx.move_to(p.x, p.y)
 				else:

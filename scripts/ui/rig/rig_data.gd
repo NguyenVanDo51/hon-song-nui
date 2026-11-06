@@ -65,23 +65,22 @@ func _load(spec: String) -> bool:
 		raw[r] = true
 	for b: Dictionary in j.bones:
 		var o := b.duplicate()
-		o.pivot = Vector2(b.pivot[0], b.pivot[1])
+		var pv: Array = b.pivot
+		o.pivot = vec2(pv)
 		bones.append(o)
 	for e: Array in j.draw:
 		draw.append([e[0], e[1], e[2] if e.size() > 2 else ""])
 	for k: String in j.points:
 		var q: Array = j.points[k]
-		points[k] = [q[0], Vector2(q[1], q[2])]
+		points[k] = [q[0], vec2(q, 1)]
 	springs = j.springs
 	hooks = j.hooks
 	consts = j.consts
 	for a: Dictionary in j.attacks:
 		var tracks := {}
 		for ch: String in a.tr:
-			var keys := []
-			for q: Array in a.tr[ch]:
-				keys.append([float(q[0]), float(q[1]), maxi(0, EASES.find(q[2]))])
-			tracks[ch] = keys
+			var js: Array = a.tr[ch]
+			tracks[ch] = keys_of(js)
 		var o := a.duplicate()
 		o.tr = tracks
 		attacks[a.id] = o
@@ -120,17 +119,30 @@ static func sample(keys: Array, t: float) -> float:
 		return keys[0][1]
 	for i in range(1, keys.size()):
 		var k1: Array = keys[i]
-		if t <= k1[0]:
+		var t1: float = k1[0]
+		if t <= t1:
 			var k0: Array = keys[i - 1]
-			return k0[1] + (k1[1] - k0[1]) * ease_i(k1[2], (t - k0[0]) / (k1[0] - k0[0]))
+			var t0: float = k0[0]
+			var v0: float = k0[1]
+			var v1: float = k1[1]
+			var e: int = k1[2]
+			return v0 + (v1 - v0) * ease_i(e, (t - t0) / (t1 - t0))
 	return keys[keys.size() - 1][1]
 
 ## a track given as JSON keys (e.g. consts.X = {track: [...]}) -> same key format as attacks
 static func keys_of(js: Array) -> Array:
 	var out := []
 	for q: Array in js:
-		out.append([float(q[0]), float(q[1]), maxi(0, EASES.find(q[2]))])
+		var t: float = q[0]
+		var v: float = q[1]
+		out.append([t, v, maxi(0, EASES.find(q[2]))])
 	return out
+
+## [.., x, y, ..] from JSON -> Vector2 at index i
+static func vec2(q: Array, i := 0) -> Vector2:
+	var x: float = q[i]
+	var y: float = q[i + 1]
+	return Vector2(x, y)
 
 ## the part as engine.js builds it: full 256 viewBox, wrapped in the outline group unless raw; swap = enemy colours
 func part_svg(part: String, swap: bool) -> String:
@@ -139,11 +151,14 @@ func part_svg(part: String, swap: bool) -> String:
 		return _svg[key]
 	var inner: String = parts[part]
 	if not raw.has(part):
-		inner = '<g stroke="%s" stroke-width="%s" stroke-linejoin="round" stroke-linecap="round">%s</g>' % ["#" + RigFx.INK.to_html(false), _num(outline), inner]
+		inner = '<g stroke="%s" stroke-width="%s" stroke-linejoin="round" stroke-linecap="round">%s</g>' % [
+			"#" + RigFx.INK.to_html(false), _num(outline), inner]
 	var s := '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">%s</svg>' % inner
 	if swap:
 		for pr: Array in TEAM_SWAP:
-			s = s.replacen(pr[0], pr[1])
+			var from: String = pr[0]
+			var to: String = pr[1]
+			s = s.replacen(from, to)
 	_svg[key] = s
 	return s
 

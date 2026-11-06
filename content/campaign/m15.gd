@@ -48,6 +48,6 @@ const DEF := {
 	"tips": [
 		"Mục tiêu: [b]giữ thành 10 lượt[/b]. Mất thành mà Anh hùng cũng ngã là thua.",
 		"[b]Máy bắn đá[/b] của giặc không đánh trả, nhưng đã đi thì không ném được. Cho voi lao ra phá ngay khi chúng vừa đặt xuống.",
-		"Tướng giặc tới ở lượt 6. Lượt 8 giặc có cả [b]chó săn[/b]: bị cắn thì −10 công, −10 thủ, kéo quân đó về gần thành mà hồi máu.",
+		"Tướng giặc tới ở lượt 6. Lượt 8 giặc có cả [b]sói[/b]: bị cắn thì −10 công, −10 thủ, kéo quân đó về gần thành mà hồi máu.",
 	],
 }

@@ -46,6 +46,6 @@ const DEF := {
 	"tips": [
 		"Mục tiêu: đưa [b]Anh hùng[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 13 lượt.",
 		"Có 3 cây cầu. Lội sông cũng được nhưng tốn 3 bước, dưới nước không được thủ. Cầu hẹp: một lính đứng chặn là cả đoàn phải chờ hoặc xuống nước.",
-		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Anh hùng chờ quá lâu. Chó săn của giặc chạy rất nhanh.",
+		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Anh hùng chờ quá lâu. Sói của giặc chạy rất nhanh.",
 	],
 }

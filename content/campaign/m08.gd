@@ -54,7 +54,7 @@ const DEF := {
 			["todinh", "Luy Lâu là trị sở Giao Chỉ! Quân triều đình còn đông, các ngươi đừng mơ!"],
 			["trungtrac", "Các quận đã nổi lên theo ta. Còn mỗi Luy Lâu. Toàn quân, tiến!"],
 			["trungnhi", "Thành giữa đồng bỏ trống. Ai chiếm trước, người đó giữ được thế."],
-			["danlang", "Thợ săn trên núi dắt chó săn về theo quân. Chó cắn trúng ai, kẻ ấy yếu hẳn đi."],
+			["danlang", "Thợ săn trên núi thuần được sói rừng, dắt về theo quân. Sói cắn trúng ai, kẻ ấy yếu hẳn đi."],
 		],
 		"outro": [
 			[
@@ -66,7 +66,7 @@ const DEF := {
 	},
 	"tips": [
 		"Trận cuối: Tướng giặc có 2 thành. Phải chiếm cả hai [b]và[/b] hạ hắn. Chiếm thành trống giữa bản đồ để tăng thu nhập.",
-		"[b]Chó săn[/b] chạy 6 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho chó cắn trước, quân khác đánh sau.",
+		"[b]Sói[/b] chạy 6 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau.",
 		"Phối hợp: voi đi đầu, trống đồng ở giữa, nỏ thủ và máy bắn đá phía sau. Đền giữa đồng hồi máu cho bất kỳ ai đứng đó.",
 	],
 }

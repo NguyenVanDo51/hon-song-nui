@@ -11,7 +11,7 @@ const UNITS := {
 	"boat": { "name": "Thủy binh", "icon": "⛵", "fig": "res://assets/units/soldier.svg", "desc": "Quen sông nước: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ." },
 	"shaman": { "name": "Thầy mo", "icon": "🌿", "fig": "res://assets/units/shaman.svg", "desc": "Gọi hồn lính ngã ngay cạnh thành âm binh đánh cho ta (cả lính địch ngã)." },
 	"drum": { "name": "Trống đồng", "icon": "🥁", "fig": "res://assets/units/drum.svg", "desc": "Đánh trống xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh âm binh." },
-	"wolf": { "name": "Chó săn", "icon": "🐕", "fig": "res://assets/units/elephant.svg", "desc": "Chạy nhanh (6 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta." },
+	"wolf": { "name": "Sói", "icon": "🐺", "fig": "res://assets/units/elephant.svg", "desc": "Sói rừng thuần làm quân. Chạy nhanh (6 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta." },
 	"elephant": { "name": "Voi chiến", "icon": "🐘", "fig": "res://assets/units/elephant.svg", "desc": "Thủ rất dày, đánh mạnh. Đắt." },
 	"catapult": { "name": "Máy bắn đá", "icon": "🪨", "fig": "res://assets/units/catapult.svg", "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng hỏng)." },
 	"bird": { "name": "Rồng", "icon": "🐉", "fig": "res://assets/units/bird.svg", "desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 7. Mạnh nhất, đắt nhất. Nỏ thủ bắn rồng +15 công." },

@@ -46,6 +46,6 @@ const DEF := {
 	"tips": [
 		"Mục tiêu: đưa [b]Anh hùng[/b] tới [b]ô cờ vàng[/b] (làng góc đông bắc) trong 16 lượt, mở đường cho Phùng Thị Chính. Không cần diệt địch.",
 		"Bà ngã là hết đường thoát: không có thành để gọi bà về. Cho voi và lính đi trước hút đòn, bà đi sau.",
-		"Rừng, đồi +10 thủ. Giặc từ phía sau đuổi tới ở lượt 3, 5, 9; lượt 5 có chó săn chạy rất nhanh.",
+		"Rừng, đồi +10 thủ. Giặc từ phía sau đuổi tới ở lượt 3, 5, 9; lượt 5 có sói chạy rất nhanh.",
 	],
 }

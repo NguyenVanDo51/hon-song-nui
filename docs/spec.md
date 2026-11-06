@@ -10,12 +10,12 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 
 ## Đánh
 - Sát thương = `(công lăn ngẫu nhiên [min, max−1] + thưởng − thủ − 2·cấp_địch − thủ địa hình − thưởng thủ) × máu_người_đánh / 100`, làm tròn xuống, 0..máu. AE2 không bao giờ lăn ra đúng công max của bảng (vd bộ binh 50–55 -> lăn 50–54); UI hiện khoảng lăn được. Lăn có seed theo ván (`s.rng`); xem trước hiện đúng min–max thật.
-  - Thưởng công: +2·cấp; trống đồng +10 (đóng dấu); nỏ vs rồng +15; trống vs âm binh +15; thủy binh dưới sông +10; bị chó cắn −10.
-  - Thưởng thủ: thủy binh dưới sông +15; bị chó cắn −10.
+  - Thưởng công: +2·cấp; trống đồng +10 (đóng dấu); nỏ vs rồng +15; trống vs âm binh +15; thủy binh dưới sông +10; bị sói cắn −10.
+  - Thưởng thủ: thủy binh dưới sông +15; bị sói cắn −10.
 - Đánh trả: chỉ khi kề nhau (khoảng cách 1) và bên bị đánh có tầm min 1 (không phải máy bắn đá). Bắn từ 2 ô không bị đáp.
 - Kinh nghiệm: "chất lượng" = công min + công max + thủ, **tính cả thưởng cấp** (+6 / cấp). Mỗi đòn = sát thương × chất lượng nạn nhân. Cấp kế = chất lượng của mình × 200/3; dư mang sang; tối đa 1 cấp / trận; cấp tối đa 9; mỗi cấp +2 công (cả min, max), +2 thủ. Tên cấp 4 bậc: cấp 0–1 không tên, 2–3 lão luyện, 4–5 tinh nhuệ, 6–9 dũng mãnh; tướng không có tên cấp (chỉ ★N). "Lên cấp N" to chỉ khi đổi tên (cấp chẵn ≤ 6, không phải tướng); cấp khác: ★N nhỏ.
 - Trống đồng: sau mọi lệnh của nó, quân ta trong 2 ô +10 công tới đầu lượt sau của ta (giữ cả khi đánh trả lượt địch). Trống chết vì bị đánh trả vẫn đánh trống từ ô nó ngã.
-- Chó săn: cắn (không phải đánh trả) mà mục tiêu còn sống -> **sau** đòn đánh trả (đáp đủ sức), mục tiêu −10 công, −10 thủ tới đầu lượt sau của phe chó. Cắn 0 sát thương vẫn tính; chó chết vì đánh trả vẫn tính.
+- Sói: cắn (không phải đánh trả) mà mục tiêu còn sống -> **sau** đòn đánh trả (đáp đủ sức), mục tiêu −10 công, −10 thủ tới đầu lượt sau của phe sói. Cắn 0 sát thương vẫn tính; sói chết vì đánh trả vẫn tính.
 - Chết (trừ tướng, âm binh) -> mộ (ttl 3, trừ 1 mỗi đầu lượt của mỗi bên; có quân bước lên là mất). Thầy mo đứng cạnh -> Gọi hồn -> âm binh (cả lính địch ngã).
 - Máy bắn đá: chưa đi mới bắn / phá làng (2–4 ô). Phá làng địch / chưa ai chiếm -> làng hỏng; bộ binh / tướng sửa (1 lượt) -> làng trống, lượt sau chiếm.
 
@@ -38,7 +38,7 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 | Thủy binh | Elemental | 300 | 50–55 / 10 / 5 / 1 | sông giá 1, dưới sông +10 / +15 |
 | Thầy mo | Sorceress | 400 | 40–45 / 5 / 5 / 1 | gọi hồn |
 | Trống đồng | Wisp | 500 | 35–40 / 10 / 5 / 1 | hào quang tầm 2, +15 vs âm binh |
-| Chó săn | Dire Wolf | 600 | 60–65 / 15 / 6 / 1 | cắn: −10 / −10 |
+| Sói | Dire Wolf | 600 | 60–65 / 15 / 6 / 1 | cắn: −10 / −10 |
 | Voi chiến | Golem | 600 | 60–70 / 30 / 5 / 1 | |
 | Máy bắn đá | Catapult | 700 | 50–70 / 10 / 4 / 2–4 | công thành, phá làng |
 | Rồng | Dragon | 1000 | 70–80 / 25 / 7 / 1 | bay |

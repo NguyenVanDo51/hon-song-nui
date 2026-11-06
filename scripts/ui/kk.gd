@@ -74,7 +74,8 @@ static func actor(char_file: String, weapons: Array, side: String, tint: bool) -
 		var ba := BoneAttachment3D.new()
 		ba.bone_name = w[0]
 		sk.add_child(ba)
-		var wi: Node3D = scene("res://" + w[1]).instantiate()
+		var wpath: String = w[1]
+		var wi: Node3D = scene("res://" + wpath).instantiate()
 		if w.size() > 2:
 			wi.transform = w[2]
 		ba.add_child(wi)
@@ -105,4 +106,5 @@ static func _tint(mi: MeshInstance3D, side: String) -> void:
 			sm.set_shader_parameter("albedo_tex", tex)
 			sm.set_shader_parameter("team_hue", TEAM_HUE[side])
 			_tints[key] = sm
-		mi.set_surface_override_material(i, _tints[key])
+		var tm: Material = _tints[key]
+		mi.set_surface_override_material(i, tm)

@@ -4,6 +4,9 @@ extends Control
 ## debug args (after `--`): mission=m01 (start it) bot (AI plays our side) speed=3 fresh (ignore save)
 ##   screen=title|campaign|briefing:m03|skirmish|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
 
+const BASE := Vector2(1280, 720)
+const MIN_SCALE := 0.8
+
 var audio: Audio
 var menus: Menus
 var game: GameScreen
@@ -11,14 +14,17 @@ var flags := {}
 var _shot_t := 0.0
 var _shot_n := 0
 var _t := 0.0
+var _rotate: Control
 
 func _ready() -> void:
 	var args := Array(OS.get_cmdline_user_args())
 	if OS.has_feature("web"):
 		# web: same debug flags from the page URL, e.g. index.html?screen=campaign&speed=3
 		var q: Variant = JavaScriptBridge.eval("window.location.search", true)
-		if q is String and q.length() > 1:
-			args += Array(q.substr(1).split("&"))
+		if q is String:
+			var qs: String = q
+			if qs.length() > 1:
+				args += Array(qs.substr(1).split("&"))
 	for a: String in args:
 		var kv := a.uri_decode().split("=")
 		flags[kv[0]] = kv[1] if kv.size() > 1 else "1"
@@ -44,7 +50,7 @@ func _ready() -> void:
 	add_child(game)
 	menus.add_overlays() # codex sits above the game screen
 	if flags.has("speed"):
-		FX.speed = float(flags.speed)
+		FX.speed = str(flags.speed).to_float()
 	if flags.has("fresh"):
 		Store.clear_game()
 	_build_rotate_hint()
@@ -55,9 +61,6 @@ func _ready() -> void:
 # ---------- screen scale ----------
 ## canvas_items stretch scales the 1280x720 base by min(w/1280, h/720); on small windows that makes 13 px text ~6 px.
 ## Never let the UI shrink below MIN_SCALE: the layout gets a smaller logical area instead (menus scroll, board fits).
-const BASE := Vector2(1280, 720)
-const MIN_SCALE := 0.8
-var _rotate: Control
 
 func _fit_scale() -> void:
 	var w := get_window()
@@ -92,11 +95,14 @@ func _build_rotate_hint() -> void:
 
 func _boot() -> void:
 	if flags.has("mission"):
-		start_game(Game.new_game(Content.mission(flags.mission)), { "kind": "campaign", "id": flags.mission })
+		var mid := str(flags.mission)
+		var md: Dictionary = Content.mission(mid)
+		start_game(Game.new_game(md), { "kind": "campaign", "id": flags.mission })
 		return
 	var sc: String = flags.get("screen", "title")
 	if sc.begins_with("briefing"):
-		menus.show_briefing(Content.mission(sc.split(":")[1] if ":" in sc else "m01"))
+		var bm: Dictionary = Content.mission(sc.split(":")[1] if ":" in sc else "m01")
+		menus.show_briefing(bm)
 	elif sc.begins_with("campaign"):
 		menus.show_campaign(sc.split(":")[1] if ":" in sc else "")
 	elif sc == "skirmish":
@@ -130,7 +136,8 @@ func start_game(state: Dictionary, ctx: Dictionary) -> void:
 	game.start(state, ctx)
 
 func _unhandled_input(ev: InputEvent) -> void:
-	if ev is InputEventKey and ev.pressed and ev.keycode == KEY_ESCAPE:
+	var k := ev as InputEventKey
+	if k != null and k.pressed and k.keycode == KEY_ESCAPE:
 		if menus.is_codex_open():
 			menus.close_codex()
 		elif game.visible:
@@ -142,10 +149,10 @@ func _process(dt: float) -> void:
 	if flags.has("shots"):
 		_shot_t -= dt
 		if _shot_t <= 0.0:
-			_shot_t = float(flags.get("shot_every", "2"))
-			shot(flags.get("tag", "s") + "_%03d" % _shot_n)
+			_shot_t = str(flags.get("shot_every", "2")).to_float()
+			shot(str(flags.get("tag", "s")) + "_%03d" % _shot_n)
 			_shot_n += 1
-	if flags.has("quit_at") and _t >= float(flags.quit_at):
+	if flags.has("quit_at") and _t >= str(flags.quit_at).to_float():
 		get_tree().quit()
 
 func shot(shot_name: String) -> void:
@@ -154,4 +161,6 @@ func shot(shot_name: String) -> void:
 	await RenderingServer.frame_post_draw
 	var dir: String = flags.get("shots", "res://shots")
 	DirAccess.make_dir_recursive_absolute(dir)
-	get_viewport().get_texture().get_image().save_png(dir.path_join(shot_name + ".png"))
+	var err := get_viewport().get_texture().get_image().save_png(dir.path_join(shot_name + ".png"))
+	if err != OK:
+		push_warning("shot: save %s failed (%s)" % [shot_name, error_string(err)])

@@ -4,21 +4,33 @@ extends Control
 ## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
 
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
+const CREDITS := [
+	["Trò chơi", "Công Thành Chiến · chiến thuật theo lượt, viết bằng Godot Engine 4.7 (MIT)."],
+	["Phông chữ", "Be Vietnam Pro, Alegreya SC, Noto Sans Symbols 2 · SIL Open Font License 1.1."],
+	["Biểu tượng", "Noto Emoji của Google · Apache License 2.0."],
+	["Hình quân", "Icons made by Delapouite, HeavenlyDog, Lorc, Cathelineau. Available on game-icons.net · CC BY 3.0."],
+	["Mô hình 3D", "KayKit của Kay Lousberg (www.kaylousberg.com) · CC0."],
+	["Âm thanh", "Tổng hợp bằng mã ngay khi chạy, nhạc nền theo thang ngũ cung."],
+	["Sử liệu",
+		# gdlint:ignore = max-line-length
+		"Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi."],
+	["Tưởng nhớ", "Hai Bà Trưng và các nữ tướng đã đứng lên giành lại non sông."],
+]
 
-var main: Node
+var main: Main
 var bg: MenuBg
 var root: Control # current page lives here
 var page: Control = null
 var codex: Control = null
-var _codex_card: Control
-var _codex_grid: GridContainer
-var _codex_seg: Array = []
 var codex_side := "p"
 var hero_choice := ""
 var easy := true
 var sk_gold := 300 # AE2 skirmish options: starting gold, unit cap
 var sk_cap := 15
 var map_choice := "dong_bang"
+var _codex_card: Control
+var _codex_grid: GridContainer
+var _codex_seg: Array = []
 
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -33,7 +45,7 @@ func _init() -> void:
 
 # ---------- helpers ----------
 func _sfx(sfx: String) -> void:
-	if main and main.get("audio"):
+	if main and main.audio:
 		main.audio.play(sfx)
 
 func _on(b: BaseButton, fn: Callable, sound := "ui") -> BaseButton:
@@ -108,7 +120,7 @@ func _head(back_text: String, back_fn: Callable, title := "") -> HBoxContainer:
 func _click_card(content: Control, on_click: Callable, enabled := true, hot := false, pulse := false) -> PanelContainer:
 	var p := PanelContainer.new()
 	var normal := Style.box(Style.GLASS, Style.LACQUER_3, 12, 14)
-	var hover := normal.duplicate()
+	var hover: StyleBoxFlat = normal.duplicate()
 	hover.border_color = Style.GOLD
 	hover.shadow_color = Color(0, 0, 0, 0.55)
 	hover.shadow_size = 16
@@ -132,16 +144,17 @@ func _click_card(content: Control, on_click: Callable, enabled := true, hot := f
 		p.mouse_entered.connect(func() -> void: p.add_theme_stylebox_override("panel", hover))
 		p.mouse_exited.connect(func() -> void: p.add_theme_stylebox_override("panel", normal))
 		p.gui_input.connect(func(ev: InputEvent) -> void:
-			if ev is InputEventMouseButton and ev.pressed and ev.button_index == MOUSE_BUTTON_LEFT:
+			var mb := ev as InputEventMouseButton
+			if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
 				on_click.call())
 	else:
 		p.modulate = Color(0.75, 0.75, 0.75, 0.5)
 	return p
 
 func _ignore_mouse(n: Node) -> void:
-	for c in n.get_children():
+	for c: Node in n.get_children():
 		if c is Control:
-			c.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			(c as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_ignore_mouse(c)
 
 ## auto-fill grid: column count follows the width (CSS repeat(auto-fill, minmax(min_w, 1fr)));
@@ -161,15 +174,19 @@ func _grid(min_w: float, gap := 12, auto_fit := false) -> GridContainer:
 	return g
 
 static func goal_text(def: Dictionary) -> String:
-	return Content.goal_text(def.get("win", {}), "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, {})
+	var win: Dictionary = def.get("win", {})
+	return Content.goal_text(win, "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, {})
 
 # ---------- title ----------
 func show_title() -> void:
 	var th := Content.theme()
 	var v := _page(640, true)
-	v.add_child(_eyebrow(th.tagline))
-	v.add_child(_logo(th.title))
-	var lede := Style.lbl(th.lede, 16, Style.INK, null, true)
+	var tagline: String = th.tagline
+	var title: String = th.title
+	var lede_text: String = th.lede
+	v.add_child(_eyebrow(tagline))
+	v.add_child(_logo(title))
+	var lede := Style.lbl(lede_text, 16, Style.INK, null, true)
 	lede.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	lede.add_theme_constant_override("shadow_offset_y", 1)
 	lede.add_theme_constant_override("line_spacing", 6)
@@ -189,10 +206,15 @@ func show_title() -> void:
 		prog = "Chương %d · Màn %d/%d: %s" % [Content.chapters().find(Content.chapter(cid)) + 1, ms.find(cm) + 1, ms.size(), cm.title]
 	var sv: Variant = Store.load_game()
 	if sv != null:
-		list.add_child(_on(Style.menu_button("Đánh tiếp ván đang dở", "%s · lượt %d" % [sv.get("title", ""), sv.state.turn], true), func() -> void:
+		var svd: Dictionary = sv
+		var sst: Dictionary = svd.state
+		list.add_child(_on(Style.menu_button("Đánh tiếp ván đang dở", "%s · lượt %d" % [svd.get("title", ""), sst.turn], true), func() -> void:
 			var s2: Variant = Store.load_game()
 			if s2 != null:
-				main.start_game(s2.state, s2.ctx)))
+				var d2: Dictionary = s2
+				var st2: Dictionary = d2.state
+				var ctx2: Dictionary = d2.ctx
+				main.start_game(st2, ctx2)))
 	list.add_child(_on(Style.menu_button("Chiến dịch", prog, sv == null), show_campaign))
 	list.add_child(_on(Style.menu_button("Đấu tự do", Content.text("skirmishBlurb")), show_skirmish))
 	list.add_child(_on(Style.menu_button("Sách lính", "Xem tính chất từng loại quân"), func() -> void: open_codex()))
@@ -205,9 +227,11 @@ func show_title() -> void:
 	b3.tooltip_text = "Sa bàn 3D hoặc bản đồ phẳng 2D (trong trận: menu cài đặt › Bàn cờ)"
 	spd.tooltip_text = "Tốc độ hoạt cảnh x1 / x2 / x3"
 	var sync := func() -> void:
-		var a: Variant = main.get("audio") if main else null
-		var snd_on: bool = a == null or not a.muted
-		var mus_on: bool = a == null or a.music_on
+		var a: Audio = null
+		if main:
+			a = main.audio
+		var snd_on := a == null or not a.muted
+		var mus_on := a == null or a.music_on
 		snd.text = "Âm thanh: " + ("Bật" if snd_on else "Tắt")
 		mus.text = "Nhạc nền: " + ("Bật" if mus_on else "Tắt")
 		spd.text = "Tốc độ x%d" % int(FX.speed)
@@ -224,11 +248,11 @@ func show_title() -> void:
 		Store.set_v("speed", FX.speed)
 		sync.call())
 	_on(snd, func() -> void:
-		if main and main.get("audio"):
+		if main and main.audio:
 			main.audio.set_muted(not main.audio.muted)
 		sync.call())
 	_on(mus, func() -> void:
-		if main and main.get("audio"):
+		if main and main.audio:
 			main.audio.set_music(not main.audio.music_on)
 		sync.call())
 	sync.call()
@@ -238,19 +262,6 @@ func show_title() -> void:
 	tg.add_child(b3)
 	tg.add_child(_on(Style.button("Ghi công ›", "LinkBtn"), _open_credits))
 	v.add_child(tg)
-
-const CREDITS := [
-	["Trò chơi", "Công Thành Chiến · chiến thuật theo lượt, viết bằng Godot Engine 4.7 (MIT)."],
-	["Phông chữ", "Be Vietnam Pro, Alegreya SC, Noto Sans Symbols 2 · SIL Open Font License 1.1."],
-	["Biểu tượng", "Noto Emoji của Google · Apache License 2.0."],
-	["Hình quân", "Icons made by Delapouite, HeavenlyDog, Lorc, Cathelineau. Available on game-icons.net · CC BY 3.0."],
-	["Mô hình 3D", "KayKit của Kay Lousberg (www.kaylousberg.com) · CC0."],
-	["Âm thanh", "Tổng hợp bằng mã ngay khi chạy, nhạc nền theo thang ngũ cung."],
-	["Sử liệu",
-		# gdlint:ignore = max-line-length
-		"Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi."],
-	["Tưởng nhớ", "Hai Bà Trưng và các nữ tướng đã đứng lên giành lại non sông."],
-]
 
 func _open_credits() -> void:
 	var ov := Control.new()
@@ -270,8 +281,10 @@ func _open_credits() -> void:
 	v.add_child(_h2("Ghi công"))
 	for row: Array in CREDITS:
 		var r := Style.vbox(2)
-		r.add_child(Style.lbl(row[0], 15, Style.GOLD, Style.display))
-		r.add_child(Style.lbl(row[1], 14, Style.INK, null, true))
+		var head: String = row[0]
+		var body: String = row[1]
+		r.add_child(Style.lbl(head, 15, Style.GOLD, Style.display))
+		r.add_child(Style.lbl(body, 14, Style.INK, null, true))
 		v.add_child(r)
 	var close := Style.button("Đóng ✕", "BackBtn")
 	close.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -279,7 +292,8 @@ func _open_credits() -> void:
 	v.add_child(close)
 	card.add_child(v)
 	dim.gui_input.connect(func(ev: InputEvent) -> void:
-		if ev is InputEventMouseButton and ev.pressed:
+		var mb := ev as InputEventMouseButton
+		if mb != null and mb.pressed:
 			ov.queue_free())
 	add_child(ov)
 
@@ -312,38 +326,44 @@ func show_campaign(chapter_id := "") -> void:
 	var open := Store.unlocked_index()
 	if chapter_id == "":
 		var camp0 := Content.campaign()
-		chapter_id = Content.chapter_of(camp0[mini(open, camp0.size() - 1)])
+		var cm0: Dictionary = camp0[mini(open, camp0.size() - 1)]
+		chapter_id = Content.chapter_of(cm0)
 	Content.use_chapter(chapter_id)
 	var ch: Dictionary = Content.theme().get("chapter", {})
 	var v := _page(1040)
-	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), ch.get("title", "Chiến dịch")))
+	var ch_title: String = ch.get("title", "Chiến dịch")
+	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), ch_title))
 	# chapter tabs
 	var tabs := Style.hbox(8)
 	var chs := Content.chapters()
 	for k in chs.size():
 		var c: Dictionary = chs[k]
-		var unlocked := Content.chapter_unlocked(c.id, open)
+		var cid: String = c.id
+		var unlocked := Content.chapter_unlocked(cid, open)
 		var label := "Chương %d · %s" % [k + 1, c.get("years", "")] + ("" if unlocked else "  🔒")
 		var b := Style.button(label, "SegOn" if c.id == chapter_id else "SegBtn")
 		b.disabled = not unlocked
 		b.tooltip_text = c.title + ("" if unlocked else " · thắng hết chương trước để mở")
-		var cid: String = c.id
 		_on(b, func() -> void: show_campaign(cid))
 		tabs.add_child(b)
 	v.add_child(tabs)
-	var sub := Style.lbl(ch.get("subtitle", ""), 15, Style.MUTED)
+	var subtitle: String = ch.get("subtitle", "")
+	var blurb: String = ch.get("blurb", "")
+	var sub := Style.lbl(subtitle, 15, Style.MUTED)
 	v.add_child(sub)
-	if ch.get("blurb", "") != "":
-		v.add_child(Style.lbl(ch.blurb, 14, Style.INK, null, true))
+	if blurb != "":
+		v.add_child(Style.lbl(blurb, 14, Style.INK, null, true))
 	var map := CampMap.new()
 	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	map.setup(open)
 	map.picked.connect(func(id: String) -> void:
 		_sfx("ui")
-		show_briefing(Content.mission(id)))
+		var md: Dictionary = Content.mission(id)
+		show_briefing(md))
 	var mv := Style.vbox(6)
 	mv.add_child(map)
-	mv.add_child(Style.lbl(ch.get("note", ""), 12, Style.MUTED))
+	var note: String = ch.get("note", "")
+	mv.add_child(Style.lbl(note, 12, Style.MUTED))
 	v.add_child(mv)
 	# no mission cards: the map is the menu (hover a node for its title, click to open the briefing)
 
@@ -360,11 +380,14 @@ func show_briefing(m: Dictionary) -> void:
 	story.size_flags_stretch_ratio = 1.3
 	story.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	story.add_child(_eyebrow("Chương %d · Màn %d/%d" % [Content.chapters().find(Content.chapter(cid)) + 1, ms.find(m) + 1, ms.size()]))
-	var title := Style.lbl(m.title, 48, Style.GOLD, Style.display, true)
+	var m_title: String = m.title
+	var place: String = m.get("place", "")
+	var history: String = m.get("history", "")
+	var title := Style.lbl(m_title, 48, Style.GOLD, Style.display, true)
 	title.add_theme_constant_override("line_spacing", -8)
 	story.add_child(title)
-	story.add_child(Style.lbl(m.get("place", ""), 15, Style.MUTED))
-	if m.get("history", "") != "":
+	story.add_child(Style.lbl(place, 15, Style.MUTED))
+	if history != "":
 		var hb := PanelContainer.new()
 		var hs := Style.box(Color(0, 0, 0, 0.2), Color.TRANSPARENT, 8, 9)
 		hs.corner_radius_top_left = 0
@@ -373,9 +396,10 @@ func show_briefing(m: Dictionary) -> void:
 		hs.border_width_left = 3
 		hs.content_margin_left = 12
 		hb.add_theme_stylebox_override("panel", hs)
-		hb.add_child(Style.rich("[b]Sử tích[/b]  " + m.history, 14, Style.INK, Style.GOLD))
+		hb.add_child(Style.rich("[b]Sử tích[/b]  " + history, 14, Style.INK, Style.GOLD))
 		story.add_child(hb)
-	var intro: Array = m.get("story", {}).get("intro", [])
+	var m_story: Dictionary = m.get("story", {})
+	var intro: Array = m_story.get("intro", [])
 	story.add_child(Style.dialogue(intro))
 	cols.add_child(story)
 
@@ -390,25 +414,30 @@ func show_briefing(m: Dictionary) -> void:
 	goal.add_child(gv)
 	side.add_child(goal)
 	var go := Style.menu_button("Xuất quân", "", true)
-	(go.get_meta("title") as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var go_title: Label = go.get_meta("title")
+	go_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	go.custom_minimum_size.y = 56
 	_on(go, func() -> void: confirm_start(Game.new_game(m), { "kind": "campaign", "id": m.id }))
 	side.add_child(go)
-	for ty: String in m.get("newUnits", []):
+	var new_units: Array = m.get("newUnits", [])
+	for ty: String in new_units:
 		side.add_child(Style.unit_card("p", ty, m.hero, { "tag": "Tướng của bạn" if ty == "hero" else "Lính mới" }))
 	var sides := Style.card()
 	var sv := Style.vbox(8)
 	sv.add_child(Style.lbl("Hai bên", 17, Style.GOLD, Style.display))
-	var hl := Content.hero_look(m.hero)
-	if not m.get("newUnits", []).has("hero"): # the commander's card above already says it
+	var hero_key: String = m.hero
+	var hl := Content.hero_look(hero_key)
+	if not new_units.has("hero"): # the commander's card above already says it
 		sv.add_child(_side_row("p", "hero", m.hero, "[b]%s[/b] · %s" % [hl.name, hl.blurb]))
 	if m.get("enemyHero") != null:
-		var el := Content.hero_look(m.enemyHero)
+		var ehk: String = m.enemyHero
+		var el := Content.hero_look(ehk)
 		sv.add_child(_side_row("e", "hero", m.enemyHero, "[b]%s[/b] · %s" % [el.name, el.blurb]))
 	else:
 		sv.add_child(_side_row("e", "soldier", null, "[b]%s[/b] · địch không có tướng chỉ huy." % Content.theme().units.e.soldier.name))
 	var buys: Array = []
-	for ty: String in m.get("allowed", {}).get("p", []):
+	var allowed: Dictionary = m.get("allowed", {})
+	for ty: String in allowed.get("p", []):
 		buys.append(Content.theme().units.p[ty].name)
 	if buys.size():
 		sv.add_child(Style.lbl("Mua được: " + ", ".join(buys), 13, Style.MUTED, null, true))
@@ -444,11 +473,13 @@ func show_skirmish() -> void:
 		top.add_child(Token.make("p", "hero", key, 56))
 		var tv := Style.vbox(2)
 		tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		tv.add_child(Style.lbl(h.name, 21, Style.GOLD, Style.display))
+		var h_name: String = h.name
+		var h_blurb: String = h.blurb
+		tv.add_child(Style.lbl(h_name, 21, Style.GOLD, Style.display))
 		tv.add_child(Style.lbl("Công %d · Thủ %d · Đi %d" % [st.atk, st.def, st.mv], 12, Style.MUTED))
 		top.add_child(tv)
 		cv.add_child(top)
-		cv.add_child(Style.lbl(h.blurb, 14, Style.INK, null, true))
+		cv.add_child(Style.lbl(h_blurb, 14, Style.INK, null, true))
 		var card := _click_card(cv, func() -> void:
 			hero_choice = key
 			_sfx("select")
@@ -461,8 +492,10 @@ func show_skirmish() -> void:
 	for mid: String in Content.SKIRMISH.MAPS:
 		var md: Dictionary = Content.SKIRMISH.MAPS[mid]
 		var mv := Style.vbox(2)
-		mv.add_child(Style.lbl(md.name, 18, Style.GOLD, Style.display))
-		mv.add_child(Style.lbl(md.get("blurb", ""), 13, Style.MUTED, null, true))
+		var md_name: String = md.name
+		var md_blurb: String = md.get("blurb", "")
+		mv.add_child(Style.lbl(md_name, 18, Style.GOLD, Style.display))
+		mv.add_child(Style.lbl(md_blurb, 13, Style.MUTED, null, true))
 		var mcard := _click_card(mv, func() -> void:
 			map_choice = mid
 			_sfx("select")
@@ -495,7 +528,8 @@ func show_skirmish() -> void:
 	# AE2 options: starting gold + unit cap
 	var opts := Style.hbox(10)
 	for spec: Array in [["Vàng khởi đầu", [300, 500, 1000, 2000], "gold"], ["Giới hạn quân", [10, 15, 20, 30], "cap"]]:
-		opts.add_child(Style.lbl(spec[0], 14, Style.MUTED))
+		var spec_name: String = spec[0]
+		opts.add_child(Style.lbl(spec_name, 14, Style.MUTED))
 		var sg := Style.hbox(0)
 		for val: int in spec[1]:
 			var cur: int = sk_gold if spec[2] == "gold" else sk_cap
@@ -519,11 +553,17 @@ func show_skirmish() -> void:
 ## start a game; if it would replace a different game in progress, ask first (one save slot)
 func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
 	var sv: Variant = Store.load_game()
-	var same: bool = sv != null and sv.ctx.get("kind") == ctx.get("kind") and sv.ctx.get("id") == ctx.get("id") and sv.ctx.get("map") == ctx.get("map")
-	if sv == null or same:
+	if sv == null:
 		main.start_game(state, ctx)
 		return
-	confirm("Ván đang dở [b]%s · lượt %d[/b] sẽ bị thay bằng ván mới." % [sv.get("title", ""), sv.state.turn], "Xuất quân", func() -> void: main.start_game(state, ctx))
+	var svd: Dictionary = sv
+	var sctx: Dictionary = svd.ctx
+	if sctx.get("kind") == ctx.get("kind") and sctx.get("id") == ctx.get("id") and sctx.get("map") == ctx.get("map"):
+		main.start_game(state, ctx)
+		return
+	var sst: Dictionary = svd.state
+	confirm("Ván đang dở [b]%s · lượt %d[/b] sẽ bị thay bằng ván mới." % [svd.get("title", ""), sst.turn], "Xuất quân",
+		func() -> void: main.start_game(state, ctx))
 
 ## small modal: message + [yes] [Thôi]
 func confirm(bb: String, yes: String, fn: Callable) -> void:
@@ -551,7 +591,10 @@ func confirm(bb: String, yes: String, fn: Callable) -> void:
 	v.add_child(row)
 	card.add_child(v)
 	center.add_child(card)
-	(main if main else self).add_child(layer)
+	if main:
+		main.add_child(layer)
+	else:
+		add_child(layer)
 
 func hide_all() -> void:
 	visible = false
@@ -590,7 +633,8 @@ func add_overlays() -> void:
 	head.add_child(_h2("Sách lính"))
 	var seg := Style.hbox(0)
 	for pair: Array in [["p", "Quân ta"], ["e", "Quân địch"], ["terrain", "Địa hình"]]:
-		var b := Style.button(pair[1], "SegBtn")
+		var pair_name: String = pair[1]
+		var b := Style.button(pair_name, "SegBtn")
 		var sd: String = pair[0]
 		_on(b, func() -> void: open_codex(sd))
 		seg.add_child(b)
@@ -622,7 +666,8 @@ func open_codex(side := "p") -> void:
 		add_overlays()
 	codex_side = side
 	for pair: Array in _codex_seg:
-		(pair[1] as Button).theme_type_variation = "SegOn" if pair[0] == side else "SegBtn"
+		var pb: Button = pair[1]
+		pb.theme_type_variation = "SegOn" if pair[0] == side else "SegBtn"
 	for c in _codex_grid.get_children():
 		c.queue_free()
 	if side == "terrain":
@@ -631,7 +676,8 @@ func open_codex(side := "p") -> void:
 		return
 	var types: Array = Rules.BUY_ORDER.duplicate()
 	for ty: String in Rules.UNITS: # non-buyables (raised ghosts...) last
-		if not Rules.UNITS[ty].get("buyable", true):
+		var ud: Dictionary = Rules.UNITS[ty]
+		if not ud.get("buyable", true):
 			types.append(ty)
 	for ty: String in types:
 		var uc := Style.unit_card(side, ty, null)
@@ -661,11 +707,13 @@ func _codex_terrain() -> void:
 		var card := Style.card(Color(0, 0, 0, 0.3), Style.LACQUER_3, 10, 12)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v := Style.vbox(4)
-		v.add_child(Style.lbl(Content.terrain(t).name, 19, Style.GOLD, Style.display))
+		var t_name: String = Content.terrain(t).name
+		v.add_child(Style.lbl(t_name, 19, Style.GOLD, Style.display))
 		v.add_child(Style.lbl("Thủ +%d" % ter.def, 15, Style.INK, Style.semi))
 		var costs := []
 		for mc: Array in classes:
-			var c := Game.move_cost(mc[0], t)
+			var mcls: String = mc[0]
+			var c := Game.move_cost(mcls, t)
 			costs.append("%s %s" % [mc[1], "—" if c == INF else str(int(c))])
 		v.add_child(Style.lbl("Bước đi: " + " · ".join(costs), 13, Style.MUTED, null, true))
 		var note := Content.tile_note(t)

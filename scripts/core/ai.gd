@@ -461,7 +461,7 @@ static func random_step(s: Dictionary, r: Callable) -> Variant:
 			for o: Dictionary in Game.buy_options(s, side, key.x, key.y):
 				if o.ok:
 					opts.append({ "kind": "buy", "x": key.x, "y": key.y, "type": o.type })
-		if opts.size() and r.call() < 0.7: # same r.call() order as before: test first, then pick
+		if opts.size() and r.call() < 0.7: # roll order: buy-or-end test, then pick (seeded sims)
 			var pick: float = r.call()
 			return opts[floori(pick * opts.size())]
 		return null

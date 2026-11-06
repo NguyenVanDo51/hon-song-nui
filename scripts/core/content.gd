@@ -138,7 +138,7 @@ static func unit_title(name: String, rank: int, hero := false) -> String:
 		return "%s ★%d" % [name, rank]
 	var titles: Array = THEME_SCRIPT.RANK_TITLES
 	@warning_ignore("integer_division")
-	var t: String = titles[mini(rank / 2, titles.size() - 1)] # every 2 levels
+	var t: String = titles[mini(rank / 2, titles.size() - 1)]
 	return "%s%s ★%d" % [name, (" " + t) if t != "" else "", rank]
 
 ## level-up worth the big "Lên cấp N": a rename (RM MainDisplayable:4355)

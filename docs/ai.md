@@ -73,7 +73,7 @@
 - Sim chậm hơn: ~0,25 ván/s mỗi tiến trình khi có v2 (v1–v1 ~0,7).
 
 ### Ví dụ (`sim/probes/plan_probe.gd -- games=1`, seed salt 9200000)
-- Đồng bằng lượt 15 (v2 = p): tướng địch 45 máu ở (12,1). v1: tướng ta chiếm thành, 3 lính đánh tướng địch -> roll giữa còn sống. v2: tướng ta đánh trước rồi 2 lính kết -> **giết tướng địch** (dư 1 lính đi đánh lính khác).
+- Đồng bằng lượt 15 (v2 = p): tướng địch 45 máu ở (12,1). v1: tướng ta chiếm làng, 3 lính đánh tướng địch -> roll giữa còn sống. v2: tướng ta đánh trước rồi 2 lính kết -> **giết tướng địch** (dư 1 lính đi đánh lính khác).
 - Cửa biển lượt 16 (v2 = e): tướng ta 64 máu. v1: cung #18 đi chỗ khác, 5 quân đánh -> tướng sống (roll giữa). v2: **6 đòn dồn**, cung / thuyền (không bị phản đòn hoặc phản yếu) trước -> tướng chết.
 - Cửa biển lượt 6 (v2 = p): tướng địch đứng sát thành ta (8,7). v1 cho lính trên thành đi chỗ khác -> thành trống. v2 đưa cung vào đứng thành (điểm 2 ply thấy tướng địch chiếm thành ở lượt đáp).
 - Thống kê 1 lượt chạy (80 lượt v2): lần lập đầu lượt chọn style 58 lần, dồn đòn giết 28 lần; lập lại giữa lượt 10 lần (roll thật khác dự đoán).

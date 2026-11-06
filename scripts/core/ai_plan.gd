@@ -52,7 +52,11 @@ static func knob(P: Dictionary, k: String) -> float:
 static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 	for attempt in 2:
 		if attempt == 1 or not mem.has("pl_steps"):
+			var prev_rng: Callable = AI.rng
+			var prev_roll: float = Game.fixed_roll
 			_replan(s, mem)
+			AI.rng = prev_rng # again here: a runtime error inside the search must not leave the globals swapped
+			Game.fixed_roll = prev_roll
 		var steps: Array = mem.pl_steps
 		var alive: Array = mem.pl_alive
 		var i: int = mem.pl_i

@@ -8,8 +8,8 @@
 ## Chất lượng code
 - [x] Lint (2026-11-06): gdtoolkit 4.5.0 `gdlint` + Godot warnings = error + `tools/lint.sh` + pre-commit (`tools/install_hooks.sh`). README "Lint".
 - [ ] **Siết lint theo giai đoạn** (mỗi giai đoạn 1 commit; sau mỗi bước: tests + click_driver + rig_smoke + golden giống hệt):
-  1. **Kiểu chặt cho `scripts/core`** (luật / AI, ít UI, lỗi kiểu ở đây = sai luật): sửa `untyped_declaration`, `unsafe_call_argument`, `unsafe_method_access`, `unsafe_property_access` trong core -> bật mức error chỉ cho core (`@warning_ignore` / bật theo thư mục nếu Godot cho, không thì check riêng core trong `tools/lint.sh`).
-  2. Cảnh báo ít, dễ sửa -> error toàn repo: `integer_division` (18), `incompatible_ternary` (19), `narrowing_conversion` đã bật; `shadowed_variable` (29), `shadowed_global_identifier` (11), `shadowed_variable_base_class` (44).
+  1. ✅ (2026-11-06, merge 1424e63) **Kiểu chặt cho `scripts/core`** (luật / AI, ít UI, lỗi kiểu ở đây = sai luật): sửa `untyped_declaration`, `unsafe_call_argument`, `unsafe_method_access`, `unsafe_property_access` trong core -> bật mức error chỉ cho core (`@warning_ignore` / bật theo thư mục nếu Godot cho, không thì check riêng core trong `tools/lint.sh`).
+  2. ✅ (2026-11-06) Cảnh báo ít, dễ sửa -> error toàn repo: `integer_division` (18), `incompatible_ternary` (19), `narrowing_conversion` đã bật; `shadowed_variable` (29), `shadowed_global_identifier` (11), `shadowed_variable_base_class` (44).
   3. Kiểu chặt cho `content/`, `sim/`, rồi `scripts/ui/rig`, cuối cùng `scripts/ui` còn lại (game_screen sau khi tách = E5).
   4. `return_value_discarded` (~292): xem từng loại (tween / connect / erase thường bỏ qua có chủ đích) -> chỉ bật nếu ồn ít.
   5. `gdlintrc`: `max-line-length` 180 -> 150 -> 120 (sửa dần file đang đụng); bật lại `class-definitions-order`; `max-file-lines` 2200 -> 1000 sau khi tách game_screen / board.

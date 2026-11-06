@@ -2,3 +2,4 @@
 /shots/
 /build/
 .DS_Store
+.claude/

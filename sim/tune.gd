@@ -6,7 +6,7 @@ extends SceneTree
 ##                                                   -> mutate best, play child vs best, keep child if > thr twice
 ##                                                      (2 x games x maps x 2 seats); resumes from out (var_to_str)
 ##   presets [games=8] [salt=9000000] [tuned=<file>] -> round robin of the difficulty presets (row score vs column)
-## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned, low noise) | file:<path> (tuned file)
+## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned) | hard_n2 (tuned, noise 2) | file:<path> (tuned file)
 ## seeds: game k of salt -> 1000 + (salt * 64 + k) * 7919 (evolve salts < 9e6; held-out / presets >= 9e6)
 const FROZEN := ["noise", "cap_last"] # not tuned: noise = difficulty knob, last-castle capture = instant win
 const HELD_OUT := 9000000
@@ -53,9 +53,10 @@ func spec(sp: String) -> Dictionary:
 		if sp == "easy_gold":
 			e._gold = 0.5
 		return e
-	if sp == "hard":
+	if sp == "hard" or sp == "hard_n2":
 		var t: Dictionary = load_tuned(arg("tuned", "res://sim/tuned_params.txt")).duplicate()
-		t.noise = 2.0
+		if sp == "hard_n2":
+			t.noise = 2.0 # measured: low noise loses to normal (too predictable / no tie spread)
 		return t
 	if sp.begins_with("file:"):
 		return load_tuned(sp.substr(5))
@@ -170,7 +171,7 @@ func evolve() -> void:
 
 ## round robin: row preset score vs column preset (held-out seeds)
 func presets() -> void:
-	var names := ["easy_gold", "easy", "normal", "hard"]
+	var names := ["easy_gold", "easy", "normal", "hard", "hard_n2"]
 	var games := int(arg("games", "8"))
 	var salt := int(arg("salt", str(HELD_OUT)))
 	print("row score vs column (win 1, draw 0.5), %d games per pair" % (games * 2 * Content.SKIRMISH.MAPS.size()))

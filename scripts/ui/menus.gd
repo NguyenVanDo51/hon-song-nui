@@ -514,8 +514,8 @@ func _settle_page() -> void:
 		page.offset_top = 0
 		page.offset_bottom = 0
 
-## commander pick card: token, name, stats, blurb; hot = the picked one
-func _hero_card(side: String, key: String, hot: bool, on_pick: Callable) -> PanelContainer:
+## commander pick card: token, name, stats, blurb (tooltip only when blurb = false); hot = the picked one
+func _hero_card(side: String, key: String, hot: bool, on_pick: Callable, blurb := true) -> PanelContainer:
 	var h := Content.hero_look(key)
 	var st := Content.type_stat("hero", key) # hero overrides on the base unit
 	var cv := Style.vbox(8)
@@ -529,11 +529,14 @@ func _hero_card(side: String, key: String, hot: bool, on_pick: Callable) -> Pane
 	tv.add_child(Style.lbl("Công %d · Thủ %d · Đi %d" % [st.atk, st.def, st.mv], 12, Style.MUTED))
 	top.add_child(tv)
 	cv.add_child(top)
-	cv.add_child(Style.lbl(h_blurb, 14, Style.INK, null, true))
+	if blurb:
+		cv.add_child(Style.lbl(h_blurb, 14, Style.INK, null, true))
 	var card := _click_card(cv, func() -> void:
 		_sfx("select")
 		on_pick.call(), true, hot)
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if not blurb:
+		card.tooltip_text = h_blurb
 	return card
 
 ## battlefield cards (skirmish maps); on_pick(map_id)
@@ -626,9 +629,9 @@ func _duel_side(side: String) -> Control:
 		duel_opts[hk] = heroes[0]
 	var cur: String = duel_opts[hk]
 	for key: String in heroes:
-		var hc := _hero_card(side, key, key == cur, func() -> void:
+		var hc := _hero_card(side, key, key == cur, func() -> void: # no blurb: keeps Xuất quân on a phone screen
 			duel_opts[hk] = key
-			show_duel())
+			show_duel(), false)
 		hc.set_meta("duel_pick", side + ":" + key) # click driver finds the commander cards by this
 		cv.add_child(hc)
 	return card

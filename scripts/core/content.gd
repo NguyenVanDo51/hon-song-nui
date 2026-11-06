@@ -109,15 +109,15 @@ static func unit_type_look(side: String, type: String, hero_key: Variant) -> Dic
 		return theme().heroes.get(hero_key, { "name": "?", "icon": "?", "blurb": "" })
 	return theme().units[side][type]
 
-## AE2 renames a unit every 2 levels: "Bộ binh" -> "Bộ binh lão luyện ★2" ...; commanders keep their name (RM Unit.java:96)
+## AE2 renames a unit every 2 levels: "Bộ binh" -> "Bộ binh lão luyện Lv2" ...; commanders keep their name (RM Unit.java:96)
 static func unit_title(name: String, rank: int, hero := false) -> String:
 	if rank <= 0:
 		return name
 	if hero:
-		return "%s ★%d" % [name, rank]
+		return "%s Lv%d" % [name, rank]
 	var titles: Array = THEME_SCRIPT.RANK_TITLES
 	var t: String = titles[mini(rank / 2, titles.size() - 1)]
-	return "%s%s ★%d" % [name, (" " + t) if t != "" else "", rank]
+	return "%s%s Lv%d" % [name, (" " + t) if t != "" else "", rank]
 
 ## level-up worth the big "Lên cấp N": a rename (RM MainDisplayable:4355)
 static func rank_announced(type: String, rank: int) -> bool:

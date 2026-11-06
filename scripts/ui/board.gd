@@ -814,7 +814,7 @@ static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Ve
 		ci.draw_rect(Rect2(bx, byy, w * maxi(0, hp) / 100.0, h), Style.hp_color(hp))
 		Draw.text_a(ci, Style.xbold, Vector2(c.x + ts * 0.48, c.y + ts * 0.3), str(maxi(0, hp)), int(round(ts * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
 	if u.rank:
-		Draw.text_a(ci, Style.xbold, Vector2(c.x - ts * 0.48, c.y - ts * 0.5), "★".repeat(u.rank), int(round(ts * 0.2)), STAR, 0.0, true, 3, STAR_INK)
+		Draw.text_a(ci, Style.xbold, Vector2(c.x - ts * 0.48, c.y - ts * 0.5), "Lv%d" % u.rank, int(round(ts * 0.2)), STAR, 0.0, true, 3, STAR_INK)
 	if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat*)
 		Draw.text_a(ci, Style.body, Vector2(c.x + ts * 0.24, c.y - ts * zz), "💤", int(round(ts * 0.22)), Color.WHITE, 1.0, true)
 

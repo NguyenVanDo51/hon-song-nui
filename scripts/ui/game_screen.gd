@@ -1185,7 +1185,7 @@ func play(events: Array, before: Dictionary) -> void:
 			"rank":
 				var u: Variant = Game.unit_by_id(s, e.id)
 				if u != null:
-					# AE2 announces only the renames (even levels <= 6, never the commander); other levels: quiet ★N
+					# AE2 announces only the renames (even levels <= 6, never the commander); other levels: quiet LvN
 					fx.rank(u.x, u.y, e.rank, Content.rank_announced(u.type, e.rank))
 					await fx.sleep(350.0)
 			"aura":

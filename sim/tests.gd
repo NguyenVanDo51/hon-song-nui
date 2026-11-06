@@ -793,14 +793,14 @@ func rule_tests() -> void:
 		d.unitCap = 12
 		eq(Game.new_game(d).unitCap, 12, "mission override")
 	)
-	run("AE2 titles: 4 tiers (0-1 none, 2-3, 4-5, 6-9); commanders only ★N; big level-up only on renames", func() -> void:
+	run("AE2 titles: 4 tiers (0-1 none, 2-3, 4-5, 6-9); commanders only LvN; big level-up only on renames", func() -> void:
 		eq(Content.unit_title("Bộ binh", 0), "Bộ binh")
-		eq(Content.unit_title("Bộ binh", 1), "Bộ binh ★1")
-		eq(Content.unit_title("Bộ binh", 3), "Bộ binh lão luyện ★3")
-		eq(Content.unit_title("Bộ binh", 5), "Bộ binh tinh nhuệ ★5")
-		eq(Content.unit_title("Bộ binh", 6), "Bộ binh dũng mãnh ★6")
-		eq(Content.unit_title("Bộ binh", 9), "Bộ binh dũng mãnh ★9")
-		eq(Content.unit_title("Anh hùng", 4, true), "Anh hùng ★4")
+		eq(Content.unit_title("Bộ binh", 1), "Bộ binh Lv1")
+		eq(Content.unit_title("Bộ binh", 3), "Bộ binh lão luyện Lv3")
+		eq(Content.unit_title("Bộ binh", 5), "Bộ binh tinh nhuệ Lv5")
+		eq(Content.unit_title("Bộ binh", 6), "Bộ binh dũng mãnh Lv6")
+		eq(Content.unit_title("Bộ binh", 9), "Bộ binh dũng mãnh Lv9")
+		eq(Content.unit_title("Anh hùng", 4, true), "Anh hùng Lv4")
 		var loud := []
 		for r in range(1, 10):
 			if Content.rank_announced("soldier", r):

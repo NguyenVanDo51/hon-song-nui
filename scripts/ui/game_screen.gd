@@ -69,6 +69,7 @@ var _memo := {}
 var _memo_fp := 0
 var _intro_on := false
 var _intro_layer: Control = null
+var _story: StoryOverlay = null
 var _pop_pending := false
 var _pop_placed_at: Variant = null
 
@@ -416,6 +417,8 @@ func _def_for(c: Dictionary) -> Dictionary:
 
 func start(state: Dictionary, c: Dictionary) -> void:
 	gen += 1
+	if _story != null:
+		_story.close()
 	if _gold_tw != null:
 		_gold_tw.kill()
 	_gold_shown = -1
@@ -444,8 +447,36 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	_board_label()
 	_fit.call_deferred()
 	board.refresh_terrain()
+	var story_on := StoryOverlay.should_play(ctx, main.flags)
+	ctx.erase("story") # transient: a saved game (continue) never replays the story
 	save()
 	refresh()
+	if story_on and s.side == "p":
+		_opening()
+	else:
+		_begin()
+
+## mission title + story conversation over the map, then the usual start (new-unit intro, play)
+func _opening() -> void:
+	var my := gen
+	var ov := StoryOverlay.new()
+	ov.audio = main.audio
+	_story = ov
+	_intro_on = true # board keys off
+	add_child(ov)
+	ov.start(def, StoryOverlay.lines_for(def))
+	for n: Control in [_hud_tr, _btn_end]: # dead buttons under the story: hidden
+		n.modulate.a = 0.0
+	await ov.done
+	for n: Control in [_hud_tr, _btn_end]:
+		n.modulate.a = 1.0
+	if _story == ov:
+		_story = null
+		_intro_on = false
+	if gen == my:
+		_begin()
+
+func _begin() -> void:
 	var foe: bool = s.side != "p"
 	banner(_turn_banner() if s.side == "p" else Content.text("enemyTurn"), foe)
 	if s.side == "p":
@@ -463,6 +494,8 @@ func leave() -> void:
 		FX.speed = _user_speed
 	_btn_ff.visible = false
 	gen += 1
+	if _story != null:
+		_story.close()
 	if _intro_layer != null:
 		_intro_closed.emit()
 	visible = false
@@ -1459,6 +1492,10 @@ func _intro_card(u: Dictionary, i: int, n: int) -> void:
 	# animate: fade in, card rises, token pops, lines appear one by one
 	main.audio.play("spawn" if not mine else "rank")
 	layer.modulate.a = 0.0
+	card.resized.connect(func() -> void: # phone landscape: shrink to fit, never clip the top
+		var f := minf(1.0, (center.size.y - 16.0) / card.size.y)
+		center.pivot_offset = center.size / 2
+		center.scale = Vector2(f, f))
 	card.pivot_offset = Vector2(310, 200)
 	card.scale = Vector2(0.94, 0.94)
 	for l: Control in lines:
@@ -1526,7 +1563,7 @@ func finish() -> void:
 			if i + 1 < c.size():
 				var next: Dictionary = c[i + 1]
 				var new_chapter := Content.chapter_of(next) != cid
-				buttons.append(["Chương tiếp ›" if new_chapter else "Màn tiếp ›", func() -> void: main.show_briefing(next), true])
+				buttons.append(["Chương tiếp ›" if new_chapter else "Màn tiếp ›", func() -> void: main.play_mission(next), true])
 			else:
 				reason_text += " Toàn bộ chiến dịch đã hoàn thành!"
 			buttons.append(["Bản đồ chiến dịch", func() -> void: main.show_campaign(cid), false])

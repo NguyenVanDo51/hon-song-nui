@@ -13,7 +13,7 @@
 - [x] Lint (2026-11-06): gdtoolkit 4.5.0 `gdlint` + Godot warnings = error + `tools/lint.sh` + pre-commit (`tools/install_hooks.sh`). README "Lint".
 - [x] **Siết lint theo giai đoạn** (2026-11-06, xong): 1 core kiểu chặt; 2 int division / ternary / shadowing = error; 3 kiểu chặt content / sim / tools / ui (5 agent song song); 4 `return_value_discarded` quyết định TẮT (267 chỗ, >90% chủ ý; lỗi IO đã kiểm tay: save_png / FileAccess / store_string / load_svg); 5 gdlintrc dòng ≤ 150 + class-definitions-order bật. `tools/warn_count.sh` = 0 toàn repo; tests 80/80, golden giống hệt, driver 0 fail, rig smoke 132/0.
   - [ ] Còn: `max-file-lines` 2300 -> 1000 sau khi tách game_screen (E5, 2211 dòng; agent đã gộp ~50 cặp biến bằng `;` để vừa giới hạn cũ -> tách xong thì bỏ), board.gd ~1150, tests.gd ~1050.
-  - [ ] Click driver dùng chung profile "driver" -> chạy song song nhiều worktree thì 2 check save/briefing lỗi ngẫu nhiên: cho profile theo tham số (vd `profile=driver_<pid>`).
+  - [ ] Click driver dùng chung profile "driver" -> chạy song song nhiều worktree thì 2 check save/thoại mở màn lỗi ngẫu nhiên: cho profile theo tham số (vd `profile=driver_<pid>`).
 - [ ] Formatter: `gdformat` 4.5.0 hỏng với lambda nhiều dòng -> thử GDScript Formatter (GDQuest, Rust; cần build / tải binary, hỏi user) hoặc đợi gdtoolkit sửa.
 - [x] Code review 2026-11-06 backlog: hiệu năng P1–P8 (trừ P9), mở rộng E2/E3/E4/E7, tái sử dụng R1–R5 — merged e5a3520.
 - [ ] Còn lại từ review (`docs/review/code_review_2026-11-06.md`): E1 nhiều phe / đồng minh, E5 tách `game_screen.gd`, E6 i18n; P9 vẽ lại khi idle; spike ~18 ms khi rig đánh lần đầu (raster phần rig); test UI phá/sửa làng/gọi hồn qua click, phím tắt, save giữa ván; đo hiệu năng trên điện thoại thật (web/iOS).

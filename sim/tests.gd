@@ -1004,6 +1004,28 @@ func rule_tests() -> void:
 		eq(Content.goal_text({ "type": "teleport" }, "brief", { "p": "anhhung", "e": null }), "teleport")
 		check(Content.tile_note("c").find("tướng") >= 0, "castle note names who captures")
 	)
+	run("mission opening: history -> story intro -> goal; only on a fresh campaign start", func() -> void:
+		var m := mission("m02")
+		var lines := StoryOverlay.lines_for(m)
+		var story: Dictionary = m.story
+		var intro: Array = story.intro
+		eq(lines.size(), intro.size() + 2, "line count")
+		eq(lines[0], ["sutich", m.history], "history first")
+		eq(lines.slice(1, -1), intro, "intro in order")
+		eq(lines[-1], ["muctieu", Menus.goal_text(m)], "goal last")
+		for c: Dictionary in Content.campaign():
+			for l: Array in StoryOverlay.lines_for(c):
+				var key: String = l[0]
+				var icon: String = Content.speaker(key).icon
+				check(icon != "💬", "%s: speaker '%s' declared" % [c.id, key])
+		var fresh := { "kind": "campaign", "id": "m02", "story": true }
+		check(StoryOverlay.should_play(fresh, {}), "fresh campaign start plays")
+		check(not StoryOverlay.should_play({ "kind": "campaign", "id": "m02" }, {}), "continue / restart (no key) does not")
+		check(not StoryOverlay.should_play({ "kind": "skirmish", "story": true }, {}), "skirmish never")
+		check(not StoryOverlay.should_play(fresh, { "nointro": "1" }), "nointro skips")
+		check(not StoryOverlay.should_play(fresh, { "bot": "1" }), "bot skips")
+		check(StoryOverlay.should_play(fresh, { "bot": "1", "story": "1" }), "story flag forces")
+	)
 	run("save round-trip keeps types", func() -> void:
 		var s := Game.new_game(mission("m02"))
 		var back: Dictionary = str_to_var(var_to_str(s))

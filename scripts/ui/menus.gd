@@ -468,15 +468,17 @@ func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
 		return
 	var svd: Dictionary = sv
 	var sctx: Dictionary = svd.ctx
-	if sctx.get("kind") == ctx.get("kind") and sctx.get("id") == ctx.get("id") and sctx.get("map") == ctx.get("map"):
-		main.start_game(state, ctx)
-		return
 	var sst: Dictionary = svd.state
+	if sctx.get("kind") == ctx.get("kind") and sctx.get("id") == ctx.get("id") and sctx.get("map") == ctx.get("map"):
+		# one tap on the map node must not wipe the game in progress
+		confirm("Màn này đang đánh dở [b]lượt %d[/b]." % sst.turn, "Đánh lại từ đầu",
+			func() -> void: main.start_game(state, ctx), "Đánh tiếp", func() -> void: main.start_game(sst, sctx))
+		return
 	confirm("Ván đang dở [b]%s · lượt %d[/b] sẽ bị thay bằng ván mới." % [svd.get("title", ""), sst.turn], "Xuất quân",
 		func() -> void: main.start_game(state, ctx))
 
-## small modal: message + [yes] [Thôi]
-func confirm(bb: String, yes: String, fn: Callable) -> void:
+## small modal: message + [Thôi] [alt] [yes]
+func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callable()) -> void:
 	var layer := Control.new()
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -495,6 +497,10 @@ func confirm(bb: String, yes: String, fn: Callable) -> void:
 	var row := Style.hbox(10)
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.add_child(_on(Style.button("Thôi", "ActBtn"), func() -> void: layer.queue_free()))
+	if alt != "":
+		row.add_child(_on(Style.button(alt, "ActBtn"), func() -> void:
+			layer.queue_free()
+			alt_fn.call()))
 	row.add_child(_on(Style.button(yes, "ActGo"), func() -> void:
 		layer.queue_free()
 		fn.call()))

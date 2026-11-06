@@ -298,6 +298,16 @@ func _run() -> void:
 	var restore_ok: bool = g.visible and g.s.turn == 2 and units_of(g.s).size() == units_of(s).size()
 	ok(restore_ok, "continue restores the save")
 	ok(g._story == null, "continue does not replay the story")
+	# map node of the mission in progress: ask, never wipe it silently
+	var m02: Dictionary = Content.mission("m02")
+	main.menus.confirm_start(Game.new_game(m02), { "kind": "campaign", "id": "m02" })
+	await process_frame
+	var asked_ok: bool = find_btn(main, "Đánh lại từ đầu") != null and g.s.turn == 2
+	ok(asked_ok, "same mission in progress: modal asks (game kept)")
+	press("Đánh tiếp")
+	await wait(0.6)
+	var kept_ok: bool = g.visible and g.s.turn == 2
+	ok(kept_ok, "modal 'Đánh tiếp' keeps the saved game")
 	# win -> next mission: map + title card -> story line by line -> skip -> new-unit intro -> play
 	main.flags.erase("nointro")
 	Store.set_v("seen_units", []) # driver profile: m03's unit cards show on every run

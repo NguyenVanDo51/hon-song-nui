@@ -1,6 +1,6 @@
 class_name Menus
 extends Control
-## menu screens over the animated backdrop: title, campaign (chapter tabs + clickable map), skirmish,
+## menu screens over the animated backdrop: title, campaign (chapter tabs + clickable map), skirmish, 1 vs 1,
 ## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
 
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
@@ -16,6 +16,8 @@ const CREDITS := [
 		"Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi."],
 	["Tưởng nhớ", "Hai Bà Trưng và các nữ tướng đã đứng lên giành lại non sông."],
 ]
+## 1 vs 1: who plays Blue (s.ctrl.e)
+const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Thường"], ["ai:hard", "Máy Khó"]]
 
 var main: Main
 var bg: MenuBg
@@ -28,6 +30,7 @@ var easy := true
 var sk_gold := 300 # AE2 skirmish options: starting gold, unit cap
 var sk_cap := 15
 var map_choice := "dong_bang"
+var duel_opts := { "map": "dong_bang", "gold": 300, "cap": 15, "hero": "", "heroE": "", "ctrlE": "human" }
 var _codex_card: Control
 var _codex_grid: GridContainer
 var _codex_seg: Array = []
@@ -217,6 +220,7 @@ func show_title() -> void:
 				main.start_game(st2, ctx2)))
 	list.add_child(_on(Style.menu_button("Chiến dịch", prog, sv == null), show_campaign))
 	list.add_child(_on(Style.menu_button("Đấu tự do", Content.text("skirmishBlurb")), show_skirmish))
+	list.add_child(_on(Style.menu_button("1 đấu 1", Content.text("duelBlurb")), show_duel))
 	list.add_child(_on(Style.menu_button("Sách lính", "Xem tính chất từng loại quân"), func() -> void: open_codex()))
 	v.add_child(list)
 	var tg := Style.hbox(8)
@@ -376,43 +380,13 @@ func show_skirmish() -> void:
 	if hero_choice == "" or not heroes.has(hero_choice):
 		hero_choice = heroes[0]
 	for key: String in (heroes if heroes.size() > 1 else []): # one commander: nothing to choose
-		var h := Content.hero_look(key)
-		var st: Dictionary = Rules.HEROES[key]
-		var cv := Style.vbox(8)
-		var top := Style.hbox(12)
-		top.add_child(Token.make("p", "hero", key, 56))
-		var tv := Style.vbox(2)
-		tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		var h_name: String = h.name
-		var h_blurb: String = h.blurb
-		tv.add_child(Style.lbl(h_name, 21, Style.GOLD, Style.display))
-		tv.add_child(Style.lbl("Công %d · Thủ %d · Đi %d" % [st.atk, st.def, st.mv], 12, Style.MUTED))
-		top.add_child(tv)
-		cv.add_child(top)
-		cv.add_child(Style.lbl(h_blurb, 14, Style.INK, null, true))
-		var card := _click_card(cv, func() -> void:
+		grid.add_child(_hero_card("p", key, key == hero_choice, func() -> void:
 			hero_choice = key
-			_sfx("select")
-			show_skirmish(), true, key == hero_choice)
-		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(card)
+			show_skirmish()))
 	v.add_child(grid)
-	# battlefield
-	var maps := Style.hbox(10)
-	for mid: String in Content.SKIRMISH.MAPS:
-		var md: Dictionary = Content.SKIRMISH.MAPS[mid]
-		var mv := Style.vbox(2)
-		var md_name: String = md.name
-		var md_blurb: String = md.get("blurb", "")
-		mv.add_child(Style.lbl(md_name, 18, Style.GOLD, Style.display))
-		mv.add_child(Style.lbl(md_blurb, 13, Style.MUTED, null, true))
-		var mcard := _click_card(mv, func() -> void:
-			map_choice = mid
-			_sfx("select")
-			show_skirmish(), true, mid == map_choice)
-		mcard.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		maps.add_child(mcard)
-	v.add_child(maps)
+	v.add_child(_map_cards(map_choice, func(mid: String) -> void: # battlefield
+		map_choice = mid
+		show_skirmish()))
 	var row := Style.hbox(10)
 	var seg := Style.hbox(0)
 	var e_btn := Style.button("Dễ", "SegOn" if easy else "SegBtn")
@@ -435,30 +409,148 @@ func show_skirmish() -> void:
 	_on(go, func() -> void:
 		confirm_start(Game.new_game(Content.skirmish_def(map_choice, hero_choice, easy, sk_gold, sk_cap)),
 			{ "kind": "skirmish", "hero": hero_choice, "easy": easy, "map": map_choice, "gold": sk_gold, "cap": sk_cap }))
-	# AE2 options: starting gold + unit cap
+	v.add_child(_gold_cap_row(sk_gold, sk_cap, func(key: String, val: int) -> void:
+		if key == "gold": sk_gold = val
+		else: sk_cap = val
+		show_skirmish()))
+	row.add_child(go)
+	v.add_child(row)
+	_settle_page()
+
+## no enter-slide jitter when only the selection changed
+func _settle_page() -> void:
+	if page:
+		page.modulate.a = 1.0
+		page.offset_top = 0
+		page.offset_bottom = 0
+
+## commander pick card: token, name, stats, blurb (tooltip only when blurb = false); hot = the picked one
+func _hero_card(side: String, key: String, hot: bool, on_pick: Callable, blurb := true) -> PanelContainer:
+	var h := Content.hero_look(key)
+	var st := Content.type_stat("hero", key) # hero overrides on the base unit
+	var cv := Style.vbox(8)
+	var top := Style.hbox(12)
+	top.add_child(Token.make(side, "hero", key, 56))
+	var tv := Style.vbox(2)
+	tv.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var h_name: String = h.name
+	var h_blurb: String = h.blurb
+	tv.add_child(Style.lbl(h_name, 21, Style.GOLD, Style.display))
+	tv.add_child(Style.lbl("Công %d · Thủ %d · Đi %d" % [st.atk, st.def, st.mv], 12, Style.MUTED))
+	top.add_child(tv)
+	cv.add_child(top)
+	if blurb:
+		cv.add_child(Style.lbl(h_blurb, 14, Style.INK, null, true))
+	var card := _click_card(cv, func() -> void:
+		_sfx("select")
+		on_pick.call(), true, hot)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	if not blurb:
+		card.tooltip_text = h_blurb
+	return card
+
+## battlefield cards (skirmish maps); on_pick(map_id)
+func _map_cards(cur: String, on_pick: Callable) -> HBoxContainer:
+	var maps := Style.hbox(10)
+	for mid: String in Content.SKIRMISH.MAPS:
+		var md: Dictionary = Content.SKIRMISH.MAPS[mid]
+		var mv := Style.vbox(2)
+		var md_name: String = md.name
+		var md_blurb: String = md.get("blurb", "")
+		mv.add_child(Style.lbl(md_name, 18, Style.GOLD, Style.display))
+		mv.add_child(Style.lbl(md_blurb, 13, Style.MUTED, null, true))
+		var mcard := _click_card(mv, func() -> void:
+			_sfx("select")
+			on_pick.call(mid), true, mid == cur)
+		mcard.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		maps.add_child(mcard)
+	return maps
+
+## AE2 options: starting gold + unit cap; on_set("gold" | "cap", value)
+func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HBoxContainer:
 	var opts := Style.hbox(10)
 	for spec: Array in [["Vàng khởi đầu", [300, 500, 1000, 2000], "gold"], ["Giới hạn quân", [10, 15, 20, 30], "cap"]]:
 		var spec_name: String = spec[0]
 		opts.add_child(Style.lbl(spec_name, 14, Style.MUTED))
 		var sg := Style.hbox(0)
 		for val: int in spec[1]:
-			var cur: int = sk_gold if spec[2] == "gold" else sk_cap
+			var cur: int = gold if spec[2] == "gold" else cap
 			var b := Style.button(str(val), "SegOn" if val == cur else "SegBtn")
 			var key: String = spec[2]
-			_on(b, func() -> void:
-				if key == "gold": sk_gold = val
-				else: sk_cap = val
-				show_skirmish())
+			_on(b, func() -> void: on_set.call(key, val))
 			sg.add_child(b)
 		opts.add_child(sg)
-	v.add_child(opts)
+	return opts
+
+# ---------- 1 vs 1 (docs/1v1.md) ----------
+func show_duel() -> void:
+	var v := _page(1040)
+	v.add_child(_head("‹ Trở lại", func() -> void: main.show_title(), "1 đấu 1"))
+	v.add_child(Style.lbl("Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch.", 14, Style.MUTED, null, true))
+	var cols := Style.hbox(12)
+	for side: String in ["p", "e"]:
+		cols.add_child(_duel_side(side))
+	v.add_child(cols)
+	var map_id: String = duel_opts.map
+	v.add_child(_map_cards(map_id, func(mid: String) -> void:
+		duel_opts.map = mid
+		show_duel()))
+	var row := Style.hbox(10)
+	var gold: int = duel_opts.gold; var cap: int = duel_opts.cap
+	var opts := _gold_cap_row(gold, cap, func(key: String, val: int) -> void:
+		duel_opts[key] = val
+		show_duel())
+	opts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(opts)
+	var go := Style.menu_button("Xuất quân", "", true)
+	go.custom_minimum_size.x = 200
+	_on(go, _start_duel)
 	row.add_child(go)
 	v.add_child(row)
-	# no enter-slide jitter when only the selection changed
-	if page:
-		page.modulate.a = 1.0
-		page.offset_top = 0
-		page.offset_bottom = 0
+	_settle_page()
+
+## one side's column: faction, who plays it (Blue: person or AI level), commander
+func _duel_side(side: String) -> Control:
+	var f: Dictionary = Content.theme().factions[side]
+	var card := Style.card()
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cv := Style.vbox(10)
+	card.add_child(cv)
+	cv.add_child(_eyebrow("Bên Đỏ · đi trước" if side == "p" else "Bên Xanh"))
+	var f_name: String = f.name
+	cv.add_child(Style.lbl(f_name, 24, Style.P_NAME if side == "p" else Style.SEA_HI, Style.display))
+	var ctrl_e: String = duel_opts.ctrlE
+	if side == "p":
+		cv.add_child(Style.lbl("Người chơi 1", 14, Style.MUTED))
+	else:
+		var seg := Style.hbox(0)
+		for o: Array in OPPONENTS:
+			var key: String = o[0]; var label: String = o[1]
+			var b := Style.button(label, "SegOn" if key == ctrl_e else "SegBtn")
+			_on(b, func() -> void:
+				duel_opts.ctrlE = key
+				show_duel())
+			seg.add_child(b)
+		cv.add_child(seg)
+		cv.add_child(Style.lbl("Người chơi 2, chung máy: đổi tay mỗi lượt." if ctrl_e == "human" else "Máy chơi bên Xanh.", 14, Style.MUTED))
+	var hk := "hero" if side == "p" else "heroE"
+	var heroes := Content.heroes_of(side)
+	if not heroes.has(duel_opts[hk]):
+		duel_opts[hk] = heroes[0]
+	var cur: String = duel_opts[hk]
+	for key: String in heroes:
+		var hc := _hero_card(side, key, key == cur, func() -> void: # no blurb: keeps Xuất quân on a phone screen
+			duel_opts[hk] = key
+			show_duel(), false)
+		hc.set_meta("duel_pick", side + ":" + key) # click driver finds the commander cards by this
+		cv.add_child(hc)
+	return card
+
+func _start_duel() -> void:
+	var map_id: String = duel_opts.map; var hero: String = duel_opts.hero; var hero_e: String = duel_opts.heroE
+	var ctrl_e: String = duel_opts.ctrlE; var gold: int = duel_opts.gold; var cap: int = duel_opts.cap
+	var ctx := { "kind": "duel", "map": map_id, "hero": hero, "heroE": hero_e, "ctrlE": ctrl_e, "gold": gold, "cap": cap }
+	confirm_start(Game.new_game(Content.duel_def(map_id, hero, hero_e, ctrl_e, gold, cap)), ctx)
 
 ## start a game; if it would replace a different game in progress, ask first (one save slot)
 func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
@@ -470,6 +562,9 @@ func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
 	var sctx: Dictionary = svd.ctx
 	var sst: Dictionary = svd.state
 	if sctx.get("kind") == ctx.get("kind") and sctx.get("id") == ctx.get("id") and sctx.get("map") == ctx.get("map"):
+		if ctx.get("kind") != "campaign": # skirmish / duel setup "Xuất quân" = a new game on purpose
+			main.start_game(state, ctx)
+			return
 		# one tap on the map node must not wipe the game in progress
 		confirm("Màn này đang đánh dở [b]lượt %d[/b]." % sst.turn, "Đánh lại từ đầu",
 			func() -> void: main.start_game(state, ctx), "Đánh tiếp", func() -> void: main.start_game(sst, sctx))

@@ -260,7 +260,7 @@ static func stat_bars(rows: Array, size := 13) -> GridContainer:
 			g.add_child(lbl(str(r[1]), size, INK, semi))
 	return g
 
-## unit card for briefing + codex: token, name, description, stat bars, optional tag ribbon
+## unit card for codex + new-unit intro: token, name, description, stat bars, optional tag ribbon
 static func unit_card(side: String, type: String, hero_key: Variant, opts := {}) -> Control:
 	var base: Dictionary = Rules.UNITS[type]
 	var st := base.duplicate()

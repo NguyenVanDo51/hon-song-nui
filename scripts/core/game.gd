@@ -64,6 +64,9 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 		"allowed": { "p": allowed_p.duplicate(), "e": allowed_e.duplicate() },
 		"waves": waves, "night": night, "hadCastle": {}, "unitCap": _or(def, "unitCap", RULES.unitCap),
 	}
+	if def.has("ctrl"): # 1 vs 1 only: no key = p human, e AI (Content.ctrl_of)
+		var ctrl: Dictionary = def.ctrl
+		s.ctrl = ctrl.duplicate()
 	for o: Array in _or(def, "owner", []):
 		var ox: int = o[0]
 		var oy: int = o[1]

@@ -14,6 +14,8 @@ const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when th
 const V3_STAMP := 10
 ## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
 const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
+## who plays a side (s.ctrl, docs/1v1.md)
+const CTRLS := ["human", "ai:easy", "ai:normal", "ai:hard"]
 
 static var _campaign: Array = []
 static var _chapters: Array = []
@@ -117,6 +119,40 @@ static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 3
 		"gold": { "p": gold, "e": e_gold }, "unitCap": cap,
 		"win": { "type": "castles" }, "skirmish": { "mapId": map_id, "easy": easy },
 	}
+
+## 1 vs 1 (docs/1v1.md): a skirmish map, a commander + controller per side, same gold both sides
+static func duel_def(map_id: String, hero_p: String, hero_e: String, ctrl_e: String, gold := 300, cap := 15) -> Dictionary:
+	var d := skirmish_def(map_id, hero_p, false, gold, cap)
+	d.erase("skirmish")
+	d.id = "duel:" + map_id
+	d.enemyHero = hero_e
+	d.ctrl = { "p": "human", "e": ctrl_e }
+	d.duel = { "mapId": map_id }
+	return d
+
+# ---------- controllers ----------
+## no s.ctrl (campaign, skirmish, old saves) = we play p, the AI plays e at normal
+static func ctrl_of(s: Dictionary, side: String) -> String:
+	var ctrl: Dictionary = s.get("ctrl", {})
+	return str(ctrl.get(side, "human" if side == "p" else "ai:normal"))
+
+static func is_ai(s: Dictionary, side: String) -> bool:
+	return ctrl_of(s, side).begins_with("ai:")
+
+## "easy" | "normal" | "hard"; "" for a human side
+static func ai_level(s: Dictionary, side: String) -> String:
+	var c := ctrl_of(s, side)
+	return c.substr(3) if c.begins_with("ai:") else ""
+
+## difficulty hook: AI params for this side's level; {} = built-in AI. Presets plug in here (docs/1v1.md)
+static func ai_params_for(s: Dictionary, side: String) -> Dictionary:
+	var presets := {} # level -> params
+	return presets.get(ai_level(s, side), {})
+
+## the mem an AI turn starts with: params only when a preset applies, so the default AI sees the same mem as before
+static func ai_mem(s: Dictionary, side: String) -> Dictionary:
+	var p := ai_params_for(s, side)
+	return { "params": p } if not p.is_empty() else {}
 
 # ---------- looks ----------
 static func unit_look(s: Dictionary, u: Dictionary) -> Dictionary:
@@ -359,6 +395,16 @@ static func save_fits(v: Dictionary) -> bool:
 		return false
 	if ctx.get("kind") == "skirmish" and not heroes_of("p").has(ctx.get("hero")):
 		return false
+	if ctx.get("kind") == "duel" and not (heroes_of("p").has(ctx.get("hero")) and heroes_of("e").has(ctx.get("heroE"))):
+		return false
+	var ctrl: Variant = sd.get("ctrl")
+	if ctrl != null:
+		if not (ctrl is Dictionary):
+			return false
+		var cd: Dictionary = ctrl
+		for side: Variant in cd:
+			if not CTRLS.has(cd[side]):
+				return false
 	var hk: Variant = sd.get("heroKey")
 	if hk is Dictionary:
 		var heroes: Dictionary = theme().heroes

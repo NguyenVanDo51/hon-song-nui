@@ -67,6 +67,7 @@ func _init() -> void:
 	content_tests()
 	rule_tests()
 	mission_tests()
+	duel_tests()
 	print("tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 
@@ -74,8 +75,10 @@ func _init() -> void:
 func content_tests() -> void:
 	var all: Array = Content.campaign().duplicate()
 	var hero_p: String = Content.heroes_of("p")[0]
+	var hero_e1: String = Content.heroes_of("e")[0]
 	for mid: String in Content.SKIRMISH.MAPS:
 		all.append(Content.skirmish_def(mid, hero_p, false))
+		all.append(Content.duel_def(mid, hero_p, hero_e1, "human"))
 	run("skirmish: new maps are 180° rotations (fair start)", func() -> void:
 		for mid: String in ["cua_bien", "nui_rung"]:
 			var rows: Array = Content.SKIRMISH.MAPS[mid].rows
@@ -1126,6 +1129,119 @@ func mission_tests() -> void:
 		var s := Game.new_game(mission("m02"))
 		s.units = units_of(s).filter(func(u: Dictionary) -> bool: return not (u.x == 1 and u.y == 2))
 		eq(Game.buy_options(s, "p", 1, 2).map(func(o: Dictionary) -> String: return o.type), ["soldier", "archer"])
+	)
+
+
+# ---------- 1 vs 1 (docs/1v1.md) ----------
+func duel(map_id: String, ctrl_e: String) -> Dictionary:
+	var hp: String = Content.heroes_of("p")[0]
+	var he: String = Content.heroes_of("e")[0]
+	return Content.duel_def(map_id, hp, he, ctrl_e)
+
+static func duel_ctx(map_id: String, ctrl_e: String) -> Dictionary:
+	return { "kind": "duel", "map": map_id, "hero": Content.heroes_of("p")[0], "heroE": Content.heroes_of("e")[0], "ctrlE": ctrl_e,
+		"gold": 300, "cap": 15 }
+
+func duel_tests() -> void:
+	run("ctrl missing = old behavior: p human, e AI normal, AI mem untouched", func() -> void:
+		var hp: String = Content.heroes_of("p")[0]
+		for def: Dictionary in [mission("m01"), Content.skirmish_def("dong_bang", hp, true)]:
+			var s := Game.new_game(def)
+			check(not s.has("ctrl"), "%s: no ctrl key in state" % def.id)
+			eq(Content.ctrl_of(s, "p"), "human")
+			eq(Content.ctrl_of(s, "e"), "ai:normal")
+			check(not Content.is_ai(s, "p") and Content.is_ai(s, "e"), "p human, e AI")
+			eq(Content.ai_level(s, "e"), "normal")
+			eq(Content.ai_mem(s, "e"), {}, "default AI gets the same empty mem as before")
+	)
+	run("duel_def valid on every skirmish map", func() -> void:
+		for mid: String in Content.SKIRMISH.MAPS:
+			for ctrl_e: String in ["human", "ai:easy", "ai:normal", "ai:hard"]:
+				var def := duel(mid, ctrl_e)
+				var s := Game.new_game(def)
+				eq(s.ctrl, { "p": "human", "e": ctrl_e }, mid)
+				eq(Content.is_ai(s, "e"), ctrl_e != "human", mid + " " + ctrl_e)
+				eq(Content.ai_level(s, "e"), ctrl_e.substr(3) if ctrl_e != "human" else "", mid + " level")
+				eq(s.heroKey, { "p": Content.heroes_of("p")[0], "e": Content.heroes_of("e")[0] }, mid + " commanders")
+				eq(s.gold.p, s.gold.e, mid + " same gold")
+				eq(Objectives.check(s), "", mid + " win spec")
+				for side: String in ["p", "e"]:
+					check(Game.castles(s, side) > 0, "%s: %s has a castle" % [mid, side])
+					check(units_of(s).any(func(u: Dictionary) -> bool: return u.side == side and u.type == "hero"), "%s: %s commander" % [mid, side])
+				check(not def.has("skirmish") and str(def.id).begins_with("duel:"), mid + " is a duel, not a skirmish")
+		check(Content.ai_params_for(Game.new_game(duel("dong_bang", "ai:hard")), "e") is Dictionary, "params hook returns a dict")
+	)
+	run("2 humans: full game by do_action on both sides, step-replayable", func() -> void:
+		var s := Game.new_game(duel("dong_bang", "human"))
+		var s0: Dictionary = s.duplicate(true)
+		var steps := []
+		var moves := { "p": 0, "e": 0 }
+		AI.seed_game(7)
+		while s.winner == null and s.turn <= 60:
+			var mem := {}
+			var side: String = s.side
+			check(not Content.is_ai(s, side), "side to move is human")
+			for i in 80: # AI only picks the moves; they go in like a player's clicks
+				var step: Variant = AI.next_step(s, mem)
+				if step == null or s.winner != null:
+					break
+				var sd: Dictionary = step
+				if sd.kind == "buy":
+					var bx: int = sd.x; var by: int = sd.y; var bt: String = sd.type
+					check(Game.buy(s, bx, by, bt) != null, "buy ok")
+				else:
+					var act: Dictionary = sd.act
+					Game.do_action(s, act)
+					moves[side] += 1
+				steps.append(sd)
+			if s.winner == null:
+				Game.end_turn(s)
+				steps.append({ "kind": "end" })
+		check(s.winner != null, "someone won (turn %d)" % s.turn)
+		var both: bool = moves.p > 0 and moves.e > 0
+		check(both, "both sides acted %s" % [moves])
+		eq(s.ctrl, { "p": "human", "e": "human" }, "ctrl kept")
+		# same start + same steps = same game (online relay)
+		for sd: Dictionary in steps:
+			if sd.kind == "end":
+				Game.end_turn(s0)
+			else:
+				AI.apply_step(s0, sd)
+		eq(var_to_str(s0), var_to_str(s), "replay matches")
+	)
+	run("save / load keeps ctrl; bad duel saves refused", func() -> void:
+		Store.use_profile("unit_tests")
+		var s := Game.new_game(duel("cua_bien", "ai:hard"))
+		Store.save_game(s, duel_ctx("cua_bien", "ai:hard"), "x")
+		var v: Variant = Store.load_game()
+		check(v != null, "duel save loads")
+		if v != null:
+			var vd: Dictionary = v
+			var st: Dictionary = vd.state
+			eq(st.ctrl, { "p": "human", "e": "ai:hard" })
+			var ctx: Dictionary = vd.ctx
+			eq(ctx.ctrlE, "ai:hard")
+		Store.clear_game()
+		var bad := duel_ctx("cua_bien", "human")
+		bad.heroE = "nobody"
+		check(not Content.save_fits({ "state": s, "ctx": bad }), "unknown Blue commander refused")
+		var odd: Dictionary = s.duplicate(true)
+		odd.ctrl.e = "ai:godlike"
+		check(not Content.save_fits({ "state": odd, "ctx": duel_ctx("cua_bien", "human") }), "unknown controller refused")
+	)
+	run("duel / skirmish results never touch campaign progress", func() -> void:
+		Store.use_profile("unit_tests")
+		Store.set_v("campaign_done", [])
+		for w: String in ["p", "e"]:
+			Store.record_result(duel_ctx("dong_bang", "human"), w)
+			Store.record_result(duel_ctx("dong_bang", "ai:easy"), w)
+			Store.record_result({ "kind": "skirmish", "hero": Content.heroes_of("p")[0], "easy": true }, w)
+		eq(Store.done_list(), [], "no progress from duels / skirmish")
+		Store.record_result({ "kind": "campaign", "id": "m01" }, "e")
+		eq(Store.done_list(), [], "campaign loss")
+		Store.record_result({ "kind": "campaign", "id": "m01" }, "p")
+		eq(Store.done_list(), ["m01"], "campaign win counts")
+		Store.set_v("campaign_done", [])
 	)
 
 

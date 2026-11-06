@@ -53,6 +53,11 @@ static func mark_done(id: String) -> void:
 		d.append(id)
 		set_v("campaign_done", d)
 
+## a finished game: only a campaign win counts (skirmish / 1 vs 1 never touch progress)
+static func record_result(ctx: Dictionary, winner: Variant) -> void:
+	if winner == "p" and ctx.get("kind") == "campaign":
+		mark_done(str(ctx.get("id", "")))
+
 ## index of the first mission not yet won
 static func unlocked_index() -> int:
 	var c := Content.campaign()

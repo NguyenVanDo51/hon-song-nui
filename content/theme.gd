@@ -31,6 +31,13 @@ const THEME := {
 		"enemyTurn": "Lượt quân Hán",
 		"skirmishTitle": "Đấu tự do · Đồng bằng sông Hồng",
 		"skirmishBlurb": "Anh hùng đấu với Tướng giặc",
+		"duelBlurb": "Hai người chung máy, hoặc đấu với máy",
+		"duelTurn": "Lượt {turn} · {side}",
+		"duelWin": "{side} thắng",
+		"duelEnd_castlesLost": "{loser} mất hết thành, tướng cũng đã ngã.",
+		"duelEnd_routed": "{loser} không còn quân, không còn thành.",
+		"handoffTitle": "Lượt của {side}",
+		"handoffSub": "Lượt {turn} · chạm để bắt đầu",
 		"raiseVerb": "gọi hồn",
 		"raiseButton": "🩹 Gọi hồn",
 		"graveNote": "Lính ngã: thầy mo đứng cạnh gọi dậy được thành âm binh. Mất sau lượt kế của mỗi bên, hoặc khi có quân bước lên.",
@@ -83,6 +90,7 @@ const THEME := {
 		"p": {
 			"name": "Quân Hai Bà Trưng",
 			"short": "Quân ta",
+			"duelShort": "Quân Hai Bà", # 1 vs 1 with two humans: no "ta" / "địch"
 			"body": "#7a2219",
 			"body2": "#a8372a",
 			"ring": "#f0a07c",
@@ -93,6 +101,7 @@ const THEME := {
 		"e": {
 			"name": "Quân Đông Hán",
 			"short": "Quân Hán",
+			"duelShort": "Quân Hán",
 			"body": "#1f2740",
 			"body2": "#34406a",
 			"ring": "#d8c27a",

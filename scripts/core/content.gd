@@ -29,7 +29,8 @@ static func _defs(dir: String) -> Array:
 		if not f.ends_with(".gd") or seen.has(f):
 			continue
 		seen[f] = true
-		out.append(load(dir + "/" + f).DEF)
+		var scr: Script = load(dir + "/" + f)
+		out.append(scr.get("DEF"))
 	# sort_custom is not stable: break ties by id so equal `order` values never shuffle (tests flag duplicates)
 	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return a.order < b.order or (a.order == b.order and str(a.get("id", "")) < str(b.get("id", ""))))
@@ -40,7 +41,9 @@ static func theme() -> Dictionary:
 		var t: Dictionary = THEME_SCRIPT.THEME.duplicate(true)
 		var ch: Variant = chapter(active_chapter)
 		if ch != null:
-			_deep_merge(t, ch.get("theme", {}))
+			var chd: Dictionary = ch
+			var over: Dictionary = chd.get("theme", {})
+			_deep_merge(t, over)
 			t.chapter = ch
 		_themes[active_chapter] = t
 	return _themes[active_chapter]
@@ -48,7 +51,9 @@ static func theme() -> Dictionary:
 static func _deep_merge(into: Dictionary, over: Dictionary) -> void:
 	for k: Variant in over:
 		if into.get(k) is Dictionary and over[k] is Dictionary:
-			_deep_merge(into[k], over[k])
+			var sub_into: Dictionary = into[k]
+			var sub_over: Dictionary = over[k]
+			_deep_merge(sub_into, sub_over)
 		else:
 			into[k] = over[k]
 
@@ -80,7 +85,11 @@ static func use_chapter(id: String) -> void:
 ## a chapter opens once every mission before it (campaign order) is won
 static func chapter_unlocked(id: String, unlocked_index: int) -> bool:
 	var ms := missions_of(id)
-	return ms.is_empty() or mission_index(ms[0].id) <= unlocked_index
+	if ms.is_empty():
+		return true
+	var first: Dictionary = ms[0]
+	var first_id: String = first.id
+	return mission_index(first_id) <= unlocked_index
 
 static func mission(id: String) -> Variant:
 	for m: Dictionary in campaign():
@@ -99,21 +108,26 @@ static func mission_index(id: String) -> int:
 ## AE2 lets the player set starting gold and the unit cap; easy = the enemy starts with half the gold
 static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 300, cap := 15) -> Dictionary:
 	var m: Dictionary = SKIRMISH.MAPS.get(map_id, SKIRMISH.MAPS.dong_bang)
+	@warning_ignore("integer_division")
+	var e_gold := gold / 2 if easy else gold
 	return {
 		"id": "skirmish:" + map_id, "title": m.name, "hero": hero_key, "enemyHero": m.get("enemyHero", heroes_of("e")[0]),
 		"chapter": m.get("chapter", "c1"),
 		"map": { "rows": m.rows }, "owner": m.owner, "units": m.units,
-		"gold": { "p": gold, "e": gold / 2 if easy else gold }, "unitCap": cap,
+		"gold": { "p": gold, "e": e_gold }, "unitCap": cap,
 		"win": { "type": "castles" }, "skirmish": { "mapId": map_id, "easy": easy },
 	}
 
 # ---------- looks ----------
 static func unit_look(s: Dictionary, u: Dictionary) -> Dictionary:
-	return unit_type_look(u.side, u.type, s.heroKey[u.side])
+	var side: String = u.side
+	var type: String = u.type
+	return unit_type_look(side, type, s.heroKey[u.side])
 
 static func unit_type_look(side: String, type: String, hero_key: Variant) -> Dictionary:
 	if type == "hero":
-		return theme().heroes.get(hero_key, { "name": "?", "icon": "?", "blurb": "" })
+		var heroes: Dictionary = theme().heroes
+		return heroes.get(hero_key, { "name": "?", "icon": "?", "blurb": "" })
 	return theme().units[side][type]
 
 ## AE2 renames a unit every 2 levels: "Bộ binh" -> "Bộ binh lão luyện ★2" ...; commanders keep their name (RM Unit.java:96)
@@ -123,7 +137,8 @@ static func unit_title(name: String, rank: int, hero := false) -> String:
 	if hero:
 		return "%s ★%d" % [name, rank]
 	var titles: Array = THEME_SCRIPT.RANK_TITLES
-	var t: String = titles[mini(rank / 2, titles.size() - 1)]
+	@warning_ignore("integer_division")
+	var t: String = titles[mini(rank / 2, titles.size() - 1)] # every 2 levels
 	return "%s%s ★%d" % [name, (" " + t) if t != "" else "", rank]
 
 ## level-up worth the big "Lên cấp N": a rename (RM MainDisplayable:4355)
@@ -131,14 +146,17 @@ static func rank_announced(type: String, rank: int) -> bool:
 	return type != "hero" and rank % 2 == 0 and rank <= 6
 
 static func hero_look(key: String) -> Dictionary:
-	return theme().heroes.get(key, { "name": key, "icon": "?", "blurb": "", "side": "e" }) # never hard-crash on a stale key
+	var heroes: Dictionary = theme().heroes
+	return heroes.get(key, { "name": key, "icon": "?", "blurb": "", "side": "e" }) # never hard-crash on a stale key
 
 # ---------- unit guide (role, how to play, traits from stats) ----------
 ## full stats of a unit type (hero overrides merged)
 static func type_stat(type: String, hero_key: Variant) -> Dictionary:
-	var st: Dictionary = Rules.UNITS[type].duplicate()
+	var base: Dictionary = Rules.UNITS[type]
+	var st := base.duplicate()
 	if type == "hero" and hero_key != null and Rules.HEROES.has(hero_key):
-		st.merge(Rules.HEROES[hero_key], true)
+		var hero: Dictionary = Rules.HEROES[hero_key]
+		st.merge(hero, true)
 	return st
 
 static func role(type: String) -> String:
@@ -156,7 +174,8 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	elif st.get("capV", false):
 		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.TERRAIN.v.income)
 	var lo: int = st.atk
-	var hi: int = maxi(lo, st.get("atkMax", st.atk) - 1) # AE2 never rolls atkMax (same as Game.atk_range)
+	var atk_max: int = st.get("atkMax", st.atk)
+	var hi: int = maxi(lo, atk_max - 1) # AE2 never rolls atkMax (same as Game.atk_range)
 	if hi > lo:
 		out.append("Công %d–%d: mỗi đòn lăn ngẫu nhiên trong khoảng này." % [lo, hi])
 	if st.rmax > 1:
@@ -170,7 +189,8 @@ static func traits(type: String, hero_key: Variant) -> Array:
 		out.append("+%d công khi đánh rồng." % st.antiAir)
 	var vs: Dictionary = st.get("vsType", {})
 	for t: String in vs:
-		out.append("+%d công khi đánh %s." % [vs[t], theme().units.p[t].name.to_lower()])
+		var unit_name: String = theme().units.p[t].name
+		out.append("+%d công khi đánh %s." % [vs[t], unit_name.to_lower()])
 	if st.get("poison", 0):
 		out.append("Cắn trúng: địch −%d công, −%d thủ tới lượt sau của ta." % [st.poison, st.poison])
 	if st.get("waterAtk", 0):
@@ -203,23 +223,31 @@ static func heroes_of(side: String) -> Array:
 
 static func speaker(key: String) -> Dictionary:
 	var t := theme()
-	if t.heroes.has(key):
-		return t.heroes[key]
-	if t.people.has(key):
-		return t.people[key]
+	var heroes: Dictionary = t.heroes
+	if heroes.has(key):
+		return heroes[key]
+	var people: Dictionary = t.people
+	if people.has(key):
+		return people[key]
 	return { "name": key, "icon": "💬" }
 
 static func is_foe(key: String) -> bool:
 	var t := theme()
-	if t.heroes.has(key):
-		return t.heroes[key].side == "e"
-	return t.people.has(key) and t.people[key].get("side", "p") == "e"
+	var heroes: Dictionary = t.heroes
+	if heroes.has(key):
+		return heroes[key].side == "e"
+	var people: Dictionary = t.people
+	if not people.has(key):
+		return false
+	var person: Dictionary = people[key]
+	return person.get("side", "p") == "e"
 
 static func terrain(t: String) -> Dictionary:
 	return theme().terrain[t]
 
 static func text(key: String) -> String:
-	return str(theme().text.get(key, key)) # a missing key shows itself instead of crashing
+	var texts: Dictionary = theme().text
+	return str(texts.get(key, key)) # a missing key shows itself instead of crashing
 
 static func _names(hero_keys: Dictionary) -> Dictionary:
 	var e: Variant = hero_keys.get("e")
@@ -232,14 +260,20 @@ static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars
 	var v := _names(hero_keys)
 	v.merge(vars, true)
 	v.turns = str(w.get("turns", ""))
-	v.within = (" trong %d lượt" % int(w.turns)) if w.has("turns") else ""
+	v.within = ""
+	if w.has("turns"):
+		var turns: int = w.turns
+		v.within = " trong %d lượt" % turns
 	v.left_txt = (": còn %s lượt" % str(v.get("left", ""))) if w.has("turns") else ""
-	var g: Dictionary = theme().get("goals", {}).get(w.type, {})
+	var goals: Dictionary = theme().get("goals", {})
+	var g: Dictionary = goals.get(w.type, {})
 	return str(g.get(form, w.type)).format(v)
 
 ## end card line: winner side + engine reason ("" when there is nothing to add)
 static func end_text(winner: Variant, reason: String, hero_keys: Dictionary) -> String:
-	var line: String = theme().get("ends", {}).get(str(winner), {}).get(reason, "")
+	var ends: Dictionary = theme().get("ends", {})
+	var by_side: Dictionary = ends.get(str(winner), {})
+	var line: String = by_side.get(reason, "")
 	return line.format(_names(hero_keys))
 
 ## rule note for a terrain tile, built from the rules (who captures, who crosses) so it never restates them wrongly
@@ -271,36 +305,53 @@ static func tile_note(t: String) -> String:
 # ---------- saves ----------
 static func migrate_save(v: Dictionary) -> void:
 	var st: Variant = v.get("state")
-	if st is Dictionary and int(st.get("v", 0)) == 3 and st.get("units") is Array:
-		for u: Variant in st.units:
-			if u is Dictionary and u.get("aura") != null and not u.has("auraAtk"):
-				u.auraAtk = V3_STAMP
-			if u is Dictionary and u.get("poison") != null and not u.has("poisonAmt"):
-				u.poisonAmt = V3_STAMP
-		st.v = 4
-	var hk: Variant = v.get("state", {}).get("heroKey") if v.get("state") is Dictionary else null
+	var sd: Dictionary = st if st is Dictionary else {}
+	var sv: int = type_convert(sd.get("v", 0), TYPE_INT) # lenient like int(): save text is untrusted
+	if st is Dictionary and sv == 3 and sd.get("units") is Array:
+		var units: Array = sd.units
+		for u: Variant in units:
+			if not (u is Dictionary):
+				continue
+			var ud: Dictionary = u
+			if ud.get("aura") != null and not ud.has("auraAtk"):
+				ud.auraAtk = V3_STAMP
+			if ud.get("poison") != null and not ud.has("poisonAmt"):
+				ud.poisonAmt = V3_STAMP
+		sd.v = 4
+	var hk: Variant = sd.get("heroKey")
 	if hk is Dictionary:
 		for side: String in hk:
 			hk[side] = OLD_HEROES.get(hk[side], hk[side])
-	if v.get("ctx") is Dictionary and v.ctx.has("hero"):
-		v.ctx.hero = OLD_HEROES.get(v.ctx.hero, v.ctx.hero)
+	var ctx: Variant = v.get("ctx")
+	if ctx is Dictionary:
+		var cd: Dictionary = ctx
+		if cd.has("hero"):
+			cd.hero = OLD_HEROES.get(cd.hero, cd.hero)
 
 ## a save still matches the shipped content: same state version + shape, known win type / unit types, its mission
 ## still exists, every commander key is still a hero in theme and rules, every tile is known
 static func save_fits(v: Dictionary) -> bool:
 	var st: Variant = v.get("state")
-	if not (st is Dictionary) or int(st.get("v", 0)) != STATE_V:
+	if not (st is Dictionary):
+		return false
+	var sd: Dictionary = st
+	var sv: int = type_convert(sd.get("v", 0), TYPE_INT) # lenient like int(): save text is untrusted
+	if sv != STATE_V:
 		return false
 	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead", "heroDeaths", "heroSaved", "rng"]:
-		if not st.has(k):
+		if not sd.has(k):
 			return false
-	if not Objectives.has(str(st.win.get("type", ""))):
+	var win: Dictionary = sd.win
+	if not Objectives.has(str(win.get("type", ""))):
 		return false
-	for u: Variant in st.units:
-		if not (u is Dictionary) or not Rules.UNITS.has(u.get("type")):
+	for u: Variant in sd.units:
+		if not (u is Dictionary):
 			return false
-	for side: String in st.allowed:
-		for t: Variant in st.allowed[side]:
+		var ud: Dictionary = u
+		if not Rules.UNITS.has(ud.get("type")):
+			return false
+	for side: String in sd.allowed:
+		for t: Variant in sd.allowed[side]:
 			if not Rules.UNITS.has(t):
 				return false
 	var ctx: Dictionary = v.get("ctx", {}) if v.get("ctx") is Dictionary else {}
@@ -308,12 +359,13 @@ static func save_fits(v: Dictionary) -> bool:
 		return false
 	if ctx.get("kind") == "skirmish" and not heroes_of("p").has(ctx.get("hero")):
 		return false
-	var hk: Variant = st.get("heroKey")
+	var hk: Variant = sd.get("heroKey")
 	if hk is Dictionary:
+		var heroes: Dictionary = theme().heroes
 		for side: String in hk:
-			if hk[side] != null and not (theme().heroes.has(hk[side]) and Rules.HEROES.has(hk[side])):
+			if hk[side] != null and not (heroes.has(hk[side]) and Rules.HEROES.has(hk[side])):
 				return false
-	for row: Variant in st.get("tiles", []):
+	for row: Variant in sd.get("tiles", []):
 		for t: String in row:
 			if not Rules.TERRAIN.has(t):
 				return false

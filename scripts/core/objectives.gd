@@ -28,33 +28,52 @@ static func types() -> Array:
 
 ## the hook `key` of this game's win type, null if it has none
 static func hook(s: Dictionary, key: String) -> Variant:
-	return TYPES.get(s.win.type, {}).get(key)
+	var entry: Dictionary = TYPES.get(s.win.type, {})
+	return entry.get(key)
 
 static func loss(s: Dictionary, side: String) -> Variant:
 	var f: Variant = hook(s, "loss")
-	return f.call(s, side) if f != null else null
+	if f == null:
+		return null
+	var c: Callable = f
+	return c.call(s, side)
 
 static func on_round(s: Dictionary) -> Variant:
 	var f: Variant = hook(s, "on_round")
-	return f.call(s) if f != null else null
+	if f == null:
+		return null
+	var c: Callable = f
+	return c.call(s)
 
 static func ai_goals(s: Dictionary, u: Dictionary) -> Variant:
 	var f: Variant = hook(s, "ai_goals")
-	return f.call(s, u) if f != null else null
+	if f == null:
+		return null
+	var c: Callable = f
+	return c.call(s, u)
 
 static func marks(s: Dictionary) -> Array:
 	var f: Variant = hook(s, "marks")
-	return f.call(s) if f != null else []
+	if f == null:
+		return []
+	var c: Callable = f
+	return c.call(s)
 
 static func bar_n(s: Dictionary) -> int:
 	var f: Variant = hook(s, "bar_n")
-	return f.call(s) if f != null else Game.unit_count(s, "e")
+	if f == null:
+		return Game.unit_count(s, "e")
+	var c: Callable = f
+	return c.call(s)
 
 static func check(s: Dictionary) -> String:
 	if not has(s.win.type):
 		return "unknown win type " + str(s.win.type)
 	var f: Variant = hook(s, "check")
-	return f.call(s) if f != null else ""
+	if f == null:
+		return ""
+	var c: Callable = f
+	return c.call(s)
 
 # ---------- castles ----------
 static func _castles_left(s: Dictionary) -> int:
@@ -62,17 +81,22 @@ static func _castles_left(s: Dictionary) -> int:
 
 # ---------- hero: bring down the enemy commander ----------
 static func _hero_loss(s: Dictionary, side: String) -> Variant:
-	return "heroKilled" if side == "e" and s.heroDead.e else null
+	if side == "e" and s.heroDead.e:
+		return "heroKilled"
+	return null
 
 static func _hero_check(s: Dictionary) -> String:
 	return "" if s.heroKey.e != null else "hero win needs an enemy commander"
 
 # ---------- survive: hold until win.turns ----------
 static func _survive_round(s: Dictionary) -> Variant:
-	return ["p", "survived"] if s.turn > s.win.turns else null
+	if s.turn > s.win.turns:
+		return ["p", "survived"]
+	return null
 
 static func _survive_check(s: Dictionary) -> String:
-	return "" if s.win.get("turns") is int and s.win.turns > 0 else "survive needs turns"
+	var win: Dictionary = s.win
+	return "" if win.get("turns") is int and win.turns > 0 else "survive needs turns"
 
 # ---------- reach: our commander to one of win.at (optional win.turns) ----------
 static func _reach_loss(s: Dictionary, side: String) -> Variant:
@@ -83,29 +107,43 @@ static func _reach_loss(s: Dictionary, side: String) -> Variant:
 	return null
 
 static func _reach_round(s: Dictionary) -> Variant:
-	return ["e", "timeUp"] if s.win.has("turns") and s.turn > s.win.turns else null
+	var win: Dictionary = s.win
+	if win.has("turns") and s.turn > win.turns:
+		return ["e", "timeUp"]
+	return null
 
 ## escape missions: the hero only cares about the goal
 static func _reach_goals(s: Dictionary, u: Dictionary) -> Variant:
-	return s.win.get("at", []).duplicate() if u.side == "p" and u.type == "hero" else null
+	if u.side == "p" and u.type == "hero":
+		var win: Dictionary = s.win
+		var goals: Array = win.get("at", [])
+		return goals.duplicate()
+	return null
 
 static func _reach_tile(s: Dictionary, u: Dictionary, x: int, y: int) -> float:
 	var out := 0.0
 	if u.side == "p" and u.type == "hero":
-		for g: Array in s.win.get("at", []):
+		var win: Dictionary = s.win
+		for g: Array in win.get("at", []):
 			if g[0] == x and g[1] == y:
 				# stepping on the goal wins; rebought on it (offGoal) -> must step off first, back next turn
 				out += -500.0 if u.get("offGoal", false) else 20000.0
 	return out
 
 static func _reach_marks(s: Dictionary) -> Array:
-	return s.win.get("at", [])
+	var win: Dictionary = s.win
+	return win.get("at", [])
 
 static func _reach_check(s: Dictionary) -> String:
-	if s.win.get("at", []).size() == 0:
+	var win: Dictionary = s.win
+	var goals: Array = win.get("at", [])
+	if goals.size() == 0:
 		return "reach needs at"
 	var hst := Game.stat(s, { "type": "hero", "side": "p" })
+	var mc: String = hst.move
 	for g: Array in s.win.at:
-		if Game.move_cost(hst.move, Game.tile_at(s, g[0], g[1])) == INF:
+		var gx: int = g[0]
+		var gy: int = g[1]
+		if Game.move_cost(mc, Game.tile_at(s, gx, gy)) == INF:
 			return "reach tile %s impassable" % [g]
 	return ""

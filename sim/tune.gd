@@ -6,6 +6,7 @@ extends SceneTree
 ##                                                   -> mutate best, play child vs best, keep child if > thr twice
 ##                                                      (2 x games x maps x 2 seats); resumes from out (var_to_str)
 ##   presets [games=8] [salt=9000000] [tuned=<file>] [names=a,b,..] -> round robin of the presets (row score vs column)
+##   any mode: log=1 -> one line per game (winner, reason, turn, commander deaths)
 ##   time a=<spec> b=<spec> [games=2] [salt=9100000] -> A's AI wall time per step / per turn (avg, worst)
 ## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned file) | hard_n2 (tuned, noise 2)
 ##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard) | file:<path> (tuned file)
@@ -141,6 +142,9 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 		AI.apply_step(s, st)
 		steps += 1
 	games_played += 1
+	if args.has("log"): # one line per game: who won, why, when, commander deaths
+		print("    game %s k%d winner %s reason %s turn %d heroDeaths p%d e%d" % [map_id, k, s.winner, s.reason, s.turn,
+			s.heroDeaths.p, s.heroDeaths.e])
 	return s.winner if s.winner != null else "draw"
 
 ## child = best with ~3 knobs scaled by exp(N(0, 0.3)) (small steps: hill climb); hp thresholds stay in 0..100

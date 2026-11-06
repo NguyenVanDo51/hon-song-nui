@@ -9,14 +9,23 @@ extends RefCounted
 ## every planner knob; read through AI.params (s.aiParams[side]) so tune.gd specs can override them
 const DEFAULT := {
 	"pl_alpha": 0.3, # unit worth at 0 hp as a share of its value (still blocks, captures, heals back)
+	"pl_hp_cap": 200.0, # hp-dependent part of a unit's worth capped here; the rest counts while it lives
 	"pl_gold": 1.0, # per gold in the bank
 	"pl_inc": 4.0, # turns of income
 	"pl_castle": 300.0, # per castle on top of its income (buy point; the last one decides the game)
 	"pl_adv": 4.0, # per move-cost tile: units toward buildings not theirs
 	"pl_adv_hero": 12.0, # commander toward castles not its own
-	"pl_cands": 6.0, # knob-set candidates, first plan of the turn
+	"pl_cands": 3.0, # knob-set candidates, first plan of the turn
 	"pl_replan": 3.0, # knob-set candidates when a roll broke the plan
 	"pl_kill": 3.0, # focus-fire kill prefixes (most valuable reachable enemies) + 1 chained double kill
+	"pl_kcombo": 0.0, # k > 0: each kill prefix also finished with STYLES[k]
+	"pl_opp_roll": 0.5, # roll the opponent's reply uses (> 0.5 = pessimistic)
+	"pl_opp_kill": 0.0, # opponent replies also tried: its focus-fire kills on our n most valuable units
+	"pl_hero": 0.0, # commander alive, on top of its unit value (only castle taker)
+	"pl_guard": 1.0, # 1 = also try: hold every own castle an enemy commander could take next turn
+	"pl_herosafe": 0.0, # 1 = also try: our commander to the least-threatened tile first
+	"pl_hero_risk": 0.0, # x smooth death risk of each commander where it ends (enemy threat map)
+	"pl_ply3": 0.0, # 1 = also play our next turn (greedy) before scoring
 	"pl_ms": 4000.0, # emergency wall-clock cap per plan
 }
 ## knob sets for the greedy turn (merged over the side's own knobs); first = as is
@@ -140,9 +149,19 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 	var cands := []
 	for i in mini(n, STYLES.size()):
 		var style: Dictionary = STYLES[i]
-		cands.append({ "pre": [], "over": own.merged(style, true) })
+		cands.append({ "pre": [], "over": own.merged(style, true), "tag": "style%d" % i })
+	var combo := int(knob(P, "pl_kcombo"))
 	for pre: Array in kill_prefixes(s, side, int(knob(P, "pl_kill"))):
-		cands.append({ "pre": pre, "over": own })
+		cands.append({ "pre": pre, "over": own, "tag": "kill%d" % pre.size() })
+		if combo > 0 and combo < STYLES.size():
+			var cs: Dictionary = STYLES[combo]
+			cands.append({ "pre": pre, "over": own.merged(cs, true), "tag": "kill%d+s%d" % [pre.size(), combo] })
+	var guard := guard_prefix(s, side) if knob(P, "pl_guard") > 0.0 else []
+	if not guard.is_empty():
+		cands.append({ "pre": guard, "over": own, "tag": "guard" })
+	var safe := hero_safe_prefix(s, side) if knob(P, "pl_herosafe") > 0.0 else []
+	if not safe.is_empty():
+		cands.append({ "pre": safe, "over": own, "tag": "herosafe" })
 	var best: Dictionary = {}
 	var runs := 0
 	var capped := false
@@ -160,12 +179,14 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 		var sc: float = r.score
 		if best.is_empty() or sc > best.score:
 			best = r
+			best.tag = c.tag
 	AI.rng = prev_rng
 	Game.fixed_roll = prev_roll
 	mem.pl_steps = best.get("steps", [])
 	mem.pl_alive = best.get("alive", [])
 	mem.pl_i = 0
-	last = { "runs": runs, "ms": Time.get_ticks_msec() - t0, "capped": capped, "score": best.get("score", 0.0) }
+	last = { "runs": runs, "ms": Time.get_ticks_msec() - t0, "capped": capped, "score": best.get("score", 0.0),
+		"tag": best.get("tag", ""), "mid": mid }
 
 ## focus fire: for the n most valuable enemies we can reach, the attack sequence that kills it (mid rolls), plus the
 ## best kill chained with a second one. Each = a forced prefix; the greedy AI finishes the turn
@@ -189,7 +210,7 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 		var pre := focus(c, side, fid)
 		if pre.is_empty():
 			continue
-		if out.is_empty(): # chain a second kill onto the best one (c is already past the first)
+		if out.is_empty() and c.winner == null: # chain a second kill onto the best one (c is past the first)
 			var more := []
 			for g: Dictionary in foes:
 				var gid: int = g.id
@@ -210,7 +231,7 @@ static func focus(c: Dictionary, side: String, tid: int) -> Array:
 	var steps := []
 	for k in 6:
 		var tv: Variant = Game.unit_by_id(c, tid)
-		if tv == null:
+		if tv == null or c.winner != null:
 			return steps
 		var t: Dictionary = tv
 		var thp: int = t.hp
@@ -256,6 +277,77 @@ static func focus(c: Dictionary, side: String, tid: int) -> Array:
 		steps.append(step)
 	return steps if Game.unit_by_id(c, tid) == null else []
 
+## hold every own castle an enemy castle-taker could step on next turn: a unit already on it stays, else the cheapest
+## unit that can reach it moves on (AE2: the castle is lost the moment their commander stands on it)
+static func guard_prefix(s: Dictionary, side: String) -> Array:
+	var steps := []
+	var used := {}
+	var c: Dictionary = s.duplicate(true)
+	var threatened := {}
+	for e: Dictionary in c.units:
+		if e.side == side or not Game.stat(c, e).get("capC", false):
+			continue
+		var reach := Game.reachable(c, e)
+		var mv: int = Game.stat(c, e).mv
+		var ex: int = e.x
+		var ey: int = e.y
+		for key: Vector2i in Game.castle_tiles(c, side):
+			# reachable() leaves out tiles our units stand on: an occupied castle counts by plain distance
+			if reach.has(key) or Game.dist(ex, ey, key.x, key.y) <= mv:
+				threatened[key] = true
+	for key: Vector2i in threatened:
+		var on: Variant = Game.unit_at(c, key.x, key.y)
+		if on != null:
+			if on.side == side and not on.acted:
+				var st := { "kind": "act", "act": { "id": on.id, "to": [key.x, key.y], "kind": "wait" } }
+				AI.apply_step(c, st)
+				steps.append(st)
+			continue
+		var best: Variant = null
+		var best_v := INF
+		for u: Dictionary in c.units:
+			if u.side != side or u.acted or used.has(u.id):
+				continue
+			var v := AI.value(c, u)
+			if v < best_v and Game.reachable(c, u).has(key):
+				best = u
+				best_v = v
+		if best != null:
+			used[best.id] = true
+			var st := { "kind": "act", "act": { "id": best.id, "to": [key.x, key.y], "kind": "wait" } }
+			AI.apply_step(c, st)
+			steps.append(st)
+	return steps
+
+## our commander to the reachable tile with the least expected enemy damage next turn (heal tile, cover break ties)
+static func hero_safe_prefix(s: Dictionary, side: String) -> Array:
+	var hero: Variant = null
+	for u: Dictionary in s.units:
+		if u.side == side and u.type == "hero" and not u.acted:
+			hero = u
+	if hero == null:
+		return []
+	var h: Dictionary = hero
+	var threat := AI.threat_map(s, side)
+	var best: Variant = null
+	var best_sc := INF
+	var hhp: int = h.hp
+	for r: Dictionary in Game.reachable(s, h).values():
+		var rx: int = r.x
+		var ry: int = r.y
+		var key := Vector2i(rx, ry)
+		var hurt := AI.expected_hit(s, h, rx, ry, threat.get(key), 1.0)
+		var tdef: int = Game.TERRAIN[s.tiles[ry][rx]].def
+		var sc := hurt - tdef * 0.1
+		if Game.heals_at(s, side, rx, ry) and hhp < 100:
+			sc -= 10.0
+		if sc < best_sc:
+			best_sc = sc
+			best = [rx, ry]
+	if best == null:
+		return []
+	return [{ "kind": "act", "act": { "id": h.id, "to": best, "kind": "wait" } }]
+
 ## fresh per simulated turn (claims, knob cache), sharing the turn's reach / threat / distance caches
 static func _sim_mem(shared: Dictionary) -> Dictionary:
 	return { "tm": shared.tm, "rc": shared.rc, "df": shared.df }
@@ -285,28 +377,55 @@ static func _rollout(s: Dictionary, side: String, over: Dictionary, pre: Array, 
 		AI.apply_step(c, st)
 		steps.append(st)
 		alive.append(alive_ids(c))
+	var score := evaluate(c, side, shared, P) if c.winner != null else _reply_score(c, side, shared, P)
+	return { "steps": steps, "alive": alive, "score": score }
+
+## the opponent's turn on c (mutated) -> our score after it. Replies tried: its greedy turn, and its focus-fire kills
+## (our most valuable units first) finished greedily; the worst one for us counts (2-ply minimax over a portfolio)
+static func _reply_score(c: Dictionary, side: String, shared: Dictionary, P: Dictionary) -> float:
+	Game.end_turn(c)
+	var foe := Game.other(side)
+	Game.fixed_roll = knob(P, "pl_opp_roll") # > 0.5: plan against a lucky reply
+	var replies := [[]]
 	if c.winner == null:
-		Game.end_turn(c)
-		var m2 := _sim_mem(shared)
-		for k in MAX_STEPS:
-			if c.winner != null:
-				break
-			var stv: Variant = AI.greedy_step(c, m2)
-			if stv == null:
-				break
-			var st: Dictionary = stv
-			AI.apply_step(c, st)
-		if c.winner == null:
-			Game.end_turn(c)
-	return { "steps": steps, "alive": alive, "score": evaluate(c, side, shared, P) }
+		replies.append_array(kill_prefixes(c, foe, int(knob(P, "pl_opp_kill"))))
+	var worst := INF
+	for pre: Array in replies:
+		var r: Dictionary = c if replies.size() == 1 else c.duplicate(true)
+		for st: Dictionary in pre:
+			AI.apply_step(r, st)
+		play_greedy(r, shared)
+		Game.fixed_roll = 0.5
+		if r.winner == null:
+			Game.end_turn(r)
+		if r.winner == null and knob(P, "pl_ply3") > 0.0: # our follow-up turn: rewards set-ups
+			play_greedy(r, shared)
+		worst = minf(worst, evaluate(r, side, shared, P))
+		Game.fixed_roll = knob(P, "pl_opp_roll")
+	Game.fixed_roll = 0.5
+	return worst
+
+## the side to move plays the rest of its turn with the greedy AI (its s.aiParams knobs)
+static func play_greedy(c: Dictionary, shared: Dictionary) -> void:
+	var m := _sim_mem(shared)
+	for k in MAX_STEPS:
+		if c.winner != null:
+			return
+		var stv: Variant = AI.greedy_step(c, m)
+		if stv == null:
+			return
+		var st: Dictionary = stv
+		AI.apply_step(c, st)
 
 ## side's view of a position: material (value x hp), bank, income, castles, advance; win / loss dominate
 static func evaluate(c: Dictionary, side: String, shared: Dictionary, P: Dictionary) -> float:
 	if c.winner != null:
 		return WIN if c.winner == side else -WIN
 	var alpha := knob(P, "pl_alpha")
+	var hp_cap := knob(P, "pl_hp_cap")
 	var adv := knob(P, "pl_adv")
 	var adv_hero := knob(P, "pl_adv_hero")
+	var hero_risk := knob(P, "pl_hero_risk")
 	var sc := 0.0
 	for sd: String in ["p", "e"]:
 		var sgn := 1.0 if sd == side else -1.0
@@ -323,7 +442,9 @@ static func evaluate(c: Dictionary, side: String, shared: Dictionary, P: Diction
 			if u.side != sd:
 				continue
 			var hp: float = u.hp
-			part += AI.value(c, u) * (alpha + (1.0 - alpha) * hp / 100.0)
+			var val := AI.value(c, u)
+			var hpv := minf(val * (1.0 - alpha), hp_cap) # hp heals: a commander's hp is not worth its whole value
+			part += val - hpv + hpv * hp / 100.0
 			var st := Game.stat(c, u)
 			var mc: String = st.move if st.move in ["fly", "water"] else "foot"
 			var hero: bool = u.type == "hero"
@@ -340,8 +461,26 @@ static func evaluate(c: Dictionary, side: String, shared: Dictionary, P: Diction
 		part += gold * knob(P, "pl_gold")
 		part += Game.income(c, sd) * knob(P, "pl_inc")
 		part += Game.castles(c, sd) * knob(P, "pl_castle")
+		if Game.hero_alive(c, sd):
+			part += knob(P, "pl_hero")
+		if hero_risk > 0.0:
+			part -= _hero_risk(c, sd, shared, hero_risk)
 		sc += sgn * part
 	return sc
+
+## sd's commander where it stands: smooth death risk from every enemy that can reach it (v1's _risk on the threat map)
+static func _hero_risk(c: Dictionary, sd: String, shared: Dictionary, die_val: float) -> float:
+	for h: Dictionary in c.units:
+		if h.side != sd or h.type != "hero":
+			continue
+		var tm := { "tiles_h": hash(c.tiles), "tm": shared.tm, "rc": shared.rc }
+		var threat := AI.threat_map(c, sd, {}, tm)
+		var hx: int = h.x
+		var hy: int = h.y
+		var hurt := AI.expected_hit(c, h, hx, hy, threat.get(Vector2i(hx, hy)), 0.6)
+		var hhp: float = h.hp
+		return AI._risk(hurt, hhp, 0.0, die_val)
+	return 0.0
 
 ## owned-or-ownable building tiles (villages, castles), scanned once per turn
 static func _buildings(c: Dictionary, shared: Dictionary) -> Array:

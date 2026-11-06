@@ -526,7 +526,24 @@ static func buy(s: Dictionary, x: int, y: int, type: String) -> Variant:
 		extra = s.heroSaved.get(s.side, {}).duplicate() # AE2: the commander comes back with its level / xp
 		if s.win.get("at", []).has([x, y]):
 			extra.offGoal = true # bought on a reach goal: must walk off and back, buying there is not "reaching"
+	extra.paid = { "cost": opt.cost, "turn": s.turn } # lets a buy on top of another unit be taken back (see unbuy)
 	return spawn(s, s.side, type, x, y, not RULES.get("buyAE2", false), extra) # AE2: a bought unit moves / attacks this turn
+
+## a unit bought this turn onto an occupied castle that has not stepped off yet (castle may be boxed in)
+static func can_unbuy(s: Dictionary, u: Dictionary) -> bool:
+	var p: Variant = u.get("paid")
+	return p != null and p.turn == s.turn and u.side == s.side and not u.acted and stacked(s, u)
+
+## take back such a buy: unit removed, gold refunded (commander: back to "dead", same rebuy price)
+static func unbuy(s: Dictionary, id: int) -> bool:
+	var u: Variant = unit_by_id(s, id)
+	if u == null or not can_unbuy(s, u):
+		return false
+	s.gold[u.side] += u.paid.cost
+	if u.type == "hero":
+		s.heroDead[u.side] = true
+	s.units.erase(u)
+	return true
 
 ## AE2: 200 + 200 per death so far, capped at 1000
 static func hero_cost(s: Dictionary, side: String) -> int:

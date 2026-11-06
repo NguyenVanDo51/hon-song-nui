@@ -5,7 +5,7 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 ## Lượt
 - Chọn lính -> đi (xuyên quân mình, không xuyên địch) -> 1 hành động: Đánh / Chiếm / Sửa làng / Phá làng / Gọi hồn / Chờ.
 - Đầu lượt mỗi phe: +30 vàng/làng, +50/thành. Lính đứng trên làng/thành của mình hoặc trên **Đền** (mọi phe): +20 máu.
-- Mua lính (`RULES.buyAE2`): ở thành mình, đi + đánh ngay lượt đó. Thành có 1 quân (ta hoặc địch): quân ta chưa đi -> chọn nó -> "Mộ quân"; quân ta đã đi hoặc quân địch -> bấm thẳng vào thành mở bảng mua (đúng mã gốc); lính mới đứng chồng, phải bước ra (không đứng yên, không hết lượt tới khi ra); tối đa 2 quân / ô; hết ô trống -> không mua. Mua nhiều lần / thành / lượt. AI mua cả khi thành có 1 quân (ta đã đi / địch), miễn lính mới có ô bước ra; mua sau khi mọi quân đã đi; tướng chết -> để dành vàng mua lại (khi còn ≥ 4 quân); không mua thủy binh nếu bản đồ không có sông.
+- Mua lính (`RULES.buyAE2`): ở thành mình, đi + đánh ngay lượt đó. Thành có 1 quân (ta hoặc địch): quân ta chưa đi -> chọn nó -> "Mộ quân"; quân ta đã đi hoặc quân địch -> bấm thẳng vào thành mở bảng mua (đúng mã gốc); lính mới đứng chồng, phải bước ra (không đứng yên, không hết lượt tới khi ra); tối đa 2 quân / ô; hết ô trống -> không mua. Lính mới chưa bước ra -> bấm ra ngoài vùng đi (hoặc Hủy / Esc) = hủy mua, hoàn đủ vàng (mod: phòng thành bị vây kín). Mua nhiều lần / thành / lượt. AI mua cả khi thành có 1 quân (ta đã đi / địch), miễn lính mới có ô bước ra; mua sau khi mọi quân đã đi; tướng chết -> để dành vàng mua lại (khi còn ≥ 4 quân); không mua thủy binh nếu bản đồ không có sông.
 - Trần quân (`unitCap`): chiến dịch 100 (màn có thể đặt riêng), đấu tự do chọn 10/15/20/30; âm binh không tính.
 
 ## Đánh

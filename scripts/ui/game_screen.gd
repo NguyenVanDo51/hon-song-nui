@@ -595,10 +595,29 @@ func cancel() -> void:
 	elif ui.mode == M_TARGET:
 		ui.mode = M_MOVED
 		ui.target = null
+	elif ui.mode == M_IDLE and _unbuy_sel():
+		return
 	else:
 		_clear_sel()
 		_force_stack()
 	refresh()
+
+## selected unit was just bought on top of another unit and has not stepped off: take the buy back (refund)
+func _unbuy_sel() -> bool:
+	var u: Variant = _sel_unit()
+	if u == null or s.side != "p" or not Game.can_unbuy(s, u):
+		return false
+	var x: int = u.x
+	var y: int = u.y
+	var cost: int = u.paid.cost
+	Game.unbuy(s, u.id)
+	_clear_sel()
+	_coins.board = board
+	_coins.play([{ "x": x, "y": y, "amount": cost }])
+	main.audio.play("coin")
+	save()
+	refresh()
+	return true
 
 func _on_tile(x: int, y: int) -> void:
 	var my_turn: bool = s.side == "p"
@@ -646,6 +665,9 @@ func _on_tile(x: int, y: int) -> void:
 		var reach := _reach(u)
 		if reach.has(Vector2i(x, y)) and clicked == null:
 			_set_dest(x, y)
+			return
+		# outside the reach of a unit bought on top of another one = take the buy back
+		if ui.mode == M_IDLE and _unbuy_sel():
 			return
 	_clear_sel()
 	if my_turn and (clicked == null or clicked.side == "p") and _stuck_unit() != null and (clicked == null or not Game.stacked(s, clicked)):
@@ -834,7 +856,8 @@ func _force_stack() -> bool:
 func _stack_hint() -> void:
 	var u: Variant = _sel_unit()
 	if u != null and Game.stacked(s, u):
-		ui.hint = "Hai quân đứng chung thành: cho [b]%s[/b] bước ra ô khác." % _name_of(u)
+		ui.hint = "Hai quân đứng chung thành: cho [b]%s[/b] bước ra ô khác%s." % [_name_of(u), \
+			", hoặc bấm ra ngoài vùng đi để hủy mua (hoàn vàng)" if Game.can_unbuy(s, u) else ""]
 
 ## units of ours that could still attack or capture this turn
 func _open_work() -> int:

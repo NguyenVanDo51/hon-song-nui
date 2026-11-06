@@ -524,6 +524,28 @@ func rule_tests() -> void:
 		var nb: Dictionary = Game.buy(c, 0, 0, "soldier")
 		check(not Game.reachable(c, nb).has(Vector2i(0, 0)), "new unit must step off")
 	)
+	run("unbuy: take back a buy on top of another unit until it steps off", func() -> void:
+		var s := blank([["p", "soldier", 0, 0], ["e", "soldier", 5, 4]])
+		s.gold.p = 1000
+		var a: Dictionary = Game.buy(s, 0, 0, "archer")
+		check(Game.can_unbuy(s, a), "stacked fresh buy can be taken back")
+		check(Game.unbuy(s, a.id), "unbuy ok")
+		eq(s.gold.p, 1000, "full refund")
+		check(Game.unit_by_id(s, a.id) == null and not Game.stacked(s, s.units[0]), "new unit gone, castle unit alone")
+		var b: Dictionary = Game.buy(s, 0, 0, "archer")
+		Game.do_action(s, { "id": b.id, "to": [1, 0], "kind": "wait" })
+		check(not Game.can_unbuy(s, b), "no take-back once it stepped off")
+		var c := blank([["e", "soldier", 4, 4]])
+		c.gold.p = 1000
+		var lone: Dictionary = Game.buy(c, 0, 0, "soldier")
+		check(not Game.can_unbuy(c, lone), "buy on an empty castle cannot be taken back")
+		var h := blank([["p", "soldier", 0, 0], ["e", "soldier", 5, 4]])
+		h.gold.p = 1000
+		h.heroDead.p = true
+		var cost := Game.hero_cost(h, "p")
+		var hero: Dictionary = Game.buy(h, 0, 0, "hero")
+		check(Game.unbuy(h, hero.id) and h.heroDead.p and h.gold.p == 1000 and Game.hero_cost(h, "p") == cost, "commander rebuy taken back: dead again, same price")
+	)
 	run("AI moves a unit it bought the same turn", func() -> void:
 		var s := blank([["p", "soldier", 0, 0], ["e", "hero", 4, 4]])
 		s.side = "e"

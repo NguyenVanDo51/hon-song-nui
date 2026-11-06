@@ -142,7 +142,8 @@ static func text_c(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: in
 	_text(ci, font, pos, s, size, color, 0.5, 0.5, outline, outline_col, scale)
 
 ## text with the given anchor: ax 0 left / 0.5 centre / 1 right; top = true puts pos at the text top, else baseline
-static func text_a(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, ax := 0.0, top := false, outline := 0, outline_col := Color.BLACK, scale := 1.0) -> void:
+static func text_a(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: int, color: Color, ax := 0.0, top := false, outline := 0, outline_col := Color.BLACK,
+	scale := 1.0) -> void:
 	_text(ci, font, pos, s, size, color, ax, 1.0 if top else 0.0, outline, outline_col, scale)
 
 ## ay: 0.5 = vertically centred on pos, 1 = pos is the top, 0 = pos is the baseline

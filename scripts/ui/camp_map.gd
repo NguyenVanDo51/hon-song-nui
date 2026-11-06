@@ -109,7 +109,7 @@ func _locked(m: Dictionary) -> bool:
 
 ## info box for the hovered mission (or the next one to play): number, status, title, place, what's new.
 ## Sits in the top corner away from that node so it never covers it.
-func _draw_info(s: float) -> void:
+func _draw_info(_s: float) -> void:
 	var id := hover
 	if id == "":
 		for m: Dictionary in missions:

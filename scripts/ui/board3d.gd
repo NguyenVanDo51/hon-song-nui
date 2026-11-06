@@ -315,7 +315,10 @@ func _process(dt: float) -> void:
 	_sync_pieces(t)
 	if s.night != _night_on:
 		_night_on = s.night
-		_night_light() if s.night else _day_light()
+		if s.night:
+			_night_light()
+		else:
+			_day_light()
 	if s.night:
 		_sync_lights()
 	_ov_paint.queue_redraw()
@@ -380,7 +383,6 @@ func _mi(mesh: Mesh, mat: Material) -> MeshInstance3D:
 	return mi
 
 func _tile_mesh(k: Kit, water: Kit, t: String, x: int, y: int, ter: Dictionary) -> void:
-	var p: Dictionary = ter[t]
 	var top := _top_at(x, y)
 	var X := x + 0.5
 	var Z := y + 0.5
@@ -456,7 +458,7 @@ func _shore(k: Kit, x: int, y: int, top: float) -> void:
 		k.box(c, sz, SAND, SAND, false)
 
 ## dirt track joining path / village / castle / bridge neighbours (same links as the 2D board)
-func _road(k: Kit, x: int, y: int, p: Dictionary) -> void:
+func _road(k: Kit, x: int, y: int, _p: Dictionary) -> void:
 	var links := { "r": 0.5, "v": 0.5, "c": 0.5, "x": 0.5, "t": 0.5, "=": 0.5 }
 	var w := 0.3
 	var c := Vector3(x + 0.5, 0.006, y + 0.5)

@@ -227,7 +227,7 @@ func rule_tests() -> void:
 		s.tiles[3][1] = "v" # unowned, dist 2
 		s.tiles[1][2] = "v"; s.owner[Vector2i(2, 1)] = "p" # own: never
 		s.tiles[4][4] = "v" # occupied by the enemy soldier: no
-		s.tiles[1][1] = "." 
+		s.tiles[1][1] = "."
 		var opts := Game.razable_from(s, c, 1, 1)
 		check(opts.has([4, 1]) and opts.has([3, 1]) == false and opts.has([1, 3]), "options %s" % [opts])
 		check(not opts.has([2, 1]) and not opts.has([4, 4]), "own / occupied excluded %s" % [opts])
@@ -264,7 +264,6 @@ func rule_tests() -> void:
 		var s2 := blank([["e", "soldier", 3, 3], ["p", "soldier", 0, 1]])
 		s2.side = "e"
 		s2.tiles[3][4] = "x"
-		var acts := []
 		var mem := {}
 		var st2: Variant = AI.next_step(s2, mem)
 		AI.apply_step(s2, st2)
@@ -422,7 +421,8 @@ func rule_tests() -> void:
 		eq(d.hp, 50)
 		eq(100 - w.hp, 15, "counter not weakened by the bite")
 		eq(d.get("poison"), "p", "poisoned after")
-		var order: Array = ev.filter(func(e: Dictionary) -> bool: return e.t == "hit" or e.t == "poison").map(func(e: Dictionary) -> String: return "c" if e.get("counter", false) else e.t)
+		var hits: Array = ev.filter(func(e: Dictionary) -> bool: return e.t == "hit" or e.t == "poison")
+		var order: Array = hits.map(func(e: Dictionary) -> String: return "c" if e.get("counter", false) else e.t)
 		eq(order, ["hit", "c", "poison"], "event order")
 	)
 	run("AE2 wolf: a 0-damage bite still poisons, even if the counter kills the wolf", func() -> void:

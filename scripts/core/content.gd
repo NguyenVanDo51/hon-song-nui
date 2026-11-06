@@ -145,7 +145,6 @@ static func how_to_play(type: String) -> String:
 ## strengths / quirks as short lines, generated from the stats so they never disagree with the rules
 static func traits(type: String, hero_key: Variant) -> Array:
 	var st := type_stat(type, hero_key)
-	var tn := { "f": "rừng", "h": "đồi", "m": "núi" }
 	var out := []
 	if st.get("capC", false):
 		out.append("Chiếm được cả thành lẫn làng.")

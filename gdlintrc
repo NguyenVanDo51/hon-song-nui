@@ -1,0 +1,39 @@
+# gdlint (gdtoolkit 4) config. Run: tools/lint.sh. Defaults kept unless noted; loosened ones = "siết dần" later.
+class-load-variable-name: (([A-Z][a-z0-9]*)+|_?[a-z][a-z0-9]*(_[a-z0-9]+)*)
+class-name: ([A-Z][a-z0-9]*)+
+# math-style short caps allowed (T tile px, R radius, X/Y origin, P point fn): snake_case or 1-2 capitals
+class-variable-name: (_?[a-z][a-z0-9]*(_[a-z0-9]+)*(_[A-Z])?|_?[A-Z][A-Za-z0-9]?|[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)
+# ^ + ALL_CAPS for static vars used as swappable tables (Game.UNITS, Store.SAVE)
+comparison-with-itself: null
+constant-name: _?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*
+disable: # loosened: existing files order consts / vars / inner classes freely
+- class-definitions-order
+duplicated-load: null
+enum-element-name: '[A-Z][A-Z0-9]*(_[A-Z0-9]+)*'
+enum-name: ([A-Z][a-z0-9]*)+
+excluded_directories: !!set
+  .git: null
+  .godot: null
+  .claude: null
+  assets: null # generated (emoji manifest)
+expression-not-assigned: null
+function-argument-name: (_?[a-z][a-z0-9]*(_[a-z0-9]+)*|_?[A-Z][A-Z0-9]?|p_[A-Z])
+function-arguments-number: 12 # loosened from 10: Draw.text_a / Token.Atlas.draw
+function-name: (_on_([A-Z][a-z0-9]*)+(_[a-z0-9]+)*|_?[a-z][a-z0-9]*(_[a-z0-9]+)*)
+function-preload-variable-name: ([A-Z][a-z0-9]*)+
+function-variable-name: ([a-z][a-z0-9]*(_[a-z0-9]+)*|[A-Z][A-Z0-9]?)
+load-constant-name: (([A-Z][a-z0-9]*)+|_?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)
+loop-variable-name: _?[a-z][a-z0-9]*(_[a-z0-9]+)*
+max-file-lines: 2200 # loosened from 1000: game_screen.gd ~2000 (split = backlog E5), board.gd / tests.gd ~1000
+max-line-length: 180 # loosened from 100 (tabs count 1); tighten as files get touched
+max-public-methods: 80 # loosened from 20: Game / Board are static-helper hubs
+max-returns: 14 # loosened from 6: game_screen._on_tile click router (early-return per click case)
+mixed-tabs-and-spaces: null
+no-elif-return: null
+no-else-return: null
+signal-name: _?[a-z][a-z0-9]*(_[a-z0-9]+)*
+sub-class-name: _?([A-Z][a-z0-9]*)+
+tab-characters: 1
+trailing-whitespace: null
+unnecessary-pass: null
+unused-argument: null

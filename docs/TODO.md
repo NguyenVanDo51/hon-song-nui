@@ -6,13 +6,9 @@
 - [ ] Sau mỗi lần đổi AI (`scripts/core/ai.gd`): chạy lại `bash tools/sim_many.sh "m01 … m16" 12 8` + cập nhật bảng cân bằng README (số hiện tại đo với AI `31a006e`).
 
 ## Chất lượng code
-- [ ] **Lint + format GDScript** (chốt 2026-11-06; làm SAU khi xử lý xong 5 báo cáo review, vì format lệch số dòng):
-  1. Cài `pipx install "gdtoolkit==4.*"` (gdlint + gdformat; hỏi user trước khi cài lên máy).
-  2. Chạy thử toàn repo, đếm lỗi theo loại -> viết `gdlintrc` (nới `max-file-lines` / `max-function-length` lúc đầu, siết dần).
-  3. Bật cảnh báo Godot = error trong `project.godot` (`debug/gdscript/warnings/*`: untyped_declaration, unused_variable, unused_parameter, ...).
-  4. `gdformat` toàn repo trong 1 commit riêng, chỉ style -> chạy lại tests + click_driver + rig_smoke.
-  5. `tools/lint.sh` + git pre-commit hook (`gdformat --check` + `gdlint`); ghi cách dùng vào README "Kiểm tra".
-  - Phương án khác nếu gdtoolkit chậm / thiếu cú pháp 4.7: GDScript Formatter của GDQuest (Rust, có linter).
+- [x] Lint (2026-11-06): gdtoolkit 4.5.0 `gdlint` + Godot warnings = error + `tools/lint.sh` + pre-commit (`tools/install_hooks.sh`). README "Lint".
+- [ ] Siết lint dần: `max-line-length` 180 -> 120, bật lại `class-definitions-order`, `max-file-lines` (sau khi tách game_screen), Godot warnings còn ở mức warn: unsafe_call_argument ~1655, return_value_discarded ~292, unsafe_method_access ~411, unsafe_property_access ~173, shadowed_* ~84, integer_division 18, incompatible_ternary 19, untyped_declaration (162 file-dòng).
+- [ ] Formatter: `gdformat` 4.5.0 hỏng với lambda nhiều dòng -> thử GDScript Formatter (GDQuest, Rust; cần build / tải binary, hỏi user) hoặc đợi gdtoolkit sửa.
 - [x] Code review 2026-11-06 backlog: hiệu năng P1–P8 (trừ P9), mở rộng E2/E3/E4/E7, tái sử dụng R1–R5 — merged e5a3520.
 - [ ] Còn lại từ review (`docs/review/code_review_2026-11-06.md`): E1 nhiều phe / đồng minh, E5 tách `game_screen.gd`, E6 i18n; P9 vẽ lại khi idle; spike ~18 ms khi rig đánh lần đầu (raster phần rig); test UI phá/sửa làng/gọi hồn qua click, phím tắt, save giữa ván; đo hiệu năng trên điện thoại thật (web/iOS).
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.

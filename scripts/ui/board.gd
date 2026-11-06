@@ -450,7 +450,8 @@ func _paint(ci: CanvasItem, kind: String, X: float, Y: float, p: Dictionary, x: 
 				var P := func(a: float, b: float) -> Vector2: return Vector2(X + T * a, Y + T * b)
 				ci.draw_colored_polygon(PackedVector2Array([P.call(px - w, 0.92), P.call(px, 0.92 - h), P.call(px + w, 0.92)]), Color(p.rock))
 				ci.draw_colored_polygon(PackedVector2Array([P.call(px, 0.92 - h), P.call(px + w, 0.92), P.call(px + w * 0.2, 0.92)]), Color(p.rock2))
-				ci.draw_colored_polygon(PackedVector2Array([P.call(px - w * 0.28, 0.92 - h * 0.72), P.call(px, 0.92 - h), P.call(px + w * 0.28, 0.92 - h * 0.72), P.call(px, 0.92 - h * 0.62)]), Color(p.snow))
+				ci.draw_colored_polygon(PackedVector2Array([P.call(px - w * 0.28, 0.92 - h * 0.72), P.call(px, 0.92 - h), P.call(px + w * 0.28, 0.92 - h * 0.72), P.call(px,
+					0.92 - h * 0.62)]), Color(p.snow))
 		"water":
 			Draw.gradient_rect(ci, Rect2(X, Y, T, T), [[0.0, Color(p.base)], [1.0, Color(p.get("deep", p.base))]])
 		"bridge":
@@ -560,7 +561,8 @@ func _draw_grave(ci: CanvasItem, X: float, Y: float, time: float) -> void:
 	ci.draw_line(P.call(0.62, 0.8), P.call(0.7, 0.18), SPEAR, maxf(1.5, T / 22.0), true)
 	ci.draw_colored_polygon(PackedVector2Array([P.call(0.705, 0.06), P.call(0.745, 0.2), P.call(0.67, 0.19)]), BLADE)
 	var sway := sin(time / 520.0) * T * 0.03
-	var cloth := _join([PackedVector2Array([P.call(0.69, 0.24)]), Draw.quad(P.call(0.69, 0.24), Vector2(X + T * 0.82 + sway, Y + T * 0.28), Vector2(X + T * 0.86 + sway, Y + T * 0.38), 6),
+	var cloth := _join([PackedVector2Array([P.call(0.69, 0.24)]), Draw.quad(P.call(0.69, 0.24), Vector2(X + T * 0.82 + sway, Y + T * 0.28), Vector2(X + T * 0.86 + sway,
+		Y + T * 0.38), 6),
 		PackedVector2Array([P.call(0.68, 0.34)])])
 	ci.draw_colored_polygon(cloth, CLOTH)
 	Draw.ellipse(ci, P.call(0.4, 0.7), T * 0.2, T * 0.11, SHIELD, -0.2)

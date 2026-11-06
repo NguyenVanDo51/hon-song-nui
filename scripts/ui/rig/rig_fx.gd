@@ -412,7 +412,7 @@ class Ring extends Timed:
 	var o: Dictionary
 	func _init(p_r: Rig, p_o: Dictionary) -> void:
 		r = p_r; o = p_o; life = o.get("ms", 540.0)
-	func draw(ctx: RigCtx, cam: RigCam, layer: String) -> void:
+	func draw(ctx: RigCtx, _cam: RigCam, layer: String) -> void:
 		if layer == "back":
 			return
 		var a := age / 80.0 if age < 80.0 else ((life - age) / 120.0 if age > life - 120.0 else 1.0)

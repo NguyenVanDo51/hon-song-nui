@@ -1,4 +1,6 @@
 extends RefCounted
+# prose / map rows: one line each reads better
+# gdlint: disable=max-line-length
 ## all names, icons, colors, UI wording. Swap this file to re-skin; scripts/core/rules.gd keeps the numbers.
 ## any unit / hero / terrain may set "img": "res://..." to replace the emoji / procedural drawing.
 ## "fig": a white silhouette (SVG) drawn as a standing piece on a small base, in the faction's "fig" colour.

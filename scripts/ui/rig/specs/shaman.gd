@@ -10,7 +10,7 @@ const RING_BACK := Color("#b9efc0")
 static func wob(t: float, a: float, b: float, amp: float, per: float) -> float:
 	return amp * sin((t - a) / per) if t > a and t < b else 0.0
 
-func events(r: Rig) -> Array:
+func events(_r: Rig) -> Array:
 	var c := data.consts
 	var t_thrust: float = c.T_THRUST
 	var ring: Dictionary = c.RING

@@ -1,4 +1,6 @@
 extends RefCounted
+# prose / map rows: one line each reads better
+# gdlint: disable=max-line-length
 ## mission m03: Giữ Làng Hạ Lôi. Format: docs/content.md
 
 const DEF := {

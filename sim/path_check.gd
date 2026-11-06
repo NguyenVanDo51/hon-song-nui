@@ -18,7 +18,7 @@ func _init() -> void:
 	print("paths checked %d, bad %d" % [checked, bad])
 	quit()
 
-func _check(mid: String, s: Dictionary, u: Dictionary, path: Array, to: Vector2i) -> void:
+func _check(mid: String, _s: Dictionary, u: Dictionary, path: Array, to: Vector2i) -> void:
 	checked += 1
 	var why := ""
 	if path.is_empty():

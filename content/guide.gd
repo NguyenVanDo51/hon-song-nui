@@ -1,4 +1,6 @@
 extends RefCounted
+# prose / map rows: one line each reads better
+# gdlint: disable=max-line-length
 ## how to play each unit type (same mechanics for both sides, so one text per type; names come from the theme).
 ## Shown by the new-unit intro, the ⓘ popup on every unit and the codex. Trait lines are generated from the stats
 ## in Content.traits(); this file only holds the hand-written "role" + "how to use" lines.

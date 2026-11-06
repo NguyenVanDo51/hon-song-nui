@@ -30,6 +30,7 @@ func _boot() -> void:
 	await _run(main.game)
 
 func _run(_g: Node) -> void:
+	await process_frame # coroutine like the overrides, so `await _run()` is never redundant
 	quit()
 
 ## park every unit within r tiles (manhattan) of at in the corner, except the ids in keep

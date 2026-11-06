@@ -189,7 +189,8 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 	var r := Rect2(-h / 2.0, -h, h, h)
 	ci.draw_set_transform_matrix(Draw.xf * Transform2D(0.0, Vector2(flip, 1.0), 0.0, foot))
 	var w := maxf(1.0, T * 0.03)
-	for d: Vector2 in ([] if colour else [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7, Vector2(-w, w) * 0.7, Vector2(w, w) * 0.7]):
+	for d: Vector2 in ([] if colour else [Vector2(-w, 0), Vector2(w, 0), Vector2(0, -w), Vector2(0, w), Vector2(-w, -w) * 0.7, Vector2(w, -w) * 0.7, Vector2(-w, w) * 0.7,
+		Vector2(w, w) * 0.7]):
 		ci.draw_texture_rect(fig, Rect2(r.position + d, r.size), false, ink)
 	ci.draw_texture_rect(fig, r, false, col)
 	var fl: float = o.get("flash", 0.0)

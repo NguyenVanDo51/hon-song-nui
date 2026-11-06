@@ -264,7 +264,7 @@ static func buffs_at(s: Dictionary, u: Dictionary, x: int, y: int) -> Dictionary
 	out.poison = poison_amt(u)
 	return out
 
-static func terrain_def(s: Dictionary, u: Dictionary, x: int, y: int) -> int:
+static func terrain_def(s: Dictionary, _u: Dictionary, x: int, y: int) -> int:
 	return TERRAIN[tile_at(s, x, y)].def
 
 ## attack values a can actually roll [min, max], before bonuses (rank adds to both ends).

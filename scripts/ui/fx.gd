@@ -226,7 +226,8 @@ func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
 			ring(d.x, d.y, "#9fe3ff", 420.0, 0.8, 0.06)
 		"shaman": # gọi hồn: green spirit wisps swirl in and strike
 			r.call("spirit", 520.0)
-			burst(d.x, d.y, 12, { "color": ["#9dffb8", "#4fd38a", "#e6fff0"], "kind": "glow", "vmin": 0.4, "vmax": 1.4, "up": 0.8, "g": -0.8, "lmin": 400.0, "lmax": 800.0, "smin": 0.04, "smax": 0.08 })
+			burst(d.x, d.y, 12, { "color": ["#9dffb8", "#4fd38a", "#e6fff0"], "kind": "glow", "vmin": 0.4, "vmax": 1.4, "up": 0.8, "g": -0.8, "lmin": 400.0, "lmax": 800.0,
+				"smin": 0.04, "smax": 0.08 })
 		"drum": # bronze drum boom: sound rings rolling from the drummer to the target
 			for i in 3:
 				rays.append({ "kind": "boom", "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": now() + i * sp(70.0), "dur": sp(380.0) })
@@ -235,7 +236,8 @@ func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
 			burst(d.x, d.y, 8, { "color": ["#ff6b57", "#ffb199"], "vmin": 0.8, "vmax": 2.2, "lmin": 200.0, "lmax": 420.0, "smin": 0.02, "smax": 0.045 })
 		"elephant": # tusk charge + ground stomp: dust ring, cracks, heavy shake
 			r.call("stomp", 520.0)
-			burst(d.x, d.y + 0.3, 14, { "color": ["#8a7457", "#b39a76", "#6b5a44"], "kind": "smoke", "vmin": 0.6, "vmax": 1.6, "up": 0.2, "g": -0.2, "lmin": 500.0, "lmax": 900.0, "smin": 0.1, "smax": 0.2, "drag": 0.93 })
+			burst(d.x, d.y + 0.3, 14, { "color": ["#8a7457", "#b39a76", "#6b5a44"], "kind": "smoke", "vmin": 0.6, "vmax": 1.6, "up": 0.2, "g": -0.2, "lmin": 500.0,
+				"lmax": 900.0, "smin": 0.1, "smax": 0.2, "drag": 0.93 })
 			ring(d.x, d.y, "#d8bb8a", 480.0, 1.3, 0.1)
 			shake(0.12, 300.0)
 		"bird": # dragon fire breath: a cone of flame from the jaws to the target
@@ -260,7 +262,8 @@ func _impact(d: Dictionary, amount: int, heavy: bool, shot: String, kill: bool) 
 	var col := ["#c9a2ff", "#8f6bff", "#f0e0ff"] if shot == "orb" else ["#ffd27a", "#ff8a4c", "#fff3c4"]
 	burst(d.x, d.y, mini(26, 8 + amount / 3), { "color": col, "vmin": 1.0, "vmax": 4.0 if big else 2.8, "lmin": 250.0, "lmax": 600.0, "smin": 0.025, "smax": 0.06, "g": 4.0 })
 	if shot == "rock":
-		burst(d.x, d.y + 0.2, 14, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c"], "kind": "smoke", "vmin": 0.3, "vmax": 1.2, "up": 0.5, "g": -0.3, "lmin": 600.0, "lmax": 1100.0, "smin": 0.12, "smax": 0.25, "drag": 0.95 })
+		burst(d.x, d.y + 0.2, 14, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c"], "kind": "smoke", "vmin": 0.3, "vmax": 1.2, "up": 0.5, "g": -0.3, "lmin": 600.0,
+			"lmax": 1100.0, "smin": 0.12, "smax": 0.25, "drag": 0.95 })
 		ring(d.x, d.y, "#e8c27a", 450.0, 1.2, 0.1)
 	if big:
 		shake(0.16 if shot == "rock" else 0.09, 380.0 if shot == "rock" else 240.0)
@@ -280,7 +283,8 @@ func raze(a: Dictionary, x: int, y: int) -> void:
 			offsets.erase(a.id))
 	await projectile("rock", a.x, a.y, x, y, 620.0)
 	_play("heavy")
-	burst(x, y + 0.1, 22, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c", "#9a948a"], "kind": "smoke", "vmin": 0.3, "vmax": 1.4, "up": 0.6, "g": -0.3, "lmin": 700.0, "lmax": 1300.0, "smin": 0.14, "smax": 0.3, "drag": 0.95 })
+	burst(x, y + 0.1, 22, { "color": ["#7b6a55", "#a08b6e", "#5c4d3c", "#9a948a"], "kind": "smoke", "vmin": 0.3, "vmax": 1.4, "up": 0.6, "g": -0.3, "lmin": 700.0,
+		"lmax": 1300.0, "smin": 0.14, "smax": 0.3, "drag": 0.95 })
 	burst(x, y, 16, { "color": ["#c9b79a", "#8a7560", "#ddd5c4"], "vmin": 1.0, "vmax": 3.2, "lmin": 300.0, "lmax": 650.0, "smin": 0.03, "smax": 0.07, "g": 5.0 })
 	ring(x, y, "#e8c27a", 500.0, 1.3, 0.1)
 	shake(0.18, 400.0)
@@ -295,8 +299,10 @@ func repair(x: int, y: int) -> void:
 func death(u: Dictionary) -> void:
 	_play("die")
 	ghosts.append({ "u": u, "t0": now(), "dur": sp(1000.0) })
-	burst(u.x, u.y, 16, { "color": ["#3a3430", "#6b625a", "#8d837a"], "kind": "smoke", "vmin": 0.2, "vmax": 1.1, "up": 0.6, "g": -0.5, "lmin": 600.0, "lmax": 1200.0, "smin": 0.1, "smax": 0.22, "drag": 0.94 })
-	burst(u.x, u.y, 6, { "color": "#ffb38a" if u.side == "p" else "#8ff0e8", "kind": "glow", "vmin": 0.1, "vmax": 0.4, "up": 1.2, "g": -0.6, "lmin": 900.0, "lmax": 1400.0, "smin": 0.04, "smax": 0.07 })
+	burst(u.x, u.y, 16, { "color": ["#3a3430", "#6b625a", "#8d837a"], "kind": "smoke", "vmin": 0.2, "vmax": 1.1, "up": 0.6, "g": -0.5, "lmin": 600.0, "lmax": 1200.0,
+		"smin": 0.1, "smax": 0.22, "drag": 0.94 })
+	burst(u.x, u.y, 6, { "color": "#ffb38a" if u.side == "p" else "#8ff0e8", "kind": "glow", "vmin": 0.1, "vmax": 0.4, "up": 1.2, "g": -0.6, "lmin": 900.0, "lmax": 1400.0,
+		"smin": 0.04, "smax": 0.07 })
 
 func capture(x: int, y: int, side: String) -> void:
 	_play("capture")
@@ -313,7 +319,8 @@ func rank(x: int, y: int, level: int, loud := true) -> void:
 	_play("rank")
 	if loud:
 		rays.append({ "kind": "rays", "x": x, "y": y, "t0": now(), "dur": sp(1100.0) })
-	burst(x, y, 14 if loud else 7, { "color": ["#ffe08a", "#fff6d0"], "kind": "star", "vmin": 0.4, "vmax": 1.6, "up": 1.5, "g": 0.8, "lmin": 700.0, "lmax": 1200.0, "smin": 0.06, "smax": 0.1 })
+	burst(x, y, 14 if loud else 7, { "color": ["#ffe08a", "#fff6d0"], "kind": "star", "vmin": 0.4, "vmax": 1.6, "up": 1.5, "g": 0.8, "lmin": 700.0, "lmax": 1200.0,
+		"smin": 0.06, "smax": 0.1 })
 	float_text(x, y - 0.55, ("★ Lên cấp %d" % level) if loud else ("★%d" % level), "#ffe08a", 1300.0 if loud else 800.0)
 
 func raise_fx(x: int, y: int) -> void:
@@ -330,7 +337,8 @@ func heal(x: int, y: int, amount: int) -> void:
 
 ## green "+" sparks rising off a healed unit
 func heal_sparkle(x: float, y: float) -> void:
-	burst(x, y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0, "lmax": 1000.0, "smin": 0.06, "smax": 0.08 })
+	burst(x, y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0, "lmax": 1000.0, "smin": 0.06,
+		"smax": 0.08 })
 
 func spawn_fx(x: int, y: int) -> void:
 	_play("spawn")
@@ -340,7 +348,8 @@ func spawn_fx(x: int, y: int) -> void:
 func buy_fx(x: int, y: int) -> void:
 	_play("coin")
 	ring(x, y, "#ffd166", 500.0, 0.9, 0.08)
-	burst(x, y, 12, { "color": ["#ffd166", "#fff0b3", "#e0a43a"], "kind": "coin", "vmin": 0.8, "vmax": 2.0, "up": 2.0, "g": 6.0, "lmin": 500.0, "lmax": 800.0, "smin": 0.05, "smax": 0.07 })
+	burst(x, y, 12, { "color": ["#ffd166", "#fff0b3", "#e0a43a"], "kind": "coin", "vmin": 0.8, "vmax": 2.0, "up": 2.0, "g": 6.0, "lmin": 500.0, "lmax": 800.0,
+		"smin": 0.05, "smax": 0.07 })
 
 ## dust kicked up at a walker's feet: a low puff that spreads sideways and fades
 func dust(x: float, y: float) -> void:
@@ -437,7 +446,8 @@ func draw_over(ci: CanvasItem, T: float, t: float) -> void:
 			var tr := Transform2D((p - q).angle(), X)
 			ci.draw_line(tr * Vector2(-T * 0.3, 0), tr * Vector2(T * 0.12, 0), Draw.col("#3b2a1a"), maxf(1.5, T * 0.04), true)
 			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(T * 0.2, 0), tr * Vector2(T * 0.1, -T * 0.05), tr * Vector2(T * 0.1, T * 0.05)]), Draw.col("#d8d0c0"))
-			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(-T * 0.3, -T * 0.04), tr * Vector2(-T * 0.22, -T * 0.04), tr * Vector2(-T * 0.22, T * 0.04), tr * Vector2(-T * 0.3, T * 0.04)]), Draw.col("#c2412f"))
+			ci.draw_colored_polygon(PackedVector2Array([tr * Vector2(-T * 0.3, -T * 0.04), tr * Vector2(-T * 0.22, -T * 0.04), tr * Vector2(-T * 0.22, T * 0.04),
+				tr * Vector2(-T * 0.3, T * 0.04)]), Draw.col("#c2412f"))
 		elif pr.kind == "rock":
 			var g := Vector2((pr.fx + (pr.tx - pr.fx) * k + 0.5) * T, (pr.fy + (pr.ty - pr.fy) * k + 0.75) * T)
 			Draw.ellipse(ci, g, T * 0.14, T * 0.06, Color(0, 0, 0, 0.33))
@@ -522,7 +532,8 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 				var len := T * 0.5 * minf(1.0, k * 2.5)
 				var mid := c + Vector2(cos(a2), sin(a2) * 0.5) * len * 0.5 + Vector2(cos(a2 + 1.2), sin(a2 + 1.2)) * T * 0.04
 				var end := c + Vector2(cos(a2), sin(a2) * 0.5) * len
-				ci.draw_polyline(PackedVector2Array([c + Vector2(0, T * 0.25), mid + Vector2(0, T * 0.25), end + Vector2(0, T * 0.25)]), Color(1.0, 0.85, 0.55, 0.7 * al2), maxf(1.0, T * 0.03), true)
+				ci.draw_polyline(PackedVector2Array([c + Vector2(0, T * 0.25), mid + Vector2(0, T * 0.25), end + Vector2(0, T * 0.25)]), Color(1.0, 0.85, 0.55, 0.7 * al2),
+					maxf(1.0, T * 0.03), true)
 		elif r.kind == "fire": # dragon: a hot glow along the breath line
 			var from3 := Vector2((r.ax + 0.5) * T, (r.ay + 0.35) * T)
 			var al3 := sin(k * PI)

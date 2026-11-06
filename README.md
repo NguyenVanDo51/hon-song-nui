@@ -54,6 +54,12 @@ powershell -File tools/run_guarded.ps1 -Log g.log -GArgs "--headless --path . -s
 ```
 Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
 
+### Lint
+- Cài 1 lần: `pipx install "gdtoolkit==4.*"` (macOS: `brew install pipx` trước), rồi `tools/install_hooks.sh` -> git pre-commit chạy `tools/lint.sh --staged` (bỏ qua 1 lần: `git commit --no-verify`).
+- `tools/lint.sh` (cả repo, ~4 s) = `gdlint` theo `gdlintrc` + Godot parse mọi script với cảnh báo = lỗi (`project.godot` [debug]: unused_*, unreachable_*, standalone_*, unassigned_*, narrowing_conversion, redundant_await, confusable_identifier, static_called_on_instance) qua `sim/check_scripts.gd`.
+- `run_guarded.sh/.ps1` trả exit 1 nếu log có `SCRIPT ERROR` (test crash giữa chừng không còn tính là qua).
+- Không dùng `gdformat` (gdtoolkit 4.5.0): làm hỏng 14 file (lambda nhiều dòng trong lời gọi hàm -> Godot "Unindent doesn't match"). `gdlintrc` đang nới vài luật (ghi chú trong file) -> siết dần.
+
 ## Cân bằng (sim AI-vs-AI, 12 ván/màn (24 nếu ghi /24), 2026-11-06, luật AE2 + AI `31a006e` + nhịp ra quân mới)
 AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 60 lượt chưa phân thắng bại. Mới = loại quân ra mắt (thấy → cầm → mua, xem `docs/content.md` mục "Nhịp ra quân mới").
 

@@ -63,22 +63,23 @@ Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy 
 - `run_guarded.sh/.ps1` trả exit 1 nếu log có `SCRIPT ERROR` (test crash giữa chừng không còn tính là qua).
 - Không dùng `gdformat` (gdtoolkit 4.5.0): làm hỏng 14 file (lambda nhiều dòng trong lời gọi hàm -> Godot "Unindent doesn't match"). `gdlintrc`: dòng ≤ 150, class-definitions-order bật; còn nới `max-file-lines` 2300 (game_screen ~2200, tách = E5).
 
-## Cân bằng (sim AI-vs-AI, 12 ván/màn (24 nếu ghi /24), 2026-11-06, luật AE2 + AI `31a006e` + nhịp ra quân mới)
+## Cân bằng (sim AI-vs-AI, 12 ván/màn (24 nếu ghi /24), 2026-11-06, luật AE2 + AI `fe83a5d` + nhịp ra quân mới)
 AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 60 lượt chưa phân thắng bại. Mới = loại quân ra mắt (thấy → cầm → mua, xem `docs/content.md` mục "Nhịp ra quân mới").
 
 | Màn | Kiểu | Mới | Ta thắng | Trung vị lượt | | Màn | Kiểu | Mới | Ta thắng | Trung vị lượt |
 |---|---|---|---|---|---|---|---|---|---|---|
-| m01 Lời Thề Hát Môn | diệt hết | bộ binh, tướng | 11/12 | 6 | | m09 Tin Dữ Hợp Phố | giữ vững | thủy binh (địch) | 12/12 | 10 |
-| m02 Về Lại Mê Linh | chiếm thành | nỏ thủ | 9/12 | 13 | | m10 Sóng An Biên | hạ tướng | thủy binh (ta) | 10/12 | 14 |
-| m03 Giữ Làng Hạ Lôi | giữ vững | trống (đặt sẵn) | 12/12 | 10 | | m11 Bát Nàn Giữ Ải | chiếm thành | sói (địch) | 11/12 | 9 |
-| m04 Phá Đồn Cổ Loa | hạ tướng | voi (địch) | 11/12 | 9 | | m12 Trận Lãng Bạc | chiếm thành | sói (ta) | 10/12 | 20 |
-| m05 Đêm Hồ Tây | chiếm thành | (đêm) | 11/12 | 9 | | m13 Địu Con Phá Vây | tới đích | thầy mo (đặt sẵn) | 12/12 | 7 |
-| m06 Trận Bãi Sông | hạ tướng | — | 12/12 | 8 | | m14 Rút Về Cấm Khê | tới đích | — | 3/12 | 14 |
-| m07 Vây Thành Long Biên | chiếm thành | máy bắn đá | 11/12 | 11 | | m15 Thành Cấm Khê | giữ vững | rồng (1 con) | 20/24 | 11 |
-| m08 Trị Sở Luy Lâu | chiếm thành | — | 17/24 (2 hòa) | 22 | | m16 Đêm Sông Hát | giữ vững | — | 6/12 | 9 |
+| m01 Lời Thề Hát Môn | diệt hết | bộ binh, tướng | 12/12 | 6 | | m09 Tin Dữ Hợp Phố | giữ vững | thủy binh (địch) | 12/12 | 10 |
+| m02 Về Lại Mê Linh | chiếm thành | nỏ thủ | 16/24 | 11 | | m10 Sóng An Biên | hạ tướng | thủy binh (ta) | 11/12 | 9 |
+| m03 Giữ Làng Hạ Lôi | giữ vững | trống (đặt sẵn) | 12/12 | 10 | | m11 Bát Nàn Giữ Ải | chiếm thành | sói (địch) | 11/12 | 12 |
+| m04 Phá Đồn Cổ Loa | hạ tướng | voi (địch) | 9/12 | 9 | | m12 Trận Lãng Bạc | chiếm thành | sói (ta) | 21/24 | 18 |
+| m05 Đêm Hồ Tây | chiếm thành | (đêm) | 12/12 | 12 | | m13 Địu Con Phá Vây | tới đích | thầy mo (đặt sẵn) | 20/24 | 6 |
+| m06 Trận Bãi Sông | hạ tướng | — | 12/12 | 7 | | m14 Rút Về Cấm Khê | tới đích | — | 12/12 | 8 |
+| m07 Vây Thành Long Biên | chiếm thành | máy bắn đá | 10/12 | 13 | | m15 Thành Cấm Khê | giữ vững | rồng (1 con) | 10/12 | 11 |
+| m08 Trị Sở Luy Lâu | chiếm thành | — | 14/24 (4 hòa) | 21 | | m16 Đêm Sông Hát | giữ vững | — | 14/24 | 9 |
 
-- Màn ra mắt quân ≥ ~80%; trận cuối chương ~50–70% (m08, m16).
-- **m14 lệch sẵn từ trước** (trước đổi, AI cũ: 1/12; phần lớn hết lượt chưa tới đích) — chưa chỉnh.
+- Màn ra mắt quân ≥ ~75%; trận cuối chương ~55–60% (m08, m16).
+- `fe83a5d` (lính máu < 50 về ô hồi máu, không đứng ỳ ở góc) so với ngay trước nó (`5f45645`, cùng seed): mọi màn lệch ≤ 3 ván (24 ván: m08 16→14 + hòa 1→4, m12 18→21, m13 23→20, m16 16→14, m02 15→16).
+- m14 hết lệch: 12/12 (bảng `31a006e`: 3/12; ở `5f45645` đã 10/12).
 - Bảng cũ (2026-11-05) đo trước khi đưa luật về AE2; số trước đổi (AI cũ): m07 7/12, m08 7/12, m13 5/12, m15 4/12.
 
 ## Luật = AE2 (2026-11-06)
@@ -94,7 +95,9 @@ Không có mã nguồn gốc công khai; chỉ có jar gốc + bản mod dịch 
 
 Hồi quy: `sim/trace.gd` chơi AI-vs-AI có seed trên luật hiện tại cho mọi màn + bản đồ đấu tự do, in 1 dòng/ván (hash mọi nước + kết quả). `sim/golden.txt` = kết quả đã chốt; `sim/tests.gd` chơi lại 4 ván mỗi lần chạy. Đổi luật / AI / bản đồ có chủ đích thì tạo lại: `godot --headless --path . -s sim/trace.gd > sim/golden.txt`.
 
-AI một nước (GDScript, Mac Apple Silicon, đo 2026-11-06, trung bình / tệ nhất): m01 1.2 / 3.1 ms, m08 3.8 / 10.8 ms, m12 3.8 / 12 ms. Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch; nước đi không đổi .
+AI một nước (GDScript, Mac Apple Silicon, `sim/probes/ai_time.gd` = 4 ván seed vàng, đo 2026-11-06 ở `fe83a5d`, trung bình / tệ nhất): m01 1.4 / 3.7 ms, m08 3.4 / 15 ms, m12 3.7 / 16 ms (ngay trước, cùng máy: 1.2 / 3.6, 3.3 / 14, 3.6 / 14.5). Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch.
+
+Tham số AI (`AI.DEFAULT`, ghi đè theo phe `s.aiParams`), tự đấu để tune (`sim/tune.gd`, `tools/tune.sh`), phác thảo độ khó Dễ / Thường / Khó + bảng thắng thua: `docs/ai.md`.
 
 ## Thay nội dung (không đụng code)
 | Muốn đổi | Sửa ở |

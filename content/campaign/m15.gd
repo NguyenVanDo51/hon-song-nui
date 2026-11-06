@@ -9,8 +9,8 @@ const DEF := {
 	"history": "Quân Hai Bà giữ Cấm Khê qua mùa đông năm 42. Mã Viện vây đánh nhiều lần, có cả máy bắn đá.",
 	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": [] },
-	"gold": { "p": 150, "e": 0 },
+	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "wolf", "elephant"], "e": [] },
+	"gold": { "p": 900, "e": 0 },
 	"win": { "type": "survive", "turns": 10 },
 	"map": { "rows": [
 		".f............",
@@ -30,12 +30,12 @@ const DEF := {
 	],
 	"waves": [
 		{ "turn": 1, "units": [["soldier", 12, 4], ["archer", 13, 6], ["soldier", 12, 7]] },
-		{ "turn": 2, "units": [["soldier", 13, 1], ["soldier", 13, 5], ["soldier", 13, 8], ["archer", 12, 3], ["elephant", 12, 6]] },
-		{ "turn": 3, "units": [["elephant", 13, 4], ["soldier", 12, 0], ["bird", 13, 9]] },
+		{ "turn": 2, "units": [["soldier", 13, 1], ["soldier", 13, 5], ["soldier", 13, 8], ["archer", 12, 3]] },
+		{ "turn": 3, "units": [["elephant", 13, 4], ["soldier", 12, 0], ["wolf", 13, 9]] },
 		{ "turn": 4, "units": [["catapult", 13, 2], ["soldier", 13, 7, { "rank": 1 }], ["archer", 12, 9], ["soldier", 13, 3, { "rank": 1 }]] },
 		{ "turn": 5, "units": [["drum", 13, 5], ["soldier", 12, 1], ["archer", 13, 8]] },
 		{ "turn": 6, "units": [["hero", 13, 4], ["soldier", 13, 1], ["soldier", 13, 6], ["elephant", 12, 8], ["catapult", 13, 9], ["archer", 12, 2, { "rank": 1 }]] },
-		{ "turn": 8, "units": [["soldier", 13, 2, { "rank": 2 }], ["soldier", 13, 5, { "rank": 1 }], ["bird", 13, 0], ["archer", 13, 7], ["elephant", 13, 3], ["catapult", 12, 9]] },
+		{ "turn": 8, "units": [["soldier", 13, 2, { "rank": 2 }], ["soldier", 13, 5, { "rank": 1 }], ["wolf", 13, 0], ["archer", 13, 7], ["elephant", 13, 3], ["catapult", 12, 9]] },
 	],
 	"story": {
 		"intro": [
@@ -46,8 +46,8 @@ const DEF := {
 		"outro": [["trungtrac", "Giặc lui rồi. Nhưng lương thực trong thành cũng cạn. Ta phải tính đường cuối."]],
 	},
 	"tips": [
-		"Mục tiêu: [b]giữ thành 10 lượt[/b]. Mất thành là thua.",
+		"Mục tiêu: [b]giữ thành 10 lượt[/b]. Mất thành mà Anh hùng cũng ngã là thua.",
 		"[b]Máy bắn đá[/b] của giặc không đánh trả, nhưng đã đi thì không ném được. Cho voi lao ra phá ngay khi chúng vừa đặt xuống.",
-		"Tướng giặc tới ở lượt 6. Hạ được hắn thì những đợt sau yếu hẳn.",
+		"Tướng giặc tới ở lượt 6. Lượt 8 giặc có cả [b]chó săn[/b]: bị cắn thì −10 công, −10 thủ, kéo quân đó về gần thành mà hồi máu.",
 	],
 }

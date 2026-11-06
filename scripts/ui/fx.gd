@@ -92,7 +92,7 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 	var st: Dictionary = Rules.UNITS.get(a.type, {})
 	var dd := absi(a.x - d.x) + absi(a.y - d.y)
 	var shot: String = st.get("shot", "") if dd > 1 else ""
-	var heavy: bool = st.get("heavy", false) or st.get("siege", false) or a.type == "hero"
+	var heavy: bool = a.type in ["elephant", "bird"] or st.get("siege", false) or a.type == "hero"
 	var dir := Vector2(d.x - a.x, d.y - a.y).normalized()
 	if absf(dir.x) > 0.01:
 		facing[a.id] = signf(dir.x)
@@ -112,7 +112,7 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 		var reach := Vector2(d.x - a.x, d.y - a.y) * 0.42
 		await tween(100.0, func(t: float) -> void: offsets[a.id] = (-dir * 0.12).lerp(reach, t * t) - Vector2(0, sin(t * PI) * 0.14))
 		_play("slash")
-		rays.append({ "kind": "slash", "x": d.x, "y": d.y, "ang": atan2(d.y - a.y, d.x - a.x), "t0": now(), "dur": sp(220.0) })
+		_signature(a, d, dir)
 	knock[d.id] = { "dir": dir, "t0": now(), "dur": sp(380.0), "mag": 1.4 if (heavy or shot == "rock") else 1.0 }
 	_impact(d, amount, heavy or shot == "rock", shot, opts.get("kill", false))
 	if shot == "":
@@ -124,6 +124,57 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 				offsets.erase(a.id)
 		tween(170.0, back)
 	await sleep(260.0 if opts.get("counter", false) else 320.0)
+
+## each troop's own melee strike (drawn at the moment of contact). Ranged shots keep their projectile.
+func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
+	var ang := atan2(d.y - a.y, d.x - a.x)
+	var r := func(kind: String, dur: float, extra := {}) -> void:
+		var e := { "kind": kind, "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": now(), "dur": sp(dur) }
+		e.merge(extra, true)
+		rays.append(e)
+	match a.type:
+		"hero": # chém ra gió xoáy: spinning vortex + wind streaks spiralling out
+			r.call("whirl", 800.0)
+			r.call("slash", 220.0)
+			for i in 14:
+				var k := float(i) / 14.0 * TAU
+				parts.append({ "x": d.x + cos(k) * 0.15, "y": d.y + sin(k) * 0.1, "vx": cos(k + 1.4) * 2.4, "vy": sin(k + 1.4) * 1.4 - 0.8,
+					"g": -0.6, "drag": 0.9, "life": -float(i) * 12.0, "max": 520.0, "size": 0.035, "color": Color("#e8f6ff"), "kind": "spark" })
+			shake(0.07, 260.0)
+		"soldier": # spear thrust: a straight lance of light through the target
+			r.call("thrust", 240.0)
+		"boat": # paddle-spear from the river: splash + spray
+			r.call("thrust", 220.0, { "col": Color("#9fe3ff") })
+			burst(d.x, d.y, 16, { "color": ["#7fd0ff", "#c8f0ff", "#3f9bd6"], "vmin": 1.0, "vmax": 3.0, "up": 1.6, "g": 6.0, "lmin": 300.0, "lmax": 650.0, "smin": 0.03, "smax": 0.06 })
+			ring(d.x, d.y, "#9fe3ff", 420.0, 0.8, 0.06)
+		"shaman": # gọi hồn: green spirit wisps swirl in and strike
+			r.call("spirit", 520.0)
+			burst(d.x, d.y, 12, { "color": ["#9dffb8", "#4fd38a", "#e6fff0"], "kind": "glow", "vmin": 0.4, "vmax": 1.4, "up": 0.8, "g": -0.8, "lmin": 400.0, "lmax": 800.0, "smin": 0.04, "smax": 0.08 })
+		"drum": # bronze drum boom: sound rings rolling from the drummer to the target
+			for i in 3:
+				rays.append({ "kind": "boom", "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": now() + i * sp(70.0), "dur": sp(380.0) })
+		"wolf": # claw rake + bite
+			r.call("claw", 300.0)
+			burst(d.x, d.y, 8, { "color": ["#ff6b57", "#ffb199"], "vmin": 0.8, "vmax": 2.2, "lmin": 200.0, "lmax": 420.0, "smin": 0.02, "smax": 0.045 })
+		"elephant": # tusk charge + ground stomp: dust ring, cracks, heavy shake
+			r.call("stomp", 520.0)
+			burst(d.x, d.y + 0.3, 14, { "color": ["#8a7457", "#b39a76", "#6b5a44"], "kind": "smoke", "vmin": 0.6, "vmax": 1.6, "up": 0.2, "g": -0.2, "lmin": 500.0, "lmax": 900.0, "smin": 0.1, "smax": 0.2, "drag": 0.93 })
+			ring(d.x, d.y, "#d8bb8a", 480.0, 1.3, 0.1)
+			shake(0.12, 300.0)
+		"bird": # dragon fire breath: a cone of flame from the jaws to the target
+			r.call("fire", 520.0)
+			for i in 26:
+				var t := randf()
+				var spread := randf_range(-0.35, 0.35)
+				var v := dir.rotated(spread) * randf_range(3.0, 5.0)
+				parts.append({ "x": a.x + dir.x * 0.3, "y": a.y + dir.y * 0.3 - 0.15, "vx": v.x, "vy": v.y - 0.3, "g": -1.2, "drag": 0.88,
+					"life": -t * 160.0, "max": randf_range(260.0, 420.0), "size": randf_range(0.05, 0.11),
+					"color": Color(["#ffe27a", "#ff9a3c", "#ff5a2a", "#fff3c4"][i % 4]), "kind": "glow" })
+			shake(0.08, 280.0)
+		"ghost": # cold dark slash
+			r.call("slash", 260.0, { "col": Color("#b7a6ff") })
+		_:
+			r.call("slash", 220.0)
 
 func _impact(d: Dictionary, amount: int, heavy: bool, shot: String, kill: bool) -> void:
 	flash(d.id)
@@ -265,8 +316,31 @@ func draw_under(ci: CanvasItem, T: float, t: float) -> void:
 		var s: float = r.maxR * T * (0.2 + k * 0.8)
 		Draw.ellipse_line(ci, Vector2((r.x + 0.5) * T, (r.y + 0.62) * T), s, s * 0.5, col, maxf(1.0, r.width * T * (1.0 - k * 0.6)))
 
-## normal-blend effects: arrows, rocks, smoke, stars, pluses, coins
+## normal-blend effects: arrows, rocks, smoke, stars, pluses, coins, hero whirlwind, drum sound rings
 func draw_over(ci: CanvasItem, T: float, t: float) -> void:
+	for r: Dictionary in rays:
+		var k: float = (t - r.t0) / r.dur
+		if k < 0.0:
+			continue
+		var c := Vector2((r.x + 0.5) * T, (r.y + 0.5) * T)
+		if r.kind == "whirl": # hero: tornado of wind arcs, spinning up and widening, rising off the target
+			var spin := k * 10.0
+			var al := sin(minf(1.0, k * 1.6) * PI * 0.5) * (1.0 - k * k)
+			for i in 5:
+				var lift := float(i) * 0.12
+				var rr := T * (0.2 + 0.08 * i) * (0.75 + k * 0.6)
+				var cc := c + Vector2(0, T * 0.2 - lift * T - k * T * 0.2)
+				var a0 := spin + i * 1.3
+				var w := maxf(1.5, T * (0.075 - 0.01 * i))
+				ci.draw_arc(cc, rr, a0, a0 + 2.6, 18, Color(0.32, 0.55, 0.82, 0.55 * al), w + 2.0, true)
+				ci.draw_arc(cc, rr, a0, a0 + 2.6, 18, Color(0.92, 0.98, 1.0, 0.95 * al), w, true)
+				ci.draw_arc(cc, rr * 0.78, a0 + PI, a0 + PI + 1.7, 14, Color(0.75, 0.9, 1.0, 0.7 * al), maxf(1.0, T * 0.03), true)
+		elif r.kind == "boom": # drum: a bronze sound ring rolling toward the target
+			var from2 := Vector2((r.ax + 0.5) * T, (r.ay + 0.5) * T)
+			var p2 := from2.lerp(c, k)
+			var w2 := maxf(1.5, T * 0.07 * (1.0 - k * 0.6))
+			ci.draw_arc(p2, T * (0.2 + k * 0.32), r.ang - 1.1, r.ang + 1.1, 16, Color(0.35, 0.2, 0.05, 0.6 * (1.0 - k)), w2 + 2.0, true)
+			ci.draw_arc(p2, T * (0.2 + k * 0.32), r.ang - 1.1, r.ang + 1.1, 16, Color(1.0, 0.82, 0.38, 0.95 * (1.0 - k)), w2, true)
 	for pr: Dictionary in projs:
 		var k := minf(1.0, (t - pr.t0) / pr.dur)
 		var p := _proj_pos(pr, k)
@@ -312,6 +386,8 @@ func draw_over(ci: CanvasItem, T: float, t: float) -> void:
 func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 	for r: Dictionary in rays:
 		var k: float = (t - r.t0) / r.dur
+		if k < 0.0:
+			continue
 		var c := Vector2((r.x + 0.5) * T, (r.y + 0.5) * T)
 		if r.kind == "rays":
 			var al := sin(k * PI) * 0.8
@@ -324,9 +400,46 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 		elif r.kind == "slash":
 			var rot: float = r.ang + PI / 2
 			var a0 := -2.2 + k * 1.2 + rot
-			ci.draw_arc(c, T * 0.42, a0, a0 + 1.3, 12, Color(1, 0.957, 0.839, 1.0 - k), T * 0.08 * (1.0 - k) + 1.0, true)
+			var c1: Color = r.get("col", Color(1, 0.957, 0.839))
+			ci.draw_arc(c, T * 0.42, a0, a0 + 1.3, 12, Color(c1, 1.0 - k), T * 0.08 * (1.0 - k) + 1.0, true)
 			var a1 := -2.1 + k * 1.2 + rot
-			ci.draw_arc(c, T * 0.34, a1, a1 + 1.1, 10, Color(1, 0.69, 0.4, 1.0 - k), T * 0.03, true)
+			ci.draw_arc(c, T * 0.34, a1, a1 + 1.1, 10, Color(c1.lerp(Color(1, 0.69, 0.4), 0.6), 1.0 - k), T * 0.03, true)
+		elif r.kind == "thrust": # spear: a narrow lance from the attacker through the target
+			var from := Vector2((r.ax + 0.5) * T, (r.ay + 0.5) * T)
+			var dirv := (c - from).normalized()
+			var tip := c + dirv * T * (0.15 + k * 0.35)
+			var tail := from.lerp(c, 0.35 + k * 0.5)
+			var side := Vector2(-dirv.y, dirv.x) * T * 0.05 * (1.0 - k)
+			var col: Color = r.get("col", Color(1, 0.96, 0.82))
+			ci.draw_polygon(PackedVector2Array([tail + side, tip, tail - side]), PackedColorArray([Color(col, 0.0), Color(col, 1.0 - k), Color(col, 0.0)]))
+		elif r.kind == "spirit": # shaman: three green wisps spiralling in onto the target
+			for i in 3:
+				var a := k * 7.0 + i * TAU / 3.0
+				var rad := T * 0.55 * (1.0 - k)
+				var p := c + Vector2(cos(a), sin(a) * 0.6) * rad + Vector2(0, -T * 0.1)
+				Draw.radial(ci, p, T * 0.14, [[0.0, Color(0.9, 1.0, 0.92, 1.0 - k * 0.5)], [1.0, Color(0.3, 0.85, 0.55, 0.0)]], 14)
+		elif r.kind == "claw": # wolf: three parallel scratches torn across the target
+			var dirc := Vector2(cos(r.ang + 0.6), sin(r.ang + 0.6))
+			var perp := Vector2(-dirc.y, dirc.x)
+			var grow := minf(1.0, k * 3.0)
+			for i in 3:
+				var o := perp * T * (i - 1) * 0.13
+				var p0 := c + o - dirc * T * 0.32
+				ci.draw_line(p0, p0 + dirc * T * 0.64 * grow, Color(1.0, 0.35, 0.3, 1.0 - k), maxf(1.0, T * 0.05 * (1.0 - k * 0.7)), true)
+		elif r.kind == "stomp": # elephant: ground cracks radiating from the target
+			var al2 := 1.0 - k
+			for i in 6:
+				var a2 := float(i) / 6.0 * TAU + 0.3
+				var len := T * 0.5 * minf(1.0, k * 2.5)
+				var mid := c + Vector2(cos(a2), sin(a2) * 0.5) * len * 0.5 + Vector2(cos(a2 + 1.2), sin(a2 + 1.2)) * T * 0.04
+				var end := c + Vector2(cos(a2), sin(a2) * 0.5) * len
+				ci.draw_polyline(PackedVector2Array([c + Vector2(0, T * 0.25), mid + Vector2(0, T * 0.25), end + Vector2(0, T * 0.25)]), Color(1.0, 0.85, 0.55, 0.7 * al2), maxf(1.0, T * 0.03), true)
+		elif r.kind == "fire": # dragon: a hot glow along the breath line
+			var from3 := Vector2((r.ax + 0.5) * T, (r.ay + 0.35) * T)
+			var al3 := sin(k * PI)
+			for i in 5:
+				var q := from3.lerp(c, float(i + 1) / 5.0)
+				Draw.radial(ci, q, T * (0.12 + 0.06 * i) * al3, [[0.0, Color(1, 0.95, 0.7, 0.8 * al3)], [1.0, Color(1, 0.35, 0.1, 0.0)]], 16)
 	for pr: Dictionary in projs:
 		if pr.kind != "orb":
 			continue

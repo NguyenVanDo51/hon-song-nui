@@ -89,13 +89,14 @@ static func mission_index(id: String) -> int:
 	return -1
 
 ## free-play def: any hero vs the map's enemy hero (default: the first enemy hero in the theme)
-static func skirmish_def(map_id: String, hero_key: String, easy: bool) -> Dictionary:
+## AE2 lets the player set starting gold and the unit cap; easy = the enemy starts with half the gold
+static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 300, cap := 15) -> Dictionary:
 	var m: Dictionary = SKIRMISH.MAPS.get(map_id, SKIRMISH.MAPS.dong_bang)
 	return {
 		"id": "skirmish:" + map_id, "title": m.name, "hero": hero_key, "enemyHero": m.get("enemyHero", heroes_of("e")[0]),
 		"chapter": m.get("chapter", "c1"),
 		"map": { "rows": m.rows }, "owner": m.owner, "units": m.units,
-		"gold": { "p": 300, "e": 150 if easy else 300 }, "incomeMul": { "e": 0.7 if easy else 1 },
+		"gold": { "p": gold, "e": gold / 2 if easy else gold }, "unitCap": cap,
 		"win": { "type": "castles" }, "skirmish": { "mapId": map_id, "easy": easy },
 	}
 
@@ -107,6 +108,14 @@ static func unit_type_look(side: String, type: String, hero_key: Variant) -> Dic
 	if type == "hero":
 		return theme().heroes.get(hero_key, { "name": "?", "icon": "?", "blurb": "" })
 	return theme().units[side][type]
+
+## AE2 renames a unit every 2 levels: "Bộ binh" -> "Bộ binh lão luyện ★2" ...
+static func unit_title(name: String, rank: int) -> String:
+	if rank <= 0:
+		return name
+	var titles: Array = THEME_SCRIPT.RANK_TITLES
+	var t: String = titles[mini(rank / 2, titles.size() - 1)]
+	return "%s%s ★%d" % [name, (" " + t) if t != "" else "", rank]
 
 static func hero_look(key: String) -> Dictionary:
 	return theme().heroes.get(key, { "name": key, "icon": "?", "blurb": "", "side": "e" }) # never hard-crash on a stale key
@@ -136,32 +145,32 @@ static func traits(type: String, hero_key: Variant) -> Array:
 		out.append("Chiếm được cả thành lẫn làng.")
 	elif st.get("capV", false):
 		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.RULES.incomeVillage)
+	var lo: int = st.atk
+	var hi: int = st.get("atkMax", st.atk)
+	if hi > lo:
+		out.append("Công %d–%d: mỗi đòn lăn ngẫu nhiên trong khoảng này." % [lo, hi])
 	if st.rmax > 1:
-		out.append("Đánh xa %d–%d ô. Đứng cách 2 ô thì lính cận chiến không đánh trả được." % [st.rmin, st.rmax] if not st.get("siege", false)
+		out.append("Đánh xa %d–%d ô. Chỉ quân đứng kề mới đánh trả được." % [st.rmin, st.rmax] if not st.get("siege", false)
 			else "Bắn xa %d–%d ô, nhưng đã di chuyển thì lượt đó không bắn được." % [st.rmin, st.rmax])
 	if st.get("siege", false):
 		out.append("Không bao giờ đánh trả: bị áp sát là nguy.")
 	if st.get("aura", 0):
-		out.append("Hào quang: quân ta đứng kề bên +%d công khi ra đòn." % st.aura)
-	if st.get("guard", 0):
-		out.append("Che chắn: quân ta đứng kề bên +%d thủ khi bị đánh." % st.guard)
+		out.append("Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta." % st.aura)
 	if st.get("antiAir", 0):
-		out.append("+%d công khi đánh kỵ binh." % st.antiAir)
-	if st.get("magic", false):
-		out.append("Đòn đánh bỏ qua thủ địa hình (rừng, đồi, thành...).")
+		out.append("+%d công khi đánh rồng." % st.antiAir)
+	if st.get("vsGhost", 0):
+		out.append("+%d công khi đánh âm binh." % st.vsGhost)
+	if st.get("poison", 0):
+		out.append("Cắn trúng: địch −%d công, −%d thủ tới lượt sau của ta." % [st.poison, st.poison])
+	if st.get("waterAtk", 0):
+		out.append("Đứng dưới sông: +%d công, +%d thủ." % [st.waterAtk, st.get("waterDef", 0)])
 	if st.get("raise", false):
-		out.append("Cứu lính ngã: đứng cạnh mộ để dựng thành quân mới.")
-	var tb: Dictionary = st.get("tBonus", {})
-	if tb.size():
-		var parts := []
-		for t: String in tb:
-			parts.append("%s +%d" % [tn.get(t, t), tb[t]])
-		out.append("Quen địa hình: thủ thêm khi đứng ở %s." % ", ".join(parts))
+		out.append("Gọi hồn: đứng cạnh lính ngã (cả địch) để dựng thành âm binh của ta.")
 	match st.move:
-		"fly": out.append("Mọi ô chỉ tốn 1 bước, vượt cả sông núi; nhưng không được địa hình che chắn.")
-		"heavy": out.append("Nặng nề: không lên được núi.")
-		"mount": out.append("Đi đồi núi chỉ tốn 1 bước.")
-		"water": out.append("Đi được trên sông.")
+		"fly": out.append("Bay: mọi ô chỉ tốn 1 bước, vượt cả sông núi.")
+		"water": out.append("Đi trên sông chỉ tốn 1 bước (quân khác tốn 3).")
+	if st.get("noCap", false):
+		out.append("Không tính vào giới hạn quân.")
 	if st.mv >= 6:
 		out.append("Đi xa %d ô mỗi lượt." % st.mv)
 	elif st.mv <= 3:
@@ -206,7 +215,7 @@ static func _names(hero_keys: Dictionary) -> Dictionary:
 	return { "hero": hero_look(str(hero_keys.get("p", ""))).name, "eh": hero_look(str(e)).name if e != null else text("noEnemyHero") }
 
 ## objective wording for a win spec; form "brief" (briefing) or "bar" (top bar). Unknown win types fall back to the type name.
-static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars := {}, must_live := false) -> String:
+static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars := {}) -> String:
 	var w := { "type": "castles" }
 	w.merge(win, true)
 	var v := _names(hero_keys)
@@ -215,10 +224,7 @@ static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars
 	v.within = (" trong %d lượt" % int(w.turns)) if w.has("turns") else ""
 	v.left_txt = (": còn %s lượt" % str(v.get("left", ""))) if w.has("turns") else ""
 	var g: Dictionary = theme().get("goals", {}).get(w.type, {})
-	var t := str(g.get(form, w.type)).format(v)
-	if must_live:
-		t += text("mustLiveBrief" if form == "brief" else "mustLiveBar").format(v)
-	return t
+	return str(g.get(form, w.type)).format(v)
 
 ## end card line: winner side + engine reason ("" when there is nothing to add)
 static func end_text(winner: Variant, reason: String, hero_keys: Dictionary) -> String:
@@ -244,18 +250,14 @@ static func tile_note(t: String) -> String:
 			var cc: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false))
 			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.RULES.incomeCastle })
 		"~":
-			var crossers: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.move == "fly" or st.move == "water")
-			var water_heroes := []
-			for hk: String in Rules.HEROES:
-				if Rules.HEROES[hk].get("move", "") == "water" and theme().heroes.has(hk):
-					water_heroes.append(theme().heroes[hk].name)
-			var all := ", ".join([crossers] + water_heroes) if crossers != "" else ", ".join(water_heroes)
-			return text("tileWater").format({ "water": all }) if all != "" else ""
+			return text("tileWater").format({ "water": who.call(func(st: Dictionary, _t: String) -> bool: return st.move == "water") })
+		"t":
+			return text("tileTemple").format({ "heal": Rules.RULES.heal })
 	return ""
 
 
 # ---------- saves ----------
-const STATE_V := 2 # Game.new_game writes "v"; bump both when the saved state shape changes
+const STATE_V := 3 # Game.new_game writes "v"; bump both when the saved state shape changes
 const WIN_TYPES := ["castles", "rout", "hero", "survive", "reach"]
 
 ## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
@@ -274,7 +276,7 @@ static func save_fits(v: Dictionary) -> bool:
 	var st: Variant = v.get("state")
 	if not (st is Dictionary) or int(st.get("v", 0)) != STATE_V:
 		return false
-	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead"]:
+	for k: String in ["units", "tiles", "owner", "gold", "heroKey", "allowed", "win", "unitCap", "graves", "heroDead", "heroDeaths", "heroSaved", "rng"]:
 		if not st.has(k):
 			return false
 	if not WIN_TYPES.has(str(st.win.get("type", ""))):

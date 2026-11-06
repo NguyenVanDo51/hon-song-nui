@@ -9,8 +9,8 @@ const DEF := {
 	"history": "Nữ tướng Lê Chân lập trang An Biên, luyện thủy binh ở cửa biển. Thành phố Hải Phòng ngày nay thờ bà như người mở đất.",
 	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": ["soldier", "archer", "elephant"] },
-	"gold": { "p": 500, "e": 250 }, "incomeMul": { "e": 0.85 },
+	"allowed": { "p": ["soldier", "archer", "boat", "drum", "shaman", "wolf", "elephant"], "e": ["soldier", "archer", "boat", "elephant"] },
+	"gold": { "p": 500, "e": 250 },
 	"win": { "type": "hero" },
 	"map": { "rows": [
 		".c.....~~~.....",
@@ -26,8 +26,8 @@ const DEF := {
 	] },
 	"owner": [[1, 0, "p"], [3, 1, "p"], [14, 8, "e"], [12, 7, "e"]],
 	"units": [
-		["p", "hero", 2, 1], ["p", "soldier", 1, 1], ["p", "archer", 0, 0], ["p", "elephant", 2, 2],
-		["e", "hero", 13, 8, { "guard": true }], ["e", "soldier", 12, 6], ["e", "archer", 14, 7], ["e", "soldier", 11, 4], ["e", "elephant", 13, 9],
+		["p", "hero", 2, 1], ["p", "soldier", 1, 1], ["p", "archer", 0, 0], ["p", "elephant", 2, 2], ["p", "boat", 7, 1],
+		["e", "hero", 13, 8, { "guard": true }], ["e", "soldier", 12, 6], ["e", "archer", 14, 7], ["e", "boat", 9, 5], ["e", "elephant", 13, 9],
 	],
 	"story": {
 		"intro": [
@@ -39,7 +39,7 @@ const DEF := {
 	},
 	"tips": [
 		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn đứng gác gần thành địch phía đông nam.",
-		"Bộ binh và voi phải qua [b]cầu[/b]; chỉ kỵ binh lội được sông.",
-		"Tướng giặc đi được trên sông. Đừng để Anh hùng một mình đầu cầu.",
+		"Mọi quân lội được sông nhưng tốn 3 bước, đứng dưới nước không được thủ. [b]Thủy binh[/b] đi sông 1 bước, dưới nước +10 công, +15 thủ: dùng nó giữ khúc sông.",
+		"Thuyền giặc chực sẵn dưới sông. Đừng để Anh hùng một mình đầu cầu.",
 	],
 }

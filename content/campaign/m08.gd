@@ -11,13 +11,12 @@ const DEF := {
 	"history": "Luy Lâu (Thuận Thành, Bắc Ninh), sát phía đông Hà Nội ngày nay, là trị sở quận Giao Chỉ thời Hán.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
-	"newUnits": [],
+	"newUnits": ["wolf"],
 	"allowed": {
-		"p": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"],
-		"e": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"],
+		"p": ["soldier", "archer", "boat", "drum", "shaman", "wolf", "elephant", "catapult"],
+		"e": ["soldier", "archer", "boat", "drum", "shaman", "wolf", "elephant", "catapult"],
 	},
 	"gold": { "p": 900, "e": 300 },
-	"incomeMul": { "e": 0.6 },
 	"win": { "type": "castles" },
 	"map": {
 		"rows": [
@@ -25,7 +24,7 @@ const DEF := {
 			".c.h.......~~rc.",
 			".r.rrrvrrrr=rrr.",
 			"hrrv.......~~.r.",
-			".r..hff....~~.v.",
+			".r..hff.t..~~.v.",
 			".vr.mhhf...=hfr.",
 			"..r...mh..~~fhr.",
 			".frrcrhf.~~..fr.",
@@ -41,11 +40,11 @@ const DEF := {
 		["p", "elephant", 1, 2],
 		["p", "archer", 2, 2],
 		["p", "catapult", 0, 3],
-		["p", "bird", 3, 1],
+		["p", "wolf", 3, 1],
 		["e", "hero", 13, 1],
 		["e", "elephant", 13, 2],
 		["e", "archer", 14, 2, { "rank": 1 }],
-		["e", "bird", 15, 0],
+		["e", "wolf", 15, 0],
 		["e", "shaman", 13, 9],
 		["e", "soldier", 14, 9],
 		["e", "catapult", 15, 10, { "guard": true }],
@@ -55,6 +54,7 @@ const DEF := {
 			["todinh", "Luy Lâu là trị sở Giao Chỉ! Quân triều đình còn đông, các ngươi đừng mơ!"],
 			["trungtrac", "Các quận đã nổi lên theo ta. Còn mỗi Luy Lâu. Toàn quân, tiến!"],
 			["trungnhi", "Thành giữa đồng bỏ trống. Ai chiếm trước, người đó giữ được thế."],
+			["danlang", "Thợ săn trên núi dắt chó săn về theo quân. Chó cắn trúng ai, kẻ ấy yếu hẳn đi."],
 		],
 		"outro": [
 			[
@@ -65,7 +65,8 @@ const DEF := {
 		],
 	},
 	"tips": [
-		"Trận cuối: Tướng giặc có 2 thành, nhiều vàng hơn. Chiếm thành trống giữa bản đồ để tăng thu nhập.",
-		"Phối hợp: voi đi đầu, trống đồng ở giữa, nỏ thủ và nỏ liên châu phía sau.",
+		"Trận cuối: Tướng giặc có 2 thành. Phải chiếm cả hai [b]và[/b] hạ hắn. Chiếm thành trống giữa bản đồ để tăng thu nhập.",
+		"[b]Chó săn[/b] chạy 6 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho chó cắn trước, quân khác đánh sau.",
+		"Phối hợp: voi đi đầu, trống đồng ở giữa, nỏ thủ và máy bắn đá phía sau. Đền giữa đồng hồi máu cho bất kỳ ai đứng đó.",
 	],
 }

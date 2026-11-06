@@ -9,8 +9,8 @@ const DEF := {
 	"history": "Bát Nàn, quê ở Tiên Phong (Phú Thọ), là nữ tướng của Hai Bà. Tương truyền bà giỏi cung nỏ, giữ các ải núi phía tây.",
 	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "elephant"], "e": ["soldier", "archer", "drum", "elephant"] },
-	"gold": { "p": 500, "e": 250 }, "incomeMul": { "e": 0.8 },
+	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "wolf", "elephant"], "e": ["soldier", "archer", "drum", "wolf", "elephant"] },
+	"gold": { "p": 500, "e": 250 },
 	"win": { "type": "castles" },
 	"map": { "rows": [
 		"...hmmmmf.....",
@@ -19,7 +19,7 @@ const DEF := {
 		"h.rh......vrrf",
 		"m.rmm..f...rmm",
 		"mrvmmmfhmmhrmm",
-		"mr.hmmh.mmmxhm",
+		"mr.hmmhtmmmxhm",
 		".r..mmf.mf..fm",
 		".crv.mmmmh...m",
 		"...hmmmmhf..hm",
@@ -33,13 +33,14 @@ const DEF := {
 		"intro": [
 			["lactuong", "Lưu Long, phó tướng của Mã Viện, đem quân vòng qua núi định đánh vào lưng Mê Linh."],
 			["batnan", "Ải này hẹp, núi hai bên. Cung nỏ trên cao, giặc dưới thấp. Chiếm luôn đồn của chúng!"],
-			["luulong", "Một nữ tướng giữ ải? Quân ta qua núi còn nhanh hơn ngựa."],
+			["lactuong", "Giữa ải có miếu sơn thần. Ai đứng được ở đó thì hồi sức, giặc cũng vậy."],
+			["luulong", "Một nữ tướng giữ ải? Quân ta trèo đèo lội suối đã quen, ải nào cản nổi."],
 		],
 		"outro": [["batnan", "Đồn của Lưu Long đã cháy. Phía tây yên rồi, ta về Lãng Bạc hợp quân."]],
 	},
 	"tips": [
 		"Đặt [b]nỏ thủ[/b] trên đồi núi: thủ cao, bắn từ 2 ô thì địch cận chiến không đánh trả được.",
-		"Hai dãy núi giữa bản đồ chặn voi. Đi đường giữa hoặc vòng hai bên.",
-		"Mục tiêu: [b]chiếm thành[/b] địch. Chỉ tướng chiếm được thành.",
+		"Núi tốn 3 bước với mọi quân, kể cả voi. Đi lối giữa qua [b]đền[/b] (hồi 20 máu mỗi lượt, thủ +15) hoặc vòng hai bên.",
+		"Mục tiêu: [b]chiếm thành[/b] địch [b]và[/b] hạ Tướng giặc. Chỉ tướng chiếm được thành.",
 	],
 }

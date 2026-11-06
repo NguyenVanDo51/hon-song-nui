@@ -13,15 +13,14 @@ const DEF := {
 	"enemyHero": null,
 	"newUnits": ["drum"],
 	"allowed": { "p": ["soldier", "archer", "drum"], "e": [] },
-	"gold": { "p": 400, "e": 0 },
+	"gold": { "p": 500, "e": 0 },
 	"win": { "type": "survive", "turns": 10 },
-	"heroMustLive": true,
 	"map": {
 		"rows": [
 			"~~~~~~~~~~~~",
 			"..f......f.~",
 			"fhhhff.rrrv~",
-			"fhrvrr.r...~",
+			"fhrvrrtr...~",
 			"..r.rcrv....",
 			"..v.r.......",
 			"....r..fh...",
@@ -56,8 +55,8 @@ const DEF := {
 	},
 	"tips": [
 		"Mục tiêu: [b]giữ vững 10 lượt[/b]. Địch đổ bộ từ sông ở các lượt 2, 4, 6, 8.",
-		"[b]Trống đồng[/b] đánh yếu, nhưng lính ta đứng sát bên được [b]+10 công[/b]. Đặt trống giữa đội hình.",
-		"Đứng trên làng, thành, đồi, rừng để được thêm thủ khi địch tràn lên.",
-		"Anh hùng ngã là thua. Đừng để tướng một mình phía trước.",
+		"[b]Trống đồng[/b] đánh yếu, nhưng ra lệnh xong (đánh hoặc chờ) thì quân ta trong 2 ô [b]+10 công[/b] tới lượt sau. Cho trống đi trước, cả đội đánh sau.",
+		"Đứng trên làng, thành, đền, đồi, rừng để được thêm thủ khi địch tràn lên. [b]Đền[/b] còn hồi 20 máu mỗi lượt cho bất kỳ ai đứng đó.",
+		"Mất thành mà tướng cũng ngã là thua. Đừng để tướng một mình phía trước.",
 	],
 }

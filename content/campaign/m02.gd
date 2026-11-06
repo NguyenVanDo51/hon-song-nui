@@ -14,7 +14,6 @@ const DEF := {
 	"newUnits": ["archer"],
 	"allowed": { "p": ["soldier", "archer"], "e": ["soldier", "archer"] },
 	"gold": { "p": 400, "e": 100 },
-	"incomeMul": { "e": 0.6 },
 	"win": { "type": "castles" },
 	"map": {
 		"rows": [
@@ -47,9 +46,9 @@ const DEF := {
 		"outro": [["trungtrac", "Mê Linh đã về tay ta. Từ đây, ta lấy Mê Linh làm gốc."]],
 	},
 	"tips": [
-		"Mục tiêu mới: [b]chiếm thành[/b] của địch. Chỉ tướng chiếm được thành.",
+		"Mục tiêu mới: [b]chiếm thành[/b] địch và [b]hạ Tướng giặc[/b]. Chỉ tướng chiếm được thành.",
 		"Bấm vào [b]thành[/b] của ta để [b]mua lính[/b]; lính mới đi và đánh được ngay. Thành đang có quân: bấm quân đó 2 lần rồi chọn [b]Mộ quân[/b], lính mới phải bước ra ô khác.",
-		"[b]Nỏ thủ[/b] bắn cách 2 ô thì địch cận chiến không đánh trả được.",
-		"Làng cho thêm vàng mỗi lượt. Chiếm làng sớm để mua được nhiều quân.",
+		"[b]Nỏ thủ[/b] bắn cách 2 ô thì địch không đánh trả được. Sông lội được nhưng tốn 3 bước, đứng dưới nước không được thủ: đi cầu nhanh hơn.",
+		"Làng +30 vàng, thành +50 vàng mỗi lượt. Tướng ngã thì mua lại ở thành (200 vàng, mỗi lần ngã +200), vẫn giữ cấp.",
 	],
 }

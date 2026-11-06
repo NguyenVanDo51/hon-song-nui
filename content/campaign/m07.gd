@@ -13,11 +13,10 @@ const DEF := {
 	"enemyHero": "tuonggiac",
 	"newUnits": ["catapult"],
 	"allowed": {
-		"p": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"],
-		"e": ["soldier", "archer", "drum", "shaman", "elephant", "bird", "catapult"],
+		"p": ["soldier", "archer", "boat", "drum", "shaman", "elephant", "catapult"],
+		"e": ["soldier", "archer", "boat", "drum", "shaman", "elephant", "catapult"],
 	},
-	"gold": { "p": 700, "e": 300 },
-	"incomeMul": { "e": 0.55 },
+	"gold": { "p": 1200, "e": 0 },
 	"win": { "type": "castles" },
 	"map": {
 		"rows": [
@@ -50,14 +49,14 @@ const DEF := {
 	"story": {
 		"intro": [
 			["trungtrac", "Long Biên có hai đồn, nấp sau đồi núi. Đánh thẳng vào là mất nhiều quân."],
-			["lactuong", "Thợ làng đã đóng nỏ liên châu, một lần bắn nhiều mũi, xa 4 ô."],
-			["todinh", "Tên của các ngươi không xuyên nổi tường thành!"],
+			["lactuong", "Thợ làng đã dựng máy bắn đá, ném xa tới 4 ô."],
+			["todinh", "Đá của các ngươi không phá nổi tường thành!"],
 		],
 		"outro": [["trungtrac", "Long Biên đã vỡ. Tô Định chỉ còn trị sở Luy Lâu."]],
 	},
 	"tips": [
-		"[b]Nỏ liên châu[/b] bắn 2–4 ô nhưng [b]đã đi thì không bắn[/b] trong lượt đó, và không đánh trả. Đặt chỗ an toàn rồi bắn liên tục.",
-		"Địch có 2 thành: phải chiếm cả hai mới thắng.",
-		"Đứng trên đồi, núi, Anh hùng được +10 thủ.",
+		"[b]Máy bắn đá[/b] ném 2–4 ô nhưng [b]đã đi thì không ném[/b] trong lượt đó, và không đánh trả. Đặt chỗ an toàn rồi ném liên tục. Ném được cả làng địch cho hỏng.",
+		"Địch có 2 thành: phải chiếm cả hai [b]và[/b] hạ Tướng giặc mới thắng.",
+		"Đồi +10 thủ, núi +15 thủ cho mọi quân. Đứng sau đồi núi mà ném đá.",
 	],
 }

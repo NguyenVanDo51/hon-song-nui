@@ -11,7 +11,8 @@ signal cancel_requested
 signal info_requested(id: int)
 
 const BUFF_ATK := Color("#ff9a3c") # aura: +10 attack
-const BUFF_DEF := Color("#5cc8ff") # guard: +10 defence
+const POISON := Color("#e0503f") # bitten: -atk / -def
+const POISON_INK := Color("#4a1712")
 const BUFF_UP := Color("#5fd35a") # buff arrow (map)
 const BUFF_INK := Color("#1d3a17")
 const GRASS_A := Color("#7da350")
@@ -250,7 +251,7 @@ func _art(name: String) -> String:
 ## tile x, y -> its art file (two looks per kind, picked by position); "" = no art for it
 func _tile_art(t: String, x: int, y: int) -> String:
 	var ab := "_a" if hash01(x, y, 11) < 0.5 else "_b"
-	var base: String = { ".": "grass", "r": "grass", "v": "grass", "c": "grass", "x": "grass", "f": "forest", "h": "hill", "m": "mountain" }.get(t, "")
+	var base: String = { ".": "grass", "r": "grass", "v": "grass", "c": "grass", "x": "grass", "t": "grass", "f": "forest", "h": "hill", "m": "mountain" }.get(t, "")
 	if base != "":
 		var p := _art(base + ab)
 		return p if p != "" else _art(base + "_a")
@@ -318,7 +319,7 @@ func _draw_roads(ci: CanvasItem) -> void:
 		p = p.merged({ "dirt": Color("#d2b07a"), "dirt2": Color("#b48e58"), "pebble": Color("#e9d9ad") }, true)
 	# how far from this tile's centre the band runs toward each kind of neighbour (tile units):
 	# path -> the shared edge (the neighbour draws its own half), village / castle -> up to the building, bridge -> onto the planks
-	var links := { "r": 0.5, "v": 1.0, "c": 1.0, "x": 1.0, "=": 0.62 }
+	var links := { "r": 0.5, "v": 1.0, "c": 1.0, "x": 1.0, "t": 1.0, "=": 0.62 }
 	var w := T * 0.30
 	for pass_i in 2:
 		var col := Color(p.dirt2) if pass_i == 0 else Color(p.dirt)
@@ -432,7 +433,7 @@ func _draw_dyn(ci: CanvasItem) -> void:
 			if held != null:
 				t = held[0]
 				own = held[1] if held[1] != null else "n"
-			if t == "v" or t == "c" or t == "x":
+			if t == "v" or t == "c" or t == "x" or t == "t":
 				_draw_building(ci, t, x * T, y * T, own, time, x, y)
 	for g: Dictionary in s.graves:
 		_draw_grave(ci, g.x * T, g.y * T, time)
@@ -472,9 +473,12 @@ static func _join(parts: Array) -> PackedVector2Array:
 	return out
 
 func _draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, time: float, x: int, y: int) -> void:
-	var ap := _art("village_x" if t == "x" else "%s_%s" % ["village" if t == "v" else "castle", own])
+	var ap := _art("temple" if t == "t" else ("village_x" if t == "x" else "%s_%s" % ["village" if t == "v" else "castle", own]))
 	if ap != "" and _art_draw(ci, ap, x, y):
 		return
+	if t == "t": # shrine without the art set: drawn as a neutral village
+		t = "v"
+		own = "n"
 	var pal := Draw.pal()
 	var fac: Dictionary = pal.factions.get(own, pal.factions.n)
 	var p: Dictionary = pal.terrain[t]
@@ -640,16 +644,17 @@ func _draw_support_range(ci: CanvasItem, pulse: float) -> void:
 	if src == null:
 		return
 	var st := Game.stat(s, src)
-	if not (st.get("aura", 0) or st.get("guard", 0)):
+	if not st.get("aura", 0):
 		return
-	var col := BUFF_ATK if st.get("aura", 0) else BUFF_DEF
+	var col := BUFF_ATK
 	var at: Array = view.dest if view.sel != null and src.id == view.sel.id and view.dest != null else [src.x, src.y]
-	for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-		var x: int = at[0] + d.x
-		var y: int = at[1] + d.y
-		if Game.tile_at(s, x, y) == null:
-			continue
-		_cell(ci, x, y, Color(col, 0.10 + pulse * 0.08), Color(col, 0.55), 0.04)
+	for dy in range(-2, 3): # AE2 drum: allies within 2 tiles after it acts
+		for dx in range(-2, 3):
+			var x: int = at[0] + dx
+			var y: int = at[1] + dy
+			if (dx == 0 and dy == 0) or absi(dx) + absi(dy) > 2 or Game.tile_at(s, x, y) == null:
+				continue
+			_cell(ci, x, y, Color(col, 0.10 + pulse * 0.08), Color(col, 0.55), 0.04)
 
 ## hover-attack forecast pinned above the target: "⚔ 40  ⤺ 24" (gold = kill, red = our unit falls)
 func _draw_preview(ci: CanvasItem) -> void:
@@ -657,8 +662,10 @@ func _draw_preview(ci: CanvasItem) -> void:
 	if p == null or s.is_empty():
 		return
 	var fs := int(clampf(T * 0.24, 12, 20))
-	var give := "⚔ %d%s" % [p.dmg, " hạ gục" if p.kill else ""]
-	var take := "  ↩ %d%s" % [p.counter, " ngã" if p.die else ""] if p.counter > 0 or not p.kill else ""
+	var rng := func(lo: int, hi: int) -> String: return str(lo) if lo == hi else "%d–%d" % [lo, hi]
+	var give := "⚔ %s%s" % [rng.call(p.dmgMin, p.dmgMax), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else "")]
+	var take := "  ↩ %s%s" % [rng.call(p.counterMin, p.counterMax), " ngã" if p.die else (" có thể ngã" if p.mayDie else "")] \
+		if p.counterMax > 0 else ""
 	var w1 := Style.xbold.get_string_size(give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var w2 := Style.xbold.get_string_size(take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 	var pad := 7.0
@@ -814,27 +821,36 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 	var xf := Transform2D(lean, Vector2(sx * face * home, sy), 0.0, foot + shift - Vector2(0, lift)) * Transform2D(0.0, Vector2.ONE, 0.0, -foot)
 	return { "xf": xf, "still": still and is_equal_approx(sy, 1.0), "shadow": clampf(1.0 - lift / T * 1.6, 0.6, 1.0) }
 
-## ⚔ / 🛡 pips + a soft ring for units that stand next to a drum / aura hero (+10 atk) or a guard hero (+10 def).
-## Uses Game.buffs_at, i.e. the very test damage() uses, so what you see is what the forecast counts.
-## buffed unit (drum aura +atk / guard +def): green ground ring + one green up arrow per buff, bobbing
+## live buffs from Game.buffs_at (what the forecast counts): green up arrow per bonus (drum aura, water),
+## red down arrow when bitten (-atk / -def), plus a soft ground ring in the dominant colour
 func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time: float) -> void:
 	var b := Game.buffs_at(s, u, x, y)
-	var n := int(b.atk > 0) + int(b.def > 0)
-	if n == 0:
+	var arrows := []
+	if b.atk_from == "aura":
+		arrows.append(true)
+	if b.def_from == "water":
+		arrows.append(true)
+	if b.poison:
+		arrows.append(false)
+	if arrows.is_empty():
 		return
 	var pulse := 0.5 + 0.5 * sin(time / 300.0 + u.id)
-	Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * 0.44, T * 0.16, Color(BUFF_UP, 0.45 + pulse * 0.4), maxf(1.5, T * 0.035))
+	var ring := BUFF_UP if arrows[0] else POISON
+	Draw.ellipse_line(ci, c + Vector2(0, T * 0.36), T * 0.44, T * 0.16, Color(ring, 0.45 + pulse * 0.4), maxf(1.5, T * 0.035))
 	var h := maxf(12.0, T * 0.3) # arrow height
 	var w := h * 0.62
-	for k in n:
+	for k in arrows.size():
+		var up: bool = arrows[k]
 		var bob := sin(time / 260.0 + u.id + k * 1.3) * h * 0.12
-		var p := c + Vector2(-T * 0.4 + k * w * 0.95, -T * 0.34 + bob) # arrow tip, beside the head
-		var pts := PackedVector2Array([p, p + Vector2(w / 2.0, h * 0.5), p + Vector2(w * 0.2, h * 0.5), p + Vector2(w * 0.2, h),
-			p + Vector2(-w * 0.2, h), p + Vector2(-w * 0.2, h * 0.5), p + Vector2(-w / 2.0, h * 0.5)])
+		var p := c + Vector2(-T * 0.4 + k * w * 0.95, -T * 0.34 + bob) # arrow tip (up) / tail (down), beside the head
+		var sy := 1.0 if up else -1.0
+		var o := p if up else p + Vector2(0, h)
+		var pts := PackedVector2Array([o, o + Vector2(w / 2.0, h * 0.5 * sy), o + Vector2(w * 0.2, h * 0.5 * sy), o + Vector2(w * 0.2, h * sy),
+			o + Vector2(-w * 0.2, h * sy), o + Vector2(-w * 0.2, h * 0.5 * sy), o + Vector2(-w / 2.0, h * 0.5 * sy)])
 		var outline := pts.duplicate()
 		outline.append(pts[0])
-		ci.draw_colored_polygon(pts, BUFF_UP)
-		ci.draw_polyline(outline, BUFF_INK, maxf(1.5, T * 0.025), true)
+		ci.draw_colored_polygon(pts, BUFF_UP if up else POISON)
+		ci.draw_polyline(outline, BUFF_INK if up else POISON_INK, maxf(1.5, T * 0.025), true)
 
 ## light holes + torches follow units / owned buildings / graves: rebuilt only when those change (flicker runs on shader TIME)
 func _update_night() -> void:

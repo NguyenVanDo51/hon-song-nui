@@ -67,21 +67,12 @@ AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 6
 
 Màn đầu chương dễ, giữa chương ~80–90%, trận cuối chương ~50–60%. Rừng núi dày hơn làm các trận chiếm thành lớn (m06, m08) dài hơn trước. m04 đã chỉnh (thêm vàng + 1 bộ binh ta, bớt voi địch) vì Tô Định đi được trên sông; m16 bớt vàng ta và thêm quân địch lượt 1.
 
-## Khớp với bản JS (luật)
-Luật (`scripts/core/game.gd`) và AI (`scripts/core/ai.gd`) port 1-1 từ `src/core/engine.js` / `ai.js`: cùng thứ tự duyệt (Dijkstra lấy ô rẻ nhất, chèn trước thắng khi hòa = sort ổn định của V8), cùng biểu thức số thực, cùng RNG LCG tính bằng double. `sim/trace.gd` in cho mỗi ván hash của mọi nước AI + vị trí/máu/KN cuối + vàng; `sim/trace_js.cjs` in cùng định dạng từ bản JS.
+## Luật = AE2 (2026-11-06)
+Luật đã đưa về giống Ancient Empires II theo `docs/review/rules_compare.html` (số liệu từ dữ liệu gốc + mã dịch ngược bản mod; điểm chưa xác nhận ghi trong `docs/spec.md`). Bản port JS cũ + phép đo khớp JS (`sim/legacy/`, `trace_js.cjs`) đã bỏ.
 
-| Đo 2026-11-04 (seed = 1000 + 7919·ván) | Ván giống hệt |
-|---|---|
-| Chiến dịch m01–m08 (AI cả hai phe) | 160/160 |
-| Đấu tự do thường / dễ | 12/12 · 12/12 |
-| Bot ngẫu nhiên vs AI | 10/10 |
-| Sau khi thêm chương 2–3 (luật `reach`, tướng mới): m01, m04, m07 | 60/60 |
+Hồi quy: `sim/trace.gd` chơi AI-vs-AI có seed trên luật hiện tại cho mọi màn + bản đồ đấu tự do, in 1 dòng/ván (hash mọi nước + kết quả). `sim/golden.txt` = kết quả đã chốt; `sim/tests.gd` chơi lại 4 ván mỗi lần chạy. Đổi luật / AI / bản đồ có chủ đích thì tạo lại: `godot --headless --path . -s sim/trace.gd > sim/golden.txt`.
 
-Từ khi đổi bản đồ và chỉ huy, `trace.gd` chạy trên **bản sao đóng băng** của nội dung chương 1 lúc port (`sim/legacy/`: 8 màn + bản đồ đấu tự do), còn luật và AI là code hiện tại. Nhờ vậy vẫn kiểm được luật khớp bản JS dù nội dung đã khác: m01, m04, đấu tự do 52/52 giống hệt (2026-11-05). Đo lại: `node sim/trace_js.cjs ../hon-song-nui > js.txt`, `godot --headless --path . -s sim/trace.gd -- only=m01 > gd.txt`, `diff`.
-
-Từ 2026-11-05: chỉ số chương 1 cũng đóng băng (`sim/legacy/rules.gd`, nạp qua `Game.use_tables`), nên đổi cân bằng trong `rules.gd` không làm hỏng phép đo. Kết quả 194 ván của bản code đã khớp JS được lưu ở `sim/legacy/golden.txt`; `sim/tests.gd` chơi lại 4 ván trong đó mỗi lần chạy, còn kiểm đủ: `godot --headless --path . -s sim/trace.gd > gd.txt; diff <(sort sim/legacy/golden.txt) <(sort gd.txt)` (máy không cần bản JS). Luật mới chỉ bật ở `rules.gd` hiện tại (vd `raiseCap`: gọi hồn không vượt trần quân) không chạm bản đóng băng.
-
-AI một nước (GDScript, máy bàn Mac, trung bình): m01 ~5 ms, m08 ~22 ms, m12 ~30 ms (trước tối ưu 9 / 51 / 39 ms). Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch; nước đi không đổi (194/194 ván vàng giống hệt).
+AI một nước (GDScript, máy bàn Mac, trung bình): m01 ~5 ms, m08 ~22 ms, m12 ~30 ms (trước tối ưu 9 / 51 / 39 ms). Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch; nước đi không đổi .
 
 ## Thay nội dung (không đụng code)
 | Muốn đổi | Sửa ở |

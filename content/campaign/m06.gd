@@ -1,23 +1,22 @@
 extends RefCounted
-## mission m06: Kỵ Binh Bãi Sông. Format: docs/content.md
+## mission m06: Thủy Binh Bãi Sông. Format: docs/content.md
 
 const DEF := {
 	"id": "m06",
 	"order": 6,
-	"title": "Kỵ Binh Bãi Sông",
+	"title": "Thủy Binh Bãi Sông",
 	"place": "Đồng Nhân · quận Hai Bà Trưng, Hà Nội",
 	"region": "Hai Bà Trưng",
 	"pos": [57, 54],
 	"history": "Đền Hai Bà Trưng ở Đồng Nhân nằm trong quận Hai Bà Trưng, quận mang tên Hai Bà.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
-	"newUnits": ["bird"],
+	"newUnits": ["boat"],
 	"allowed": {
-		"p": ["soldier", "archer", "drum", "elephant", "shaman", "bird"],
-		"e": ["soldier", "archer", "drum", "shaman", "bird"],
+		"p": ["soldier", "archer", "boat", "drum", "elephant", "shaman"],
+		"e": ["soldier", "archer", "boat", "drum", "shaman"],
 	},
 	"gold": { "p": 750, "e": 100 },
-	"incomeMul": { "e": 0.6 },
 	"win": { "type": "castles" },
 	"map": {
 		"rows": [
@@ -26,7 +25,7 @@ const DEF := {
 			"..rr~~vr=rrr..",
 			"~~=~~.r.~~~=~~",
 			"hfr.~.r..~frfh",
-			"hvrr=rr..=hrvh",
+			"hvrr=rrt.=hrvh",
 			"hfr.~.r..~.ffh",
 			"~~=~~~v.~~~=~~",
 			".cr.~~~~~...f.",
@@ -36,26 +35,27 @@ const DEF := {
 	"owner": [[1, 8, "p"], [12, 1, "e"]],
 	"units": [
 		["p", "hero", 2, 8],
-		["p", "bird", 1, 9],
+		["p", "boat", 4, 9],
 		["p", "archer", 0, 8],
 		["p", "soldier", 3, 8],
 		["e", "hero", 11, 1, { "guard": true }],
-		["e", "bird", 12, 2],
-		["e", "bird", 10, 0],
+		["e", "boat", 12, 3],
+		["e", "soldier", 10, 0],
 		["e", "soldier", 10, 2],
 		["e", "archer", 11, 2],
 	],
 	"story": {
 		"intro": [
-			["todinh", "Hai người đàn bà mà dám chống triều đình? Kỵ binh, vượt sông giẫm nát chúng!"],
-			["trungtrac", "Bãi sông này nhiều nhánh nước. Khinh kỵ của ta lội chỗ cạn, đi đường tắt mà đánh."],
-			["lactuong", "Coi chừng cung thủ Hán. Ngựa trúng tên là đau lắm."],
+			["todinh", "Hai người đàn bà mà dám chống triều đình? Lội qua bãi sông, giẫm nát chúng!"],
+			["trungtrac", "Bãi sông này nhiều nhánh nước. Giặc lội thì chậm, đứng dưới nước lại không chỗ nấp. Thủy binh của ta quen sông, cứ theo lối nước mà đánh."],
+			["lactuong", "Giữa bãi có ngôi đền cổ. Ai đứng ở đó thì mau lành vết thương, ta hay giặc cũng vậy."],
 		],
 		"outro": [["trungtrac", "Bãi sông đã yên. Tô Định rút về Long Biên."]],
 	},
 	"tips": [
-		"[b]Khinh kỵ[/b] đi mọi ô chỉ tốn 1, lội qua được sông. Nhưng đứng đâu cũng không được thêm thủ.",
-		"Nỏ thủ và cung thủ Hán được +20 công khi bắn kỵ binh. Giữ nỏ thủ gần ngựa của ta.",
-		"Cầu tre là chỗ hẹp: một con voi đứng chặn cầu là cả đội bộ binh địch phải dừng.",
+		"[b]Thủy binh[/b] đi trên sông chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ. Quân khác lội sông tốn 3 bước và không được thủ: đánh chúng lúc đang lội.",
+		"[b]Đền[/b] giữa bãi: quân phe nào đứng đó cũng hồi 20 máu mỗi lượt, thủ +15. Không ai chiếm được.",
+		"Cầu đi nhanh hơn lội. Một con voi chặn đầu cầu là địch phải xuống nước mà vòng.",
+		"Phải chiếm thành địch [b]và[/b] hạ Tướng giặc mới thắng.",
 	],
 }

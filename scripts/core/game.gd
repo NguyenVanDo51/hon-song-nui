@@ -1,8 +1,7 @@
 class_name Game
 extends RefCounted
 ## pure rules engine, no nodes. A game starts from a mission/scenario def (docs/content.md).
-## State is a Dictionary with the same fields as the JS version; tile keys are Vector2i.
-## Port of src/core/engine.js: iteration orders and float expressions are kept identical so the sim matches.
+## State is a Dictionary; tile keys are Vector2i. Rules follow AE2 (docs/review/rules_compare.html).
 
 const DIRS := [[1, 0], [-1, 0], [0, 1], [0, -1]]
 static var _hero_stat_cache := {}
@@ -31,8 +30,6 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 		tiles.append(row)
 	var gold := { "p": RULES.startGold, "e": RULES.startGold }
 	gold.merge(_or(def, "gold", {}), true)
-	var mul := { "p": 1, "e": 1 }
-	mul.merge(_or(def, "incomeMul", {}), true)
 	var win := { "type": "castles" }
 	win.merge(_or(def, "win", {}), true)
 	var allowed: Dictionary = _or(def, "allowed", {})
@@ -42,11 +39,11 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 		c.done = false
 		waves.append(c)
 	var s := {
-		"v": 2, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles, "owner": {}, "units": [], "graves": [],
-		"gold": gold, "incomeMul": mul, "turn": 1, "side": "p",
+		"v": 3, "seed": randi(), "scenario": def.id, "w": tiles[0].size(), "h": tiles.size(), "tiles": tiles, "owner": {}, "units": [], "graves": [],
+		"gold": gold, "turn": 1, "side": "p",
 		"heroKey": { "p": _or(opts, "hero", def.get("hero")), "e": def.get("enemyHero") },
-		"heroDead": { "p": false, "e": false }, "winner": null, "reason": null, "nextId": 1,
-		"win": win, "heroMustLive": bool(def.get("heroMustLive", false)),
+		"heroDead": { "p": false, "e": false }, "heroDeaths": { "p": 0, "e": 0 }, "heroSaved": { "p": {}, "e": {} },
+		"winner": null, "reason": null, "nextId": 1, "win": win,
 		"allowed": { "p": Array(_or(allowed, "p", Rules.BUY_ORDER)).duplicate(), "e": Array(_or(allowed, "e", Rules.BUY_ORDER)).duplicate() },
 		"waves": waves, "night": bool(def.get("night", false)), "hadCastle": {}, "unitCap": _or(def, "unitCap", RULES.unitCap),
 	}
@@ -54,14 +51,12 @@ static func new_game(def: Dictionary, opts := {}) -> Dictionary:
 		s.owner[Vector2i(o[0], o[1])] = o[2]
 	for u: Array in _or(def, "units", []):
 		spawn(s, u[0], u[1], u[2], u[3], false, u[4] if u.size() > 4 else {})
-	for g: Array in _or(def, "graves", []):
-		s.graves.append({ "x": g[0], "y": g[1], "ttl": 99 })
+	s.rng = int(s.seed) & 0x7FFFFFFF
 	for side: String in ["p", "e"]:
 		s.hadCastle[side] = castles(s, side) > 0
 	return s
 
-## stat tables the rules read. Live Rules by default; sim/trace.gd swaps in the frozen chapter-1 copy
-## (sim/legacy/rules.gd) so balance changes in rules.gd never break the JS parity check.
+## stat tables the rules read (tests may swap them)
 static var UNITS: Dictionary = Rules.UNITS
 static var HEROES: Dictionary = Rules.HEROES
 static var RULES: Dictionary = Rules.RULES
@@ -75,8 +70,6 @@ static func spawn(s: Dictionary, side: String, type: String, x: int, y: int, act
 	var u := { "id": s.nextId, "side": side, "type": type, "x": x, "y": y, "hp": 100, "xp": 0, "rank": 0, "acted": acted }
 	s.nextId += 1
 	u.merge(extra, true)
-	if u.rank and not u.xp:
-		u.xp = RULES.xpLevels[u.rank - 1]
 	s.units.append(u)
 	return u
 
@@ -130,11 +123,7 @@ static func move_cost(move_class: String, t: Variant) -> float:
 	if move_class == "fly":
 		return 1
 	var tr: Dictionary = TERRAIN[t]
-	if tr.get("water", false):
-		return 1 if move_class == "water" else INF
-	if t == "m" and move_class == "heavy":
-		return INF
-	if (t == "m" or t == "h") and move_class == "mount":
+	if tr.get("water", false) and move_class == "water":
 		return 1
 	return tr.cost
 
@@ -222,71 +211,103 @@ static func targets_from(s: Dictionary, u: Dictionary, fx: int, fy: int) -> Arra
 			out.append(o)
 	return out
 
-## an ally of `side` next to (x,y), other than self_id, whose stats carry `flag`
-static func _adjacent_flag(s: Dictionary, side: String, x: int, y: int, flag: String, self_id: int) -> bool:
-	for o: Dictionary in s.units:
-		if o.side == side and o.id != self_id and dist(o.x, o.y, x, y) == 1 and stat(s, o).get(flag, 0):
-			return true
-	return false
-
-## UI helper, no rule effect: the positional bonuses unit u would get standing at (x, y) — same adjacency test as
-## damage(): aura ally next to it -> +10 atk when it attacks, guard ally -> +10 def when it is hit; plus terrain def.
-## Returns { atk, atk_from (unit or null), def, def_from, terrain }.
+## UI helper, no rule effect: live bonuses on u if it stood at (x, y): aura (+atk, from a drum, until its side's next
+## turn), poison (-atk / -def), water bonus for the water class, terrain def. { atk, atk_from, def, poison, terrain }
 static func buffs_at(s: Dictionary, u: Dictionary, x: int, y: int) -> Dictionary:
-	var out := { "atk": 0, "atk_from": null, "def": 0, "def_from": null, "terrain": terrain_def(s, u, x, y) }
-	for o: Dictionary in s.units:
-		if o.side != u.side or o.id == u.id or dist(o.x, o.y, x, y) != 1:
-			continue
-		var st := stat(s, o)
-		if st.get("aura", 0) and out.atk_from == null:
-			out.atk = 10
-			out.atk_from = o
-		if st.get("guard", 0) and out.def_from == null:
-			out.def = 10
-			out.def_from = o
+	var st := stat(s, u)
+	var wet: bool = TERRAIN[tile_at(s, x, y)].get("water", false)
+	var out := { "atk": 0, "atk_from": null, "def": 0, "def_from": null, "poison": 0, "terrain": terrain_def(s, u, x, y) }
+	if u.get("aura") != null:
+		out.atk += 10
+		out.atk_from = "aura"
+	if wet and st.get("waterAtk", 0):
+		out.atk += st.waterAtk
+		out.def += st.get("waterDef", 0)
+		out.def_from = "water"
+	if u.get("poison") != null:
+		out.poison = 10
 	return out
 
-static func terrain_def(s: Dictionary, u: Dictionary, x: int, y: int, attacker_magic := false) -> int:
-	var st := stat(s, u)
-	var t: String = tile_at(s, x, y)
-	if st.move == "fly" or attacker_magic:
-		return 0
-	return TERRAIN[t].def + st.get("tBonus", {}).get(t, 0)
+static func terrain_def(s: Dictionary, u: Dictionary, x: int, y: int) -> int:
+	return TERRAIN[tile_at(s, x, y)].def
 
-## attacker a standing at (ax,ay) with hp att_hp hits defender d at its tile
-static func damage(s: Dictionary, a: Dictionary, ax: int, ay: int, att_hp: int, d: Dictionary) -> int:
+## attack value range [min, max] for a, before bonuses (rank adds to both ends)
+static func atk_range(s: Dictionary, a: Dictionary) -> Array:
+	var sa := stat(s, a)
+	var r: int = RULES.rankBonus * a.rank
+	return [sa.atk + r, sa.get("atkMax", sa.atk) + r]
+
+## everything on top of the rolled attack: +bonuses of a (at ax, ay) vs d, minus d's defence at its tile
+static func _mods(s: Dictionary, a: Dictionary, ax: int, ay: int, d: Dictionary) -> int:
 	var sa := stat(s, a)
 	var sd := stat(s, d)
-	var A: float = sa.atk + RULES.rankBonus * a.rank
-	if _adjacent_flag(s, a.side, ax, ay, "aura", a.id):
-		A += 10
+	var m := 0
 	if sa.get("antiAir", 0) and sd.move == "fly":
-		A += sa.antiAir
-	var D: float = sd.def + RULES.rankBonus * d.rank + terrain_def(s, d, d.x, d.y, sa.get("magic", false))
-	if _adjacent_flag(s, d.side, d.x, d.y, "guard", d.id):
-		D += 10
-	var raw := maxf(A * RULES.minDmgFrac, A - D)
-	return mini(d.hp, maxi(1, jround((raw * att_hp) / 100.0)))
+		m += sa.antiAir
+	if sa.get("vsGhost", 0) and d.type == "ghost":
+		m += sa.vsGhost
+	if sa.get("waterAtk", 0) and TERRAIN[tile_at(s, ax, ay)].get("water", false):
+		m += sa.waterAtk
+	if a.get("aura") != null:
+		m += 10
+	if a.get("poison") != null:
+		m -= 10
+	var D: int = sd.def + RULES.rankBonus * d.rank + terrain_def(s, d, d.x, d.y)
+	if sd.get("waterDef", 0) and TERRAIN[tile_at(s, d.x, d.y)].get("water", false):
+		D += sd.waterDef
+	if d.get("poison") != null:
+		D -= 10
+	return m - D
 
+## AE2: (rolled atk + bonuses - defence) x attacker hp / 100, rounded down, 0..d.hp. roll in [0,1): 0 = min, ->1 = max
+static func damage(s: Dictionary, a: Dictionary, ax: int, ay: int, att_hp: int, d: Dictionary, roll := 0.5) -> int:
+	var r := atk_range(s, a)
+	var A: int = r[0] + mini(r[1] - r[0], int(floor(roll * (r[1] - r[0] + 1))))
+	var raw := A + _mods(s, a, ax, ay, d)
+	return clampi(int(floor(raw * att_hp / 100.0)), 0, d.hp)
+
+## seeded per game: same save -> same rolls. fixed_roll >= 0 overrides (tests / scripted runs)
+static var fixed_roll := -1.0
+
+static func roll(s: Dictionary) -> float:
+	if fixed_roll >= 0.0:
+		return fixed_roll
+	s.rng = (int(s.get("rng", 1)) * 1103515245 + 12345) & 0x7FFFFFFF
+	return float(s.rng) / 2147483648.0
+
+## AE2: only an adjacent defender that can hit at range 1 strikes back
 static func can_counter(s: Dictionary, d: Dictionary, ax: int, ay: int) -> bool:
 	var sd := stat(s, d)
-	return not sd.get("siege", false) and in_range(sd, dist(ax, ay, d.x, d.y))
+	return not sd.get("siege", false) and sd.rmin == 1 and dist(ax, ay, d.x, d.y) == 1
 
+## forecast: dmg / counter as min..max (+ mid for the AI). kill = sure kill, mayKill = possible; die / mayDie likewise
 static func preview(s: Dictionary, u: Dictionary, fx: int, fy: int, target: Dictionary) -> Dictionary:
 	var ox: int = u.x
 	var oy: int = u.y
-	u.x = fx # temp move so auras/positions are right
+	u.x = fx # temp move so positions are right
 	u.y = fy
-	var dmg := damage(s, u, fx, fy, u.hp, target)
-	var counter := 0
-	if dmg < target.hp and can_counter(s, target, fx, fy):
-		var thp: int = target.hp
-		target.hp -= dmg
-		counter = damage(s, target, target.x, target.y, target.hp, u)
+	var lo := damage(s, u, fx, fy, u.hp, target, 0.0)
+	var hi := damage(s, u, fx, fy, u.hp, target, 0.999)
+	var mid := damage(s, u, fx, fy, u.hp, target, 0.5)
+	var c_lo := 0
+	var c_hi := 0
+	var c_mid := 0
+	var thp: int = target.hp
+	if can_counter(s, target, fx, fy):
+		if hi < thp:
+			target.hp = thp - hi
+			c_lo = damage(s, target, target.x, target.y, target.hp, u, 0.0)
+		if lo < thp:
+			target.hp = thp - lo
+			c_hi = damage(s, target, target.x, target.y, target.hp, u, 0.999)
+		if mid < thp:
+			target.hp = thp - mid
+			c_mid = damage(s, target, target.x, target.y, target.hp, u, 0.5)
 		target.hp = thp
 	u.x = ox
 	u.y = oy
-	return { "dmg": dmg, "counter": counter, "kill": dmg >= target.hp, "die": counter >= u.hp }
+	return { "dmg": mid, "dmgMin": lo, "dmgMax": hi, "counter": c_mid, "counterMin": c_lo, "counterMax": c_hi,
+		"kill": lo >= thp, "mayKill": hi >= thp, "die": c_lo >= u.hp, "mayDie": c_hi >= u.hp }
 
 static func can_capture(s: Dictionary, u: Dictionary, x: int, y: int) -> bool:
 	var t: Variant = tile_at(s, x, y)
@@ -314,9 +335,7 @@ static func can_repair(s: Dictionary, u: Dictionary, x: int, y: int) -> bool:
 	return tile_at(s, x, y) == "x" and stat(s, u).get("capV", false)
 
 static func raisable_graves(s: Dictionary, u: Dictionary, x: int, y: int) -> Array:
-	if not stat(s, u).get("raise", false):
-		return []
-	if RULES.get("raiseCap", false) and unit_count(s, u.side) >= s.unitCap: # raised units count toward the cap
+	if not stat(s, u).get("raise", false): # AE2: raised ghosts do not count toward the cap, so no cap check
 		return []
 	var out := []
 	for g: Dictionary in s.graves:
@@ -324,10 +343,23 @@ static func raisable_graves(s: Dictionary, u: Dictionary, x: int, y: int) -> Arr
 			out.append(g)
 	return out
 
-static func _gain_xp(s: Dictionary, u: Dictionary, amount: int, ev: Array) -> void:
-	u.xp += amount
-	var lv: Array = RULES.xpLevels
-	while u.rank < lv.size() and u.xp >= lv[u.rank]:
+## xp for dealing dmg to victim: dmg x (victim atk + atkMax + def)
+static func _gain_xp(s: Dictionary, u: Dictionary, dmg: int, victim: Dictionary) -> void:
+	var sv := stat(s, victim)
+	u.xp += dmg * (sv.atk + sv.get("atkMax", sv.atk) + sv.def)
+
+## xp needed for u's next level (own atk + atkMax + def) x xpScale
+static func xp_need(s: Dictionary, u: Dictionary) -> int:
+	var st := stat(s, u)
+	return int((st.atk + st.get("atkMax", st.atk) + st.def) * RULES.xpScale)
+
+## after a fight: at most one level, leftover xp carries
+static func _promote(s: Dictionary, u: Dictionary, ev: Array) -> void:
+	if u.hp <= 0 or u.rank >= RULES.maxRank:
+		return
+	var need := xp_need(s, u)
+	if u.xp >= need:
+		u.xp -= need
 		u.rank += 1
 		ev.append({ "t": "rank", "id": u.id, "rank": u.rank })
 
@@ -335,6 +367,8 @@ static func _kill(s: Dictionary, u: Dictionary, ev: Array) -> void:
 	s.units = s.units.filter(func(o: Dictionary) -> bool: return o.id != u.id)
 	if u.type == "hero":
 		s.heroDead[u.side] = true
+		s.heroDeaths[u.side] = int(s.heroDeaths.get(u.side, 0)) + 1
+		s.heroSaved[u.side] = { "rank": u.rank, "xp": u.xp }
 	elif not UNITS[u.type].get("noGrave", false):
 		s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.x != u.x or g.y != u.y)
 		s.graves.append({ "x": u.x, "y": u.y, "ttl": RULES.graveRounds })
@@ -372,32 +406,44 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		if not ok:
 			push_error("cannot %s %s" % [act.kind, act]); return []
 	var ev := []
-	var path := path_to(reach, tx, ty) # breaks at allies; kept for the guard rule (JS parity)
 	var route := path_for(s, u, tx, ty) # full route for the move animation
 	u.x = tx
 	u.y = ty
-	if path.size() > 1 or act.kind != "wait":
-		u.guard = false
+	if route.size() > 1 or act.kind != "wait":
+		u.guard = false # scripted guards (mission defs) hold until they act
 	if route.size() > 1:
-		ev.append({ "t": "move", "id": u.id, "path": route })
-
+		u.erase("offGoal")
 	if act.kind == "attack":
 		d.guard = false
-		var dmg := damage(s, u, tx, ty, u.hp, d)
+	if route.size() > 1:
+		ev.append({ "t": "move", "id": u.id, "path": route })
+		# AE2: ending a move on a grave clears it
+		var had: int = s.graves.size()
+		s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.x != tx or g.y != ty)
+		if s.graves.size() != had:
+			ev.append({ "t": "graveGone", "x": tx, "y": ty })
+
+	if act.kind == "attack":
+		var dmg := damage(s, u, tx, ty, u.hp, d, roll(s))
 		d.hp -= dmg
 		ev.append({ "t": "hit", "from": u.id, "fx": tx, "fy": ty, "id": d.id, "amount": dmg, "x": d.x, "y": d.y, "type": u.type, "side": u.side })
-		_gain_xp(s, u, dmg, ev)
+		_gain_xp(s, u, dmg, d)
 		if d.hp <= 0:
-			_gain_xp(s, u, RULES.killXp, ev)
 			_kill(s, d, ev)
-		elif can_counter(s, d, tx, ty):
-			var c := damage(s, d, d.x, d.y, d.hp, u)
-			u.hp -= c
-			ev.append({ "t": "hit", "from": d.id, "fx": d.x, "fy": d.y, "id": u.id, "amount": c, "x": u.x, "y": u.y, "counter": true, "type": d.type, "side": d.side })
-			_gain_xp(s, d, c, ev)
-			if u.hp <= 0:
-				_gain_xp(s, d, RULES.killXp, ev)
-				_kill(s, u, ev)
+		else:
+			if stat(s, u).get("poison", 0) and dmg > 0: # AE2 wolf: the bitten unit is weakened until our next turn
+				d.poison = u.side
+				ev.append({ "t": "poison", "id": d.id, "x": d.x, "y": d.y })
+			if can_counter(s, d, tx, ty):
+				var c := damage(s, d, d.x, d.y, d.hp, u, roll(s))
+				u.hp -= c
+				ev.append({ "t": "hit", "from": d.id, "fx": d.x, "fy": d.y, "id": u.id, "amount": c, "x": u.x, "y": u.y, "counter": true, "type": d.type, "side": d.side })
+				_gain_xp(s, d, c, u)
+				if u.hp <= 0:
+					_kill(s, u, ev)
+		_promote(s, u, ev)
+		if d.hp > 0:
+			_promote(s, d, ev)
 	elif act.kind == "capture":
 		var key := Vector2i(tx, ty)
 		var prev: Variant = s.owner.get(key)
@@ -419,6 +465,14 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		var gh := spawn(s, u.side, "ghost", gx, gy, true)
 		ev.append({ "t": "raise", "id": gh.id, "x": gx, "y": gy, "from": u.id })
 	u.acted = true
+	if u.hp > 0 and stat(s, u).get("aura", 0): # AE2 wisp: allies within 2 get +atk until our next turn
+		var ids := []
+		for o: Dictionary in s.units:
+			if o.side == u.side and o.id != u.id and dist(o.x, o.y, u.x, u.y) <= 2:
+				o.aura = u.side
+				ids.append(o.id)
+		if ids.size():
+			ev.append({ "t": "aura", "from": u.id, "ids": ids })
 	_check_winner(s, ev)
 	return ev
 
@@ -434,8 +488,8 @@ static func buy_options(s: Dictionary, side: String, x: int, y: int) -> Array:
 	for type: String in s.allowed[side]:
 		list.append({ "type": type, "cost": UNITS[type].cost })
 	if s.heroDead[side] and s.heroKey[side] != null:
-		list.push_front({ "type": "hero", "cost": UNITS.hero.cost })
-	var full: bool = unit_count(s, side) >= s.unitCap
+		list.push_front({ "type": "hero", "cost": hero_cost(s, side) })
+	var full: bool = cap_count(s, side) >= s.unitCap
 	for o: Dictionary in list:
 		o.ok = not full and s.gold[side] >= o.cost and (not busy or _can_step_off(s, side, o.type, x, y))
 	return list
@@ -456,9 +510,17 @@ static func buy(s: Dictionary, x: int, y: int, type: String) -> Variant:
 	if opt == null or not opt.ok:
 		push_error("cannot buy %s" % type); return null
 	s.gold[s.side] -= opt.cost
+	var extra := {}
 	if type == "hero":
 		s.heroDead[s.side] = false
-	return spawn(s, s.side, type, x, y, not RULES.get("buyAE2", false)) # AE2: a bought unit moves / attacks this turn
+		extra = s.heroSaved.get(s.side, {}).duplicate() # AE2: the commander comes back with its level / xp
+		if s.win.get("at", []).has([x, y]):
+			extra.offGoal = true # bought on a reach goal: must walk off and back, buying there is not "reaching"
+	return spawn(s, s.side, type, x, y, not RULES.get("buyAE2", false), extra) # AE2: a bought unit moves / attacks this turn
+
+## AE2: 200 + 200 per death so far, capped at 1000
+static func hero_cost(s: Dictionary, side: String) -> int:
+	return mini(RULES.heroMax, RULES.heroBase + RULES.heroStep * int(s.get("heroDeaths", {}).get(side, 0)))
 
 static func castle_tiles(s: Dictionary, side: String) -> Array:
 	var out := []
@@ -478,7 +540,7 @@ static func villages(s: Dictionary, side: String) -> int:
 	return n - castles(s, side)
 
 static func income(s: Dictionary, side: String) -> int:
-	return jround(((villages(s, side) * RULES.incomeVillage + castles(s, side) * RULES.incomeCastle) * s.incomeMul[side]) / 10.0) * 10
+	return villages(s, side) * RULES.incomeVillage + castles(s, side) * RULES.incomeCastle
 
 static func unit_count(s: Dictionary, side: String) -> int:
 	var n := 0
@@ -487,43 +549,45 @@ static func unit_count(s: Dictionary, side: String) -> int:
 			n += 1
 	return n
 
+## units counted toward unitCap (AE2: raised ghosts are not)
+static func cap_count(s: Dictionary, side: String) -> int:
+	var n := 0
+	for u: Dictionary in s.units:
+		if u.side == side and not UNITS[u.type].get("noCap", false):
+			n += 1
+	return n
+
+static func hero_alive(s: Dictionary, side: String) -> bool:
+	return s.units.any(func(u: Dictionary) -> bool: return u.side == side and u.type == "hero")
+
 static func pending_waves(s: Dictionary) -> bool:
 	return s.waves.any(func(w: Dictionary) -> bool: return not w.done)
 
 ## win type "reach": our hero stands on one of win.at
 static func hero_on_goal(s: Dictionary) -> bool:
 	for u: Dictionary in s.units:
-		if u.side == "p" and u.type == "hero":
+		if u.side == "p" and u.type == "hero" and not u.get("offGoal", false):
 			for g: Array in s.win.get("at", []):
 				if u.x == g[0] and u.y == g[1]:
 					return true
 	return false
 
-## a reason string when `side` has lost, else null
+## a reason string when `side` has lost, else null.
+## AE2: out = commander dead and no castle left, or no unit and no castle left. Mission goals (hero / reach) on top.
 static func loss_reason(s: Dictionary, side: String) -> Variant:
-	if side == "p" and s.heroMustLive and s.heroDead.p:
-		return "heroFell"
 	if side == "e" and s.win.type == "hero" and s.heroDead.e:
 		return "heroKilled"
 	if side == "e" and s.win.type == "reach" and hero_on_goal(s):
 		return "reached"
-	if side == "p" and s.win.type == "reach" and s.heroDead.p:
-		return "heroFell"
 	var c := castles(s, side)
-	var n := unit_count(s, side)
-	if c == 0 and s.hadCastle[side]:
+	if c > 0:
+		return null
+	if s.hadCastle[side] and not hero_alive(s, side): # castle-less armies (some missions) only fall when wiped out
 		return "castlesLost"
-	if n > 0:
+	if unit_count(s, side) > 0:
 		return null
 	if side == "e" and pending_waves(s):
 		return null
-	if c == 0:
-		return "routed"
-	if s.gold[side] < UNITS.soldier.cost:
-		return "routed"
-	for key: Vector2i in castle_tiles(s, side):
-		if unit_at(s, key.x, key.y) == null:
-			return null
 	return "routed"
 
 static func _check_winner(s: Dictionary, ev: Array) -> void:
@@ -559,11 +623,12 @@ static func end_turn(s: Dictionary) -> Array:
 		return []
 	var ev := []
 	s.side = other(s.side)
+	# AE2 graves: count down at the start of every side's turn
+	for g: Dictionary in s.graves:
+		g.ttl -= 1
+	s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.ttl > 0)
 	if s.side == "p":
 		s.turn += 1
-		for g: Dictionary in s.graves:
-			g.ttl -= 1
-		s.graves = s.graves.filter(func(g: Dictionary) -> bool: return g.ttl > 0)
 		if s.win.type == "survive" and s.turn > s.win.turns:
 			s.winner = "p"
 			s.reason = "survived"
@@ -586,6 +651,12 @@ static func end_turn(s: Dictionary) -> Array:
 					continue
 				var u := spawn(s, "e", wu[0], at[0], at[1], true, wu[3] if wu.size() > 3 else {})
 				ev.append({ "t": "spawn", "id": u.id, "x": at[0], "y": at[1] })
+	# aura / poison laid by this side last turn wear off now
+	for u: Dictionary in s.units:
+		if u.get("aura") == s.side:
+			u.erase("aura")
+		if u.get("poison") == s.side:
+			u.erase("poison")
 	var inc := income(s, s.side)
 	s.gold[s.side] += inc
 	ev.append({ "t": "income", "side": s.side, "amount": inc })
@@ -594,7 +665,9 @@ static func end_turn(s: Dictionary) -> Array:
 			continue
 		if not ev.any(func(e: Dictionary) -> bool: return e.t == "spawn" and e.id == u.id):
 			u.acted = false
-		if s.owner.get(Vector2i(u.x, u.y)) == u.side and u.hp < 100:
+		var k := Vector2i(u.x, u.y)
+		var heals: bool = s.owner.get(k) == u.side or TERRAIN[tile_at(s, u.x, u.y)].get("temple", false)
+		if heals and u.hp < 100:
 			var h := mini(RULES.heal, 100 - u.hp)
 			u.hp += h
 			ev.append({ "t": "heal", "id": u.id, "amount": h, "x": u.x, "y": u.y })

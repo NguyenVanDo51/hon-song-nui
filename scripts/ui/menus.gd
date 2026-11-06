@@ -16,6 +16,8 @@ var _codex_seg: Array = []
 var codex_side := "p"
 var hero_choice := ""
 var easy := true
+var sk_gold := 300 # AE2 skirmish options: starting gold, unit cap
+var sk_cap := 15
 var map_choice := "dong_bang"
 
 func _init() -> void:
@@ -159,7 +161,7 @@ func _grid(min_w: float, gap := 12, auto_fit := false) -> GridContainer:
 	return g
 
 static func goal_text(def: Dictionary) -> String:
-	return Content.goal_text(def.get("win", {}), "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, {}, def.get("heroMustLive", false))
+	return Content.goal_text(def.get("win", {}), "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, {})
 
 # ---------- title ----------
 func show_title() -> void:
@@ -479,14 +481,31 @@ func show_skirmish() -> void:
 	seg.add_child(e_btn)
 	seg.add_child(n_btn)
 	row.add_child(seg)
-	var note := Style.lbl("Dễ: địch khởi đầu ít vàng hơn và thu nhập chỉ 70%." if easy else "Thường: hai bên ngang vàng, ngang thu nhập.", 13, Style.MUTED, null, true)
+	var note := Style.lbl("Dễ: địch khởi đầu với nửa số vàng." if easy else "Thường: hai bên ngang vàng.", 13, Style.MUTED, null, true)
 	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(note)
 	var go := Style.menu_button("Xuất quân", "", true)
 	go.custom_minimum_size.x = 200
 	_on(go, func() -> void:
-		confirm_start(Game.new_game(Content.skirmish_def(map_choice, hero_choice, easy)), { "kind": "skirmish", "hero": hero_choice, "easy": easy, "map": map_choice }))
+		confirm_start(Game.new_game(Content.skirmish_def(map_choice, hero_choice, easy, sk_gold, sk_cap)),
+			{ "kind": "skirmish", "hero": hero_choice, "easy": easy, "map": map_choice, "gold": sk_gold, "cap": sk_cap }))
+	# AE2 options: starting gold + unit cap
+	var opts := Style.hbox(10)
+	for spec: Array in [["Vàng khởi đầu", [300, 500, 1000, 2000], "gold"], ["Giới hạn quân", [10, 15, 20, 30], "cap"]]:
+		opts.add_child(Style.lbl(spec[0], 14, Style.MUTED))
+		var sg := Style.hbox(0)
+		for val: int in spec[1]:
+			var cur: int = sk_gold if spec[2] == "gold" else sk_cap
+			var b := Style.button(str(val), "SegOn" if val == cur else "SegBtn")
+			var key: String = spec[2]
+			_on(b, func() -> void:
+				if key == "gold": sk_gold = val
+				else: sk_cap = val
+				show_skirmish())
+			sg.add_child(b)
+		opts.add_child(sg)
+	v.add_child(opts)
 	row.add_child(go)
 	v.add_child(row)
 	# no enter-slide jitter when only the selection changed
@@ -632,7 +651,7 @@ func _show_codex() -> void:
 
 ## one card per terrain: name, defence bonus, move cost per move class, rule note
 func _codex_terrain() -> void:
-	var classes := [["foot", "Bộ"], ["heavy", "Nặng"], ["mount", "Núi"], ["water", "Sông"], ["fly", "Kỵ"]]
+	var classes := [["foot", "Bộ"], ["water", "Thủy binh"], ["fly", "Rồng"]]
 	for t: String in Rules.TERRAIN:
 		var tr: Dictionary = Rules.TERRAIN[t]
 		var card := Style.card(Color(0, 0, 0, 0.3), Style.LACQUER_3, 10, 12)

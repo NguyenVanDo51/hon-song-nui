@@ -14,7 +14,6 @@ const DEF := {
 	"newUnits": ["elephant"],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "elephant"] },
 	"gold": { "p": 650, "e": 150 },
-	"incomeMul": { "e": 0.75 },
 	"win": { "type": "hero" },
 	"map": {
 		"rows": [
@@ -52,7 +51,7 @@ const DEF := {
 	},
 	"tips": [
 		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn đích thân giữ đồn giữa rừng: dụ hắn ra chỗ trống rồi hãy đánh.",
-		"[b]Voi chiến[/b] thủ 25, công 65 nhưng chỉ đi 3 ô và không lên núi. Cho voi đi đầu hút đòn.",
-		"Anh hùng đi đồi núi chỉ tốn 1 bước, đứng trên đồi, núi +10 thủ.",
+		"[b]Voi chiến[/b] thủ rất dày, đánh mạnh, đi 5 ô, lên được cả núi. Đắt, nhưng cho voi đi đầu hút đòn là đáng.",
+		"Rừng, đồi +10 thủ, núi +15 thủ nhưng tốn 3 bước. Ai đứng dưới sông thì không được thủ.",
 	],
 }

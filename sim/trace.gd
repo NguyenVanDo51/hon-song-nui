@@ -1,9 +1,7 @@
 extends SceneTree
-## parity trace: one line per game = winner, reason, turns, steps, FNV-1a hash of every AI step + final units/gold.
-## Same seeds and format as the JS-side trace, so `diff` proves the two engines play identical games.
-## <godot> --headless --path . -s sim/trace.gd [-- only=m01,m02,skirmish,skirmish-easy,naive]
-## Golden output (2026-11-05, from the code last diffed 1:1 against the JS original) lives in sim/legacy/golden.txt: `... > gd.txt; diff <(sort sim/legacy/golden.txt) <(sort gd.txt)`.
-## tests.gd replays a few of those games on every run.
+## regression trace: one line per game = winner, reason, turns, steps, FNV-1a hash of every AI step + final units/gold.
+## <godot> --headless --path . -s sim/trace.gd [-- only=m01,m02,sk_dong_bang,naive] > out.txt; diff with sim/golden.txt
+## Regenerate sim/golden.txt only after an intended rules / AI / map change. tests.gd replays a few games every run.
 
 func _init() -> void:
 	var p: RefCounted = load("res://sim/parity.gd").new()

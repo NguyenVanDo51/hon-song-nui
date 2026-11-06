@@ -1,6 +1,6 @@
 class_name AI
 extends RefCounted
-## enemy AI (also the hint button and the sim's player side). Port of src/core/ai.js.
+## enemy AI (also the hint button and the sim's player side). Scores use the mid damage roll.
 ## One step at a time so the UI can animate: next_step() -> {kind:'act', act} | {kind:'buy', x, y, type} | null (= end turn).
 
 ## own stream (UI effects draw from the global randf); seeded per game by the screen, swapped by the sims
@@ -10,7 +10,7 @@ static var rng: Callable = _gen.randf
 static func seed_game(v: int) -> void:
 	_gen.seed = v
 
-const WEIGHTS := { "soldier": 3, "archer": 2, "drum": 0.5, "shaman": 0.7, "elephant": 1.6, "bird": 1, "catapult": 0.7 }
+const WEIGHTS := { "soldier": 3, "archer": 2, "boat": 0.8, "shaman": 0.6, "drum": 0.5, "wolf": 1.2, "elephant": 1.4, "catapult": 0.7, "bird": 1 }
 
 static func value(_s: Dictionary, u: Dictionary) -> float:
 	return (900 if u.type == "hero" else Game.UNITS[u.type].cost) * (1 + 0.2 * u.rank)
@@ -123,7 +123,12 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 		for key: Vector2i in s.owner:
 			var o: Variant = s.owner[key]
 			if o != null and o != u.side and s.tiles[key.y][key.x] == "c":
-				out.append([key.x, key.y])
+				if cap_c:
+					out.append([key.x, key.y])
+				else: # crowd round it, never stand on it (that blocks our own commander's capture)
+					for d: Array in Game.DIRS:
+						if Game.tile_at(s, key.x + d[0], key.y + d[1]) != null:
+							out.append([key.x + d[0], key.y + d[1]])
 	return out
 
 ## own castles an enemy castle-capturer could step on next turn
@@ -143,10 +148,10 @@ static func endangered_castles(s: Dictionary, side: String, reach_of := {}) -> D
 static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary, mem := {}) -> Variant:
 	var st := Game.stat(s, u)
 	var reach := Game.reachable(s, u)
-	var mc: String = st.move if st.move in ["heavy", "fly", "water", "mount"] else "foot"
+	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
 	var df := _dist_cached(s, mc, goals_for(s, u, claims), mem)
 	var val := value(s, u)
-	var caution := (2.5 if s.heroMustLive and u.side == "p" else 1.3) if u.type == "hero" else 0.6
+	var caution := 1.3 if u.type == "hero" else 0.6
 	var has_df := df.size() > 0
 	var enemy_castles := Game.castles(s, Game.other(u.side))
 	var best: Array = [null] # [ {score, act} ]
@@ -166,10 +171,16 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key))
 		pos -= (hurt / 100.0) * val * caution
 		var own: Variant = s.owner.get(key)
-		if own == u.side and u.hp < 70:
+		if (own == u.side or Game.TERRAIN[t].get("temple", false)) and u.hp < 70:
 			pos += (100 - u.hp) * val * 0.004
+		if st.get("aura", 0): # drum: allies within 2 get +atk after it acts
+			for o: Dictionary in s.units:
+				if o.side == u.side and o.id != u.id and not o.acted and Game.dist(o.x, o.y, rx, ry) <= 2:
+					pos += 15
 		if t == "c" and own == u.side:
 			pos -= 400 if s.heroDead[u.side] else (40 if u.type == "hero" else 150)
+		elif t == "c" and own != null and not st.get("capC", false):
+			pos -= 600 # parked on an enemy castle it cannot take: blocks our commander
 
 		if danger.has(key):
 			pos += 900 # block the capture
@@ -197,12 +208,18 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 
 		for d: Dictionary in Game.targets_from(s, u, rx, ry):
 			var p := Game.preview(s, u, rx, ry, d)
+			if p.dmgMax <= 0:
+				continue # AE2: armour can soak the whole hit
 			var dv := value(s, d)
 			var sc: float = (p.dmg / 100.0) * dv - (p.counter / 100.0) * val
 			if p.kill:
 				sc += dv * 0.6 + (600 if d.type == "hero" else 0)
+			elif p.mayKill:
+				sc += dv * 0.3 + (300 if d.type == "hero" else 0)
 			if p.die:
 				sc -= val
+			elif p.mayDie:
+				sc -= val * 0.5
 			# after counter, remaining exposure scales with remaining hp
 			var left := maxi(0, u.hp - p.counter)
 			var exposure := minf(left, hurt) / 100.0 * val * caution
@@ -218,10 +235,13 @@ static func choose_buy(s: Dictionary, side: String) -> Variant:
 		elif Game.UNITS[u.type].move == "fly":
 			enemy_fly = true
 	var open := 0
+	var water := 0
 	for y in s.h:
 		for x in s.w:
 			if s.tiles[y][x] == "v" and s.owner.get(Vector2i(x, y)) != side:
 				open += 1
+			elif s.tiles[y][x] == "~":
+				water += 1
 	var best: Variant = null
 	for type: String in s.allowed[side]:
 		var cost: int = Game.UNITS[type].cost
@@ -234,6 +254,8 @@ static func choose_buy(s: Dictionary, side: String) -> Variant:
 			w += 2
 		if type == "shaman" and s.graves.size():
 			w += 0.5
+		if type == "boat" and water * 8 > s.w * s.h:
+			w += 1.5
 		var sc: float = (w / (1 + counts.get(type, 0))) * pow(cost / 300.0, 0.35)
 		if best == null or sc > best.sc:
 			best = { "type": type, "sc": sc }
@@ -287,17 +309,19 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 			var b: Variant = best_for_unit(s, u, threat, mem.claims, danger, mem)
 			if b != null and (best == null or b.score > best.score):
 				best = b
+		if best == null:
+			return null # nothing legal left (boxed in): end the turn
 		_claim_nearest(s, best.act, mem.claims)
 		return { "kind": "act", "act": best.act }
-	if Game.unit_count(s, side) >= s.unitCap:
+	if Game.cap_count(s, side) >= s.unitCap:
 		return null
 	for key: Vector2i in Game.castle_tiles(s, side):
 		if Game.unit_at(s, key.x, key.y) != null:
 			continue
 		var want_hero: bool = s.heroDead[side] and s.heroKey[side] != null
-		if want_hero and s.gold[side] >= Game.UNITS.hero.cost:
+		if want_hero and s.gold[side] >= Game.hero_cost(s, side):
 			return { "kind": "buy", "x": key.x, "y": key.y, "type": "hero" }
-		if want_hero and s.gold[side] < Game.UNITS.hero.cost and Game.unit_count(s, side) >= 4:
+		if want_hero and s.gold[side] < Game.hero_cost(s, side) and Game.unit_count(s, side) >= 4:
 			return null
 		var type: Variant = choose_buy(s, side)
 		if type != null:

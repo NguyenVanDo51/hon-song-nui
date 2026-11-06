@@ -7,14 +7,19 @@ extends RefCounted
 const UNITS := {
 	"hero": null,
 	"soldier": { "name": "Bộ binh", "icon": "🗡️", "fig": "res://assets/units/soldier.svg", "desc": "Lính cầm giáo. Rẻ, chiếm được làng, sửa được làng hỏng." },
-	"archer": { "name": "Nỏ thủ", "icon": "🏹", "fig": "res://assets/units/archer.svg", "desc": "Bắn xa 1–2 ô. +20 công khi bắn kỵ binh." },
-	"drum": { "name": "Trống trận", "icon": "🥁", "fig": "res://assets/units/drum.svg", "desc": "Tiếng trống thúc quân: quân đứng cạnh +10 công." },
-	"shaman": { "name": "Thầy lang", "icon": "🌿", "fig": "res://assets/units/shaman.svg", "desc": "Tên tẩm thuốc, bỏ qua thủ địa hình. Cứu lính ngã ngay cạnh thành thương binh." },
-	"elephant": { "name": "Voi chiến", "icon": "🐘", "fig": "res://assets/units/elephant.svg", "desc": "Thủ dày, đánh mạnh, đi chậm, không lên được núi." },
-	"bird": { "name": "Kỵ binh", "icon": "🐎", "fig": "res://assets/units/bird.svg", "desc": "Ngựa nhẹ: mọi ô chỉ tốn 1, lội được sông. Chạy trống trải nên không được địa hình che." },
+	"archer": { "name": "Nỏ thủ", "icon": "🏹", "fig": "res://assets/units/archer.svg", "desc": "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn rồng." },
+	"boat": { "name": "Thủy binh", "icon": "⛵", "fig": "res://assets/units/soldier.svg", "desc": "Quen sông nước: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ." },
+	"shaman": { "name": "Thầy mo", "icon": "🌿", "fig": "res://assets/units/shaman.svg", "desc": "Gọi hồn lính ngã ngay cạnh thành âm binh đánh cho ta (cả lính địch ngã)." },
+	"drum": { "name": "Trống đồng", "icon": "🥁", "fig": "res://assets/units/drum.svg", "desc": "Đánh trống xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh âm binh." },
+	"wolf": { "name": "Chó săn", "icon": "🐕", "fig": "res://assets/units/elephant.svg", "desc": "Chạy nhanh (6 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta." },
+	"elephant": { "name": "Voi chiến", "icon": "🐘", "fig": "res://assets/units/elephant.svg", "desc": "Thủ rất dày, đánh mạnh. Đắt." },
 	"catapult": { "name": "Máy bắn đá", "icon": "🪨", "fig": "res://assets/units/catapult.svg", "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng hỏng)." },
-	"ghost": { "name": "Thương binh", "icon": "🩹", "fig": "res://assets/units/ghost.svg", "desc": "Lính ngã được thầy lang cứu dậy. Không chiếm được làng." },
+	"bird": { "name": "Rồng", "icon": "🐉", "fig": "res://assets/units/bird.svg", "desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 7. Mạnh nhất, đắt nhất. Nỏ thủ bắn rồng +15 công." },
+	"ghost": { "name": "Âm binh", "icon": "🩹", "fig": "res://assets/units/ghost.svg", "desc": "Hồn lính ngã được thầy mo gọi dậy. Không mua được, không tính vào giới hạn quân, không chiếm được làng." },
 }
+
+## level titles (AE2 renames a unit every 2 levels): index = level / 2
+const RANK_TITLES := ["", "lão luyện", "tinh nhuệ", "dũng mãnh", "huyền thoại"]
 
 const THEME := {
 	"title": "Hồn Sông Núi",
@@ -24,9 +29,9 @@ const THEME := {
 		"enemyTurn": "Lượt quân Hán",
 		"skirmishTitle": "Đấu tự do · Đồng bằng sông Hồng",
 		"skirmishBlurb": "Anh hùng đấu với Tướng giặc",
-		"raiseVerb": "cứu thương",
-		"raiseButton": "🩹 Cứu thương",
-		"graveNote": "Lính ngã: thầy lang đứng cạnh có thể cứu dậy thành thương binh. Sau 2 vòng thì mất.",
+		"raiseVerb": "gọi hồn",
+		"raiseButton": "🩹 Gọi hồn",
+		"graveNote": "Lính ngã: thầy mo đứng cạnh gọi dậy được thành âm binh. Mất sau lượt kế của mỗi bên, hoặc khi có quân bước lên.",
 		"graveName": "Lính ngã",
 		"turnBanner": "Lượt {turn} · Quân ta",
 		"captureCastle": "Chiếm thành!",
@@ -46,12 +51,11 @@ const THEME := {
 		"hint_wait": "đi tới ô sáng rồi chờ",
 		"buyTitle": "Mộ quân",
 		"noEnemyHero": "quân địch",
-		"mustLiveBrief": " {hero} ngã là thua.",
-		"mustLiveBar": " · giữ {hero}",
 		"tileVillage": "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta.",
 		"tileRuin": "Làng bị {raze} phá. {capV} đứng vào rồi bấm Sửa làng; lượt sau mới chiếm được.",
-		"tileCastle": "Chỉ {capC_l} chiếm được thành. Thành: +{income} vàng/lượt, mua lính, hồi máu. Có quân đứng trên thành thì không mua lính ở đó được.",
-		"tileWater": "Chỉ {water} qua được.",
+		"tileCastle": "Chỉ {capC_l} chiếm được thành. Thành: +{income} vàng/lượt, mua lính, hồi máu. Có quân ta đứng trên thành vẫn mua được: lính mới phải bước ra ô khác.",
+		"tileTemple": "Đền: không ai chiếm được. Quân phe nào đứng đây cũng hồi {heal} máu mỗi lượt, thủ +15.",
+		"tileWater": "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ.",
 		"loseTip_heroFell": "Mẹo: giữ tướng sau hàng bộ binh; đứng trên đồi, làng, thành được thêm thủ.",
 		"loseTip_castlesLost": "Mẹo: luôn để một quân đứng chặn trên thành khi địch có tướng ở gần.",
 		"loseTip_routed": "Mẹo: chiếm làng sớm để có vàng mua quân; đừng đem lính lẻ ra đánh.",
@@ -60,7 +64,7 @@ const THEME := {
 	},
 	## win types: brief = briefing card, bar = top bar. {eh} enemy commander, {hero} ours, {n} count, {turns} limit, {left} turns left
 	"goals": {
-		"castles": { "brief": "Chiếm hết thành của địch.", "bar": "Chiếm {n} thành địch" },
+		"castles": { "brief": "Chiếm hết thành của địch và hạ {eh} (hoặc diệt sạch quân lẫn thành).", "bar": "Chiếm {n} thành + hạ {eh}" },
 		"rout": { "brief": "Diệt hết quân địch.", "bar": "Diệt hết địch (còn {n})" },
 		"hero": { "brief": "Hạ {eh}.", "bar": "Hạ {eh}" },
 		"survive": { "brief": "Giữ vững đến hết lượt {turns}.", "bar": "Giữ vững: còn {left} lượt" },
@@ -68,9 +72,9 @@ const THEME := {
 	},
 	## end card line per winner side + engine reason
 	"ends": {
-		"p": { "routed": "Đã quét sạch quân địch.", "castlesLost": "Đã chiếm hết thành của địch.", "heroKilled": "{eh} đã bị hạ.",
+		"p": { "routed": "Đã quét sạch quân địch.", "castlesLost": "Đã chiếm hết thành và hạ tướng địch.", "heroKilled": "{eh} đã bị hạ.",
 			"survived": "Đã giữ vững đến cùng.", "reached": "{hero} đã tới nơi an toàn." },
-		"e": { "heroFell": "{hero} đã ngã.", "castlesLost": "Thành của ta đã mất.", "routed": "Quân ta đã tan.",
+		"e": { "heroFell": "{hero} đã ngã.", "castlesLost": "Mất hết thành, tướng ta cũng đã ngã.", "heroKilled": "{hero} đã ngã, ta không còn thành nào.", "routed": "Quân ta đã tan.",
 			"timeUp": "Không kịp tới nơi, giặc đã khép vòng vây." },
 	},
 	"factions": {
@@ -122,6 +126,7 @@ const THEME := {
 		"v": { "name": "Làng", "paint": "village", "base": "#5a7a3a", "line": "#6d8f44", "wall": "#dcc6a0" },
 		"c": { "name": "Thành", "paint": "castle", "base": "#5d6a3c", "wall": "#b0a48c", "wall2": "#8c816c" },
 		"x": { "name": "Làng hỏng", "paint": "village", "base": "#5a7a3a", "line": "#6d8f44", "wall": "#a89c88" },
+		"t": { "name": "Đền", "paint": "village", "base": "#5a7a3a", "line": "#6d8f44", "wall": "#c9b48a" },
 	},
 	"units": {
 		# both sides field the same troops (same name, same icon); only the faction colour tells them apart
@@ -135,14 +140,14 @@ const THEME := {
 			"name": "Anh hùng",
 			"icon": "👑",
 			"fig": "res://assets/units/hero_p.svg",
-			"blurb": "Người cầm quân của ta trong mọi trận. Quen đất trung du: đi đồi núi nhanh, đứng trên đồi, núi +10 thủ.",
+			"blurb": "Người cầm quân của ta trong mọi trận. Chiếm được cả làng lẫn thành. Ngã thì mua lại ở thành, giữ nguyên cấp; mỗi lần ngã giá mua lại +200.",
 		},
 		"tuonggiac": {
 			"side": "e",
 			"name": "Tướng giặc",
 			"icon": "🪓",
 			"fig": "res://assets/units/hero_e.svg",
-			"blurb": "Kẻ cầm đầu quân giặc trong mọi trận. Có thuyền lầu theo hầu: đi được trên sông.",
+			"blurb": "Kẻ cầm đầu quân giặc trong mọi trận. Cùng sức với tướng ta.",
 		},
 	},
 	"people": {

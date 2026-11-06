@@ -15,7 +15,6 @@ const DEF := {
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },
 	"win": { "type": "rout" },
-	"heroMustLive": true,
 	"map": {
 		"rows": [
 			"......fff~~",
@@ -53,6 +52,6 @@ const DEF := {
 		"Bấm [b]Anh hùng[/b] (viền vàng): ô xanh là chỗ đi được, kẻ địch viền đỏ là đánh được.",
 		"Rê chuột lên lính Hán viền đỏ: bàn cờ hiện đường đi và [b]⚔ gây · ↩ nhận[/b]. [b]Bấm là đánh.[/b] Muốn chọn chỗ đứng: bấm ô xanh trước rồi bấm địch.",
 		"Lính đứng trên làng rồi bấm [b]Chiếm[/b]: làng của ta hồi 20 máu mỗi lượt.",
-		"Anh hùng ngã là thua. Ra lệnh xong cho cả đội thì bấm [b]Hết lượt[/b].",
+		"Đòn đánh trúng nhiều hay ít tùy may. Ra lệnh xong cho cả đội thì bấm [b]Hết lượt[/b].",
 	],
 }

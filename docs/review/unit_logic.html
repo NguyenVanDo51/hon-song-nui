@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soát logic quân</title>
+<style>
+:root{
+  --bg:#fbfaf7; --fg:#22201c; --muted:#6b665d; --line:#ddd7cc; --card:#ffffff; --head:#f1ede4;
+  --big:#b3261e; --big-bg:#fbe9e7; --mid:#9a6200; --mid-bg:#fdf1dc; --small:#3d6b35; --small-bg:#e8f2e5;
+  --accent:#7a2219; --code:#f3efe8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16171a; --fg:#e8e5df; --muted:#a39e94; --line:#34363b; --card:#1e2024; --head:#26282d;
+    --big:#ff8a80; --big-bg:#3a1f1d; --mid:#f2b45a; --mid-bg:#3a2e17; --small:#9ccf8f; --small-bg:#1f3020;
+    --accent:#f0a07c; --code:#2a2c31;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16171a; --fg:#e8e5df; --muted:#a39e94; --line:#34363b; --card:#1e2024; --head:#26282d;
+  --big:#ff8a80; --big-bg:#3a1f1d; --mid:#f2b45a; --mid-bg:#3a2e17; --small:#9ccf8f; --small-bg:#1f3020;
+  --accent:#f0a07c; --code:#2a2c31;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 64px}
+h1{font-size:1.6rem;margin:.2em 0 .1em;color:var(--accent)}
+h2{font-size:1.2rem;margin:2em 0 .5em;padding-bottom:.25em;border-bottom:2px solid var(--line)}
+h3{font-size:1.02rem;margin:1.3em 0 .4em}
+p,li{max-width:80ch}
+.muted{color:var(--muted);font-size:.9rem}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top;text-align:left}
+th{background:var(--head);font-weight:600;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+code{background:var(--code);padding:1px 4px;border-radius:4px;font-size:.86em;word-break:break-word}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.78rem;font-weight:600;white-space:nowrap}
+.big{color:var(--big);background:var(--big-bg)}
+.mid{color:var(--mid);background:var(--mid-bg)}
+.small{color:var(--small);background:var(--small-bg)}
+.box{border:1px solid var(--line);border-left:4px solid var(--accent);background:var(--card);border-radius:8px;padding:12px 16px;margin:12px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+ol li,ul li{margin:.25em 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Soát logic quân: Hồn Sông Núi ↔ Ancient Empires II</h1>
+<p class="muted">Đọc repo tại commit <code>256750f</code>, ngày 2026-11-06. Chỉ đọc, không sửa mã. Số AE2 lấy từ <code>docs/review/rules_compare.html</code> (rút từ <code>units.bin</code> bản J2ME + fandom wiki), không tải lại. Fandom/tl.net chặn tải (402/403), nên phần web chỉ dựa vào kết quả tìm kiếm.</p>
+
+<div class="box">
+<b>Trả lời nhanh:</b> "Kỵ binh" (mã nội bộ <code>bird</code>) là bản chuyển thể của <b>Dragon trong AE2</b> (ở AE1 là Wyvern, AE2 thay bằng Dragon với khả năng y hệt). Code vẫn để lớp đi <code>"fly"</code>: mọi ô chỉ tốn 1, kể cả <b>sông, núi, rừng</b>, và quân này <b>không bao giờ được thủ địa hình</b>, kể cả khi đứng trong thành. Lời mô tả trong game nói đúng với code, nhưng chính luật thì vô lý với một con ngựa.
+</div>
+
+<h2>(a) Bảng đối chiếu quân ta ↔ AE2</h2>
+<div class="wrap"><table>
+<tr><th>Mã</th><th>Tên trong game</th><th>Gốc AE2</th><th>Luật gốc AE2 (đã biết)</th><th>Luật của mình (<code>rules.gd</code>)</th><th>Độ tin</th></tr>
+<tr><td><code>hero</code></td><td>Anh hùng / Tướng giặc</td><td>Commander (Galamar, Valadorn…)</td><td>55–65 / 20 / đi 5; đi như bộ binh; chiếm nhà + thành</td><td>60 hoặc 65 / 20 / 5. Anh hùng dùng lớp <code>mount</code> (đồi, núi tốn 1, đứng đồi/núi +10 thủ). Tướng giặc dùng lớp <code>water</code> (đi trên sông). <code>rules.gd:39-40</code></td><td>units.bin (A). Lớp đi riêng là cơ chế mình tự thêm.</td></tr>
+<tr><td><code>soldier</code></td><td>Bộ binh</td><td>Soldier</td><td>50–55 / 5 / 5; chiếm nhà</td><td>50 / 10 / 4, <code>capV</code></td><td>A</td></tr>
+<tr><td><code>archer</code></td><td>Nỏ thủ</td><td>Archer</td><td>Tầm 1–2; +15 công khi đánh quân bay. Tìm web: "Keep your Dragons away from enemy archers"</td><td>Tầm 1–2; <code>antiAir: 20</code>, cộng khi mục tiêu có <code>move=="fly"</code></td><td>Mức +15 lấy từ mã mod (B) + wiki. Mức chính xác ở bản gốc chưa xác nhận.</td></tr>
+<tr><td><code>drum</code></td><td>Trống trận</td><td>Wisp</td><td>Hào quang +10 công cho quân cách 1–2 ô; +15 khi đánh Skeleton</td><td>Quân kề bên (1 ô) +10 công (<code>aura</code>)</td><td>B (mã mod) + lang.txt</td></tr>
+<tr><td><code>shaman</code></td><td>Thầy lang</td><td>Sorceress (AE1: Wizard)</td><td>Gọi xương từ mộ kề bên. Tầm 1, không bỏ qua địa hình</td><td>Tầm 1–2, <code>magic</code> (bỏ qua thủ địa hình), <code>raise</code></td><td>Việc gọi xương xác nhận qua web (A). Tầm đánh lấy từ units.bin.</td></tr>
+<tr><td><code>elephant</code></td><td>Voi chiến</td><td>Golem</td><td>60–70 / 30 / 5; lên núi được (tốn 3, theo mã mod)</td><td>65 / 25 / 3; lớp <code>heavy</code>: không lên núi</td><td>A</td></tr>
+<tr><td><code>bird</code></td><td><b>Kỵ binh</b> 🐎</td><td><b>Dragon</b> (AE1: Wyvern)</td><td>70–80 / 25 / 7; bay: mọi ô tốn 1, kể cả nước và núi; archer đánh thêm. Có được thủ địa hình hay không: chưa xác nhận (mã mod nói có)</td><td>60 / 15 / 7; lớp <code>fly</code>: mọi ô tốn 1, thủ địa hình = 0 ở mọi ô</td><td>A. Phần thủ địa hình chưa xác nhận.</td></tr>
+<tr><td><code>catapult</code></td><td>Máy bắn đá</td><td>Catapult</td><td>Tầm 2–4; đã đi thì không bắn; không đánh trả; phá được nhà</td><td>Giống, thêm <code>heavy</code> (không lên núi)</td><td>A</td></tr>
+<tr><td><code>ghost</code></td><td>Thương binh</td><td>Skeleton</td><td>40–50 / 2 / 5; không mua được; không để mộ</td><td>40 / 5 / 4; <code>noGrave</code>, <code>buyable:false</code></td><td>A</td></tr>
+<tr><td>—</td><td><i>(không có)</i></td><td>Elemental (AE1: Lizard)</td><td>Lội nước: trong nước đi tốn 1, +10 công, +15 thủ. Web: "amphibious… increased movement, attack and defense when in water"</td><td>Không có quân nào. Chỉ Tướng giặc đi được trên sông.</td><td>A</td></tr>
+<tr><td>—</td><td><i>(không có)</i></td><td>Dire Wolf (AE1: Spider)</td><td>Cắn gây độc (−10 công, −10 thủ)</td><td>Không có</td><td>A</td></tr>
+</table></div>
+<p class="muted">Một khác biệt nền tảng: ở AE2 mọi quân đều lội nước được (tốn 3, thủ 0; theo mã mod, kết quả tìm web cũng nói tương tự: "cannot move through water more than 1 space at a time, apart from dragons"). Ở game mình sông <code>~</code> là tường chắn (<code>cost: INF</code>, <code>rules.gd:11</code>). Vì vậy cái quân "đi mọi ô tốn 1" của mình lại là quân <b>duy nhất</b> mua được mà vượt được sông. Vai trò này lớn hơn ở game gốc nhiều.</p>
+
+<h2>(b) "Kỵ binh" chi tiết</h2>
+<div class="grid">
+<div class="box"><b>Code thực tế</b>
+<ul>
+<li><code>rules.gd:30</code>: <code>bird</code> 600 vàng, công 60, thủ 15, đi 7, tầm 1, <code>move:"fly"</code></li>
+<li><code>game.gd:130-131</code>: <code>fly</code> tốn 1 <b>mọi ô</b>, chạy trước cả kiểm tra nước, núi và lớp nặng</li>
+<li>Sông <code>~</code>: 1 (quân bộ: không qua được). Núi <code>m</code>: 1 (bộ: 3). Rừng <code>f</code>: 1 (bộ: 2). Đồi: 1 (bộ: 2)</li>
+<li><code>game.gd:243-244</code>: <code>fly</code> có thủ địa hình = 0 ở <b>mọi ô</b>, kể cả làng (+15) và thành (+20)</li>
+<li><code>game.gd:254-255</code>: quân có <code>antiAir</code> được +20 công khi mục tiêu có <code>move=="fly"</code>. Hiện chỉ Nỏ thủ có cờ này</li>
+<li>Kỵ binh đứng giữa sông, đánh và bị đánh từ ô nước được</li>
+</ul></div>
+<div class="box"><b>Hình và chữ</b>
+<ul>
+<li>Hình chibi <code>bird_p.svg</code>: lính cầm giáo cưỡi ngựa nâu, nên hình khớp với tên</li>
+<li>3D <code>board3d.gd:33</code>: <code>Rogue.glb</code> cầm 2 dao găm, <b>không có ngựa</b></li>
+<li><code>theme.gd:14</code>: "mọi ô chỉ tốn 1, lội được sông… không được địa hình che". Câu này khớp code nhưng không nhắc tới núi</li>
+<li><code>guide.gd:25</code> và <code>content.gd:161</code>: "vượt (cả) sông núi". Khớp code, nhưng đây chính là chỗ vô lý</li>
+<li><code>menus.gd:635</code>: cột lớp đi trong Sách lính ghi <code>fly</code> = "Kỵ"</li>
+</ul></div>
+</div>
+<p><b>Kết luận:</b> chữ không sai so với code. Cái sai là <b>luật</b>: nó giữ nguyên con rồng bay của AE2 rồi khoác lên một con ngựa. Xếp theo mức vô lý:</p>
+<ol>
+<li><b>Núi tốn 1</b>, nhanh như đi đường. Ngựa không thể phi qua núi đá. m11 là trận giữ ải núi, và tên Lưu Long còn nói "qua núi còn nhanh hơn ngựa" (<code>m11.gd:36</code>).</li>
+<li><b>Sông và biển tốn 1, rộng bao nhiêu cũng qua.</b> m06 có lòng sông rộng 5 ô. <code>~</code> còn dùng cho cửa biển (m09 Hợp Phố, m10 An Biên) và sông Hát (m16, "sau lưng là sông Hát", nhưng sóng quân địch lại có kỵ binh). Lời "lội chỗ cạn" trong m06 không có ô "chỗ cạn" nào làm chỗ dựa.</li>
+<li><b>Rừng tốn 1</b>, trong khi ngựa trong rừng rậm phải chậm hơn bộ binh chứ không nhanh hơn.</li>
+<li><b>Đứng trong thành hay làng vẫn thủ 0.</b> Luật "không được che" hợp với quân bay, không hợp với ngựa đứng sau tường thành.</li>
+<li><b>Lịch sử:</b> phía Hai Bà gần như không có kỵ binh. Lạc Việt mạnh về voi, thuyền, nỏ. Mã Viện thì có kỵ binh. Lời "Khinh kỵ của ta" (<code>m06.gd:51</code>) gượng, nhưng ở mức chấp nhận được vì hai phe dùng chung một bộ quân.</li>
+</ol>
+
+<h2>(c) Mọi điểm phi logic</h2>
+<p class="muted">Mức: <span class="tag big">lớn</span> = luật trái hẳn tên/hình, người chơi thấy ngay. <span class="tag mid">vừa</span> = chữ mâu thuẫn chữ/code, hoặc vai trò gượng. <span class="tag small">nhỏ</span> = chi tiết lịch sử, hình 3D, tên nội bộ.</p>
+<div class="wrap"><table>
+<tr><th>#</th><th>Quân</th><th>Mức</th><th>Vấn đề</th><th>Bằng chứng</th><th>Đề xuất sửa</th></tr>
+
+<tr><td>1</td><td>Kỵ binh</td><td><span class="tag big">lớn</span></td><td>Ngựa vượt núi, núi tốn 1 như đường</td><td><code>game.gd:130-131</code>, <code>rules.gd:30</code>, <code>guide.gd:25</code>, <code>content.gd:161</code></td><td>Tạo lớp đi mới <code>horse</code>: núi = INF (không lên được). Xem mục (d) bước 1.</td></tr>
+<tr><td>2</td><td>Kỵ binh</td><td><span class="tag big">lớn</span></td><td>Lội mọi khúc sông hay biển, rộng bao nhiêu cũng qua, tốn 1 ô/bước</td><td><code>game.gd:130-131</code>, <code>theme.gd:14</code>, map <code>m06.gd:24-33</code>, sóng quân <code>m16.gd:35-39</code></td><td>A: <code>horse</code> + sông = INF, chỉ qua bằng cầu. B: thêm ô "bãi cạn" (ví dụ <code>_</code>), thủ 0, ngựa tốn 2, bộ binh tốn 3, voi tốn 2, đặt vào m06 cho đúng lời "lội chỗ cạn".</td></tr>
+<tr><td>3</td><td>Kỵ binh</td><td><span class="tag mid">vừa</span></td><td>Rừng và đồi chỉ tốn 1</td><td><code>game.gd:130-131</code></td><td><code>horse</code>: đường, đồng, cầu, làng, thành tốn 1; đồi tốn 2; rừng tốn 3. Vẫn giữ đi 7, nên trên đường vẫn là quân nhanh nhất.</td></tr>
+<tr><td>4</td><td>Kỵ binh</td><td><span class="tag mid">vừa</span></td><td>Thủ địa hình = 0 cả trong thành và làng</td><td><code>game.gd:243-244</code></td><td>Cho <code>horse</code> nhận thủ làng/thành như thường. Có thể giữ 0 ở rừng/đồi ("ngựa không núp được"). Ở AE2 chuyện này chưa xác nhận, nên mình được tự chọn.</td></tr>
+<tr><td>5</td><td>Kỵ binh</td><td><span class="tag small">nhỏ</span></td><td>Tên nội bộ <code>bird</code>/<code>fly</code>/<code>antiAir</code>; Sách lính ghi lớp "fly" là "Kỵ"</td><td><code>rules.gd:19-30</code>, <code>menus.gd:635</code></td><td>Đổi khi làm bước 1: <code>antiAir</code> → <code>antiCav</code>, lớp <code>horse</code> → nhãn "Ngựa". Giữ mã <code>bird</code> cho khỏi vỡ bản lưu, hoặc tăng <code>STATE_V</code>.</td></tr>
+<tr><td>6</td><td>Kỵ binh</td><td><span class="tag small">nhỏ</span></td><td>3D: tên trộm cầm 2 dao, không có ngựa (dù có sẵn hàm <code>_rider</code> dựng ngựa bằng code)</td><td><code>board3d.gd:33</code>, <code>pieces.gd:45-46</code></td><td>Bỏ <code>bird</code> khỏi <code>ROSTER</code> để dùng <code>_rider</code>, hoặc tìm model có ngựa.</td></tr>
+<tr><td>7</td><td>Kỵ binh</td><td><span class="tag small">nhỏ</span></td><td>Lịch sử: kỵ binh phía Hai Bà rất hiếm</td><td><code>m06.gd:51</code> "Khinh kỵ của ta"</td><td>Giữ nguyên, vì hai phe dùng chung bộ quân. Có thể sửa lời m06 thành "ngựa cướp được của Hán".</td></tr>
+
+<tr><td>8</td><td>Thầy lang</td><td><span class="tag mid">vừa</span></td><td>Vai trò mâu thuẫn: <i>thầy thuốc</i> lại là quân bắn xa 2 ô, đòn xuyên thủ thành/rừng. Chữ lệch nhau: "tên tẩm thuốc" (theme) và "tên độc" (m05). Hình là ông lão cầm bầu thuốc và gậy lá, <b>không có cung</b>; đạn bay là <code>orb</code> (quả cầu phép); 3D là Mage có gậy phép</td><td><code>theme.gd:12</code>, <code>m05.gd:60</code>, <code>rules.gd:28</code> (<code>shot:"orb"</code>, <code>magic</code>), <code>board3d.gd:31</code></td><td>A (khuyên làm): đổi thành <b>Thầy mo / Thầy pháp</b>: đòn "bùa phép" xuyên che chắn thì hợp lý, đạn <code>orb</code> và hình gậy hợp. Đồng thời đổi Thương binh → <b>Âm binh</b> (thầy pháp sai âm binh, có trong tín ngưỡng dân gian Việt). B: giữ "Thầy lang", đổi lời thành "ném lọ thuốc độc", tầm 1–2, bỏ <code>magic</code>. Cách này làm yếu quân, nên phải chỉnh giá.</td></tr>
+<tr><td>9</td><td>Thầy lang</td><td><span class="tag small">nhỏ</span></td><td>"Cứu thương" được cả lính <b>Hán</b> ngã, rồi lính ấy chiến đấu cho ta</td><td><code>game.gd:313-315</code> (không kiểm phe của mộ)</td><td>Nếu chọn hướng A (Âm binh): hợp lý, vì gọi hồn ai cũng được. Nếu giữ Thầy lang: chỉ cho cứu mộ phe mình (cần lưu <code>side</code> trong grave). Cách này lệch AE2 (J4).</td></tr>
+<tr><td>10</td><td>Thương binh</td><td><span class="tag small">nhỏ</span></td><td>"Thương binh" mà dậy với 100 máu, công 40. Ở 3D lại là bộ xương <code>Skeleton_Minion</code></td><td><code>game.gd:410</code> → <code>spawn</code> hp 100 (<code>game.gd:75</code>), <code>board3d.gd:34</code></td><td>Cho ra đời với máu 50 (<code>spawn(..., {"hp":50})</code>), hoặc đổi tên thành Âm binh (xem #8). Đổi model 3D.</td></tr>
+
+<tr><td>11</td><td>Máy bắn đá</td><td><span class="tag mid">vừa</span></td><td>Tên không thống nhất: mua lính hiện "Máy bắn đá", nhưng m07 giới thiệu nó là "Nỏ liên châu, một lần bắn nhiều mũi"; m08 dặn "nỏ liên châu phía sau"; m15 lại gọi "máy bắn đá"</td><td><code>theme.gd:15</code>, <code>m07.gd:53,59</code>, <code>m08.gd:69</code>, <code>m15.gd:43,50</code></td><td>A: giữ "Máy bắn đá" (máy ném đá kéo tay thời Hán có thật), sửa chữ ở m07/m08. B: đổi cả quân thành <b>Nỏ liên châu</b> (hợp truyền thuyết Cổ Loa, hợp phe ta): <code>shot:"arrow"</code>, phá làng = "tên lửa đốt làng"; sửa chữ ở m15.</td></tr>
+<tr><td>12</td><td>Máy bắn đá</td><td><span class="tag small">nhỏ</span></td><td>Phía Lạc Việt năm 40 có máy bắn đá thì gượng</td><td><code>m07.gd:16-17</code> (ta mua được)</td><td>Đi theo #11 B. Hoặc giữ nguyên vì đây là luật game.</td></tr>
+
+<tr><td>13</td><td>Voi chiến</td><td><span class="tag small">nhỏ</span></td><td>Voi <b>không</b> qua được sông, trong khi ngựa qua được. Ngoài đời ngược lại: voi lội và bơi giỏi</td><td><code>game.gd:133-134</code>, <code>m10.gd:42</code></td><td>Nếu thêm ô bãi cạn (#2 B): cho voi lội bãi cạn. Không cần cho voi qua sông sâu.</td></tr>
+<tr><td>14</td><td>Voi chiến</td><td><span class="tag small">nhỏ</span></td><td>Quân Đông Hán có voi chiến (không có sử liệu). Ở m04 lời thoại phe ta khoe "voi rừng đã thuần, kích Hán đâm không thủng", nhưng địch cũng được mua voi</td><td><code>m04.gd:15,48</code>; voi địch ở m07, m08, m10, m11</td><td>Bỏ <code>elephant</code> khỏi <code>allowed.e</code> và quân đặt sẵn ở các màn chiến dịch. Thay bằng bộ binh lên cấp. Skirmish giữ đối xứng.</td></tr>
+<tr><td>15</td><td>Voi chiến</td><td><span class="tag small">nhỏ</span></td><td>3D là người rợ cầm rìu 2 tay, không có voi</td><td><code>board3d.gd:32</code></td><td>Dùng <code>_elephant</code> code-built (<code>pieces.gd:43-44</code>).</td></tr>
+
+<tr><td>16</td><td>Trống trận</td><td><span class="tag small">nhỏ</span></td><td>Tên lệch nhau: "Trống trận" (theme) và "Trống đồng" (m03, m08). Người vác trống đồng (nặng hàng chục kg) lại đi 5, nhanh hơn Bộ binh (đi 4)</td><td><code>theme.gd:11</code>, <code>m03.gd:52,55,59</code>, <code>m08.gd:69</code>, <code>rules.gd:27</code></td><td>Thống nhất tên (khuyên dùng "Trống đồng", rất Đông Sơn). Đi 5 → 4.</td></tr>
+
+<tr><td>17</td><td>Nỏ thủ</td><td><span class="tag small">nhỏ</span></td><td>Tên luật <code>antiAir</code> (chống quân bay) dùng cho đòn đánh ngựa. Chữ người chơi thấy đã là "+20 công khi đánh kỵ binh". Nỏ khắc kỵ có thật trong lịch sử (nỏ Hán chống kỵ Hung Nô). 3D cầm cung, không phải nỏ</td><td><code>rules.gd:26</code>, <code>content.gd:148-149</code>, <code>game_screen.gd:1535-1536</code>, <code>board3d.gd:29</code></td><td>Chỉ đổi tên cờ. Luật giữ nguyên. Lưu ý: nếu đổi lớp đi của ngựa, <code>game.gd:254</code> phải nhắm lớp mới, không thì mất thưởng.</td></tr>
+<tr><td>18</td><td>Bộ binh</td><td><span class="tag small">nhỏ</span></td><td>Lời tả "Lính cầm giáo" và hình chibi cầm giáo đều khớp. 3D cầm kiếm + khiên</td><td><code>theme.gd:9</code>, <code>board3d.gd:28</code></td><td>Đổi vũ khí 3D thành giáo (nếu kit có).</td></tr>
+
+<tr><td>19</td><td>Anh hùng</td><td><span class="tag small">nhỏ</span></td><td>"Quen đất trung du" (trung du là vùng đồi), nhưng núi đá cũng chỉ tốn 1, ngang đồng lúa. Lại cộng thêm +10 thủ trên núi, nên tướng mình là quân núi mạnh nhất</td><td><code>rules.gd:39</code>, <code>game.gd:137-138</code>, <code>theme.gd:138</code></td><td>Núi tốn 2 (đồi vẫn 1). Hoặc sửa lời thành "quen rừng núi".</td></tr>
+<tr><td>20</td><td>Anh hùng</td><td><span class="tag small">nhỏ</span></td><td>Truyện là Trưng Trắc (nữ; m13 gọi "Bà ngã là thua"; theo sử, Hai Bà cưỡi voi), nhưng hình là hiệp sĩ mũ chóp lông kiểu Âu. 3D dùng <code>Knight.glb</code></td><td><code>hero_p.svg</code>, <code>board3d.gd:35</code>, <code>m13.gd:49</code></td><td>Chỉ sửa hình (búi tóc, áo giáp Đông Sơn). Không đụng luật.</td></tr>
+<tr><td>21</td><td>Tướng giặc</td><td><span class="tag small">nhỏ</span></td><td>"Có thuyền lầu theo hầu: đi được trên sông". Lâu thuyền là chiến thuyền nhiều tầng, vậy mà đi từng ô trên lạch rộng 1 ô, lên bờ không mất thêm bước, đứng giữa sông thủ 0. Hình là mũ sừng + rìu kiểu Viking</td><td><code>rules.gd:40</code>, <code>game.gd:133-134</code>, <code>theme.gd:145</code>, <code>hero_e.svg</code>, <code>board3d.gd:36</code></td><td>Lời: "thuyền nhẹ" thay cho "thuyền lầu". Có lý do lịch sử (Mã Viện đem 2000 thuyền), nên giữ luật. Hình: giáp vảy + kích (戟) kiểu Hán.</td></tr>
+
+<tr><td>22</td><td>Chữ màn chơi</td><td><span class="tag mid">vừa</span></td><td>m10 dặn "chỉ kỵ binh lội được sông", nhưng ở m10 không phe nào được mua kỵ binh. Đây cũng là trận thủy chiến (Lê Chân luyện thủy binh) mà không có thuyền nào</td><td><code>m10.gd:12,42</code>, <code>m10.gd:33-35</code></td><td>Sửa tip thành "chỉ Tướng giặc đi được trên sông". Về lâu dài, thêm quân thuyền (xem (d) bước 2).</td></tr>
+<tr><td>23</td><td>Chữ màn chơi</td><td><span class="tag small">nhỏ</span></td><td>Lưu Long: "qua núi còn nhanh hơn ngựa". Theo luật hiện tại thì ngựa lại qua núi nhanh nhất</td><td><code>m11.gd:36</code></td><td>Sẽ tự đúng sau khi làm #1.</td></tr>
+</table></div>
+
+<h2>(d) Đề xuất ưu tiên</h2>
+<ol>
+<li><b>Kỵ binh → lớp đi <code>horse</code></b> (sửa #1–#4, #17, #23). Bảng tốn bước: <code>. r = v c x</code> = 1, <code>h</code> = 2, <code>f</code> = 3, <code>m</code> = INF, <code>~</code> = INF. Được thủ làng/thành; giữ 0 ở rừng/đồi nếu muốn. Giữ công 60, thủ 15, đi 7. Giá 600 → khoảng 500, vì quân mất khả năng vượt địa hình.
+  <br><span class="muted">Chỗ phải sửa: <code>game.gd:127-139</code> (move_cost), <code>game.gd:243</code> (terrain_def), <code>game.gd:254</code> (antiAir → lớp mới), <code>ai.gd:146</code> (danh sách lớp viết cứng: lớp mới sẽ âm thầm thành "foot"), <code>ai.gd:218,231</code> (thiên hướng mua nỏ theo "fly"), <code>content.gd:161,247</code> (trait + ghi chú ô sông), <code>menus.gd:635</code>, <code>theme.gd:14</code>, <code>guide.gd:25</code>, tip <code>m06.gd:57-58</code>, <code>m10.gd:42</code>. Màn bị ảnh hưởng: m06 (dựng quanh kỵ binh), m07, m08, m12, cùng sóng quân địch m13, m14, m15, m16. <code>sim/legacy/rules.gd:28</code> đã đóng băng nên kiểm tra khớp JS vẫn chạy, nhưng trace 160 ván chiến dịch sẽ lệch. Cần chạy lại <code>sim/path_check.gd</code> (sóng kỵ binh phải có đường tới) và AI-đấu-AI.</span></li>
+<li><b>Trả lại vai trò "vượt sông"</b>, vì sau bước 1 không còn quân mua được nào qua sông:
+  <ul>
+  <li>Thêm ô <b>bãi cạn</b> (lội được: ngựa 2, voi 2, bộ 3) cho m06 ("lội chỗ cạn") và m16 nếu cần.</li>
+  <li>Và/hoặc thêm quân <b>Thuyền chiến (ghe chiến / thuyền nan)</b>, lấp chỗ trống Elemental của AE2: cần lớp đi <b>mới</b> <code>boat</code>: chỉ đi trên <code>~</code> và <code>=</code>, ô khác = INF. Không dùng lại <code>water</code>, vì <code>water</code> là lớp lội nước, đi bộ được trên cạn (<code>game.gd:133-134</code>), là lớp của Tướng giặc. Thuyền đánh lên bờ tầm 1 (hoặc 1–2 nếu chở nỏ), không chiếm làng. Hợp với Lê Chân ở m10, Hợp Phố ở m09, sông Hát ở m16.</li>
+  </ul></li>
+<li><b>Sửa chữ lệch</b> (rẻ, không đổi cân bằng): #22 tip m10; #11 Máy bắn đá / Nỏ liên châu (chọn 1 tên); #16 Trống trận / Trống đồng; #8 "tẩm thuốc" / "tên độc".</li>
+<li><b>Thầy lang → Thầy mo / Thầy pháp, Thương binh → Âm binh</b> (#8–#10): luật giữ nguyên (<code>magic</code>, <code>raise</code>, gọi mộ hai phe), chỉ đổi tên, lời và hình cho khớp luật.</li>
+<li><b>Lặt vặt</b>: Trống đi 4; Anh hùng tốn 2 trên núi; bỏ voi khỏi phe Hán trong chiến dịch; model 3D cho kỵ binh, voi, thương binh; hình hai tướng.</li>
+</ol>
+
+<div class="box">
+<b>Không nên:</b> giữ một quân bay (Chim Lạc thần) cho phe ta. Đây là hướng thứ hai đã cân nhắc. Chim Lạc có trên trống đồng nên hợp về biểu tượng, nhưng bộ quân dùng chung cho hai phe, nên quân Hán cũng sẽ có Chim Lạc. Game ngoài phần pháp sư ra vốn bám sử, nên thêm quái vật bay sẽ lệch giọng. Nếu vẫn muốn giữ con quân xuyên bản đồ thì chọn Thuyền chiến (bước 2) là vừa đúng sử vừa đúng khuôn AE2.
+</div>
+
+<h2>Chưa xác nhận</h2>
+<ul>
+<li>Dragon AE2 có được thủ địa hình hay không: mã mod (B) nói có, bản gốc chưa kiểm.</li>
+<li>Thưởng của Archer khi đánh quân bay ở bản gốc có đúng +15 không (theo mã mod và wiki).</li>
+<li>Hào quang Wisp tầm 1–2 và +15 khi đánh Skeleton: lấy từ mã mod (B).</li>
+<li>"Dragon không bị địa hình cản" mới chỉ có lời người chơi (forum); trong units.bin mới thấy mức đi 7.</li>
+<li>Chưa chạy game hay sim nào cho báo cáo này. Mọi kết luận về luật đều đọc từ mã nguồn.</li>
+</ul>
+<p class="muted">Nguồn web: <a href="https://en.wikipedia.org/wiki/Ancient_Empires_(series)">Wikipedia: Ancient Empires (series)</a> · <a href="https://ancient-empires.fandom.com/wiki/Ancient_Empires_2">Ancient Empires wiki: AE2</a> (chỉ đọc qua kết quả tìm kiếm) · <a href="https://tl.net/forum/games/68295-ancient-empires-ii">tl.net: Ancient Empires II</a> (chỉ đọc qua kết quả tìm kiếm) · <code>docs/review/rules_compare.html</code> (báo cáo trước trong repo).</p>
+</main>
+</body>
+</html>

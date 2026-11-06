@@ -9,10 +9,9 @@ const DEF := {
 	"history": "Sau Lãng Bạc, quân Hai Bà rút về Cấm Khê, vùng núi thuộc Ba Vì ngày nay, để giữ lực lượng. Mã Viện bám theo không rời.",
 	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": { "p": ["soldier", "archer", "drum"], "e": [] },
-	"gold": { "p": 300, "e": 0 },
-	"win": { "type": "reach", "at": [[1, 2]], "turns": 10 },
-	"heroMustLive": true,
+	"allowed": { "p": ["soldier", "archer", "boat", "drum"], "e": [] },
+	"gold": { "p": 400, "e": 0 },
+	"win": { "type": "reach", "at": [[1, 2]], "turns": 13 },
 	"map": { "rows": [
 		"..h.....~~..fmh.",
 		"....f...~~..hmm.",
@@ -32,9 +31,9 @@ const DEF := {
 		["e", "archer", 3, 2, { "guard": true }], ["e", "soldier", 4, 4], ["e", "soldier", 5, 6],
 	],
 	"waves": [
-		{ "turn": 4, "units": [["bird", 15, 0], ["soldier", 15, 2]] },
+		{ "turn": 4, "units": [["wolf", 15, 0], ["soldier", 15, 2]] },
 		{ "turn": 7, "units": [["elephant", 15, 6], ["soldier", 2, 0], ["archer", 4, 1]] },
-		{ "turn": 10, "units": [["bird", 15, 9], ["soldier", 6, 9]] },
+		{ "turn": 10, "units": [["wolf", 15, 9], ["soldier", 6, 9]] },
 	],
 	"story": {
 		"intro": [
@@ -45,8 +44,8 @@ const DEF := {
 		"outro": [["trungnhi", "Đã về tới Cấm Khê. Ở đây có núi làm thành, ta còn đánh được lâu."]],
 	},
 	"tips": [
-		"Mục tiêu: đưa [b]Anh hùng[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 10 lượt.",
-		"Chỉ có 3 cây cầu qua sông. Cầu hẹp: một lính đứng chặn là cả đoàn phải chờ.",
-		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Anh hùng chờ quá lâu.",
+		"Mục tiêu: đưa [b]Anh hùng[/b] về [b]thành Cấm Khê[/b] (cờ vàng, góc tây bắc) trong 13 lượt.",
+		"Có 3 cây cầu. Lội sông cũng được nhưng tốn 3 bước, dưới nước không được thủ. Cầu hẹp: một lính đứng chặn là cả đoàn phải chờ hoặc xuống nước.",
+		"Mua lính ở thành phía đông để cản hậu, nhưng đừng để Anh hùng chờ quá lâu. Chó săn của giặc chạy rất nhanh.",
 	],
 }

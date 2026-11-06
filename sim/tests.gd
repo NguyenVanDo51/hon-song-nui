@@ -1,5 +1,5 @@
 extends SceneTree
-## headless tests (port of tests/*.test.cjs): <godot> --headless --path . -s sim/tests.gd   -> exit code 1 on failure
+## headless tests: <godot> --headless --path . -s sim/tests.gd   -> exit code 1 on failure
 
 var failed := 0
 var passed := 0
@@ -17,6 +17,7 @@ func eq(a: Variant, b: Variant, msg := "") -> void:
 func run(name: String, fn: Callable) -> void:
 	_cur = name
 	_ok = true
+	Game.fixed_roll = -1.0
 	fn.call()
 	if _ok:
 		passed += 1
@@ -289,68 +290,110 @@ func rule_tests() -> void:
 		eq([u.x, u.y], [1, 1], "position after bad raise")
 		eq(s.units.size(), n, "no unit spawned")
 	)
-	run("raising respects the unit cap", func() -> void:
+	run("AE2: raised ghosts ignore the unit cap and do not count toward it", func() -> void:
 		var s := blank([["p", "shaman", 1, 1], ["e", "soldier", 4, 4]])
 		s.graves = [{ "x": 2, "y": 1, "ttl": 2 }]
 		s.unitCap = 1
-		eq(Game.raisable_graves(s, s.units[0], 1, 1).size(), 0, "at cap")
-		s.unitCap = 5
-		eq(Game.raisable_graves(s, s.units[0], 1, 1).size(), 1, "under cap")
+		eq(Game.raisable_graves(s, s.units[0], 1, 1).size(), 1, "raise at cap")
+		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "raise", "target": [2, 1] })
+		eq(Game.cap_count(s, "p"), 1, "ghost not counted")
 	)
-	run("graves expire after graveRounds full rounds", func() -> void:
+	run("AE2 graves: ttl 3, down 1 at every side's turn start; stepping on one clears it", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
 		s.graves = [{ "x": 3, "y": 3, "ttl": Rules.RULES.graveRounds }]
-		for i in Rules.RULES.graveRounds * 2:
-			check(s.graves.size() == 1, "grave still there after %d half-turns" % i)
-			Game.end_turn(s)
-		eq(s.graves.size(), 0, "grave gone")
+		Game.end_turn(s); Game.end_turn(s)
+		eq(s.graves.size(), 1, "alive after 2 half-turns")
+		Game.end_turn(s)
+		eq(s.graves.size(), 0, "gone after 3")
+		s.graves = [{ "x": 2, "y": 1, "ttl": 3 }]
+		s.side = "p"
+		s.units[0].acted = false
+		Game.do_action(s, { "id": 1, "to": [2, 1], "kind": "wait" })
+		eq(s.graves.size(), 0, "stepped on")
 	)
-	run("income uses incomeMul, rounded to 10", func() -> void:
+	run("AE2 income: village 30, castle 50", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
-		s.incomeMul = { "p": 1, "e": 0.55 }
 		s.tiles[0][3] = "v"
 		s.owner[Vector2i(3, 0)] = "e"
-		var base: int = Rules.RULES.incomeCastle + Rules.RULES.incomeVillage
-		eq(Game.income(s, "e"), int(round(base * 0.55 / 10.0)) * 10, "e income")
-		eq(Game.income(s, "p"), Rules.RULES.incomeCastle, "p income untouched")
+		eq(Game.income(s, "e"), 80)
+		eq(Game.income(s, "p"), 50)
 	)
-	run("damage = (atk - def - terrain) scaled by attacker hp", func() -> void:
+	run("AE2 damage: (roll atk..atkMax + bonus - def - terrain) x hp / 100, floor, >= 0", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1]])
 		var a: Dictionary = s.units[0]
 		var d: Dictionary = s.units[1]
-		eq(Game.damage(s, a, 1, 1, 100, d), 40)
-		eq(Game.damage(s, a, 1, 1, 50, d), 20)
+		eq(Game.damage(s, a, 1, 1, 100, d, 0.0), 40) # 50 - 5 def - 5 field
+		eq(Game.damage(s, a, 1, 1, 100, d, 0.999), 45) # 55 - 10
+		eq(Game.damage(s, a, 1, 1, 50, d, 0.0), 20)
 		s.tiles[1][2] = "f"
-		eq(Game.damage(s, a, 1, 1, 100, d), 30)
+		eq(Game.damage(s, a, 1, 1, 100, d, 0.0), 35)
+		var e := blank([["p", "ghost", 1, 1], ["e", "elephant", 2, 1]])
+		e.tiles[1][2] = "m"
+		eq(Game.damage(e, e.units[0], 1, 1, 100, e.units[1], 0.0), 0, "armour soaks the hit")
 	)
-	run("attack applies damage + counter; preview matches", func() -> void:
+	run("attack applies rolled damage + adjacent counter; preview gives the range", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 3, 1]])
 		var a: Dictionary = s.units[0]
 		var d: Dictionary = s.units[1]
 		var p := Game.preview(s, a, 2, 1, d)
-		eq([p.dmg, p.counter], [40, 24])
+		eq([p.dmgMin, p.dmgMax, p.counterMin, p.counterMax], [40, 45, 22, 27])
+		Game.fixed_roll = 0.0
 		Game.do_action(s, { "id": a.id, "to": [2, 1], "kind": "attack", "target": d.id })
+		Game.fixed_roll = -1.0
 		eq([d.hp, a.hp], [60, 76])
 	)
-	run("buffs_at (UI) agrees with damage(): drum aura +10 atk, guard hero +10 def, only when adjacent", func() -> void:
-		var s := blank([["p", "soldier", 1, 1], ["p", "drum", 1, 2], ["e", "soldier", 2, 1], ["e", "hero", 3, 1]])
-		var heroes: Dictionary = Rules.HEROES.duplicate(true)
-		heroes["guard_test"] = { "atk": 60, "def": 20, "mv": 5, "move": "foot", "guard": 10 } # rule still supported, no live commander uses it
-		Game.use_tables(Rules.UNITS, heroes, Rules.RULES, Rules.TERRAIN)
-		s.heroKey.e = "guard_test"
+	run("AE2 counter: only adjacent + rmin 1 (archer counters next to it, not at 2)", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "archer", 2, 1], ["e", "catapult", 1, 2]])
+		check(Game.can_counter(s, s.units[1], 1, 1), "archer adjacent counters")
+		check(not Game.can_counter(s, s.units[1], 0, 1), "archer at 2 does not")
+		check(not Game.can_counter(s, s.units[2], 1, 1), "catapult never")
+	)
+	run("AE2 drum: after acting, allies within 2 get +10 atk until the drum side's next turn", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["p", "drum", 1, 3], ["p", "archer", 4, 1], ["e", "soldier", 2, 1]])
 		var a: Dictionary = s.units[0]
-		var d: Dictionary = s.units[2]
-		var ba := Game.buffs_at(s, a, 1, 1)
-		var bd := Game.buffs_at(s, d, 2, 1)
-		eq([ba.atk, ba.def, bd.atk, bd.def], [10, 0, 0, 10])
-		eq(ba.atk_from.type, "drum")
-		var st_a := Game.stat(s, a)
-		var st_d := Game.stat(s, d)
-		eq(Game.damage(s, a, 1, 1, 100, d), int(st_a.atk + ba.atk - (st_d.def + bd.def + bd.terrain)))
-		eq(Game.buffs_at(s, a, 0, 0).atk, 0) # (0,0) is not next to the drum at (1,2)
+		var d: Dictionary = s.units[3]
+		var before := Game.damage(s, a, 1, 1, 100, d, 0.0)
+		Game.do_action(s, { "id": 2, "to": [1, 3], "kind": "wait" })
+		check(a.get("aura") == "p" and s.units[2].get("aura") == null, "soldier (2 away) buffed, archer (far) not")
+		eq(Game.damage(s, a, 1, 1, 100, d, 0.0), before + 10)
+		eq(Game.buffs_at(s, a, 1, 1).atk, 10, "buffs_at shows it")
+		Game.end_turn(s)
+		check(a.get("aura") == "p", "lasts through the enemy turn")
+		Game.end_turn(s)
+		check(a.get("aura") == null, "gone at our next turn")
 		eq(Content.traits("drum", null).any(func(t: String) -> bool: return "+10 công" in t), true)
 		eq(Content.how_to_play("archer") != "", true)
-		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
+	)
+	run("AE2 wolf bite: target -10 atk / -10 def until the wolf side's next turn", func() -> void:
+		var s := blank([["p", "wolf", 1, 1], ["e", "elephant", 2, 1], ["p", "soldier", 3, 2]])
+		var e: Dictionary = s.units[1]
+		var sol: Dictionary = s.units[2]
+		var hit_before := Game.damage(s, sol, 3, 2, 100, e, 0.0)
+		Game.fixed_roll = 0.0
+		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
+		Game.fixed_roll = -1.0
+		eq(e.get("poison"), "p", "poisoned")
+		eq(Game.damage(s, sol, 3, 2, 100, e, 0.0), hit_before + 10, "softer")
+		Game.end_turn(s); Game.end_turn(s)
+		eq(e.get("poison"), null, "worn off")
+	)
+	run("AE2 water: everyone wades at cost 3 / def 0; water class 1 and +10 atk +15 def there", func() -> void:
+		eq(Game.move_cost("foot", "~"), 3.0)
+		eq(Game.move_cost("water", "~"), 1.0)
+		eq(Game.move_cost("fly", "m"), 1.0)
+		eq(Game.move_cost("foot", "m"), 3.0)
+		var s := blank([["p", "boat", 1, 1], ["e", "soldier", 2, 1]])
+		s.tiles[1][1] = "~"
+		var b: Dictionary = s.units[0]
+		eq(Game.damage(s, b, 1, 1, 100, s.units[1], 0.0), 50, "50 + 10 water - 10")
+		eq(Game.damage(s, s.units[1], 2, 1, 100, b, 0.0), 25, "50 - (10 + 15)")
+	)
+	run("temple heals any side, cannot be captured", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 3, 3, 50]])
+		s.tiles[3][3] = "t"
+		check(not Game.can_capture(s, s.units[0], 3, 3), "no capture")
+		Game.end_turn(s)
+		eq(s.units[1].hp, 70, "enemy healed on the temple")
 	)
 	run("path_for walks through an ally (the drawn route used to lose its start there)", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["p", "archer", 2, 1], ["e", "soldier", 5, 4]])
@@ -370,14 +413,19 @@ func rule_tests() -> void:
 		eq(Game.targets_from(s, s.units[0], 2, 1).size(), 0)
 		eq(Game.targets_from(s, s.units[0], 1, 1).size(), 1)
 	)
-	run("only hero captures castle; soldier captures village", func() -> void:
-		var s := blank([["p", "soldier", 4, 4], ["p", "hero", 4, 5], ["e", "soldier", 2, 2]])
+	run("AE2 loss: castles gone AND commander dead; hero capture of the last castle wins only then", func() -> void:
+		var s := blank([["p", "soldier", 4, 4], ["p", "hero", 4, 5], ["e", "hero", 1, 4]])
 		s.tiles[3][4] = "v"
 		check(not Game.can_capture(s, s.units[0], 5, 5), "soldier vs castle")
 		check(Game.can_capture(s, s.units[0], 4, 3), "soldier vs village")
-		var ev := Game.do_action(s, { "id": s.units[1].id, "to": [5, 5], "kind": "capture" })
+		Game.do_action(s, { "id": s.units[1].id, "to": [5, 5], "kind": "capture" })
+		eq(s.winner, null, "enemy commander still alive")
+		s.units[2].hp = 1
+		Game.end_turn(s); Game.end_turn(s)
+		s.units[0].x = 1; s.units[0].y = 3
+		Game.do_action(s, { "id": s.units[0].id, "to": [1, 3], "kind": "attack", "target": s.units[2].id })
 		eq(s.winner, "p")
-		check(ev.any(func(e: Dictionary) -> bool: return e.t == "win"), "win event")
+		eq(s.reason, "castlesLost")
 	)
 	run("kill leaves grave; shaman raises ghost", func() -> void:
 		var s := blank([["p", "elephant", 1, 1], ["e", "soldier", 2, 1, 10], ["p", "shaman", 1, 3], ["e", "soldier", 5, 4]])
@@ -415,12 +463,12 @@ func rule_tests() -> void:
 		check(not Game.stacked(s, s.units[0]), "stack cleared after stepping off")
 		check(ok.call("soldier"), "can buy again on the same castle this turn")
 		# boxed in: no free tile to step to -> cannot buy on top
-		var b := blank([["p", "soldier", 0, 0], ["p", "soldier", 1, 0], ["p", "soldier", 0, 1], ["p", "soldier", 1, 1]])
+		var b := blank([["p", "soldier", 0, 0], ["p", "soldier", 1, 0], ["p", "soldier", 0, 1], ["p", "soldier", 1, 1],
+			["e", "soldier", 2, 0], ["e", "soldier", 2, 1], ["e", "soldier", 0, 2], ["e", "soldier", 1, 2]])
 		b.gold.p = 5000
 		for u: Dictionary in b.units:
 			if u.id > 1: u.acted = true
-		b.tiles[2][0] = "~"; b.tiles[2][1] = "~"; b.tiles[0][2] = "~"; b.tiles[1][2] = "~"; b.tiles[2][2] = "~"
-		check(Game.buy_options(b, "p", 0, 0).all(func(o: Dictionary) -> bool: return not o.ok or o.type == "bird"), "boxed-in castle blocks walkers")
+		check(Game.buy_options(b, "p", 0, 0).all(func(o: Dictionary) -> bool: return not o.ok), "boxed-in castle blocks buying on top")
 		# enemy on our castle: no buying
 		var c := blank([["e", "soldier", 0, 0]])
 		check(Game.buy_options(c, "p", 0, 0).is_empty(), "enemy on castle blocks buy")
@@ -441,10 +489,48 @@ func rule_tests() -> void:
 		check(bought and nu.size() == 1, "AI bought")
 		check(nu.size() == 1 and nu[0].acted, "bought unit acted this turn")
 	)
-	run("rank up from xp", func() -> void:
-		var s := blank([["p", "elephant", 1, 1], ["e", "soldier", 2, 1, 50]])
+	run("AE2 levels: xp = dmg x (victim atk+atkMax+def); 1 level per fight max, leftover carries, +2 atk/+2 def", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1]])
+		var a: Dictionary = s.units[0]
+		var need := Game.xp_need(s, a)
+		eq(need, int((50 + 55 + 5) * 200.0 / 3.0))
+		a.xp = need * 3
+		Game.fixed_roll = 0.0
 		Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
-		eq(s.units[0].rank, 1) # 50 dmg (capped at hp) + 50 kill = 100
+		Game.fixed_roll = -1.0
+		eq(a.rank, 1, "only one level")
+		eq(a.xp, need * 2 + 40 * 110, "leftover + this hit's xp")
+		eq(Game.atk_range(s, a), [52, 57])
+	)
+	run("reach goal: a commander bought on the goal tile must walk off and back", func() -> void:
+		var s := blank([["p", "soldier", 3, 3], ["e", "soldier", 5, 4]])
+		s.win = { "type": "reach", "at": [[0, 0]] }
+		s.heroDead.p = true
+		s.heroKey.p = "anhhung"
+		s.gold.p = 1000
+		var h: Dictionary = Game.buy(s, 0, 0, "hero")
+		check(not Game.hero_on_goal(s), "buying there is not reaching")
+		Game.do_action(s, { "id": h.id, "to": [1, 0], "kind": "wait" })
+		Game.end_turn(s); Game.end_turn(s)
+		Game.do_action(s, { "id": h.id, "to": [0, 0], "kind": "wait" })
+		eq(s.reason, "reached")
+	)
+	run("AE2 commander: rebuy 200 + 200/death (max 1000), comes back with its level", func() -> void:
+		var s := blank([["p", "hero", 1, 1, 1], ["e", "elephant", 2, 1]])
+		s.units[0].rank = 3
+		s.side = "e"
+		Game.fixed_roll = 0.0
+		Game.do_action(s, { "id": 2, "to": [2, 1], "kind": "attack", "target": 1 })
+		Game.fixed_roll = -1.0
+		check(s.heroDead.p, "dead")
+		eq(s.winner, null, "castle left: not out")
+		eq(Game.hero_cost(s, "p"), 400)
+		s.side = "p"
+		s.gold.p = 400
+		var h: Dictionary = Game.buy(s, 0, 0, "hero")
+		eq(h.rank, 3, "level kept")
+		s.heroDeaths.p = 9
+		eq(Game.hero_cost(s, "p"), 1000)
 	)
 	run("mission order values are unique", func() -> void:
 		var seen := {}
@@ -516,22 +602,6 @@ func mission_tests() -> void:
 		eq(s.winner, "p")
 		eq(s.reason, "routed")
 	)
-	run("heroMustLive: hero death = loss", func() -> void:
-		var s := Game.new_game(Content.mission("m01"))
-		var hero: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.type == "hero")[0]
-		var e: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
-		hero.hp = 1
-		hero.x = e.x - 1
-		hero.y = e.y
-		for u: Dictionary in s.units:
-			if u.id != hero.id and u.x == hero.x and u.y == hero.y:
-				u.y = 7
-				u.x = 0
-		Game.end_turn(s)
-		Game.do_action(s, { "id": e.id, "to": [e.x, e.y], "kind": "attack", "target": hero.id })
-		eq(s.winner, "e")
-		eq(s.reason, "heroFell")
-	)
 	run("survive: win when turn passes limit; waves spawn, occupied tile shifts", func() -> void:
 		var def: Dictionary = Content.mission("m03")
 		var s := Game.new_game(def)
@@ -588,17 +658,16 @@ func mission_tests() -> void:
 	)
 
 
-# ---------- chapter-1 parity (golden traces = JS original) ----------
-## replays a few legacy games through sim/trace.gd's own player and compares with sim/legacy/golden.txt
+# ---------- regression games (sim/golden.txt, current rules) ----------
 func parity_tests() -> void:
-	run("chapter-1 rules + AI still play the golden games (m01 x2, m03, naive)", func() -> void:
+	run("rules + AI still play the golden games (m01, m07, sk_dong_bang, naive)", func() -> void:
 		var golden := {}
-		for line: String in FileAccess.get_file_as_string("res://sim/legacy/golden.txt").split("\n", false):
+		for line: String in FileAccess.get_file_as_string("res://sim/golden.txt").split("\n", false):
 			var p := line.split(" ", false, 2)
 			golden[p[0] + " " + p[1]] = p[2]
 		var tr: RefCounted = load("res://sim/parity.gd").new()
 		tr.apply()
-		for key: String in ["m01 0", "m01 1", "m03 0", "naive 0"]:
+		for key: String in ["m01 0", "m07 1", "sk_dong_bang 0", "naive 0"]:
 			eq(tr.replay(key), golden.get(key, "?"), key)
 		tr.restore()
 	)

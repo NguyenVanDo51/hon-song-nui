@@ -76,3 +76,11 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - `game_screen._layout()`: màn ngang -> cột trái (⚙, lượt/vàng/mục tiêu, thẻ lính, Hết lượt), bản đồ ở phần còn lại; màn dọc -> dải trên + dải dưới (giữ `CARD_RESERVE` cho thẻ). Chọn kiểu cho ô to hơn.
 - Chỉ popup lệnh + menu ⚙ còn nổi trên bản đồ. 1280x720: ô 64–68px (trước ~71).
 - Kiểm: 1280x720 / 1500x675 (điện thoại ngang) / dọc, 2D + 3D: 0 ô HUD đè bản đồ; tests 54/54, click_driver fails=0.
+
+## 2026-11-06 — luật đưa về AE2 (yêu cầu: "sửa hết mọi điểm khác")
+- Nguồn: `docs/review/rules_compare.html` (82 điểm). Quyết định của chủ game: Kỵ binh -> **Rồng** (chỉ số Dragon, bay); thêm **Thủy binh** (Elemental) + **Chó săn** (Dire Wolf); bỏ phần tự thêm không có ở gốc (incomeMul, mộ đặt sẵn, heroMustLive, cách đi riêng của tướng); thêm ô **Đền** `t`; 3–4 phe + nhiều tướng: đợt sau.
+- Giữ kiểu màn chiến dịch (castles/rout/hero/survive/reach + waves): AE2 chiến dịch cũng có mục tiêu theo kịch bản + quân phục kích (mục L3).
+- Đã làm: chỉ số + giá theo AE2 (công min–max), địa hình (đồng 5, đồi 10, núi 15/3 cho mọi quân, sông lội 3 / thủ 0, cầu 5, thành 15), thu nhập 30/50, sát thương ngẫu nhiên có seed (`s.rng`, `Game.fixed_roll` cho test) + sàn 0, đánh trả chỉ khi kề + rmin 1, KN/cấp (tối đa 9, +2/+2, 1 cấp/trận, dư mang sang), tên cấp mỗi 2 cấp, hào quang trống đóng dấu 1 lượt tầm 2, độc chó săn, thưởng vs rồng / vs âm binh / dưới nước, âm binh không tính trần, mộ ttl 3 trừ mỗi đầu lượt mỗi bên + bước lên là mất, tướng mua lại 200+200/lần chết (tối đa 1000) giữ cấp, thua = mất hết thành + tướng chết (hoặc hết quân + hết thành), mua xong đi ngay + mua trên thành có quân (`buyAE2`), đấu tự do chọn vàng / trần quân.
+- Chưa xác nhận bản gốc (lấy theo mã bản mod): công thức KN (×200/3), +15 nỏ vs bay, rồng được thủ địa hình, độc không giảm bước đi, Wisp tầm 1–2.
+- Hồi quy: `sim/legacy` + parity JS bỏ; `sim/golden.txt` mới. Lưu ván cũ (v2) bị từ chối (STATE_V 3).
+- Tiện ích dò lỗi: `sim/probes/stall.gd <màn>` (ván AI-vs-AI kẹt), `sim/probes/units_shot.gd` (ảnh đủ quân mới).

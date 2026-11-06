@@ -1,7 +1,7 @@
 extends RefCounted
 ## free-play maps (pick any hero). Built into a def by Content.skirmish_def(map_id, hero, easy).
 ## Optional per map: "chapter" (enemy skin / wording, default c1).
-## New maps are 180° rotations of themselves so both sides start equal.
+## New maps are 180° rotations of themselves so both sides start equal. Temples ("t") come in rotated pairs.
 
 const MAPS := {
 	"dong_bang": {
@@ -13,7 +13,7 @@ const MAPS := {
 			"..c.hfhf...rv.",
 			"..r.hmrxrrrrrh",
 			"..rrhfrrrrrvrf",
-			".~~=~~rr~~=~~.",
+			".~~=~~tt~~=~~.",
 			"frvrrrrrfhrr..",
 			"hrrrrrxrmh.r..",
 			".vr...fhfh.c..",
@@ -33,7 +33,7 @@ const MAPS := {
 			"f=~~.r..~~=rff",
 			"hf~~rc..~~.rhh",
 			"fvrrr...~~.vrf",
-			".r....==....r.",
+			".r.t..==..t.r.",
 			"frv.~~...rrrvf",
 			"hhr.~~..cr~~fh",
 			"ffr=~~..r.~~=f",
@@ -51,11 +51,11 @@ const MAPS := {
 			"..........vrc.",
 			".rrrvrrrrrr.h.",
 			".r..r..fh.crhf",
-			".vrrr.hmm.rrmm",
+			".vrrrthmm.rrmm",
 			".rrhfffhmfrvrf",
 			".rrffmhhmffrr.",
 			"frvrfmhfffhrr.",
-			"mmrr.mmh.rrrv.",
+			"mmrr.mmhtrrrv.",
 			"fhrc.hf..r..r.",
 			".h.rrrrrrvrrr.",
 			".crv..........",

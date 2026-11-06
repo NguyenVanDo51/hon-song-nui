@@ -17,7 +17,6 @@ const DEF := {
 		"e": ["soldier", "archer", "drum", "elephant", "shaman"],
 	},
 	"gold": { "p": 600, "e": 150 },
-	"incomeMul": { "e": 0.8 },
 	"win": { "type": "castles" },
 	"night": true,
 	"map": {
@@ -35,7 +34,6 @@ const DEF := {
 		],
 	},
 	"owner": [[1, 8, "p"], [12, 1, "e"], [8, 1, "e"]],
-	"graves": [[6, 5], [7, 5], [8, 3], [3, 6], [9, 4]],
 	"units": [
 		["p", "hero", 2, 8],
 		["p", "shaman", 2, 7],
@@ -49,15 +47,15 @@ const DEF := {
 	],
 	"story": {
 		"intro": [
-			["lechan", "Bãi ven hồ còn ngổn ngang lính ngã từ trận trước. Nhiều người còn thở."],
-			["danlang", "Thầy lang trong làng biết thuốc. Cứu được ai, người ấy lại cầm giáo."],
-			["hieuuy", "Đêm tối, kỵ binh ta đánh úp. Đừng để chúng kịp cứu ai!"],
+			["lechan", "Đêm nay bãi ven hồ sẽ thành bãi chiến. Ai ngã xuống cũng chưa hết phần."],
+			["danlang", "Thầy mo trong làng biết gọi hồn. Hồn người ngã đứng dậy, lại cầm giáo cho ta."],
+			["hieuuy", "Đêm tối, đánh úp cho nhanh. Đừng để thầy mo của chúng kịp gọi hồn!"],
 		],
-		"outro": [["lechan", "Trời sáng rồi. Người bị thương đã được cứu về làng."]],
+		"outro": [["lechan", "Trời sáng rồi. Âm binh đã về yên nghỉ, Hồ Tây lại lặng sóng."]],
 	},
 	"tips": [
 		"Trời tối: chỉ thấy rõ quanh quân ta và làng, thành của ta.",
-		"[b]Thầy lang[/b] đứng cạnh [b]lính ngã[/b] rồi bấm [b]Cứu thương[/b]: thêm một thương binh miễn phí. Tên độc bỏ qua thủ địa hình.",
-		"Lính ngã nằm lại 2 vòng. Phe nào cứu trước thì được.",
+		"Quân ngã để lại [b]lính ngã[/b]. [b]Thầy mo[/b] đứng cạnh rồi bấm [b]Gọi hồn[/b]: thêm một [b]âm binh[/b] miễn phí, lính ngã của giặc cũng gọi được.",
+		"Lính ngã mất sau lượt kế của mỗi bên, hoặc khi có quân bước lên. Giữ thầy mo sau hàng lính, gần chỗ đang đánh. [b]Trống đồng[/b] đánh âm binh +15 công.",
 	],
 }

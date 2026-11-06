@@ -109,13 +109,19 @@ static func unit_type_look(side: String, type: String, hero_key: Variant) -> Dic
 		return theme().heroes.get(hero_key, { "name": "?", "icon": "?", "blurb": "" })
 	return theme().units[side][type]
 
-## AE2 renames a unit every 2 levels: "Bộ binh" -> "Bộ binh lão luyện ★2" ...
-static func unit_title(name: String, rank: int) -> String:
+## AE2 renames a unit every 2 levels: "Bộ binh" -> "Bộ binh lão luyện ★2" ...; commanders keep their name (RM Unit.java:96)
+static func unit_title(name: String, rank: int, hero := false) -> String:
 	if rank <= 0:
 		return name
+	if hero:
+		return "%s ★%d" % [name, rank]
 	var titles: Array = THEME_SCRIPT.RANK_TITLES
 	var t: String = titles[mini(rank / 2, titles.size() - 1)]
 	return "%s%s ★%d" % [name, (" " + t) if t != "" else "", rank]
+
+## level-up worth the big "Lên cấp N": a rename (RM MainDisplayable:4355)
+static func rank_announced(type: String, rank: int) -> bool:
+	return type != "hero" and rank % 2 == 0 and rank <= 6
 
 static func hero_look(key: String) -> Dictionary:
 	return theme().heroes.get(key, { "name": key, "icon": "?", "blurb": "", "side": "e" }) # never hard-crash on a stale key
@@ -146,7 +152,7 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	elif st.get("capV", false):
 		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.RULES.incomeVillage)
 	var lo: int = st.atk
-	var hi: int = st.get("atkMax", st.atk)
+	var hi: int = maxi(lo, st.get("atkMax", st.atk) - 1) # AE2 never rolls atkMax (same as Game.atk_range)
 	if hi > lo:
 		out.append("Công %d–%d: mỗi đòn lăn ngẫu nhiên trong khoảng này." % [lo, hi])
 	if st.rmax > 1:

@@ -318,12 +318,21 @@ func rule_tests() -> void:
 		eq(Game.income(s, "e"), 80)
 		eq(Game.income(s, "p"), 50)
 	)
-	run("AE2 damage: (roll atk..atkMax + bonus - def - terrain) x hp / 100, floor, >= 0", func() -> void:
+	run("AE2 damage: (roll atk..atkMax-1 + bonus - def - terrain) x hp / 100, floor, >= 0", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1]])
 		var a: Dictionary = s.units[0]
 		var d: Dictionary = s.units[1]
 		eq(Game.damage(s, a, 1, 1, 100, d, 0.0), 40) # 50 - 5 def - 5 field
-		eq(Game.damage(s, a, 1, 1, 100, d, 0.999), 45) # 55 - 10
+		eq(Game.damage(s, a, 1, 1, 100, d, 0.999), 44, "never the table max 55") # 54 - 10
+		eq(Game.damage(s, a, 1, 1, 100, d, Game.ROLL_TOP), 44)
+		eq(Game.atk_range(s, a), [50, 54], "rollable range")
+		# every roll in [0,1) lands in [min, max-1] and each value is reachable
+		var seen := {}
+		for i in 1000:
+			seen[Game.damage(s, a, 1, 1, 100, d, i / 1000.0)] = true
+		eq(seen.keys().map(func(k: int) -> int: return k + 10).reduce(func(m: int, k: int) -> int: return maxi(m, k), 0), 54, "max roll")
+		eq(seen.size(), 5, "rolls 50..54")
+		check(Content.traits("soldier", null).any(func(t: String) -> bool: return "Công 50–54" in t), "traits print the rollable range")
 		eq(Game.damage(s, a, 1, 1, 50, d, 0.0), 20)
 		s.tiles[1][2] = "f"
 		eq(Game.damage(s, a, 1, 1, 100, d, 0.0), 35)
@@ -336,7 +345,13 @@ func rule_tests() -> void:
 		var a: Dictionary = s.units[0]
 		var d: Dictionary = s.units[1]
 		var p := Game.preview(s, a, 2, 1, d)
-		eq([p.dmgMin, p.dmgMax, p.counterMin, p.counterMax], [40, 45, 22, 27])
+		eq([p.dmgMin, p.dmgMax, p.counterMin, p.counterMax], [40, 44, 22, 26])
+		# forecast is exact: top roll -> hit = dmgMax (44); counter after it = (54 - 10) x 56 / 100 = 24
+		var s2 := blank([["p", "soldier", 1, 1], ["e", "soldier", 3, 1]])
+		Game.fixed_roll = Game.ROLL_TOP
+		Game.do_action(s2, { "id": 1, "to": [2, 1], "kind": "attack", "target": 2 })
+		Game.fixed_roll = -1.0
+		eq([s2.units[1].hp, s2.units[0].hp], [100 - p.dmgMax, 76])
 		Game.fixed_roll = 0.0
 		Game.do_action(s, { "id": a.id, "to": [2, 1], "kind": "attack", "target": d.id })
 		Game.fixed_roll = -1.0
@@ -362,7 +377,40 @@ func rule_tests() -> void:
 		Game.end_turn(s)
 		check(a.get("aura") == null, "gone at our next turn")
 		eq(Content.traits("drum", null).any(func(t: String) -> bool: return "+10 công" in t), true)
+		# AE2: a drum killed by the counter still drums, from the tile it fell on (RM Unit.finishMove)
+		var k := blank([["p", "drum", 1, 1, 1], ["p", "soldier", 1, 3], ["p", "archer", 4, 4], ["e", "soldier", 2, 2]])
+		Game.fixed_roll = 0.0
+		Game.do_action(k, { "id": 1, "to": [1, 2], "kind": "attack", "target": 4 })
+		Game.fixed_roll = -1.0
+		check(Game.unit_by_id(k, 1) == null, "drum died")
+		check(k.units[0].get("aura") == "p", "ally 1 from the death tile buffed")
+		check(k.units[1].get("aura") == null, "far ally not")
 		eq(Content.how_to_play("archer") != "", true)
+	)
+	run("AE2 wolf: counter first at full strength, then the bite lands (RM finishAttack)", func() -> void:
+		var s := blank([["p", "wolf", 1, 1], ["e", "soldier", 2, 1]])
+		var w: Dictionary = s.units[0]
+		var d: Dictionary = s.units[1]
+		Game.fixed_roll = 0.0
+		var ev := Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
+		Game.fixed_roll = -1.0
+		# soldier at 100 - 50 = 50 hp, unpoisoned: (50 - 15 - 5) x 50 / 100 = 15
+		eq(d.hp, 50)
+		eq(100 - w.hp, 15, "counter not weakened by the bite")
+		eq(d.get("poison"), "p", "poisoned after")
+		var order: Array = ev.filter(func(e: Dictionary) -> bool: return e.t == "hit" or e.t == "poison").map(func(e: Dictionary) -> String: return "c" if e.get("counter", false) else e.t)
+		eq(order, ["hit", "c", "poison"], "event order")
+	)
+	run("AE2 wolf: a 0-damage bite still poisons, even if the counter kills the wolf", func() -> void:
+		var s := blank([["p", "wolf", 1, 1, 1], ["e", "soldier", 2, 1]])
+		var d: Dictionary = s.units[1]
+		Game.fixed_roll = 0.0
+		var ev := Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
+		Game.fixed_roll = -1.0
+		eq(d.hp, 100, "bite at 1 hp: 0 dmg")
+		check(Game.unit_by_id(s, 1) == null, "wolf died to the counter")
+		eq(d.get("poison"), "p", "still poisoned")
+		check(ev.any(func(e: Dictionary) -> bool: return e.t == "poison"), "poison event")
 	)
 	run("AE2 wolf bite: target -10 atk / -10 def until the wolf side's next turn", func() -> void:
 		var s := blank([["p", "wolf", 1, 1], ["e", "elephant", 2, 1], ["p", "soldier", 3, 2]])
@@ -469,9 +517,12 @@ func rule_tests() -> void:
 		for u: Dictionary in b.units:
 			if u.id > 1: u.acted = true
 		check(Game.buy_options(b, "p", 0, 0).all(func(o: Dictionary) -> bool: return not o.ok), "boxed-in castle blocks buying on top")
-		# enemy on our castle: no buying
+		# AE2 original: enemy standing on our castle does not block buying; the new unit steps off
 		var c := blank([["e", "soldier", 0, 0]])
-		check(Game.buy_options(c, "p", 0, 0).is_empty(), "enemy on castle blocks buy")
+		c.gold.p = 500
+		check(Game.buy_options(c, "p", 0, 0).any(func(o: Dictionary) -> bool: return o.ok), "buy under an enemy on our castle")
+		var nb: Dictionary = Game.buy(c, 0, 0, "soldier")
+		check(not Game.reachable(c, nb).has(Vector2i(0, 0)), "new unit must step off")
 	)
 	run("AI moves a unit it bought the same turn", func() -> void:
 		var s := blank([["p", "soldier", 0, 0], ["e", "hero", 4, 4]])
@@ -500,7 +551,29 @@ func rule_tests() -> void:
 		Game.fixed_roll = -1.0
 		eq(a.rank, 1, "only one level")
 		eq(a.xp, need * 2 + 40 * 110, "leftover + this hit's xp")
-		eq(Game.atk_range(s, a), [52, 57])
+		eq(Game.atk_range(s, a), [52, 56])
+	)
+	run("AE2 xp uses rank-boosted stats: victim quality for xp gained, own quality for the next level (RM Unit.java 250-263)", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1]])
+		var a: Dictionary = s.units[0]
+		var d: Dictionary = s.units[1]
+		d.rank = 2 # quality 110 + 3 x 2 x 2 = 122
+		a.rank = 1 # quality 116
+		eq(Game.quality(s, d), 122)
+		eq(Game.xp_need(s, a), 116 * 200 / 3, "own quality incl. rank")
+		Game.fixed_roll = 0.0
+		var ev := Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
+		Game.fixed_roll = -1.0
+		var hit: int = ev.filter(func(e: Dictionary) -> bool: return e.t == "hit" and not e.get("counter", false))[0].amount
+		var back: int = ev.filter(func(e: Dictionary) -> bool: return e.t == "hit" and e.get("counter", false))[0].amount
+		eq(a.xp, hit * 122, "xp = dmg x victim quality incl. its rank")
+		eq(d.xp, back * 116, "counter xp = dmg x attacker quality incl. its rank")
+		# float xpScale vs RM's integer q * 200 / 3: same for every quality a unit can have
+		for type: String in Rules.UNITS:
+			for r in Rules.RULES.maxRank + 1:
+				var u := { "side": "p", "type": type, "rank": r }
+				var q := Game.quality(s, u)
+				eq(Game.xp_need(s, u), q * 200 / 3, "%s rank %d" % [type, r])
 	)
 	run("reach goal: a commander bought on the goal tile must walk off and back", func() -> void:
 		var s := blank([["p", "soldier", 3, 3], ["e", "soldier", 5, 4]])
@@ -531,6 +604,30 @@ func rule_tests() -> void:
 		eq(h.rank, 3, "level kept")
 		s.heroDeaths.p = 9
 		eq(Game.hero_cost(s, "p"), 1000)
+	)
+	run("AE2 unit cap: campaign 100 unless the mission sets one; skirmish keeps its chosen cap", func() -> void:
+		for m: Dictionary in Content.campaign():
+			eq(Game.new_game(m).unitCap, m.get("unitCap", 100), m.id)
+		eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false)).unitCap, 15, "skirmish default")
+		eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false, 300, 30)).unitCap, 30, "skirmish chosen")
+		var d: Dictionary = Content.mission("m02").duplicate()
+		d.unitCap = 12
+		eq(Game.new_game(d).unitCap, 12, "mission override")
+	)
+	run("AE2 titles: 4 tiers (0-1 none, 2-3, 4-5, 6-9); commanders only ★N; big level-up only on renames", func() -> void:
+		eq(Content.unit_title("Bộ binh", 0), "Bộ binh")
+		eq(Content.unit_title("Bộ binh", 1), "Bộ binh ★1")
+		eq(Content.unit_title("Bộ binh", 3), "Bộ binh lão luyện ★3")
+		eq(Content.unit_title("Bộ binh", 5), "Bộ binh tinh nhuệ ★5")
+		eq(Content.unit_title("Bộ binh", 6), "Bộ binh dũng mãnh ★6")
+		eq(Content.unit_title("Bộ binh", 9), "Bộ binh dũng mãnh ★9")
+		eq(Content.unit_title("Anh hùng", 4, true), "Anh hùng ★4")
+		var loud := []
+		for r in range(1, 10):
+			if Content.rank_announced("soldier", r):
+				loud.append(r)
+		eq(loud, [2, 4, 6])
+		check(not Content.rank_announced("hero", 2), "commander: no rename announcement")
 	)
 	run("mission order values are unique", func() -> void:
 		var seen := {}

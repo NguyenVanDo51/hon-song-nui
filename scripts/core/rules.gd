@@ -18,7 +18,7 @@ const TERRAIN := {
 	"t": { "def": 15, "cost": 1, "temple": true }, # shrine: heals any side's unit standing on it, no owner, no income
 }
 
-## atk..atkMax = damage roll range. move classes: foot, fly (all cost 1), water (river cost 1, land as foot).
+## atk..atkMax = AE2 table attack; a hit rolls atk..atkMax-1 (AE2 never rolls the max). move classes: foot, fly (all cost 1), water (river cost 1, land as foot).
 ## flags: capV/capC capture village/castle; antiAir +atk vs fliers; vsGhost +atk vs ghosts; aura: after acting, allies
 ##        within 2 get +atk until our next turn; poison: a hit leaves the target -10 atk / -10 def until our next turn;
 ##        waterAtk / waterDef: bonus standing in water; raise (graves -> ghost); siege (no move+attack, no counter);
@@ -48,10 +48,12 @@ const RULES := {
 	"startGold": 300, "incomeVillage": 30, "incomeCastle": 50, "heal": 20,
 	# graves: ttl counts down at the start of every side's turn (AE2: 3) -> a grave lasts through the next turn of each side
 	"graveRounds": 3,
-	# xp: a hit gives dmg x (victim atk + atkMax + def); level n needs (own atk + atkMax + def) x XP_SCALE, leftover carries,
-	# at most 1 level per fight, max level 9, +2 atk / +2 def per level. From the AE2 mod code, unconfirmed in the original.
+	# xp: a hit gives dmg x victim quality; next level needs own quality x XP_SCALE (quality = atk + atkMax + def incl.
+	# rank bonus), leftover carries,
+	# at most 1 level per fight, max level 9, +2 atk / +2 def per level. Confirmed in the original AE2 bytecode
+	# (docs/review/ae2_research.md).
 	"xpScale": 200.0 / 3.0, "maxRank": 9, "rankBonus": 2,
-	"unitCap": 15,
+	"unitCap": 100, # campaign default (AE2 RM MainDisplayable:3310); skirmish passes its own cap
 	# hero rebuy: 200 + 200 per death so far, max 1000; the revived hero keeps its level / xp (AE2)
 	"heroBase": 200, "heroStep": 200, "heroMax": 1000,
 	# buyAE2: a bought unit acts the same turn; our castle may be bought on while one of our units stands there

@@ -99,6 +99,17 @@ func _run() -> void:
 	press("", g._actions) # first enabled buy button
 	await process_frame
 	ok(s.gold.p < gold0, "bought a unit (%d -> %d)" % [gold0, s.gold.p])
+	# AE2: our castle with an ACTED unit of ours on it still opens the shop
+	var newu: Variant = Game.unit_at(s, 1, 2)
+	if newu != null:
+		newu.acted = true
+		g.cancel()
+		g._on_tile(1, 2)
+		await process_frame
+		ok(g.ui.buyAt == [1, 2] and g.ui.sel == null, "acted unit on our castle: click opens buy panel")
+		ok(find_btn(g._actions, "") != null, "buy panel shows buttons")
+		newu.acted = false
+		g.cancel()
 	# attack: bring an enemy soldier next to our soldier, then click it
 	var sol: Dictionary = s.units.filter(func(u): return u.side == "p" and u.type == "soldier")[0]
 	var foe: Dictionary = s.units.filter(func(u): return u.side == "e" and u.type == "soldier")[0]

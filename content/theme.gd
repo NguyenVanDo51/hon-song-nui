@@ -18,8 +18,8 @@ const UNITS := {
 	"ghost": { "name": "Âm binh", "icon": "🩹", "fig": "res://assets/units/ghost.svg", "desc": "Hồn lính ngã được thầy mo gọi dậy. Không mua được, không tính vào giới hạn quân, không chiếm được làng." },
 }
 
-## level titles (AE2 renames a unit every 2 levels): index = level / 2
-const RANK_TITLES := ["", "lão luyện", "tinh nhuệ", "dũng mãnh", "huyền thoại"]
+## level titles (AE2 renames a unit every 2 levels, 4 tiers): index = min(level / 2, 3) -> 0-1, 2-3, 4-5, 6-9
+const RANK_TITLES := ["", "lão luyện", "tinh nhuệ", "dũng mãnh"]
 
 const THEME := {
 	"title": "Hồn Sông Núi",

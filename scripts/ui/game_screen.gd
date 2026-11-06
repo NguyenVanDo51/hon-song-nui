@@ -650,6 +650,12 @@ func _on_tile(x: int, y: int) -> void:
 		refresh()
 		return
 	if clicked != null:
+		# AE2: our castle opens the shop even when the unit on it has acted, or is an enemy (new unit steps off)
+		if my_turn and (clicked.side == "e" or clicked.acted) and Game.buy_options(s, "p", x, y).size():
+			ui.buyAt = [x, y]
+			main.audio.play("select")
+			refresh()
+			return
 		ui.sel = clicked.id
 		# standing on a village/castle to take (or a ruin to repair): orders open on the first click
 		if my_turn and clicked.side == "p" and not clicked.acted \
@@ -1060,8 +1066,8 @@ func play(events: Array, before: Dictionary) -> void:
 			"rank":
 				var u: Variant = Game.unit_by_id(s, e.id)
 				if u != null:
-					fx.rank(u.x, u.y)
-					fx.float_text(u.x, u.y - 0.4, "Lên cấp %d" % e.rank, "#ffe08a", 1100.0)
+					# AE2 announces only the renames (even levels <= 6, never the commander); other levels: quiet ★N
+					fx.rank(u.x, u.y, e.rank, Content.rank_announced(u.type, e.rank))
 					await fx.sleep(350.0)
 			"aura":
 				for id: int in e.ids:
@@ -1500,7 +1506,7 @@ func _unit_info(u: Dictionary, full := false) -> void:
 	var dt: Array = ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != M_IDLE else [u.x, u.y]
 	var t: String = s.tiles[dt[1]][dt[0]]
 	var next: Variant = Game.xp_need(s, u) if u.rank < Rules.RULES.maxRank else null
-	var name: String = Content.unit_title(look.name, u.rank)
+	var name: String = Content.unit_title(look.name, u.rank, u.type == "hero")
 	var sub := "Máu %d · KN %d%s · %s +%d thủ" % [u.hp, u.xp, ("/%d" % next) if next != null else " (tối đa)",
 		Content.terrain(t).name, Game.terrain_def(s, u, dt[0], dt[1])]
 	_info.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 40), name, sub, u.side))
@@ -1533,7 +1539,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var st := Game.stat(s, u)
 		var look := Content.unit_look(s, u)
 		var dt: Array = ui.dest if u.id == ui.sel and ui.dest != null and ui.mode != M_IDLE else [u.x, u.y]
-		var name: String = Content.unit_title(look.name, u.rank)
+		var name: String = Content.unit_title(look.name, u.rank, u.type == "hero")
 		var side_txt: String = Content.theme().factions[u.side].short
 		var sub := "%s · Máu %d%s" % [side_txt, u.hp, " · đã đi" if u.side == "p" and u.acted else ""]
 		_card_box.add_child(_head(Token.make(u.side, u.type, s.heroKey[u.side], 38), name, sub, u.side))

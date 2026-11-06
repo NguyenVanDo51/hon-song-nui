@@ -231,11 +231,12 @@ static func buffs_at(s: Dictionary, u: Dictionary, x: int, y: int) -> Dictionary
 static func terrain_def(s: Dictionary, u: Dictionary, x: int, y: int) -> int:
 	return TERRAIN[tile_at(s, x, y)].def
 
-## attack value range [min, max] for a, before bonuses (rank adds to both ends)
+## attack values a can actually roll [min, max], before bonuses (rank adds to both ends).
+## AE2 never rolls the table max: rnd in [atk, atkMax) (RM Renderer.java:120-123)
 static func atk_range(s: Dictionary, a: Dictionary) -> Array:
 	var sa := stat(s, a)
 	var r: int = RULES.rankBonus * a.rank
-	return [sa.atk + r, sa.get("atkMax", sa.atk) + r]
+	return [sa.atk + r, maxi(sa.atk, sa.get("atkMax", sa.atk) - 1) + r]
 
 ## everything on top of the rolled attack: +bonuses of a (at ax, ay) vs d, minus d's defence at its tile
 static func _mods(s: Dictionary, a: Dictionary, ax: int, ay: int, d: Dictionary) -> int:
@@ -259,15 +260,17 @@ static func _mods(s: Dictionary, a: Dictionary, ax: int, ay: int, d: Dictionary)
 		D -= 10
 	return m - D
 
-## AE2: (rolled atk + bonuses - defence) x attacker hp / 100, rounded down, 0..d.hp. roll in [0,1): 0 = min, ->1 = max
+## AE2: (rolled atk + bonuses - defence) x attacker hp / 100, rounded down, 0..d.hp. roll in [0,1): 0 = min, ->1 = atkMax - 1
 static func damage(s: Dictionary, a: Dictionary, ax: int, ay: int, att_hp: int, d: Dictionary, roll := 0.5) -> int:
 	var r := atk_range(s, a)
 	var A: int = r[0] + mini(r[1] - r[0], int(floor(roll * (r[1] - r[0] + 1))))
 	var raw := A + _mods(s, a, ax, ay, d)
 	return clampi(int(floor(raw * att_hp / 100.0)), 0, d.hp)
 
-## seeded per game: same save -> same rolls. fixed_roll >= 0 overrides (tests / scripted runs)
+## seeded per game: same save -> same rolls. fixed_roll >= 0 overrides (tests / scripted runs): 0 = min, ->1 = atkMax - 1
 static var fixed_roll := -1.0
+## highest roll value: damage(..., ROLL_TOP) = the real max
+const ROLL_TOP := 0.999999
 
 static func roll(s: Dictionary) -> float:
 	if fixed_roll >= 0.0:
@@ -287,7 +290,7 @@ static func preview(s: Dictionary, u: Dictionary, fx: int, fy: int, target: Dict
 	u.x = fx # temp move so positions are right
 	u.y = fy
 	var lo := damage(s, u, fx, fy, u.hp, target, 0.0)
-	var hi := damage(s, u, fx, fy, u.hp, target, 0.999)
+	var hi := damage(s, u, fx, fy, u.hp, target, ROLL_TOP)
 	var mid := damage(s, u, fx, fy, u.hp, target, 0.5)
 	var c_lo := 0
 	var c_hi := 0
@@ -299,7 +302,7 @@ static func preview(s: Dictionary, u: Dictionary, fx: int, fy: int, target: Dict
 			c_lo = damage(s, target, target.x, target.y, target.hp, u, 0.0)
 		if lo < thp:
 			target.hp = thp - lo
-			c_hi = damage(s, target, target.x, target.y, target.hp, u, 0.999)
+			c_hi = damage(s, target, target.x, target.y, target.hp, u, ROLL_TOP)
 		if mid < thp:
 			target.hp = thp - mid
 			c_mid = damage(s, target, target.x, target.y, target.hp, u, 0.5)
@@ -343,15 +346,18 @@ static func raisable_graves(s: Dictionary, u: Dictionary, x: int, y: int) -> Arr
 			out.append(g)
 	return out
 
-## xp for dealing dmg to victim: dmg x (victim atk + atkMax + def)
-static func _gain_xp(s: Dictionary, u: Dictionary, dmg: int, victim: Dictionary) -> void:
-	var sv := stat(s, victim)
-	u.xp += dmg * (sv.atk + sv.get("atkMax", sv.atk) + sv.def)
-
-## xp needed for u's next level (own atk + atkMax + def) x xpScale
-static func xp_need(s: Dictionary, u: Dictionary) -> int:
+## AE2 "quality": atk + atkMax + def incl. rank bonus (+2 each per level) (RM Unit.java:255-258)
+static func quality(s: Dictionary, u: Dictionary) -> int:
 	var st := stat(s, u)
-	return int((st.atk + st.get("atkMax", st.atk) + st.def) * RULES.xpScale)
+	return st.atk + st.get("atkMax", st.atk) + st.def + 3 * RULES.rankBonus * int(u.rank)
+
+## xp for dealing dmg to victim: dmg x victim quality (RM Unit.java:250)
+static func _gain_xp(s: Dictionary, u: Dictionary, dmg: int, victim: Dictionary) -> void:
+	u.xp += dmg * quality(s, victim)
+
+## xp needed for u's next level: own quality x xpScale (RM Unit.java:260-263)
+static func xp_need(s: Dictionary, u: Dictionary) -> int:
+	return int(quality(s, u) * RULES.xpScale)
 
 ## after a fight: at most one level, leftover xp carries
 static func _promote(s: Dictionary, u: Dictionary, ev: Array) -> void:
@@ -431,9 +437,6 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		if d.hp <= 0:
 			_kill(s, d, ev)
 		else:
-			if stat(s, u).get("poison", 0) and dmg > 0: # AE2 wolf: the bitten unit is weakened until our next turn
-				d.poison = u.side
-				ev.append({ "t": "poison", "id": d.id, "x": d.x, "y": d.y })
 			if can_counter(s, d, tx, ty):
 				var c := damage(s, d, d.x, d.y, d.hp, u, roll(s))
 				u.hp -= c
@@ -441,6 +444,11 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 				_gain_xp(s, d, c, u)
 				if u.hp <= 0:
 					_kill(s, u, ev)
+			# AE2 wolf: after the counter, any hit the target survives (even 0 dmg, even if the wolf fell) weakens it
+			# until our next turn (RM MainDisplayable finishAttack)
+			if stat(s, u).get("poison", 0):
+				d.poison = u.side
+				ev.append({ "t": "poison", "id": d.id, "x": d.x, "y": d.y })
 		_promote(s, u, ev)
 		if d.hp > 0:
 			_promote(s, d, ev)
@@ -465,7 +473,7 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		var gh := spawn(s, u.side, "ghost", gx, gy, true)
 		ev.append({ "t": "raise", "id": gh.id, "x": gx, "y": gy, "from": u.id })
 	u.acted = true
-	if u.hp > 0 and stat(s, u).get("aura", 0): # AE2 wisp: allies within 2 get +atk until our next turn
+	if stat(s, u).get("aura", 0): # AE2 wisp: allies within 2 get +atk until our next turn; also from where it fell (RM finishMove)
 		var ids := []
 		for o: Dictionary in s.units:
 			if o.side == u.side and o.id != u.id and dist(o.x, o.y, u.x, u.y) <= 2:
@@ -481,7 +489,9 @@ static func buy_options(s: Dictionary, side: String, x: int, y: int) -> Array:
 	if tile_at(s, x, y) != "c" or s.owner.get(Vector2i(x, y)) != side:
 		return []
 	var here: Array = s.units.filter(func(o: Dictionary) -> bool: return o.x == x and o.y == y)
-	if here.size() > 1 or (here.size() == 1 and (here[0].side != side or not RULES.get("buyAE2", false))):
+	# AE2 original (bytecode): the castle check looks only at the owner -> buying works under any one unit, even an
+	# enemy standing there; the new unit stacks and must step off
+	if here.size() > 1 or (here.size() == 1 and not RULES.get("buyAE2", false)):
 		return []
 	var busy: bool = here.size() == 1
 	var list := []

@@ -231,11 +231,13 @@ func capture(x: int, y: int, side: String) -> void:
 			ring(x, y, "#ffe39a", 600.0, 1.0, 0.06))
 	burst(x, y, 22, { "color": [c, "#ffe39a", "#fff7d6"], "kind": "glow", "vmin": 0.4, "vmax": 1.8, "up": 1.2, "g": -0.4, "lmin": 700.0, "lmax": 1300.0, "smin": 0.03, "smax": 0.06 })
 
-func rank(x: int, y: int) -> void:
+## loud: rays + "★ Lên cấp N"; quiet: small stars + "★N"
+func rank(x: int, y: int, level: int, loud := true) -> void:
 	_play("rank")
-	rays.append({ "kind": "rays", "x": x, "y": y, "t0": now(), "dur": sp(1100.0) })
-	burst(x, y, 14, { "color": ["#ffe08a", "#fff6d0"], "kind": "star", "vmin": 0.4, "vmax": 1.6, "up": 1.5, "g": 0.8, "lmin": 700.0, "lmax": 1200.0, "smin": 0.06, "smax": 0.1 })
-	float_text(x, y - 0.55, "★ Lên cấp", "#ffe08a", 1300.0)
+	if loud:
+		rays.append({ "kind": "rays", "x": x, "y": y, "t0": now(), "dur": sp(1100.0) })
+	burst(x, y, 14 if loud else 7, { "color": ["#ffe08a", "#fff6d0"], "kind": "star", "vmin": 0.4, "vmax": 1.6, "up": 1.5, "g": 0.8, "lmin": 700.0, "lmax": 1200.0, "smin": 0.06, "smax": 0.1 })
+	float_text(x, y - 0.55, ("★ Lên cấp %d" % level) if loud else ("★%d" % level), "#ffe08a", 1300.0 if loud else 800.0)
 
 func raise_fx(x: int, y: int) -> void:
 	_play("raise")

@@ -47,34 +47,63 @@ static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dic
 				open.append([nc, nx, ny])
 	return d
 
-## tile -> list of enemy attackers that could hit it next turn
-static func threat_map(s: Dictionary, side: String, reach_of := {}) -> Dictionary:
+## tile -> list of enemy attackers that could hit it next turn; mem (one turn) keeps each enemy's reach + hits across steps
+static func threat_map(s: Dictionary, side: String, reach_of := {}, mem := {}) -> Dictionary:
 	var m := {}
 	for e: Dictionary in s.units:
 		if e.side == side:
 			continue
 		var st := Game.stat(s, e)
-		var from := []
-		if st.get("siege", false):
-			from = [[e.x, e.y]]
+		var siege: bool = st.get("siege", false)
+		var ck: Variant = _local_key(s, e, mem) if mem.has("tiles_h") else null
+		var hit: Dictionary
+		if ck != null and mem.tm.has(ck):
+			var c: Array = mem.tm[ck]
+			hit = c[1]
+			if not siege:
+				reach_of[e.id] = c[0]
 		else:
-			for r: Dictionary in _reach_of(s, e, reach_of).values():
-				from.append([r.x, r.y])
-		var hit := {}
-		var rmax: int = st.rmax
-		for f: Array in from:
-			var fx: int = f[0]
-			var fy: int = f[1]
-			for y in range(fy - rmax, fy + rmax + 1):
-				for x in range(fx - rmax, fx + rmax + 1):
-					var dd := absi(x - fx) + absi(y - fy)
-					if dd >= st.rmin and dd <= rmax and Game.tile_at(s, x, y) != null:
-						hit[Vector2i(x, y)] = true
+			var from := []
+			if siege:
+				from = [[e.x, e.y]]
+			else:
+				for r: Dictionary in _reach_of(s, e, reach_of).values():
+					from.append([r.x, r.y])
+			hit = {}
+			var rmax: int = st.rmax
+			for f: Array in from:
+				var fx: int = f[0]
+				var fy: int = f[1]
+				for y in range(fy - rmax, fy + rmax + 1):
+					for x in range(fx - rmax, fx + rmax + 1):
+						var dd := absi(x - fx) + absi(y - fy)
+						if dd >= st.rmin and dd <= rmax and Game.tile_at(s, x, y) != null:
+							hit[Vector2i(x, y)] = true
+			if ck != null:
+				mem.tm[ck] = [reach_of.get(e.id), hit]
 		for key: Vector2i in hit:
 			if not m.has(key):
 				m[key] = []
 			m[key].append(e)
 	return m
+
+## everything Game.reachable(s, u) reads: u, the terrain, and the units within its move range (costs are >= 1)
+static func _local_key(s: Dictionary, u: Dictionary, mem: Dictionary) -> Array:
+	var mv: int = Game.stat(s, u).mv
+	var k := [mem.tiles_h, u.id, u.type, u.side, u.x, u.y]
+	for o: Dictionary in s.units:
+		if absi(o.x - u.x) + absi(o.y - u.y) <= mv:
+			k.append_array([o.id, o.side, o.x, o.y])
+	return k
+
+## Game.reachable, memoised for the turn by _local_key (same dict, same order -> same candidate order in best_for_unit)
+static func _reach_cached(s: Dictionary, u: Dictionary, mem: Dictionary) -> Dictionary:
+	if not mem.has("tiles_h"):
+		return Game.reachable(s, u)
+	var k := _local_key(s, u, mem)
+	if not mem.rc.has(k):
+		mem.rc[k] = Game.reachable(s, u)
+	return mem.rc[k]
 
 ## enemy reach shared by threat_map + endangered_castles within one step (state does not change between them)
 static func _reach_of(s: Dictionary, e: Dictionary, cache: Dictionary) -> Dictionary:
@@ -86,7 +115,7 @@ static func _reach_of(s: Dictionary, e: Dictionary, cache: Dictionary) -> Dictio
 static func _dist_cached(s: Dictionary, mc: String, goals: Array, mem: Dictionary) -> Dictionary:
 	if not mem.has("df"):
 		mem.df = {}
-	var key := mc + str(goals)
+	var key := [mc, goals] # array key: hashed natively, no str() of every goal per unit per step
 	if not mem.df.has(key):
 		mem.df[key] = dist_field(s, mc, goals)
 	return mem.df[key]
@@ -158,7 +187,7 @@ static func _risk(hurt: float, hp: float, hp_val: float, die_val: float) -> floa
 
 static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, claims: Dictionary, danger: Dictionary, mem := {}) -> Variant:
 	var st := Game.stat(s, u)
-	var reach := Game.reachable(s, u)
+	var reach := _reach_cached(s, u, mem)
 	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
 	var df := _dist_cached(s, mc, goals_for(s, u, claims), mem)
 	var val := value(s, u)
@@ -326,8 +355,12 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 		else:
 			return { "kind": "act", "act": { "id": u.id, "to": [u.x, u.y], "kind": "wait" } }
 	if mine.size():
+		if not mem.has("tm"):
+			mem.tm = {}
+			mem.rc = {}
+		mem.tiles_h = hash(s.tiles) # raze / repair change a tile mid-turn
 		var reach_of := {}
-		var threat := threat_map(s, side, reach_of)
+		var threat := threat_map(s, side, reach_of, mem)
 		var danger := endangered_castles(s, side, reach_of)
 		var best: Variant = null
 		for u: Dictionary in mine:

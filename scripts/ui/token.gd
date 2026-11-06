@@ -50,7 +50,7 @@ static func raster(path: String, px: float, white := false) -> Texture2D:
 
 ## same cache for SVG markup built in code (rig parts): `src` returns the 256-viewBox SVG text, only called on a miss
 static func raster_svg(id: String, src: Callable, px: float, white := false) -> Texture2D:
-	var b := maxi(16, ceili(px / 8.0) * 8)
+	var b := bucket(px)
 	var key := "%s@%d%s" % [id, b, "|w" if white else ""]
 	var tex: Texture2D = _rast.get(key)
 	if tex != null:
@@ -73,6 +73,10 @@ static func raster_svg(id: String, src: Callable, px: float, white := false) -> 
 	_rast[key] = tex
 	return tex
 
+## the texel size raster() really renders `px` at
+static func bucket(px: float) -> int:
+	return maxi(16, ceili(px / 8.0) * 8)
+
 static func exists(path: String) -> bool:
 	if not _has.has(path):
 		_has[path] = FileAccess.file_exists(path)
@@ -86,7 +90,8 @@ static func image(path: Variant) -> Texture2D:
 	return _tex[path]
 
 ## o: alpha, bob (px up), glow, flash (0..1), mirror (false = never flip enemy icon), shadow (false = skip it),
-## halo (false = skip the commander's glow). Composes with the item's current transform (Draw.xf).
+## halo (false = skip the commander's glow), rs (px per canvas unit to rasterise SVG art at; default = on screen now).
+## Composes with the item's current transform (Draw.xf).
 static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: String, p_hero: Variant, o := {}) -> void:
 	var fac: Dictionary = Draw.pal().factions[p_side]
 	var look := Content.unit_type_look(p_side, p_type, p_hero)
@@ -174,9 +179,11 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 	var ink := FIG_INK
 	ink.a *= al
 	var foot := base - Vector2(0, bob)
+	var rpx := 0.0
 	if colour:
 		# y scale too: an edge-on turn (x ~ 0) must not rasterise a tiny texture per frame
-		fig = raster(o.svg, h * Baked.screen_scale(ci) * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y)))
+		rpx = h * float(o.get("rs", Baked.screen_scale(ci))) * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y))
+		fig = raster(o.svg, rpx)
 		if fig == null:
 			return
 	var r := Rect2(-h / 2.0, -h, h, h)
@@ -187,9 +194,18 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 	ci.draw_texture_rect(fig, r, false, col)
 	var fl: float = o.get("flash", 0.0)
 	if fl > 0: # white silhouette at alpha = flash (engine.js drawTarget)
-		var wt: Texture2D = raster(o.svg, h * Baked.screen_scale(ci) * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y)), true) if colour else fig
+		var wt: Texture2D = raster(o.svg, rpx, true) if colour else fig
 		ci.draw_texture_rect(wt if wt != null else fig, r, false, Color(1, 1, 1, minf(1.0, fl) * al))
 	ci.draw_set_transform_matrix(Draw.xf)
+
+## raster a figure ahead at `rs` px per unit, as _standee will ask for it (+ a breathing step up)
+static func warm(T: float, p_side: String, p_type: String, rs: float) -> void:
+	var alt := "res://assets/units/styles/%s/%s_%s.svg" % [fig_style, p_type, p_side]
+	if fig_style == "" or not exists(alt):
+		return
+	var px := fig_h(p_type, T) * rs
+	raster(alt, px)
+	raster(alt, px * 1.02)
 
 ## the commander's soft gold glow behind the disc
 static func halo(ci: CanvasItem, bc: Vector2, T: float, gc: Color, al := 1.0) -> void:

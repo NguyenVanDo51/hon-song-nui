@@ -52,6 +52,9 @@ var on_hit := Callable() # called once at that HIT (game drops the hp bar)
 var hit_done := false
 var hit_t := -1.0 # attack time of THE hit (-1 = never reached; FX.rig_attack then applies the damage at the end)
 var _cam_T := -1.0
+var _parts := {} # part -> [raster cache id, svg source]: built once, not per part per frame
+var _parts_for := ""
+var _smear_at := {} # smear sample index on the step grid -> [tip, base (character space), root x, root y]
 
 static func thin(v: float) -> float:
 	return 0.08 * (signf(v) if v != 0.0 else 1.0) if absf(v) < 0.08 else v
@@ -414,7 +417,8 @@ func draw_char(ci: CanvasItem) -> void:
 		if al <= 0.0:
 			continue
 		var part: String = e[0]
-		var tex := Token.raster_svg("%s|%s|%s" % [part_id, part, swap], data.part_svg.bind(part, swap), px)
+		var pc: Array = _part_src(part)
+		var tex := Token.raster_svg(pc[0], pc[1], px)
 		if tex == null:
 			continue
 		ci.draw_set_transform_matrix(X * R[e[1]])
@@ -423,6 +427,21 @@ func draw_char(ci: CanvasItem) -> void:
 	if A.get("smear") != null and playing:
 		_draw_smear(ci)
 	spec.draw_char_extra(_ctx(ci), cam, self)
+
+func _part_src(part: String) -> Array:
+	var f := part_id + str(swap)
+	if f != _parts_for:
+		_parts.clear()
+		_parts_for = f
+	if not _parts.has(part):
+		_parts[part] = ["%s|%s|%s" % [part_id, part, swap], data.part_svg.bind(part, swap)]
+	return _parts[part]
+
+## blade tip / base in character space + root offset at attack time `at` (pose_at is a pure function of the time)
+func _smear_pt(at: float, qt: Array, qb: Array) -> Array:
+	var pp := pose_at(at)
+	var R := bones_of(pp)
+	return [R[qt[0]] * qt[1], R[qb[0]] * qb[1], float(pp.x), float(pp.y)]
 
 func _draw_smear(ci: CanvasItem) -> void:
 	var sm: Dictionary = A.smear
@@ -444,14 +463,23 @@ func _draw_smear(ci: CanvasItem) -> void:
 	# line the lunge would otherwise shift each sample across the blade and fill the band into a blob
 	var X := cam.char_xf(pose.x, pose.y)
 	var r0 := cam.root(pose.x, pose.y)
-	for k in n + 1:
-		var pp := pose_at(maxf(from, t - k * step))
-		var R := bones_of(pp)
-		var dy: float = (pp.y - pose.y) * cam.ca
-		var along := (cam.root(pp.x, pp.y) - r0 - Vector2(0.0, dy)).dot(cam.u)
+	# exact ends (now, now - window) + the step grid between them: grid samples are memoised, ~4 new poses a frame instead of 13
+	var w := n * step
+	var lo := maxf(from, t - w)
+	var samples := [_smear_pt(t, qt, qb)]
+	for m in range(ceili(t / step) - 1, floori(lo / step), -1):
+		if m * step < t and m * step > lo:
+			if not _smear_at.has(m):
+				_smear_at[m] = _smear_pt(m * step, qt, qb)
+			samples.append(_smear_at[m])
+	if lo < t:
+		samples.append(_smear_pt(lo, qt, qb))
+	for sp: Array in samples:
+		var dy: float = (sp[3] - pose.y) * cam.ca
+		var along := (cam.root(sp[2], sp[3]) - r0 - Vector2(0.0, dy)).dot(cam.u)
 		var d := Vector2(cam.f * along, dy) # board px; = the old mapping on horizontal attacks
-		var tp: Vector2 = X * (R[qt[0]] * qt[1]) + d
-		var md: Vector2 = X * (R[qb[0]] * qb[1]) + d
+		var tp: Vector2 = X * (sp[0] as Vector2) + d
+		var md: Vector2 = X * (sp[1] as Vector2) + d
 		tips.append(tp)
 		mids.append(md)
 		inner.append(tp.lerp(md, 0.35))

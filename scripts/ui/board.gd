@@ -1,8 +1,9 @@
 class_name Board
 extends BoardBase
-## the battlefield: cached terrain layer + animated water, buildings, fallen soldiers, overlays, units, effects, night, ambience.
+## the battlefield: cached terrain + building layer, animated water, fallen soldiers, overlays, units, effects, night, ambience.
 ## Looks come from the theme; any unit / terrain "img" replaces the procedural drawing. Port of src/ui/render.js.
-## Layers (bottom -> top): terrain (baked once into a texture on fit / refresh) | dyn | fx normal | fx additive | numbers | night | ambient.
+## Layers (bottom -> top): terrain + buildings (baked into a texture on fit / refresh / owner change) | water (shader) | dyn |
+## fx normal | fx additive | numbers | night | ambient.
 ## Units are drawn from a pre-rendered Token.Atlas. Nothing is drawn while the duel view covers the board.
 
 const BUFF_ATK := Color("#ff9a3c") # aura: +10 attack
@@ -37,9 +38,13 @@ const SHIELD_INK := Color("#0b2330")
 var _info_spots := [] # [[centre, unit id]] of the ⓘ dots drawn this frame
 var _stage: Control
 var _terrain: Baked # offscreen render of the static terrain
-var _terrain_hi: Baked # the same at ZOOM x, shown during an attack close-up (the 1x one would blur)
+var _terrain_hi: Baked = null # the same at ZOOM x, only while focused: 19-77 MB, too big to keep
 var _terrain_view: Layer # draws that texture
 var _terrain_dirty := true
+var _water: ColorRect # animated by shaders/water.gdshader over a per-tile mask: no per-frame GDScript
+var _bld_key := 0 # owners / held tiles / tiles the baked buildings were drawn with
+var _live_bld := [] # [t, x, y, own] buildings without art: animated flag, still drawn per frame
+var _art_tex := {} # "path@texels" -> terrain / building raster, kept here so a close-up bake never re-rasterises
 var _scale := 0.0 # screen px per canvas unit the terrain / tokens were baked at
 var _atlas: Token.Atlas
 var _night_key := -1
@@ -68,12 +73,16 @@ func _init() -> void:
 	add_child(_stage)
 	_terrain = Baked.new(_draw_terrain)
 	add_child(_terrain)
-	_terrain_hi = Baked.new(_draw_terrain)
-	add_child(_terrain_hi)
 	_terrain_view = _layer(func(ci: CanvasItem) -> void:
 		if not s.is_empty():
-			ci.draw_texture_rect((_terrain_hi if _zoom > 0.0 else _terrain).get_texture(), Rect2(Vector2.ZERO, ci.size), false))
+			ci.draw_texture_rect((_terrain_hi if _zoom > 0.0 and _terrain_hi != null else _terrain).get_texture(), Rect2(Vector2.ZERO, ci.size), false))
 	_terrain_view.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST # baked 1:1 with screen pixels
+	_water = ColorRect.new()
+	_water.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var wm := ShaderMaterial.new()
+	wm.shader = load("res://shaders/water.gdshader")
+	_water.material = wm
+	_stage.add_child(_water)
 	_atlas = Token.Atlas.new(self)
 	_layers.append(_layer(_draw_dyn))
 	_layers.append(_layer(func(ci: CanvasItem) -> void: fx.draw_over(ci, T, FX.now())))
@@ -120,9 +129,10 @@ func fit(avail: Vector2) -> void:
 	custom_minimum_size = px
 	size = px
 	_stage.size = px
-	for l: Control in [_terrain_view, _night] + _layers:
+	for l: Control in [_terrain_view, _water, _night] + _layers:
 		l.size = px
 	_terrain_dirty = true
+	_art_tex.clear()
 	_night_key = -1
 
 func refresh_terrain() -> void:
@@ -131,10 +141,28 @@ func refresh_terrain() -> void:
 ## close-up on an exchange: the map scales up around the two tiles (awaitable); unfocus() eases back
 func focus(a: Vector2i, b: Vector2i) -> void:
 	_zoom_at = (Vector2(a + b) / 2.0 + Vector2(0.5, 0.5)) * T
+	if _terrain_hi == null and not s.is_empty():
+		_terrain_hi = Baked.new(_draw_terrain)
+		add_child(_terrain_hi)
+		_bake_hi()
 	await _ease_focus(300.0, _zoom, 1.0, func(v: float) -> void: _zoom = v)
 
 func unfocus() -> void:
 	await _ease_focus(260.0, _zoom, 0.0, func(v: float) -> void: _zoom = v)
+	if _zoom == 0.0 and _terrain_hi != null:
+		_terrain_hi.queue_free()
+		_terrain_hi = null
+
+## textures past 4096 px fail on some GPUs: the close-up gets a little softer on very large boards / screens
+func _bake_hi() -> void:
+	_terrain_hi.bake(Vector2(T * s.w, T * s.h), _hi_scale())
+
+func _hi_scale() -> float:
+	return minf(_scale * ZOOM, 4095.0 / maxf(T * s.w, T * s.h))
+
+## px per canvas unit for SVGs painted live during a close-up: the end scale, not the tweening one (one raster per figure)
+func _zoom_rs() -> float:
+	return clampf(_scale * ZOOM, 0.5, 4.0)
 
 func _apply_zoom(shake: Vector2) -> void:
 	var sc := lerpf(1.0, ZOOM, _zoom)
@@ -158,12 +186,23 @@ func _process(dt: float) -> void:
 	var t := FX.now()
 	fx.update(t)
 	var sc := Baked.screen_scale(self)
-	if _terrain_dirty or not is_equal_approx(sc, _scale):
+	var bk := hash([s.owner, view.hold, s.tiles])
+	if _terrain_dirty or bk != _bld_key or not is_equal_approx(sc, _scale):
 		_terrain_dirty = false
+		_bld_key = bk
+		if not is_equal_approx(sc, _scale):
+			_art_tex.clear()
 		_scale = sc
+		_prep_buildings()
 		_terrain.bake(Vector2(T * s.w, T * s.h), sc)
-		_terrain_hi.bake(Vector2(T * s.w, T * s.h), sc * ZOOM)
+		if _terrain_hi != null:
+			_bake_hi()
 		_terrain_view.queue_redraw()
+		_update_water_mask()
+		if _art("grass_a") != "":
+			_warm_hi_art()
+	if _water.visible:
+		(_water.material as ShaderMaterial).set_shader_parameter("ph", fposmod(t / 1100.0, TAU))
 	_atlas.ensure(T, sc, s.heroKey)
 	_apply_zoom(fx.shake_offset(t) * T)
 	for l: Layer in _layers:
@@ -206,7 +245,7 @@ func _tile_art(t: String, x: int, y: int) -> String:
 
 ## an SVG drawn over tile x, y (rasterised at the on-screen size), turned by rot around the tile centre
 func _art_draw(ci: CanvasItem, path: String, x: int, y: int, rot := 0.0) -> bool:
-	var tex := Token.raster(path, T * Baked.screen_scale(ci))
+	var tex := _art_raster(path, T * Baked.screen_scale(ci))
 	if tex == null:
 		return false
 	if rot == 0.0:
@@ -216,6 +255,28 @@ func _art_draw(ci: CanvasItem, path: String, x: int, y: int, rot := 0.0) -> bool
 		ci.draw_texture_rect(tex, Rect2(-T / 2.0, -T / 2.0, T, T), false)
 		ci.draw_set_transform_matrix(Draw.xf)
 	return true
+
+func _art_raster(path: String, px: float) -> Texture2D:
+	var key := "%s@%d" % [path, Token.bucket(px)]
+	if not _art_tex.has(key):
+		_art_tex[key] = Token.raster(path, px)
+	return _art_tex[key]
+
+## rasterise the close-up's terrain, building and figure art ahead (~60 SVGs): the first zoom then has no stall
+func _warm_hi_art() -> void:
+	for side: String in ["p", "e"]:
+		for type: String in Content.theme().units[side]:
+			Token.warm(T, side, type, _zoom_rs())
+	var px := T * _hi_scale()
+	for y in s.h:
+		for x in s.w:
+			var ap := _tile_art(s.tiles[y][x], x, y)
+			if ap != "":
+				_art_raster(ap, px)
+	for b: Array in _bld_list():
+		var ap := _bld_art(b[0], b[3])
+		if ap != "":
+			_art_raster(ap, px)
 
 func _bridge_horiz(x: int, y: int) -> bool:
 	return (Game.tile_at(s, x - 1, y) != "~" or Game.tile_at(s, x + 1, y) != "~") and Game.tile_at(s, x, y - 1) == "~"
@@ -257,6 +318,50 @@ func _draw_terrain(ci: CanvasItem) -> void:
 		ci.draw_line(Vector2(x * T + 0.5, 0), Vector2(x * T + 0.5, s.h * T), gc, 1.0)
 	for y in range(1, s.h):
 		ci.draw_line(Vector2(0, y * T + 0.5), Vector2(s.w * T, y * T + 0.5), gc, 1.0)
+	_draw_static_buildings(ci)
+
+## buildings with art are static: baked here (re-baked when an owner / tile / held tile changes, see _process)
+func _draw_static_buildings(ci: CanvasItem) -> void:
+	for b: Array in _bld_list():
+		var ap := _bld_art(b[0], b[3])
+		if ap != "" and not _art_draw(ci, ap, b[1], b[2]):
+			_draw_building(ci, b[0], b[1] * T, b[2] * T, b[3], 0.0, b[1], b[2])
+
+## [t, x, y, owner] of every building as shown now (a raze / repair keeps the old tile until its event plays)
+func _bld_list() -> Array:
+	var out := []
+	for y in s.h:
+		for x in s.w:
+			var t: String = s.tiles[y][x]
+			var own: String = s.owner.get(Vector2i(x, y), "n")
+			var held: Variant = view.hold.get(Vector2i(x, y)) # [tile, owner] shown until its event plays (raze / repair)
+			if held != null:
+				t = held[0]
+				own = held[1] if held[1] != null else "n"
+			if t == "v" or t == "c" or t == "x" or t == "t":
+				out.append([t, x, y, own])
+	return out
+
+func _bld_art(t: String, own: String) -> String:
+	return _art("temple" if t == "t" else ("village_x" if t == "x" else "%s_%s" % ["village" if t == "v" else "castle", own]))
+
+func _prep_buildings() -> void:
+	_live_bld = _bld_list().filter(func(b: Array) -> bool: return _bld_art(b[0], b[3]) == "")
+
+## water mask for shaders/water.gdshader: r = water tile, g / b = its sparkle spot
+func _update_water_mask() -> void:
+	var img := Image.create(s.w, s.h, false, Image.FORMAT_RGBA8) # 8-bit: sparkle spot off by < 0.2 px, safe on every GPU
+	var any := false
+	for y in s.h:
+		for x in s.w:
+			var w: bool = s.tiles[y][x] == "~"
+			any = any or w
+			img.set_pixel(x, y, Color(1.0 if w else 0.0, hash01(x, y, 3), hash01(x, y, 4), 1.0))
+	_water.visible = any
+	var m: ShaderMaterial = _water.material
+	m.set_shader_parameter("mask", ImageTexture.create_from_image(img))
+	m.set_shader_parameter("tile", T)
+	m.set_shader_parameter("width", maxf(1.0, T / 28.0))
 
 ## dirt tracks: every path tile joins its path / village / castle / bridge neighbours with a worn band (two tones +
 ## pebbles), so the roads read as one network leading to the buildings and over the bridges
@@ -371,17 +476,8 @@ func _draw_dyn(ci: CanvasItem) -> void:
 	if s.is_empty():
 		return
 	var time := FX.now()
-	_draw_water(ci, time)
-	for y in s.h:
-		for x in s.w:
-			var t: String = s.tiles[y][x]
-			var own: String = s.owner.get(Vector2i(x, y), "n")
-			var held: Variant = view.hold.get(Vector2i(x, y)) # [tile, owner] shown until its event plays (raze / repair)
-			if held != null:
-				t = held[0]
-				own = held[1] if held[1] != null else "n"
-			if t == "v" or t == "c" or t == "x" or t == "t":
-				_draw_building(ci, t, x * T, y * T, own, time, x, y)
+	for b: Array in _live_bld:
+		_draw_building(ci, b[0], b[1] * T, b[2] * T, b[3], time, b[1], b[2])
 	for g: Dictionary in s.graves:
 		_draw_grave(ci, g.x * T, g.y * T, time)
 	for at: Array in Objectives.marks(s):
@@ -389,25 +485,6 @@ func _draw_dyn(ci: CanvasItem) -> void:
 	_draw_overlays(ci, time)
 	fx.draw_under(ci, T, time)
 	_draw_units(ci, time)
-
-func _draw_water(ci: CanvasItem, time: float) -> void:
-	var ph := time / 1100.0
-	var wave := Color(0.498, 0.722, 0.831, 0.33)
-	for y in s.h:
-		for x in s.w:
-			if s.tiles[y][x] != "~":
-				continue
-			var X: float = x * T
-			var Y: float = y * T
-			for i in 3:
-				var yy: float = Y + T * (0.22 + 0.28 * i)
-				var pts := PackedVector2Array()
-				for j in 7:
-					pts.append(Vector2(X + T * j / 6.0, yy + sin(ph * 2 + j * 1.1 + x * 0.9 + i * 2 + y) * T * 0.035))
-				ci.draw_polyline(pts, wave, maxf(1.0, T / 28.0), true)
-			var spk := (sin(ph * 3 + x * 7.1 + y * 3.3) + 1) / 2
-			if spk > 0.85:
-				ci.draw_circle(Vector2(X + hash01(x, y, 3) * T, Y + hash01(x, y, 4) * T), T * 0.03, Color(1, 1, 1, (spk - 0.85) * 4))
 
 static func _join(parts: Array) -> PackedVector2Array:
 	var out := PackedVector2Array()
@@ -418,10 +495,8 @@ static func _join(parts: Array) -> PackedVector2Array:
 			out.append(p[i])
 	return out
 
+## procedural building (no art set): the castle flag waves, so these stay in the per-frame layer
 func _draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, time: float, x: int, y: int) -> void:
-	var ap := _art("temple" if t == "t" else ("village_x" if t == "x" else "%s_%s" % ["village" if t == "v" else "castle", own]))
-	if ap != "" and _art_draw(ci, ap, x, y):
-		return
 	if t == "t": # shrine without the art set: drawn as a neutral village
 		t = "v"
 		own = "n"
@@ -701,7 +776,10 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			_atlas.draw_shadow(ci, c, it.scale, alpha, pose.shadow)
 			Draw.set_xf(ci, pose.xf)
 			if flash > 0 or _zoom > 0.0: # hit flash / close-up: paint live (white figure; crisp at any scale)
-				Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "flash": flash, "shadow": false, "tint": tint })
+				var o := { "alpha": alpha, "flash": flash, "shadow": false, "tint": tint }
+				if _zoom > 0.0:
+					o.rs = _zoom_rs()
+				Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], o)
 			elif not _atlas.draw(ci, st, c, u.side, u.type, 0.0, it.scale, alpha, tint, false, pose.still):
 				Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "shadow": false })
 			Draw.set_xf(ci, Transform2D.IDENTITY)

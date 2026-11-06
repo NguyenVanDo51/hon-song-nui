@@ -92,3 +92,9 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - E4: `scripts/core/objectives.gd` (registry kiểu mục tiêu).
 - Cách thêm quân / công trình / mục tiêu: `docs/content.md`. Golden y hệt sau mỗi bước.
 - Chưa làm (để sau): E1 N phe / đồng minh, E6 i18n. Tầm hào quang (2) vẫn cứng ở `game.gd` + `board.gd` (AE2 cố định).
+
+## 2026-11-06 — sao màn + vùng địch đánh tới (nhánh `feat/stars-threat`)
+- Nguồn: research thể loại `docs/review/genre_hooks.html` (main checkout, chưa commit) -> đợt 1 chọn: sao màn + vùng địch.
+- Sao: `scripts/core/stars.gd`, `s.lost`, `Store.stars_of`, thẻ thắng + bản đồ chiến dịch. Mốc sao 3 = trung vị sim AI-vs-AI 12 ván (m08 hạ 30 -> 25).
+- Vùng địch: `Game.threat_tiles` + `board.gd` (tô đỏ / viền / dấu !); thẻ thắng ở `game_cards.gd`, tính sao ở `turn_driver.gd` `finish`. Chỉ 2D.
+- Kiểm: tests 96/96 (sau rebase lên master 20fae2e), click driver 0 lỗi, ảnh probe `sim/probes/stars_threat_shot.gd` (3 sao + cung / máy bắn đá / rồng). Chưa chụp được thẻ 1–2 sao (màn hình tắt -> cửa sổ Godot treo).

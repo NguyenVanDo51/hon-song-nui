@@ -1,5 +1,5 @@
 extends SceneTree
-## headless balance sim, same output lines as the JS scripts/sim.cjs (so the two can be diffed)
+## headless balance sim (line starts as the old JS scripts/sim.cjs; + win turns / lost / stars columns for mission stars)
 ## <godot> --headless --path . -s sim/sim.gd -- mission <id|all> [games]   -> AI plays both sides of a campaign mission
 ## <godot> --headless --path . -s sim/sim.gd -- skirmish [games] [easy]    -> AI vs AI on the free-play map, heroes rotate
 ## <godot> --headless --path . -s sim/sim.gd -- naive [games]              -> random bot (p) vs AI (e) on skirmish map

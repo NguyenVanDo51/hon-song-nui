@@ -9,7 +9,7 @@
 ## Cân bằng / nhịp chơi
 - [x] **m14 Rút Về Cấm Khê quá khó**: đã hết (sim AI-vs-AI ta thắng 12/12 ở AI `fe83a5d`, 10/12 ngay trước; bảng `31a006e` từng là 3/12, phần lớn `timeUp`). Người thật chơi thử để chắc.
 - [ ] **Chơi thử nhịp ra quân mới** (`docs/content.md` mục "Nhịp ra quân mới"): người thật chơi m03–m05 + m09–m13, xem có kịp quen quân cũ trước khi gặp quân mới không. Sim AI không đo được việc học quân.
-- [ ] **Chơi thử mốc sao** (2026-11-06): mốc sao 3 = trung vị khi AI phe ta thắng (`docs/content.md` mục "Sao màn"). Người thật thấy quá dễ / quá khó thì chỉnh `stars` trong file màn.
+- [ ] **Chơi thử mốc sao** (2026-11-06): mốc sao 3 = trung vị khi AI phe ta thắng (`docs/content.md` mục "Sao màn"). Người thật thấy quá dễ / quá khó thì chỉnh `stars` trong file màn. Đáng xem: m08 (25, trung vị AI 30), m03 / m09 (`lost: 0`), m14 (AI thắng thì tướng ngã 11/12 ván -> sao 2 có thể quá khó).
 - [ ] Sau mỗi lần đổi AI (`scripts/core/ai.gd`): chạy lại `bash tools/sim_many.sh "m01 … m16" 12 8` + cập nhật bảng cân bằng README (số hiện tại đo với AI `fe83a5d`).
 
 ## Tính năng

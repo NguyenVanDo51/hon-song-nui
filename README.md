@@ -53,21 +53,23 @@ powershell -File tools/run_guarded.ps1 -Log g.log -GArgs "--headless --path . -s
 ```
 Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
 
-## Cân bằng (sim AI-vs-AI, 12 ván/màn, bản đồ mới 2026-11-05)
-AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 60 lượt chưa phân thắng bại.
+## Cân bằng (sim AI-vs-AI, 12 ván/màn (24 nếu ghi /24), 2026-11-06, luật AE2 + AI `31a006e` + nhịp ra quân mới)
+AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 60 lượt chưa phân thắng bại. Mới = loại quân ra mắt (thấy → cầm → mua, xem `docs/content.md` mục "Nhịp ra quân mới").
 
-| Màn | Kiểu | Ta thắng | Trung vị lượt | | Màn | Kiểu | Ta thắng | Trung vị lượt |
-|---|---|---|---|---|---|---|---|---|
-| m01 Lời Thề Hát Môn | diệt hết | 11/12 | 10 | | m09 Tin Dữ Hợp Phố | giữ vững | 12/12 | 10 |
-| m02 Về Lại Mê Linh | chiếm thành | 10/12 | 30 | | m10 Sóng An Biên | hạ tướng | 11/12 | 27 |
-| m03 Giữ Làng Hạ Lôi | giữ vững | 12/12 | 11 | | m11 Bát Nàn Giữ Ải | chiếm thành | 12/12 | 15 |
-| m04 Phá Đồn Cổ Loa | hạ tướng | 11/12 | 15 | | m12 Trận Lãng Bạc | chiếm thành | 10/12 | 23 |
-| m05 Đêm Hồ Tây | chiếm thành | 11/12 | 19 | | m13 Địu Con Phá Vây | tới đích | 9/12 | 10 |
-| m06 Kỵ Binh Bãi Sông | chiếm thành | 5/12 (4 hòa) | 47 | | m14 Rút Về Cấm Khê | tới đích | 10/12 | 5 |
-| m07 Vây Thành Long Biên | chiếm thành | 10/12 | 41 | | m15 Thành Cấm Khê | giữ vững | 10/12 | 11 |
-| m08 Trị Sở Luy Lâu | chiếm thành | 6/12 (4 hòa) | 51 | | m16 Đêm Sông Hát | giữ vững | 7/12 | 9 |
+| Màn | Kiểu | Mới | Ta thắng | Trung vị lượt | | Màn | Kiểu | Mới | Ta thắng | Trung vị lượt |
+|---|---|---|---|---|---|---|---|---|---|---|
+| m01 Lời Thề Hát Môn | diệt hết | bộ binh, tướng | 11/12 | 6 | | m09 Tin Dữ Hợp Phố | giữ vững | thủy binh (địch) | 12/12 | 10 |
+| m02 Về Lại Mê Linh | chiếm thành | nỏ thủ | 9/12 | 13 | | m10 Sóng An Biên | hạ tướng | thủy binh (ta) | 10/12 | 14 |
+| m03 Giữ Làng Hạ Lôi | giữ vững | trống (đặt sẵn) | 12/12 | 10 | | m11 Bát Nàn Giữ Ải | chiếm thành | sói (địch) | 11/12 | 9 |
+| m04 Phá Đồn Cổ Loa | hạ tướng | voi (địch) | 11/12 | 9 | | m12 Trận Lãng Bạc | chiếm thành | sói (ta) | 10/12 | 20 |
+| m05 Đêm Hồ Tây | chiếm thành | (đêm) | 11/12 | 9 | | m13 Địu Con Phá Vây | tới đích | thầy mo (đặt sẵn) | 12/12 | 7 |
+| m06 Trận Bãi Sông | hạ tướng | — | 12/12 | 8 | | m14 Rút Về Cấm Khê | tới đích | — | 3/12 | 14 |
+| m07 Vây Thành Long Biên | chiếm thành | máy bắn đá | 11/12 | 11 | | m15 Thành Cấm Khê | giữ vững | rồng (1 con) | 20/24 | 11 |
+| m08 Trị Sở Luy Lâu | chiếm thành | — | 17/24 (2 hòa) | 22 | | m16 Đêm Sông Hát | giữ vững | — | 6/12 | 9 |
 
-Màn đầu chương dễ, giữa chương ~80–90%, trận cuối chương ~50–60%. Rừng núi dày hơn làm các trận chiếm thành lớn (m06, m08) dài hơn trước. m04 đã chỉnh (thêm vàng + 1 bộ binh ta, bớt voi địch) vì Tô Định đi được trên sông; m16 bớt vàng ta và thêm quân địch lượt 1.
+- Màn ra mắt quân ≥ ~80%; trận cuối chương ~50–70% (m08, m16).
+- **m14 lệch sẵn từ trước** (trước đổi, AI cũ: 1/12; phần lớn hết lượt chưa tới đích) — chưa chỉnh.
+- Bảng cũ (2026-11-05) đo trước khi đưa luật về AE2; số trước đổi (AI cũ): m07 7/12, m08 7/12, m13 5/12, m15 4/12.
 
 ## Luật = AE2 (2026-11-06)
 Luật đã đưa về giống Ancient Empires II theo `docs/review/rules_compare.html` (số liệu từ dữ liệu gốc + mã dịch ngược bản mod; điểm chưa xác nhận ghi trong `docs/spec.md`). Bản port JS cũ + phép đo khớp JS (`sim/legacy/`, `trace_js.cjs`) đã bỏ.

@@ -11,12 +11,12 @@ const DEF := {
 	"history": "Luy Lâu (Thuận Thành, Bắc Ninh), sát phía đông Hà Nội ngày nay, là trị sở quận Giao Chỉ thời Hán.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
-	"newUnits": ["wolf"],
+	"newUnits": [],
 	"allowed": {
-		"p": ["soldier", "archer", "boat", "drum", "shaman", "wolf", "elephant", "catapult"],
-		"e": ["soldier", "archer", "boat", "drum", "shaman", "wolf", "elephant", "catapult"],
+		"p": ["soldier", "archer", "drum", "elephant", "catapult"],
+		"e": ["soldier", "archer", "drum", "elephant", "catapult"],
 	},
-	"gold": { "p": 900, "e": 300 },
+	"gold": { "p": 900, "e": 350 },
 	"win": { "type": "castles" },
 	"map": {
 		"rows": [
@@ -40,12 +40,12 @@ const DEF := {
 		["p", "elephant", 1, 2],
 		["p", "archer", 2, 2],
 		["p", "catapult", 0, 3],
-		["p", "wolf", 3, 1],
+		["p", "drum", 3, 1],
 		["e", "hero", 13, 1],
 		["e", "elephant", 13, 2],
 		["e", "archer", 14, 2, { "rank": 1 }],
-		["e", "wolf", 15, 0],
-		["e", "shaman", 13, 9],
+		["e", "elephant", 15, 0, { "rank": 1 }],
+		["e", "drum", 13, 9],
 		["e", "soldier", 14, 9],
 		["e", "catapult", 15, 10, { "guard": true }],
 	],
@@ -54,7 +54,7 @@ const DEF := {
 			["todinh", "Luy Lâu là trị sở Giao Chỉ! Quân triều đình còn đông, các ngươi đừng mơ!"],
 			["trungtrac", "Các quận đã nổi lên theo ta. Còn mỗi Luy Lâu. Toàn quân, tiến!"],
 			["trungnhi", "Thành giữa đồng bỏ trống. Ai chiếm trước, người đó giữ được thế."],
-			["danlang", "Thợ săn trên núi thuần được sói rừng, dắt về theo quân. Sói cắn trúng ai, kẻ ấy yếu hẳn đi."],
+			["danlang", "Thợ làng đóng thêm máy bắn đá. Nay ở thành nào của ta cũng mua được."],
 		],
 		"outro": [
 			[
@@ -66,7 +66,7 @@ const DEF := {
 	},
 	"tips": [
 		"Trận cuối: Tướng giặc có 2 thành. Phải chiếm cả hai [b]và[/b] hạ hắn. Chiếm thành trống giữa bản đồ để tăng thu nhập.",
-		"[b]Sói[/b] chạy 6 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau.",
+		"[b]Máy bắn đá[/b] nay mua được. Ném làng địch cho hỏng để giặc hụt vàng; lính hoặc tướng đứng trên làng hỏng bấm [b]Sửa làng[/b] để lấy lại.",
 		"Phối hợp: voi đi đầu, trống đồng ở giữa, nỏ thủ và máy bắn đá phía sau. Đền giữa đồng hồi máu cho bất kỳ ai đứng đó.",
 	],
 }

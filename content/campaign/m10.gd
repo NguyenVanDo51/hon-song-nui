@@ -9,8 +9,8 @@ const DEF := {
 	"history": "Nữ tướng Lê Chân lập trang An Biên, luyện thủy binh ở cửa biển. Thành phố Hải Phòng ngày nay thờ bà như người mở đất.",
 	"hero": "anhhung", "enemyHero": "tuonggiac",
 	"newUnits": [],
-	"allowed": { "p": ["soldier", "archer", "boat", "drum", "shaman", "wolf", "elephant"], "e": ["soldier", "archer", "boat", "elephant"] },
-	"gold": { "p": 500, "e": 250 },
+	"allowed": { "p": ["soldier", "archer", "boat", "drum", "elephant"], "e": ["soldier", "archer", "boat", "elephant"] },
+	"gold": { "p": 600, "e": 250 },
 	"win": { "type": "hero" },
 	"map": { "rows": [
 		".c.....~~~.....",

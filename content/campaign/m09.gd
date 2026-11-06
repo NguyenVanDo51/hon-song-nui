@@ -8,8 +8,8 @@ const DEF := {
 	"region": "Hợp Phố", "pos": [88, 12],
 	"history": "Năm 42, Mã Viện tập hợp hai vạn quân và hai nghìn thuyền ở Hợp Phố. Tương truyền nữ tướng Thánh Thiên được Trưng Vương giao giữ vùng này.",
 	"hero": "anhhung", "enemyHero": null,
-	"newUnits": [],
-	"allowed": { "p": ["soldier", "archer", "boat", "drum", "shaman"], "e": [] },
+	"newUnits": ["boat"],
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": [] },
 	"gold": { "p": 500, "e": 0 },
 	"win": { "type": "survive", "turns": 9 },
 	"map": { "rows": [
@@ -30,7 +30,7 @@ const DEF := {
 		{ "turn": 2, "units": [["soldier", 4, 1], ["soldier", 9, 1], ["soldier", 12, 4]] },
 		{ "turn": 3, "units": [["archer", 12, 6], ["boat", 12, 2]] },
 		{ "turn": 5, "units": [["soldier", 2, 2], ["boat", 13, 8], ["elephant", 8, 1], ["archer", 3, 1]] },
-		{ "turn": 7, "units": [["soldier", 6, 1, { "rank": 1 }], ["soldier", 12, 5], ["boat", 0, 3], ["shaman", 11, 8], ["archer", 12, 7]] },
+		{ "turn": 7, "units": [["soldier", 6, 1, { "rank": 1 }], ["soldier", 12, 5], ["boat", 0, 3], ["soldier", 11, 8], ["archer", 12, 7]] },
 	],
 	"story": {
 		"intro": [
@@ -43,7 +43,7 @@ const DEF := {
 	"tips": [
 		"Mục tiêu: [b]giữ vững 9 lượt[/b]. Giặc đổ bộ từ biển ở các lượt 2, 3, 5, 7.",
 		"Giữ đội hình sát nhau quanh thành. [b]Trống đồng[/b] ra lệnh trước: quân ta trong 2 ô +10 công tới lượt sau.",
-		"Thuyền giặc đánh từ dưới nước rất khó hạ. [b]Thủy binh[/b] ta cũng xuống nước được: +10 công, +15 thủ khi đứng dưới nước.",
+		"[b]Thủy binh[/b] giặc đi sông 1 bước, đứng dưới nước +10 công, +15 thủ: rất khó hạ. Đợi chúng lên bờ rồi hãy đánh, đừng lội xuống đuổi.",
 		"Mất thành mà tướng cũng ngã là thua. Đừng để tướng đứng ở mép biển.",
 	],
 }

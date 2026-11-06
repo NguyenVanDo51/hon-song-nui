@@ -47,4 +47,22 @@ const DEF := {
 
 Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành).
 
+## Nhịp ra quân mới (2026-11-06)
+Theo cách AE2 gốc mở quân (m0–m7: màn không mua xen kẽ, quân mới thấy ở phe địch / kịch bản trước khi mua được):
+- Mỗi loại 3 bước: **thấy** (phe địch, hoặc đặt sẵn) -> **cầm** (đặt sẵn cho ta, chưa có trong `allowed.p`) -> **mua** (màn sau).
+- Không 2 màn ra mắt liền nhau; không ra quân mới ở màn khó (sim < ~75%) hay trận cuối chương.
+- Thẻ giới thiệu bật theo quân trên bản đồ + `waves` + `allowed` (cả 2 phe), không theo `newUnits` -> dời màn ra mắt phải sửa cả 4 chỗ.
+
+| Loại | Thấy | Cầm | Mua |
+|---|---|---|---|
+| Bộ binh, tướng | m01 | m01 | m02 |
+| Nỏ thủ | m02 | m02 | m02 |
+| Trống đồng | m03 | m03 | m04 |
+| Voi chiến | m04 (địch) | m05 | m05 |
+| Máy bắn đá | m07 | m07 | m08 |
+| Thủy binh | m09 (địch) | m10 | m10 |
+| Sói | m11 (địch) | m12 | m12 |
+| Thầy mo + âm binh | m13 | m13 (đội cố định) | m14 |
+| Rồng | m15 | m15 (1 con) | — (chỉ đấu tự do) |
+
 Kiểm tra: `sim/tests.gd` (validator: hàng đều dài, quân đứng ô đi được, không chồng ô...) + `sim/sim.gd -- mission m09 20` (AI phía ta thắng bao nhiêu %, trung vị số lượt). Lệnh đầy đủ ở README.

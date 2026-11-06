@@ -115,9 +115,9 @@ func base_pose() -> Dictionary:
 
 func pose_at(at: float) -> Dictionary:
 	var p := base_pose()
-	var tr: Dictionary = A.tr
-	for k: String in tr:
-		p[k] = RigData.sample(tr[k], at)
+	var tracks: Dictionary = A.tr
+	for k: String in tracks:
+		p[k] = RigData.sample(tracks[k], at)
 	spec.channels(p, at, A.id)
 	p.face *= cos(p.spin)
 	return p

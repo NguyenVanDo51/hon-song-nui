@@ -216,7 +216,9 @@ func _process(dt: float) -> void:
 func _pick(p: Vector2) -> Variant:
 	var x := int(floor(p.x / T))
 	var y := int(floor(p.y / T))
-	return Vector2i(x, y) if Game.tile_at(s, x, y) != null else null
+	if Game.tile_at(s, x, y) == null:
+		return null
+	return Vector2i(x, y)
 
 ## unit id whose ⓘ dot is under p (a little larger than drawn, so it is easy to hit), else -1
 func _info_at(p: Vector2) -> int:
@@ -228,10 +230,10 @@ func _info_at(p: Vector2) -> int:
 
 # ---------- terrain (cached) ----------
 ## art set (Token.fig_style, e.g. chibi): SVG tiles in assets/terrain/<style>/ replace the procedural terrain
-func _art(name: String) -> String:
+func _art(art_id: String) -> String:
 	if Token.fig_style == "":
 		return ""
-	var p := "res://assets/terrain/%s/%s.svg" % [Token.fig_style, name]
+	var p := "res://assets/terrain/%s/%s.svg" % [Token.fig_style, art_id]
 	return p if Token.exists(p) else ""
 
 ## tile x, y -> its art file (two looks per kind, picked by position); "" = no art for it
@@ -798,23 +800,23 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 				r.draw_layer(ci, "back")
 			r.draw_layer(ci, "mid")
 
-## hp bar + number (when hurt), rank stars, sleeping-sentry 💤 around a figure centred at c (tile size T).
+## hp bar + number (when hurt), rank stars, sleeping-sentry 💤 around a figure centred at c (tile size ts).
 ## zz = 💤 height above c, tiles (3D projects c at the chest, so it sits higher there)
-static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Vector2, T: float, zz := 0.52) -> void:
+static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Vector2, ts: float, zz := 0.52) -> void:
 	var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
 	hp = v.get("hpCount", {}).get(u.id, hp) # turn-start heal counting up
 	if hp < 100:
-		var w := T * 0.62
-		var h := maxf(3.0, T * 0.07)
+		var w := ts * 0.62
+		var h := maxf(3.0, ts * 0.07)
 		var bx := c.x - w / 2
-		var byy := c.y + T * 0.36
+		var byy := c.y + ts * 0.36
 		ci.draw_rect(Rect2(bx - 1, byy - 1, w + 2, h + 2), Color(0, 0, 0, 0.73))
 		ci.draw_rect(Rect2(bx, byy, w * maxi(0, hp) / 100.0, h), Style.hp_color(hp))
-		Draw.text_a(ci, Style.xbold, Vector2(c.x + T * 0.48, c.y + T * 0.3), str(maxi(0, hp)), int(round(T * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
+		Draw.text_a(ci, Style.xbold, Vector2(c.x + ts * 0.48, c.y + ts * 0.3), str(maxi(0, hp)), int(round(ts * 0.22)), Color.WHITE, 1.0, false, 3, Color.BLACK)
 	if u.rank:
-		Draw.text_a(ci, Style.xbold, Vector2(c.x - T * 0.48, c.y - T * 0.5), "★".repeat(u.rank), int(round(T * 0.2)), STAR, 0.0, true, 3, STAR_INK)
+		Draw.text_a(ci, Style.xbold, Vector2(c.x - ts * 0.48, c.y - ts * 0.5), "★".repeat(u.rank), int(round(ts * 0.2)), STAR, 0.0, true, 3, STAR_INK)
 	if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat*)
-		Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * zz), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
+		Draw.text_a(ci, Style.body, Vector2(c.x + ts * 0.24, c.y - ts * zz), "💤", int(round(ts * 0.22)), Color.WHITE, 1.0, true)
 
 ## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
 ## striking leans into the blow (fx.offsets), getting hit shoves it back (fx.knock), dying topples it over (ghost),

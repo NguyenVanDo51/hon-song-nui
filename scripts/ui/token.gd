@@ -15,13 +15,13 @@ var px := 56.0
 static var _tex := {}
 static var _icon_w := {} # "icon|size" -> width, so the hot path never measures strings
 
-static func make(p_side: String, p_type: String, p_hero: Variant, size := 56.0) -> Token:
+static func make(p_side: String, p_type: String, p_hero: Variant, sz := 56.0) -> Token:
 	var t := Token.new()
 	t.side = p_side
 	t.type = p_type
 	t.hero_key = p_hero
-	t.px = size
-	t.custom_minimum_size = Vector2(size, size)
+	t.px = sz
+	t.custom_minimum_size = Vector2(sz, sz)
 	t.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return t
 
@@ -45,12 +45,12 @@ static var _has := {} # path -> bool
 ## this frame is never freed mid-frame (freed RID = white square in a one-shot bake / an icon not redrawn).
 ## Rotation redraws every Token icon so its texture moves into the new gen.
 ## white = solid white silhouette (hit flash, like the demo's targetWhite)
-static func raster(path: String, px: float, white := false) -> Texture2D:
-	return raster_svg(path, func() -> String: return FileAccess.get_file_as_string(path), px, white)
+static func raster(path: String, tex_px: float, white := false) -> Texture2D:
+	return raster_svg(path, func() -> String: return FileAccess.get_file_as_string(path), tex_px, white)
 
 ## same cache for SVG markup built in code (rig parts): `src` returns the 256-viewBox SVG text, only called on a miss
-static func raster_svg(id: String, src: Callable, px: float, white := false) -> Texture2D:
-	var b := bucket(px)
+static func raster_svg(id: String, src: Callable, tex_px: float, white := false) -> Texture2D:
+	var b := bucket(tex_px)
 	var key := "%s@%d%s" % [id, b, "|w" if white else ""]
 	var tex: Texture2D = _rast.get(key)
 	if tex != null:
@@ -74,8 +74,8 @@ static func raster_svg(id: String, src: Callable, px: float, white := false) -> 
 	return tex
 
 ## the texel size raster() really renders `px` at
-static func bucket(px: float) -> int:
-	return maxi(16, ceili(px / 8.0) * 8)
+static func bucket(tex_px: float) -> int:
+	return maxi(16, ceili(tex_px / 8.0) * 8)
 
 static func exists(path: String) -> bool:
 	if not _has.has(path):
@@ -154,15 +154,15 @@ const FOOT := 0.30 # figure's feet below the tile centre, tiles (rig feet + boar
 const ART := 1.12 # full-colour art is drawn this much taller than a silhouette
 
 ## standing figure height, px (the 256 SVG square's side); colour = full-colour art
-static func fig_h(type: String, T: float, colour := true) -> float:
-	var h := T * (0.74 if type == "hero" else 0.66)
+static func fig_h(utype: String, T: float, colour := true) -> float:
+	var h := T * (0.74 if utype == "hero" else 0.66)
 	return h * ART if colour else h
 
 ## ground shadow under a standing figure whose feet are at `base`; squash < 1 = smaller (in the air)
 static func draw_shadow(ci: CanvasItem, base: Vector2, T: float, al := 1.0, squash := 1.0) -> void:
 	Draw.ellipse(ci, base + Vector2(T * 0.02, T * 0.01), T * 0.24 * squash, T * 0.075 * squash, Color(0, 0, 0, 0.42 * al))
 
-static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D, o: Dictionary) -> void:
+static func _standee(ci: CanvasItem, c: Vector2, T: float, fac_side: String, hero: bool, foe: bool, fac: Dictionary, fig: Texture2D, o: Dictionary) -> void:
 	var al: float = o.get("alpha", 1.0)
 	var base := c + Vector2(0, T * FOOT)
 	if o.get("shadow", true):
@@ -172,7 +172,7 @@ static func _standee(ci: CanvasItem, c: Vector2, T: float, side: String, hero: b
 		halo(ci, c - Vector2(0, bob), T, (FOE_GLOW if foe else HERO_GLOW) if hero else fac.glow, al)
 	var colour: bool = o.get("color", false) # full-colour art: drawn as is, no faction fill / ink outline
 	var h := fig_h("hero" if hero else "", T, colour)
-	var flip := -1.0 if side == "e" and o.get("mirror", true) else 1.0
+	var flip := -1.0 if fac_side == "e" and o.get("mirror", true) else 1.0
 	var col: Color = Color.WHITE if colour else fac.get("fig", fac.body2)
 	col *= o.get("tint", Color.WHITE)
 	col.a *= al
@@ -204,9 +204,9 @@ static func warm(T: float, p_side: String, p_type: String, rs: float) -> void:
 	var alt := "res://assets/units/styles/%s/%s_%s.svg" % [fig_style, p_type, p_side]
 	if fig_style == "" or not exists(alt):
 		return
-	var px := fig_h(p_type, T) * rs
-	raster(alt, px)
-	raster(alt, px * 1.02)
+	var fig_px := fig_h(p_type, T) * rs
+	raster(alt, fig_px)
+	raster(alt, fig_px * 1.02)
 
 ## the commander's soft gold glow behind the disc
 static func halo(ci: CanvasItem, bc: Vector2, T: float, gc: Color, al := 1.0) -> void:
@@ -250,6 +250,7 @@ class Atlas extends RefCounted:
 		var rows := ceili(float(_list.size()) / _cols)
 		cells.clear()
 		for i in _list.size():
+			@warning_ignore("integer_division")
 			cells[_list[i][0]] = Rect2((i % _cols) * _cpx + 1, (i / _cols) * _cpx + 1, _cpx - 2, _cpx - 2)
 		vp.bake(Vector2(_cols * _cpx, rows * _cpx) / scale, scale)
 
@@ -257,6 +258,7 @@ class Atlas extends RefCounted:
 		var scale: float = vp.canvas_transform.get_scale().x
 		for i in _list.size():
 			var it: Array = _list[i]
+			@warning_ignore("integer_division")
 			var c := (Vector2(i % _cols, i / _cols) * _cpx + Vector2(_cpx, _cpx) / 2.0) / scale
 			if it[0] == "shadow":
 				var R := T * 0.4

@@ -184,10 +184,10 @@ class Cut extends Timed:
 		if layer != "front":
 			return
 		var u := age / 260.0
-		var len := 260.0 * minf(1.0, age / 50.0)
+		var blade_len := 260.0 * minf(1.0, age / 50.0)
 		var w := 12.0 * (1.0 - u)
 		ctx.set_xf(cam.frame(x, y).rotated_local(deg_to_rad(ang)))
-		ctx.begin_path(); ctx.move_to(-len / 2, 0); ctx.quad_to(0, -w, len / 2, 0); ctx.quad_to(0, w, -len / 2, 0); ctx.close_path()
+		ctx.begin_path(); ctx.move_to(-blade_len / 2, 0); ctx.quad_to(0, -w, blade_len / 2, 0); ctx.quad_to(0, w, -blade_len / 2, 0); ctx.close_path()
 		ctx.fill(Color.WHITE); ctx.stroke(INK, 4)
 
 static func star4(ctx: RigCtx, s: float) -> void:

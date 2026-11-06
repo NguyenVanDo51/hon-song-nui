@@ -266,8 +266,8 @@ func _draw() -> void:
 		draw_circle(c, r, Color(fill, al), true, -1.0, true)
 		draw_arc(c, r, 0, TAU, 32, Color(stroke, al), 0.45 * s, true)
 		Draw.text_c(self, Style.xbold, c, str(missions.find(m) + 1), int(round(2.6 * s)), Color(Color("#3a1a10") if cur else Style.INK, al))
-		var name: String = m.get("region", m.get("place", ""))
-		Draw.text_a(self, Style.bold, c + Vector2(0, 5.6 * s), name, int(round(2.5 * s)), Color(Style.INK, al), 0.5, false, int(0.7 * s), Color("#1a0f08"))
+		var place: String = m.get("region", m.get("place", ""))
+		Draw.text_a(self, Style.bold, c + Vector2(0, 5.6 * s), place, int(round(2.5 * s)), Color(Style.INK, al), 0.5, false, int(0.7 * s), Color("#1a0f08"))
 	_draw_info(s)
 	# frame
 	draw_style_box(Style.box(Color.TRANSPARENT, Style.BRONZE_2, 12, 0), Rect2(Vector2.ZERO, size))

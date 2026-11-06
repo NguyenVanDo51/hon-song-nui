@@ -25,8 +25,8 @@ func events(_r: Rig) -> Array:
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
 	if name == "plume":
-		var idle: float = ctx.idle
-		return clampf(vx * 0.035, -14, 30) + p.lean * 0.8 + p.head * 0.6 + idle * 2.0 * sin(ctx.clock / 700.0)
+		var idle_k: float = ctx.idle
+		return clampf(vx * 0.035, -14, 30) + p.lean * 0.8 + p.head * 0.6 + idle_k * 2.0 * sin(ctx.clock / 700.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -38,7 +38,7 @@ func idle(p: Dictionary, b: float, _clock: float) -> void:
 
 ## water droplet: outlined teardrop along its velocity, gravity, dies on the ground. Frame weight fixed at spawn.
 class Drop extends RigFx.Mote:
-	static func spawn(r: Rig, px: float, py: float, n: int, o := {}) -> void:
+	static func spawn(rig: Rig, px: float, py: float, n: int, o := {}) -> void:
 		var sx: float = o.get("sx", 20.0)
 		for i in n:
 			var d := Drop.new()
@@ -48,8 +48,8 @@ class Drop extends RigFx.Mote:
 			d.vy = randf_range(o.get("vy0", -620.0), o.get("vy1", -260.0))
 			d.rr = randf_range(o.get("r0", 5.0), o.get("r1", 10.0))
 			d.life = randf_range(650, 1000)
-			d.w = r.cam.w_of(d.x)
-			r.add(d)
+			d.w = rig.cam.w_of(d.x)
+			rig.add(d)
 
 	func move(s: float) -> void:
 		vy += 1500.0 * s
@@ -66,11 +66,11 @@ class Drop extends RigFx.Mote:
 		return 1.0 - (age - life * 0.7) / (life * 0.3) if age > life * 0.7 else 1.0
 
 	func shape(ctx: RigCtx) -> void:
-		var r := rr
-		ctx.begin_path(); ctx.move_to(-r * 2.3, 0); ctx.quad_to(-r * 0.6, -r, 0, -r); ctx.arc(0, 0, r, -PI / 2, PI / 2)
-		ctx.quad_to(-r * 0.6, r, -r * 2.3, 0)
+		var rad := rr
+		ctx.begin_path(); ctx.move_to(-rad * 2.3, 0); ctx.quad_to(-rad * 0.6, -rad, 0, -rad); ctx.arc(0, 0, rad, -PI / 2, PI / 2)
+		ctx.quad_to(-rad * 0.6, rad, -rad * 2.3, 0)
 		ctx.fill(WATER); ctx.stroke(RigFx.INK, 3)
-		ctx.begin_path(); ctx.circle(r * 0.2, -r * 0.35, r * 0.3); ctx.fill(FOAM)
+		ctx.begin_path(); ctx.circle(rad * 0.2, -rad * 0.35, rad * 0.3); ctx.fill(FOAM)
 
 ## wave: rises + curls toward the target, crashes (THE shared HIT), then collapses into foam
 class WaveFx extends RefCounted:

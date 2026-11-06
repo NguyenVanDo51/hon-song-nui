@@ -9,15 +9,15 @@ class Debris extends RigFx.Mote:
 	var feet: float
 	var col: Color
 	var bounced := false
-	static func spawn(r: Rig, x: float, y: float, c: Dictionary) -> void:
-		var feet_y: float = r.target().feet
-		var x0 := x - r.cam.xt
+	static func spawn(rig: Rig, tx: float, ty: float, c: Dictionary) -> void:
+		var feet_y: float = rig.target().feet
+		var x0 := tx - rig.cam.xt
 		for i in 9:
 			var d := Debris.new()
 			var a := -PI * (0.12 + 0.76 * i / 8.0) + randf_range(-0.12, 0.12)
 			var v := randf_range(380, 720)
 			d.x = x0 + randf_range(-14, 14)
-			d.y = y - randf_range(0, 20)
+			d.y = ty - randf_range(0, 20)
 			d.vx = cos(a) * v
 			d.vy = sin(a) * v
 			d.rr = randf_range(7, 14)
@@ -26,7 +26,7 @@ class Debris extends RigFx.Mote:
 			d.col = Color(c.STONE_D) if (i % 3) / 2.0 > 0.6 else Color(c.STONE)
 			d.feet = feet_y
 			d.life = LIFE
-			r.add(d)
+			rig.add(d)
 	func move(s: float) -> void:
 		vy += 1900.0 * s
 		x += vx * s

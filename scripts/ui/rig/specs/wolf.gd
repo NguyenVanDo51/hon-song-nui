@@ -20,14 +20,14 @@ func events(_r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = ctx.idle
+	var idle_k: float = ctx.idle
 	var ears: float = p.get("earsX", 0.0)
 	if name == "tail":
-		return clampf(-vx * 0.035, -34, 16) + float(p.get("tailX", 0.0)) - p.pitch * 0.6 + idle * 9.0 * sin(ctx.clock / 170.0)
+		return clampf(-vx * 0.035, -34, 16) + float(p.get("tailX", 0.0)) - p.pitch * 0.6 + idle_k * 9.0 * sin(ctx.clock / 170.0)
 	if name == "earB":
-		return clampf(-vx * 0.03, -30, 10) + ears - p.head * 0.4 + idle * 2.0 * sin(ctx.clock / 600.0)
+		return clampf(-vx * 0.03, -30, 10) + ears - p.head * 0.4 + idle_k * 2.0 * sin(ctx.clock / 600.0)
 	if name == "earF":
-		return clampf(-vx * 0.035, -34, 10) + ears * 1.1 - p.head * 0.5 + idle * 2.5 * sin(ctx.clock / 600.0 + 1.0)
+		return clampf(-vx * 0.035, -34, 10) + ears * 1.1 - p.head * 0.5 + idle_k * 2.5 * sin(ctx.clock / 600.0 + 1.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:
@@ -71,15 +71,15 @@ class Claw extends RigFx.Timed:
 			if a <= 0.0:
 				continue
 			var u := minf(1.0, a / (LIFE - 60.0))
-			var len := 170.0 * minf(1.0, a / 45.0)
+			var slash_len := 170.0 * minf(1.0, a / 45.0)
 			var w := 15.0 * (1.0 - u * u)
 			if w <= 0.5:
 				continue
 			ctx.set_xf(base.translated_local(Vector2(-6.0 + (i - 1) * 30.0, -10.0 + (i - 1) * 6.0)).rotated_local(deg_to_rad(62.0)))
 			ctx.begin_path()
-			ctx.move_to(-len / 2.0, 0.0)
-			ctx.quad_to(0.0, -w, len / 2.0, 0.0)
-			ctx.quad_to(0.0, w, -len / 2.0, 0.0)
+			ctx.move_to(-slash_len / 2.0, 0.0)
+			ctx.quad_to(0.0, -w, slash_len / 2.0, 0.0)
+			ctx.quad_to(0.0, w, -slash_len / 2.0, 0.0)
 			ctx.close_path()
 			ctx.fill(col)
 			ctx.stroke(RigFx.INK, 4)

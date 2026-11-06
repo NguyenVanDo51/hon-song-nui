@@ -32,9 +32,9 @@ func _init() -> void:
 	hero_choice = Content.heroes_of("p")[0]
 
 # ---------- helpers ----------
-func _sfx(name: String) -> void:
+func _sfx(sfx: String) -> void:
 	if main and main.get("audio"):
-		main.audio.play(name)
+		main.audio.play(sfx)
 
 func _on(b: BaseButton, fn: Callable, sound := "ui") -> BaseButton:
 	b.pressed.connect(func() -> void:
@@ -88,14 +88,14 @@ func _page(max_w := 1040.0, center_v := false) -> VBoxContainer:
 	tw.tween_property(sc, "offset_bottom", 0.0, 0.45)
 	return v
 
-func _eyebrow(text: String, size := 12) -> Label:
+func _eyebrow(text: String, fs := 12) -> Label:
 	var f := FontVariation.new()
 	f.base_font = Style.bold
 	f.spacing_glyph = 2
-	return Style.lbl(text.to_upper(), size, Style.BRONZE, f)
+	return Style.lbl(text.to_upper(), fs, Style.BRONZE, f)
 
-func _h2(text: String, size := 30) -> Label:
-	return Style.lbl(text, size, Style.GOLD, Style.display)
+func _h2(text: String, fs := 30) -> Label:
+	return Style.lbl(text, fs, Style.GOLD, Style.display)
 
 func _head(back_text: String, back_fn: Callable, title := "") -> HBoxContainer:
 	var h := Style.hbox(14)
@@ -287,13 +287,13 @@ func _open_credits() -> void:
 func _logo(text: String) -> Control:
 	var holder := Control.new()
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var size := 104
-	var shadow := Style.lbl(text, size, Color("#4a2c0e"), Style.display_x)
-	var glow := Style.lbl(text, size, Color(Style.GOLD, 0.0), Style.display_x)
+	var fs := 104
+	var shadow := Style.lbl(text, fs, Color("#4a2c0e"), Style.display_x)
+	var glow := Style.lbl(text, fs, Color(Style.GOLD, 0.0), Style.display_x)
 	glow.add_theme_color_override("font_shadow_color", Color(Style.GOLD, 0.16))
 	glow.add_theme_constant_override("shadow_outline_size", 24)
 	glow.add_theme_constant_override("shadow_offset_y", 0)
-	var gold := Style.lbl(text, size, Color.WHITE, Style.display_x)
+	var gold := Style.lbl(text, fs, Color.WHITE, Style.display_x)
 	var mat := ShaderMaterial.new()
 	mat.shader = LOGO_SHADER
 	gold.material = mat
@@ -657,12 +657,12 @@ func _show_codex() -> void:
 func _codex_terrain() -> void:
 	var classes := [["foot", "Bộ"], ["water", "Thủy binh"], ["fly", "Rồng"]]
 	for t: String in Rules.TERRAIN:
-		var tr: Dictionary = Rules.TERRAIN[t]
+		var ter: Dictionary = Rules.TERRAIN[t]
 		var card := Style.card(Color(0, 0, 0, 0.3), Style.LACQUER_3, 10, 12)
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var v := Style.vbox(4)
 		v.add_child(Style.lbl(Content.terrain(t).name, 19, Style.GOLD, Style.display))
-		v.add_child(Style.lbl("Thủ +%d" % tr.def, 15, Style.INK, Style.semi))
+		v.add_child(Style.lbl("Thủ +%d" % ter.def, 15, Style.INK, Style.semi))
 		var costs := []
 		for mc: Array in classes:
 			var c := Game.move_cost(mc[0], t)

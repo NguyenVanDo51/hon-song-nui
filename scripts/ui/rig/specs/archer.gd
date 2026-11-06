@@ -48,12 +48,12 @@ func events(_r: Rig) -> Array:
 	]
 
 func drive(name: String, p: Dictionary, vx: float, ctx: Dictionary) -> float:
-	var idle: float = ctx.idle
+	var idle_k: float = ctx.idle
 	var kick: float = p.get("kick", 0.0)
 	if name == "tails":
-		return clampf(vx * 0.03, -14, 30) + p.lean * 0.6 + p.head * 0.5 + kick * -1.2 + idle * 3.0 * sin(ctx.clock / 650.0)
+		return clampf(vx * 0.03, -14, 30) + p.lean * 0.6 + p.head * 0.5 + kick * -1.2 + idle_k * 3.0 * sin(ctx.clock / 650.0)
 	if name == "quiv":
-		return clampf(vx * 0.02, -8, 12) + p.lean * 0.4 + kick * -0.5 + idle * 0.8 * sin(ctx.clock / 800.0)
+		return clampf(vx * 0.02, -8, 12) + p.lean * 0.4 + kick * -0.5 + idle_k * 0.8 * sin(ctx.clock / 800.0)
 	return 0.0
 
 func idle(p: Dictionary, b: float, _clock: float) -> void:

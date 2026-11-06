@@ -20,7 +20,8 @@ const W := "assets/kaykit/weapons/"
 ## unit type -> [KayKit character, [[hand bone, model]], attack clip, scale]. Both sides field the same troops
 ## (cloth recoloured red / blue); the two commanders differ. Types not listed use the code-built piece.
 const ROSTER := {
-	"soldier": ["Rogue_Hooded.glb", [["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_round_color.gltf"]], "Melee_1H_Attack_Chop", 1.0],
+	"soldier": ["Rogue_Hooded.glb", [["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_round_color.gltf"]],
+		"Melee_1H_Attack_Chop", 1.0],
 	"archer": ["Ranger.glb", [["handslot.l", W + "bow_withString.gltf"]], "Ranged_Bow_Release", 1.0],
 	"drum": ["Rogue.glb", [["handslot.r", "assets/kaykit/hex/decoration/props/flag_%s.gltf"]], "Melee_1H_Attack_Stab", 1.0],
 	"shaman": ["Mage.glb", [["handslot.r", W + "staff.gltf"]], "Ranged_Magic_Shoot", 1.0],
@@ -30,7 +31,8 @@ const ROSTER := {
 	"wolf": ["Barbarian.glb", [["handslot.r", W + "dagger.gltf"]], "Melee_1H_Attack_Chop", 0.95],
 	"ghost": ["Skeleton_Minion.glb", [], "Melee_Unarmed_Attack_Punch_A", 0.95],
 	"hero_p": ["Knight.glb", [["handslot.r", W + "sword_1handed.gltf"], ["handslot.l", W + "shield_badge_color.gltf"]], "Melee_1H_Attack_Chop", 1.15],
-	"hero_e": ["Skeleton_Warrior.glb", [["handslot.r", W + "Skeleton_Axe.gltf"], ["handslot.l", W + "Skeleton_Shield_Large_A.gltf"]], "Melee_1H_Attack_Chop", 1.2],
+	"hero_e": ["Skeleton_Warrior.glb", [["handslot.r", W + "Skeleton_Axe.gltf"], ["handslot.l", W + "Skeleton_Shield_Large_A.gltf"]],
+		"Melee_1H_Attack_Chop", 1.2],
 }
 const SITE_COLOR := { "p": "red", "e": "blue", "n": "yellow" }
 const SITE_BACK := 0.1 # villages / castles sit at the back of their tile, the unit stands in front
@@ -45,6 +47,7 @@ const KK_WATER := Color("#2583c1")
 const KK_WATER_DEEP := Color("#1f3d86")
 const KK_ROAD := Color("#dfb787")
 const KK_ROAD2 := Color("#d4a471")
+const WATER_SHADER := preload("res://shaders/water3d.gdshader")
 
 var _flat: Board # never in the tree: paints overlays / buffs / ⓘ / forecast with Board's own code
 var _vp: SubViewport
@@ -288,8 +291,8 @@ func _pick(p: Vector2) -> Variant:
 		if t <= 0.0 or t >= best_t:
 			continue
 		var hit := o + d * t
-		var tx := int(floor(hit.x))
-		var ty := int(floor(hit.z))
+		var tx := floori(hit.x)
+		var ty := floori(hit.z)
 		if Game.tile_at(s, tx, ty) != null and is_equal_approx(_top_at(tx, ty), lvl):
 			best = Vector2i(tx, ty)
 			best_t = t
@@ -337,16 +340,24 @@ func _build_world() -> void:
 	_pieces.clear()
 	var pal := Draw.pal()
 	var k := Kit.new()
-	var cx: float = s.w / 2.0
-	var cz: float = s.h / 2.0
-	k.box(Vector3(cx, -0.46, cz), Vector3(s.w + MARGIN * 2.0, 0.12, s.h + MARGIN * 2.0), WOOD_TABLE, WOOD_TABLE2)
-	k.box(Vector3(cx, -0.28, cz), Vector3(s.w + 0.06, 0.24, s.h + 0.06), KK_GRASS_SIDE.darkened(0.2))
+	var sw: int = s.w
+	var sh: int = s.h
+	var cx: float = sw / 2.0
+	var cz: float = sh / 2.0
+	k.box(Vector3(cx, -0.46, cz), Vector3(sw + MARGIN * 2.0, 0.12, sh + MARGIN * 2.0), WOOD_TABLE, WOOD_TABLE2)
+	k.box(Vector3(cx, -0.28, cz), Vector3(sw + 0.06, 0.24, sh + 0.06), KK_GRASS_SIDE.darkened(0.2))
 	var water := Kit.new()
-	for y in s.h:
-		for x in s.w:
-			_tile_mesh(k, water, s.tiles[y][x], x, y, pal.terrain)
+	var ter: Dictionary = pal.terrain
+	for y: int in sh:
+		for x: int in sw:
+			var tt: String = s.tiles[y][x]
+			_tile_mesh(k, water, tt, x, y, ter)
 	for pr: Array in _props:
-		_place_prop(pr[0], pr[1], pr[2], pr[3])
+		var pt: String = pr[0]
+		var px: int = pr[1]
+		var py: int = pr[2]
+		var ptop: float = pr[3]
+		_place_prop(pt, px, py, ptop)
 	_props.clear()
 	_static = _mi(k.commit(), _mat)
 	_static.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -355,15 +366,15 @@ func _build_world() -> void:
 	_water = _mi(water.commit(), wm)
 	_water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# flat overlay quads on every tile top, textured by the overlay viewport
-	_ov.size = Vector2i(int(s.w * OT), int(s.h * OT))
-	_ov_paint.size = Vector2(s.w * OT, s.h * OT)
+	_ov.size = Vector2i(int(sw * OT), int(sh * OT))
+	_ov_paint.size = Vector2(sw * OT, sh * OT)
 	var ok := Kit.new(true)
-	for y in s.h:
-		for x in s.w:
+	for y: int in sh:
+		for x: int in sw:
 			var t: String = s.tiles[y][x]
 			var h := (WATER_Y + 0.025) if t == "~" else (0.135 if t == "=" else _top_at(x, y) + 0.008)
-			var u0 := Vector2(float(x) / s.w, float(y) / s.h)
-			var u1 := Vector2(float(x + 1) / s.w, float(y + 1) / s.h)
+			var u0 := Vector2(float(x) / sw, float(y) / sh)
+			var u1 := Vector2(float(x + 1) / sw, float(y + 1) / sh)
 			ok.uv_quad(Vector3(x, h, y), Vector3(x, h, y + 1), Vector3(x + 1, h, y + 1), Vector3(x + 1, h, y),
 				[u0, Vector2(u0.x, u1.y), u1, Vector2(u1.x, u0.y)])
 	var om := StandardMaterial3D.new()
@@ -411,27 +422,29 @@ func _tile_mesh(k: Kit, water: Kit, t: String, x: int, y: int, ter: Dictionary) 
 				var q := Vector3(x + 0.1 + Board.hash01(x, y, i) * 0.8, top, y + 0.1 + Board.hash01(x, y, i + 20) * 0.8)
 				k.cone(q, 0.022, 0.05 + Board.hash01(x, y, i + 9) * 0.04, KK_GRASS_SIDE if Board.hash01(x, y, i + 9) > 0.5 else KK_GRASS.darkened(0.15), 4)
 		"r":
-			_road(k, x, y, ter.r)
+			var road: Dictionary = ter.r
+			_road(k, x, y, road)
 		"f", "h", "m", "=":
 			_props.append([t, x, y, top])
 
 ## KayKit scenery: tree clumps, rolling hills, grassy peaks, a plank bridge across the river
 func _place_prop(t: String, x: int, y: int, top: float) -> void:
-	var r := func(n: int) -> float: return Board.hash01(x, y, n)
-	var ab := "A" if r.call(1) < 0.5 else "B"
+	var ab := "A" if Board.hash01(x, y, 1) < 0.5 else "B"
 	var path := ""
 	var fit_k := 1.0
 	var max_h := 0.0 # height cap, tiles: tall scenery must not hide the row behind
 	match t:
 		"f":
-			path = "hex/decoration/nature/trees_%s_%s.gltf" % [ab, "large" if r.call(2) < 0.5 else "medium"]
+			path = "hex/decoration/nature/trees_%s_%s.gltf" % [ab, "large" if Board.hash01(x, y, 2) < 0.5 else "medium"]
 			fit_k = 1.05
 			max_h = 0.55
 		"h":
-			path = "hex/decoration/nature/hills_%s%s.gltf" % [["A", "B", "C"][int(r.call(3) * 3.0) % 3], "_trees" if r.call(4) < 0.35 else ""]
+			path = "hex/decoration/nature/hills_%s%s.gltf" % [["A", "B", "C"][int(Board.hash01(x, y, 3) * 3.0) % 3],
+				"_trees" if Board.hash01(x, y, 4) < 0.35 else ""]
 			fit_k = 1.0
 		"m":
-			path = "hex/decoration/nature/mountain_%s_grass%s.gltf" % [["A", "B", "C"][int(r.call(5) * 3.0) % 3], "_trees" if r.call(6) < 0.4 else ""]
+			path = "hex/decoration/nature/mountain_%s_grass%s.gltf" % [["A", "B", "C"][int(Board.hash01(x, y, 5) * 3.0) % 3],
+				"_trees" if Board.hash01(x, y, 6) < 0.4 else ""]
 			fit_k = 1.05
 			max_h = 0.7
 		"=":
@@ -444,7 +457,7 @@ func _place_prop(t: String, x: int, y: int, top: float) -> void:
 		n.rotation.y = PI / 2.0 if horiz else 0.0
 		n.position.y = -0.02
 	else:
-		n.rotation.y = floorf(r.call(7) * 6.0) * PI / 3.0
+		n.rotation.y = floorf(Board.hash01(x, y, 7) * 6.0) * PI / 3.0
 	_world.add_child(n)
 
 ## sand rim where land meets water
@@ -477,23 +490,30 @@ func _road(k: Kit, x: int, y: int, _p: Dictionary) -> void:
 
 # ---------- buildings / graves / night lights (rebuilt only when they change) ----------
 func _sync_sites(time: float) -> void:
-	for y in s.h:
-		for x in s.w:
+	var sw: int = s.w
+	var sh: int = s.h
+	var owners: Dictionary = s.owner
+	var hold: Dictionary = view.hold
+	for y: int in sh:
+		for x: int in sw:
 			var t: String = s.tiles[y][x]
 			if t != "v" and t != "c" and t != "x" and t != "t":
 				continue
 			var at := Vector2i(x, y)
-			var own: String = s.owner.get(at, "n")
-			var held: Variant = view.hold.get(at) # [tile, owner] until its raze / repair event plays
+			var own: String = owners.get(at, "n")
+			var held: Variant = hold.get(at) # [tile, owner] until its raze / repair event plays
 			if held != null:
 				t = held[0]
 				own = held[1] if held[1] != null else "n"
 			var site: Variant = _sites.get(at)
 			if site == null or site.own != own or site.t != t:
 				if site != null:
-					site.mi.queue_free()
-					if site.flag != null:
-						site.flag.queue_free()
+					var old: Dictionary = site
+					var old_mi: Node3D = old.mi
+					old_mi.queue_free()
+					if old.flag != null:
+						var old_flag: Node3D = old.flag
+						old_flag.queue_free()
 				var col: String = SITE_COLOR.get(own, "yellow")
 				var path := "hex/buildings/yellow/building_church_yellow.gltf" if t == "t" else "hex/buildings/neutral/building_destroyed.gltf" if t == "x" \
 					else ("hex/buildings/%s/building_home_%s_%s.gltf" % [col, "A" if Board.hash01(x, y, 3) < 0.5 else "B", col]) if t == "v" \
@@ -517,15 +537,19 @@ func _sync_graves() -> void:
 		n.queue_free()
 	_graves.clear()
 	for g: Dictionary in s.graves:
+		var gx: int = g.x
+		var gy: int = g.y
 		var mi := _mi(Pieces.grave(), _mat)
-		mi.position = Vector3(g.x + 0.5, _top_at(g.x, g.y), g.y + 0.5)
+		mi.position = Vector3(gx + 0.5, _top_at(gx, gy), gy + 0.5)
 		_graves.append(mi)
 
 func _sync_lights() -> void:
 	var want := []
 	for u: Dictionary in s.units:
 		if u.side == "p" and want.size() < 6:
-			want.append(Vector3(u.x + 0.5, _stand(u.x, u.y) + 0.8, u.y + 0.5))
+			var ux: int = u.x
+			var uy: int = u.y
+			want.append(Vector3(ux + 0.5, _stand(ux, uy) + 0.8, uy + 0.5))
 	for at: Vector2i in s.owner:
 		if s.owner[at] == "p" and want.size() < 8:
 			want.append(Vector3(at.x + 0.5, 0.7, at.y + 0.5))
@@ -550,14 +574,22 @@ func _collect(time: float, _dt: float) -> void:
 	var sel_id: int = v.sel.id if v.sel != null else -1
 	for f: Dictionary in _figures(time):
 		var id: int = f.u.id
-		var key: String = ("u%d" % id) if f.kind == "u" else (("s%d" % id) if f.kind == "s" else "g%d_%d" % [id, int(f.t0)])
+		var key := "u%d" % id
+		if f.kind != "u":
+			if f.kind == "s":
+				key = "s%d" % id
+			else:
+				var t0: float = f.t0
+				key = "g%d_%d" % [id, int(t0)]
 		_shown.append({ "key": key, "u": f.u, "x": f.x, "y": f.y, "ghost": f.k, "stack": f.stack })
 	for it: Dictionary in _shown:
 		var u: Dictionary = it.u
 		var stack: Vector2 = it.stack
 		if u.id == sel_id and v.dest != null and it.ghost < 0:
-			it.x = float(v.dest[0])
-			it.y = float(v.dest[1])
+			var dx: float = v.dest[0]
+			var dy: float = v.dest[1]
+			it.x = dx
+			it.y = dy
 			stack = Vector2.ZERO
 		var off: Variant = fx.offsets.get(u.id)
 		it.off = off
@@ -567,8 +599,8 @@ func _collect(time: float, _dt: float) -> void:
 			it.x += off.x
 			it.y += off.y
 		# feet height: blend between the two tiles a walker is crossing, hop on each step
-		var x0 := int(floor(bx))
-		var y0 := int(floor(by))
+		var x0 := floori(bx)
+		var y0 := floori(by)
 		var fxr := bx - x0
 		var fyr := by - y0
 		var h0 := _stand(x0, y0)
@@ -584,14 +616,19 @@ func _roster_key(u: Dictionary) -> String:
 
 ## a KayKit actor for this unit (or null: no model for its type -> code-built piece)
 func _make_actor(u: Dictionary) -> Node3D:
-	var r: Variant = ROSTER.get(_roster_key(u))
-	if r == null:
+	var rv: Variant = ROSTER.get(_roster_key(u))
+	if rv == null:
 		return null
+	var r: Array = rv
 	var weapons := []
 	for w: Array in r[1]:
 		weapons.append([w[0], (w[1] % SITE_COLOR[u.side]) if "%s" in w[1] else w[1]])
-	var a := KK.actor(r[0], weapons, u.side, not (u.type == "hero" and u.side == "e"))
-	a.set_meta("scale", CHAR * float(r[3]))
+	var char_file: String = r[0]
+	var side: String = u.side
+	var tint: bool = not (u.type == "hero" and u.side == "e")
+	var r_scale: float = r[3]
+	var a := KK.actor(char_file, weapons, side, tint)
+	a.set_meta("scale", CHAR * r_scale)
 	a.set_meta("attack", r[2])
 	return a
 
@@ -606,7 +643,9 @@ func _sync_pieces(time: float) -> void:
 			node = _make_actor(u)
 			if node == null:
 				var mi := MeshInstance3D.new()
-				mi.mesh = Pieces.unit(u.side, u.type)
+				var side: String = u.side
+				var type: String = u.type
+				mi.mesh = Pieces.unit(side, type)
 				node = mi
 			_world.add_child(node)
 			_pieces[key] = node
@@ -616,19 +655,25 @@ func _sync_pieces(time: float) -> void:
 		# facing: walk direction, strike direction, else last facing (both sides start facing each other)
 		var id: int = u.id
 		var yaw: float = _facing.get(id, 0.0 if u.side == "p" else PI)
-		var cur := Vector2(it.x, it.y)
+		var ix: float = it.x
+		var iy: float = it.y
+		var ih: float = it.h
+		var cur := Vector2(ix, iy)
 		var last: Variant = _last_pos.get(id)
+		var lp := cur
+		if last != null:
+			lp = last
 		if it.off != null and fx.aim.has(id):
 			var ad: Vector2 = fx.aim[id]
 			yaw = atan2(-ad.y, ad.x)
-		elif last != null and cur.distance_to(last) > 0.01 and it.ghost < 0:
-			var d: Vector2 = cur - last
+		elif last != null and cur.distance_to(lp) > 0.01 and it.ghost < 0:
+			var d: Vector2 = cur - lp
 			yaw = atan2(-d.y, d.x)
 		_last_pos[id] = cur
 		var cyaw: float = _facing.get(id, yaw)
 		cyaw = lerp_angle(cyaw, yaw, 0.3)
 		_facing[id] = cyaw
-		var pos := Vector3(it.x + 0.5, it.h, it.y + 0.5)
+		var pos := Vector3(ix + 0.5, ih, iy + 0.5)
 		var fl: float = fx.flash_until.get(id, 0.0)
 		var flash: bool = fl > time and it.ghost < 0
 		var acted: bool = u.get("acted", false) and s.side == u.side and not view.busy and it.ghost < 0
@@ -647,7 +692,8 @@ func _sync_pieces(time: float) -> void:
 				bas = bas * Basis(Vector3.RIGHT, -k * k * 1.45)
 				pos.y -= k * 0.22
 			elif it.off != null:
-				bas = bas * Basis(Vector3.BACK, -(it.off as Vector2).length() * 1.1)
+				var off_v: Vector2 = it.off
+				bas = bas * Basis(Vector3.BACK, -off_v.length() * 1.1)
 			if id == sel_id and it.ghost < 0:
 				pos.y += 0.06 + sin(time / 160.0) * 0.03
 			node.transform = Transform3D(bas.scaled(Vector3.ONE * sc2), pos)
@@ -658,7 +704,8 @@ func _sync_pieces(time: float) -> void:
 		if key.begins_with("u"):
 			_pieces[key].visible = false
 		else:
-			_pieces[key].queue_free()
+			var gone: Node3D = _pieces[key]
+			gone.queue_free()
 			_pieces.erase(key)
 			_anim.erase(key)
 
@@ -684,10 +731,14 @@ func _animate(key: String, node: Node3D, u: Dictionary, it: Dictionary, time: fl
 	else:
 		st.attacking = false
 	var kn: Variant = fx.knock.get(u.id)
-	if kn != null and float(kn.t0) != float(st.knock):
-		st.knock = kn.t0
-		play.call("Hit_A", 1.5, 0.05)
-	if time < float(st.lock):
+	if kn != null:
+		var kn_t0: float = kn.t0
+		var seen_t0: float = st.knock
+		if kn_t0 != seen_t0:
+			st.knock = kn.t0
+			play.call("Hit_A", 1.5, 0.05)
+	var lock: float = st.lock
+	if time < lock:
 		return
 	var want := "Running_A" if it.get("moving", false) else ("Idle_B" if selected else "Idle_A")
 	if st.cur != want:
@@ -702,11 +753,15 @@ func _paint_overlay(ci: CanvasItem) -> void:
 	_flat.hover = hover
 	_flat._draw_overlays(ci, time)
 	for at: Array in Objectives.marks(s):
-		_flat._draw_goal(ci, at[0] * OT, at[1] * OT, time)
+		var ax: float = at[0]
+		var ay: float = at[1]
+		_flat._draw_goal(ci, ax * OT, ay * OT, time)
 	fx.draw_under(ci, OT, time)
 	if view.sel != null:
 		var at: Array = view.dest if view.dest != null else [view.sel.x, view.sel.y]
-		var c := Vector2((at[0] + 0.5) * OT, (at[1] + 0.5) * OT)
+		var ax: float = at[0]
+		var ay: float = at[1]
+		var c := Vector2((ax + 0.5) * OT, (ay + 0.5) * OT)
 		ci.draw_arc(c, OT * 0.42, 0, TAU, 32, sel_color(time), OT * 0.07, true)
 
 # ---------- screen layers ----------
@@ -732,27 +787,37 @@ func _draw_top(ci: CanvasItem) -> void:
 		if it.ghost >= 0:
 			continue
 		var u: Dictionary = it.u
-		var c := _proj(Vector3(it.x + 0.5, it.h + 0.36, it.y + 0.5))
+		var ix: float = it.x
+		var iy: float = it.y
+		var ih: float = it.h
+		var c := _proj(Vector3(ix + 0.5, ih + 0.36, iy + 0.5))
 		Board.draw_unit_badges(ci, view, u, c, te, 0.62)
-		if it.off == null and not view.busy and it.key.begins_with("u"):
-			_flat._draw_buffs(ci, u, c, u.x, u.y, time)
+		var key: String = it.key
+		if it.off == null and not view.busy and key.begins_with("u"):
+			var ux: int = u.x
+			var uy: int = u.y
+			_flat._draw_buffs(ci, u, c, ux, uy, time)
 	# floating numbers / labels, upright on screen
 	for f: Dictionary in fx.floats:
 		var k: float = (time - f.t0) / f.dur
 		var pop := 0.6 + (k / 0.15) * 0.7 if k < 0.15 else 1.3 - minf(0.3, (k - 0.15) * 1.5)
 		var col: Color = f.color
 		col.a = 1.0 - (k - 0.7) / 0.3 if k > 0.7 else 1.0
-		var fs := maxi(6, int(round(te * (0.46 if f.big else 0.34) * 1.3)))
-		var tx := int(round(f.x))
-		var ty := int(round(f.y))
-		var pos := _proj(Vector3(f.x + 0.5, _stand(tx, ty) + 0.95, f.y + 0.5)) - Vector2(0, k * te * 0.55)
-		Draw.text_c(ci, Style.xbold, pos, f.text, fs, col, maxi(3, int(te * 0.08 * 1.3)), Color(0.1, 0.047, 0.024, col.a), pop / 1.3)
+		var fs := maxi(6, roundi(te * (0.46 if f.big else 0.34) * 1.3))
+		var fx_x: float = f.x
+		var fx_y: float = f.y
+		var tx := roundi(fx_x)
+		var ty := roundi(fx_y)
+		var pos := _proj(Vector3(fx_x + 0.5, _stand(tx, ty) + 0.95, fx_y + 0.5)) - Vector2(0, k * te * 0.55)
+		var txt: String = f.text
+		Draw.text_c(ci, Style.xbold, pos, txt, fs, col, maxi(3, int(te * 0.08 * 1.3)), Color(0.1, 0.047, 0.024, col.a), pop / 1.3)
 	# hover forecast above the target's head (Board's painter, shifted onto the projected spot)
 	var p: Variant = view.get("preview")
 	if p != null:
-		var q := _proj(Vector3(p.x + 0.5, _stand(p.x, p.y) + 1.1, p.y + 0.5))
-		Draw.set_xf(ci, Transform2D(0.0, Vector2.ONE, 0.0, q - Vector2((p.x + 0.5) * te, p.y * te)))
+		var ppx: int = p.x
+		var ppy: int = p.y
+		var q := _proj(Vector3(ppx + 0.5, _stand(ppx, ppy) + 1.1, ppy + 0.5))
+		Draw.set_xf(ci, Transform2D(0.0, Vector2.ONE, 0.0, q - Vector2((ppx + 0.5) * te, ppy * te)))
 		_flat._draw_preview(ci)
 		Draw.set_xf(ci, Transform2D.IDENTITY)
 
-const WATER_SHADER := preload("res://shaders/water3d.gdshader")

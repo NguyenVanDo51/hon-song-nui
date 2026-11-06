@@ -9,7 +9,7 @@ const HOLD := 2.2 # s: from start until fade begins
 const FADE := 0.6
 const STAGGER := 0.07 # s between buildings
 
-var board: Control
+var board: BoardBase
 var pops: Array[Dictionary] = []
 
 func _init(p_board: Control) -> void:
@@ -41,10 +41,14 @@ func _draw() -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	var font: Font = Style.bold
 	for p: Dictionary in pops:
-		var t: float = now - p.t0
+		var t0: float = p.t0
+		var t: float = now - t0
+		var px: int = p.x
+		var py: int = p.y
+		var text: String = p.text
 		if t < 0.0:
 			continue
-		var r: Rect2 = board.tile_rect(p.x, p.y)
+		var r: Rect2 = board.tile_rect(px, py)
 		var T := r.size.x
 		var heal: bool = p.kind == "heal"
 		var ground := r.position + Vector2(T * 0.5, T * (0.3 if heal else 0.62))
@@ -61,7 +65,7 @@ func _draw() -> void:
 		var a := 1.0 if t < HOLD else clampf(1.0 - (t - HOLD) / FADE, 0.0, 1.0)
 		# fixed font size (per tile size) + scale transform: animating fs would bake a glyph cache per size
 		var fs := maxi(10, int(T * 0.3))
-		var tw := font.get_string_size(p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var tw := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		var cr := fs * 0.42 # coin radius
 		var w := cr * 2.0 + 3.0 + tw
 		# landing shadow shrinks as the number rises
@@ -84,6 +88,6 @@ func _draw() -> void:
 			draw_circle(cc, cr * 0.55, Color(0.86, 0.6, 0.14, a))
 		var tp := base + Vector2(cr * 2.0 + 3.0, 0)
 		@warning_ignore("integer_division")
-		draw_string_outline(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, maxi(3, fs / 5), ink)
-		draw_string(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.69, 0.93, 0.55, a) if heal else Color(1.0, 0.86, 0.36, a))
+		draw_string_outline(font, tp, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, maxi(3, fs / 5), ink)
+		draw_string(font, tp, text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.69, 0.93, 0.55, a) if heal else Color(1.0, 0.86, 0.36, a))
 	draw_set_transform(Vector2.ZERO)

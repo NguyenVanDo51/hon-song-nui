@@ -12,8 +12,9 @@ var s: Dictionary = {}
 var fx: FX
 var T := 48.0
 ## what the game screen wants shown (see GameScreen.build_view)
-var view := { "hide": {}, "hold": {}, "razable": [], "razeAt": null, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false, "reach": null, "attackable": [],
-	"dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null, "preview": null }
+var view := { "hide": {}, "hold": {}, "razable": [], "razeAt": null, "sprites": [], "hp": null, "busy": false, "sel": null, "selMine": false,
+	"reach": null, "attackable": [], "dest": null, "targets": [], "target": null, "path": null, "info": null, "buyAt": null, "hover": null,
+	"preview": null }
 var hover: Variant = null
 var _info_hit_id := -1
 
@@ -25,6 +26,10 @@ func _init() -> void:
 func _pick(_p: Vector2) -> Variant:
 	return null
 
+## a tile's rectangle in the parent's coordinates (popup placement)
+func tile_rect(_x: int, _y: int) -> Rect2:
+	return Rect2()
+
 ## unit id whose ⓘ dot is under p, else -1
 func _info_at(_p: Vector2) -> int:
 	return -1
@@ -32,24 +37,27 @@ func _info_at(_p: Vector2) -> int:
 func _gui_input(ev: InputEvent) -> void:
 	if s.is_empty():
 		return
-	if ev is InputEventMouseButton and ev.pressed:
-		if ev.button_index == MOUSE_BUTTON_LEFT:
-			var info_id := _info_at(ev.position)
+	var mb := ev as InputEventMouseButton
+	if mb != null and mb.pressed:
+		if mb.button_index == MOUSE_BUTTON_LEFT:
+			var info_id := _info_at(mb.position)
 			if info_id >= 0:
 				info_requested.emit(info_id)
 			else:
-				var tl: Variant = _pick(ev.position)
+				var tl: Variant = _pick(mb.position)
 				if tl != null:
-					tile_clicked.emit(tl.x, tl.y)
-		elif ev.button_index == MOUSE_BUTTON_RIGHT:
+					var c: Vector2i = tl
+					tile_clicked.emit(c.x, c.y)
+		elif mb.button_index == MOUSE_BUTTON_RIGHT:
 			cancel_requested.emit()
 		accept_event()
 	elif ev is InputEventMouseMotion:
-		var ih := _info_at(ev.position)
+		var mm: InputEventMouseMotion = ev
+		var ih := _info_at(mm.position)
 		if ih != _info_hit_id:
 			_info_hit_id = ih
 			tooltip_text = "Xem thông tin quân" if ih >= 0 else ""
-		var tl: Variant = _pick(ev.position)
+		var tl: Variant = _pick(mm.position)
 		if tl != hover:
 			hover = tl
 			hover_changed.emit(tl)
@@ -67,25 +75,37 @@ func _ease_focus(ms: float, from: float, to: float, apply: Callable) -> void:
 ## this frame's figures: live units (minus hidden), moving / dying sprites, fading corpses.
 ## Each { u, x, y, kind "u" | "s" | "g", alpha (-1 = opaque), k (corpse fade 0..1, -1 = not a corpse),
 ## stack (offset of a 2nd unit on one tile, just bought on an occupied castle; the first one moves aside) }
-func _figures(time: float) -> Array:
-	var out := []
+func _figures(time: float) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
 	var seen := {} # tile -> the unit already there
+	var hidden_ids: Dictionary = view.hide
 	for u: Dictionary in s.units:
-		if view.hide.has(u.id):
+		if hidden_ids.has(u.id):
 			continue
-		var at := Vector2i(u.x, u.y)
-		var it := { "u": u, "x": float(u.x), "y": float(u.y), "kind": "u", "alpha": -1.0, "k": -1.0, "stack": Vector2.ZERO }
+		var ux: int = u.x
+		var uy: int = u.y
+		var at := Vector2i(ux, uy)
+		var it := { "u": u, "x": float(ux), "y": float(uy), "kind": "u", "alpha": -1.0, "k": -1.0, "stack": Vector2.ZERO }
 		if seen.has(at):
 			it.stack = Vector2(0.24, 0.06)
-			seen[at].stack.x -= 0.2
+			var first: Dictionary = seen[at]
+			first.stack.x -= 0.2
 		seen[at] = it
 		out.append(it)
 	for sp: Dictionary in view.sprites:
 		if not sp.get("hidden", false):
-			out.append({ "u": sp.u, "x": float(sp.u.x), "y": float(sp.u.y), "kind": "s", "alpha": sp.get("alpha", -1.0), "k": -1.0, "stack": Vector2.ZERO })
+			var su: Dictionary = sp.u
+			var sx: float = su.x # tweened: fractional mid-move
+			var sy: float = su.y
+			out.append({ "u": su, "x": sx, "y": sy, "kind": "s", "alpha": sp.get("alpha", -1.0), "k": -1.0, "stack": Vector2.ZERO })
 	for g: Dictionary in fx.ghosts:
-		var kk: float = clampf((time - g.t0) / g.dur, 0.0, 1.0)
-		out.append({ "u": g.u, "x": float(g.u.x), "y": float(g.u.y), "kind": "g", "t0": g.t0, "alpha": 1.0 - kk * kk, "k": kk, "stack": Vector2.ZERO })
+		var gu: Dictionary = g.u
+		var gx: float = gu.x
+		var gy: float = gu.y
+		var t0: float = g.t0
+		var dur: float = g.dur
+		var kk: float = clampf((time - t0) / dur, 0.0, 1.0)
+		out.append({ "u": gu, "x": gx, "y": gy, "kind": "g", "t0": g.t0, "alpha": 1.0 - kk * kk, "k": kk, "stack": Vector2.ZERO })
 	return out
 
 ## ring / glow colour under the selected unit, pulsing

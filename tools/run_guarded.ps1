@@ -26,6 +26,11 @@ while (-not $p.HasExited) {
 		break
 	}
 }
+# a GDScript runtime error aborts only that function (a crashed test still "passes"): any SCRIPT ERROR = failure
+$nerr = 0
+if (Test-Path "$Log.err") { $nerr = @(Select-String -Path "$Log.err" -Pattern "SCRIPT ERROR").Count }
+if ($why -eq "exit" -and $nerr -gt 0) { $why = "FAILED: $nerr SCRIPT ERROR in $Log.err" }
 $line = "[guard] $why, peak $peak MB, $([int]((Get-Date) - $t0).TotalSeconds) s"
 Set-Content -Path "$Log.guard" -Value $line -Encoding utf8
 $line
+if ($why -ne "exit") { exit 1 }

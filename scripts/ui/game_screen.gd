@@ -28,6 +28,7 @@ var _coins: CoinPop
 var _gold_shown := -1 # count-up value on screen; -1 = show s.gold.p
 var _gold_tw: Tween
 var _hp_count := {} # unit id -> hp shown while a heal counts up
+var _heal_tws: Array[Tween] = []
 var _income: Label
 var _goal: RichTextLabel
 var _btn_hint: Button
@@ -44,7 +45,7 @@ var _menu: PanelContainer
 var _hud_tr: Control
 var _hud_tl: Control
 var _pop_box: StyleBox # popup panel; dropped when the popup holds only buttons
-var _card_avoid: Array[Rect2] = [] # tiles (in _wrap) the corner card must not cover
+var _card_avoid: Array[Vector2i] = [] # tiles the corner card must not cover (rects rebuilt on placement)
 var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _card: PanelContainer
 var _card_box: VBoxContainer
@@ -309,9 +310,13 @@ func _place_hud() -> void:
 		var cs := _card.get_combined_minimum_size()
 		var cands: Array[Vector2] = [Vector2(M, M), Vector2(size.x - cs.x - M, M), Vector2(M, size.y - cs.y - M), size - cs - Vector2(M, M)]
 		_card.position = cands[0]
+		var avoid: Array[Rect2] = []
+		for k: Vector2i in _card_avoid:
+			var tr: Rect2 = board.tile_rect(k.x, k.y)
+			avoid.append(Rect2(_wrap.position + tr.position, tr.size).grow(tr.size.x * 0.5))
 		for c: Vector2 in cands:
 			var r := Rect2(c, cs)
-			if not _card_avoid.any(func(a: Rect2) -> bool: return r.intersects(a)):
+			if not avoid.any(func(a: Rect2) -> bool: return r.intersects(a)):
 				_card.position = c
 				break
 	if _menu.visible:
@@ -397,7 +402,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	if _gold_tw != null:
 		_gold_tw.kill()
 	_gold_shown = -1
-	_hp_count.clear()
+	_stop_heal_counts()
 	_coins.clear()
 	s = state
 	ctx = c
@@ -666,8 +671,8 @@ func _on_tile(x: int, y: int) -> void:
 		if reach.has(Vector2i(x, y)) and clicked == null:
 			_set_dest(x, y)
 			return
-		# outside the reach of a unit bought on top of another one = take the buy back
-		if ui.mode == M_IDLE and _unbuy_sel():
+		# outside the reach of a unit bought on top of another one = take the buy back (not its own castle tile)
+		if ui.mode == M_IDLE and (x != u.x or y != u.y) and _unbuy_sel():
 			return
 	_clear_sel()
 	if my_turn and (clicked == null or clicked.side == "p") and _stuck_unit() != null and (clicked == null or not Game.stacked(s, clicked)):
@@ -800,6 +805,7 @@ func _set_dest(x: int, y: int) -> void:
 	refresh()
 
 func commit(extra: Dictionary) -> void:
+	_stop_heal_counts() # an action's own hp playback must not be overridden by a heal still counting
 	var my := gen
 	var u: Dictionary = _sel_unit()
 	var act := { "id": u.id, "to": ui.dest }
@@ -886,9 +892,6 @@ func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no
 	_clear_sel()
 	var before := _snapshot()
 	var ev := Game.end_turn(s)
-	for e: Dictionary in ev:
-		if e.t == "income" and e.side == "p" and e.amount:
-			_gold_shown = s.gold.p - e.amount # the total counts up when the coins land
 	save()
 	if s.winner != null:
 		finish()
@@ -918,7 +921,11 @@ func enemy_turn() -> void:
 		if step == null:
 			break
 		var before := _snapshot()
+		var sig := _progress_sig()
 		var ev := AI.apply_step(s, step)
+		if ev.is_empty() and _progress_sig() == sig:
+			push_warning("AI step rejected, ending enemy turn: %s" % [step])
+			break # a rejected step would repeat forever
 		save()
 		if not (step.kind == "act" and step.act.kind == "wait" and ev.is_empty()):
 			await play(ev, before)
@@ -933,6 +940,9 @@ func enemy_turn() -> void:
 		return
 	var before := _snapshot()
 	var ev := Game.end_turn(s)
+	for e: Dictionary in ev:
+		if e.t == "income" and e.side == "p" and e.amount:
+			_gold_shown = s.gold.p - e.amount # our income lands here (enemy's end_turn): total counts up when coins land
 	save()
 	if s.winner != null:
 		ui.busy = false
@@ -950,6 +960,14 @@ func enemy_turn() -> void:
 	refresh()
 	_maybe_bot()
 
+## changes whenever an AI step did anything (moved / acted / bought)
+func _progress_sig() -> String:
+	var acted := 0
+	for u: Dictionary in s.units:
+		if u.acted:
+			acted += 1
+	return "%d %d %d %d" % [s.units.size(), acted, s.gold.p, s.gold.e]
+
 ## debug flag `bot`: the AI plays our side too (screenshots / soak test)
 func _maybe_bot() -> void:
 	if main.flags.has("bot") and s.side == "p" and s.winner == null:
@@ -964,8 +982,11 @@ func _bot_turn() -> void:
 		if step == null:
 			break
 		if step.kind == "buy":
+			var sig := _progress_sig()
 			ui.buyAt = [step.x, step.y]
 			buy_unit(step.type)
+			if _progress_sig() == sig:
+				break # buy refused: would loop without yielding
 			continue
 		ui.sel = step.act.id
 		ui.dest = step.act.to
@@ -1013,6 +1034,7 @@ func _heal_fx(e: Dictionary) -> void:
 	fx.burst(e.x, e.y + 0.2, 6, { "color": ["#9fe08a", "#d6ffc4"], "kind": "plus", "vmin": 0.05, "vmax": 0.3, "up": 0.9, "g": -0.2, "lmin": 700.0, "lmax": 1000.0, "smin": 0.06, "smax": 0.08 })
 	main.audio.play("heal")
 	var tw := create_tween()
+	_heal_tws.append(tw)
 	tw.tween_interval(0.3 + CoinPop.RISE)
 	tw.tween_method(func(k: float) -> void:
 		var cur: Variant = Game.unit_by_id(s, id)
@@ -1024,6 +1046,13 @@ func _heal_fx(e: Dictionary) -> void:
 	tw.tween_callback(func() -> void:
 		_hp_count.erase(id)
 		board.queue_redraw())
+
+func _stop_heal_counts() -> void:
+	for tw: Tween in _heal_tws:
+		if tw.is_valid():
+			tw.kill()
+	_heal_tws.clear()
+	_hp_count.clear()
 
 func _bump_gold() -> void:
 	var tw := _gold_num.create_tween()
@@ -1666,8 +1695,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 
 ## picked tile + a half-tile ring, in screen coords
 func _avoid_tile(x: int, y: int) -> void:
-	var r: Rect2 = board.tile_rect(x, y)
-	_card_avoid.append(Rect2(_wrap.position + r.position, r.size).grow(r.size.x * 0.5))
+	_card_avoid.append(Vector2i(x, y))
 
 ## "50–55 +10" (roll range incl. level, then live bonus / malus)
 func _atk_txt(u: Dictionary, b: Dictionary) -> String:

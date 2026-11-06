@@ -194,15 +194,58 @@ func _run() -> void:
 	main.menus.close_codex()
 	g._on_speed()
 	# end turn -> enemy turn -> back to us
-	while g.ui.sel != null: # a picked unit swaps the HUD for its card: deselect to reach "Hết lượt"
+	for i in 5: # a picked unit swaps the HUD for its card: deselect to reach "Hết lượt"
+		if g.ui.sel == null:
+			break
 		g.cancel()
 	ok(g._btn_end.visible and not g._card.visible, "nothing picked -> HUD back, card gone")
 	press("Hết lượt")
+	var low := 1 << 30
 	for i in 1200:
 		if s.side == "p" and not g.ui.busy:
 			break
+		if s.side == "p":
+			low = mini(low, int(g._gold_num.text))
 		await process_frame
 	ok(s.side == "p" and s.turn == 2, "enemy turn played, turn 2 (turn %d)" % s.turn)
+	# turn-start income: the total counts up (shown below the real total for a while), then lands on it
+	for i in 200:
+		low = mini(low, int(g._gold_num.text))
+		if g._gold_shown < 0 and i > 5:
+			break
+		await process_frame
+	ok(Game.income(s, "p") == 0 or low < s.gold.p, "gold counts up at turn start (lowest shown %d, total %d)" % [low, s.gold.p])
+	ok(int(g._gold_num.text) == s.gold.p, "gold count-up ends on the real total")
+	# buy on top of a unit standing on our castle; click its own tile = keep, click outside its reach = take back (refund)
+	var cas: Vector2i = Game.castle_tiles(s, "p")[0]
+	var moved := {}
+	for u: Dictionary in s.units: # clear the castle, then park exactly one of ours on it
+		if u.x == cas.x and u.y == cas.y:
+			moved[u.id] = Vector2i(u.x, u.y)
+			u.x = -10 - u.id
+	var on: Dictionary = s.units.filter(func(u): return u.side == "p" and u.type != "hero" and u.x >= 0)[0]
+	moved[on.id] = Vector2i(on.x, on.y)
+	on.x = cas.x; on.y = cas.y
+	s.gold.p += 500
+	var g0: int = s.gold.p
+	var n0: int = s.units.size()
+	g._clear_sel(); g.ui.buyAt = [cas.x, cas.y]; g.refresh()
+	g.buy_unit("soldier")
+	var nb: Dictionary = s.units[-1]
+	ok(s.units.size() == n0 + 1 and g.ui.sel == nb.id and Game.can_unbuy(s, nb), "stacked buy selects the new unit")
+	g._on_tile_clicked(cas.x, cas.y)
+	ok(Game.unit_by_id(s, nb.id) != null, "clicking the castle tile itself keeps the buy")
+	for i in 5:
+		if g.ui.sel == nb.id:
+			break
+		g.cancel()
+	g._on_tile_clicked(s.w - 1, s.h - 1)
+	ok(Game.unit_by_id(s, nb.id) == null and s.gold.p == g0 and s.units.size() == n0, "click outside reach takes the buy back, full refund")
+	for u: Dictionary in s.units:
+		if moved.has(u.id):
+			u.x = moved[u.id].x; u.y = moved[u.id].y
+	s.gold.p -= 500
+	g._clear_sel(); g.refresh()
 	# save -> title -> continue
 	g.save()
 	main.show_title()

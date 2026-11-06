@@ -15,6 +15,11 @@ while kill -0 "$pid" 2>/dev/null; do
 	if [ "$why" != exit ]; then kill -9 "$pid" 2>/dev/null; break; fi
 done
 wait "$pid" 2>/dev/null; code=$?
+# a GDScript runtime error aborts only that function (a crashed test still "passes"): any SCRIPT ERROR = failure
+nerr=$(grep -c "SCRIPT ERROR" "$log.err" 2>/dev/null); nerr=${nerr:-0}
+if [ "$why" = exit ] && [ "$nerr" -gt 0 ]; then why="FAILED: $nerr SCRIPT ERROR in $log.err"; code=1; fi
 line="[guard] $why, peak $peak MB, $((SECONDS - t0)) s, exit $code"
 echo "$line" > "$log.guard"; echo "$line"
-[ "$why" = exit ] && exit $code || exit 137
+[ "$why" = exit ] && exit $code
+case "$why" in FAILED*) exit 1 ;; esac
+exit 137

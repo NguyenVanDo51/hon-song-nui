@@ -84,7 +84,7 @@ Không có mã nguồn gốc công khai; chỉ có jar gốc + bản mod dịch 
 
 Hồi quy: `sim/trace.gd` chơi AI-vs-AI có seed trên luật hiện tại cho mọi màn + bản đồ đấu tự do, in 1 dòng/ván (hash mọi nước + kết quả). `sim/golden.txt` = kết quả đã chốt; `sim/tests.gd` chơi lại 4 ván mỗi lần chạy. Đổi luật / AI / bản đồ có chủ đích thì tạo lại: `godot --headless --path . -s sim/trace.gd > sim/golden.txt`.
 
-AI một nước (GDScript, máy bàn Mac, trung bình): m01 ~5 ms, m08 ~22 ms, m12 ~30 ms (trước tối ưu 9 / 51 / 39 ms). Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch; nước đi không đổi .
+AI một nước (GDScript, Mac Apple Silicon, đo 2026-11-06, trung bình / tệ nhất): m01 1.2 / 3.1 ms, m08 3.8 / 10.8 ms, m12 3.8 / 12 ms. Bản đồ khoảng cách nhớ theo lượt + dùng chung vùng đi của địch; nước đi không đổi .
 
 ## Thay nội dung (không đụng code)
 | Muốn đổi | Sửa ở |

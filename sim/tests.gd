@@ -461,6 +461,88 @@ func rule_tests() -> void:
 		eq(Game.targets_from(s, s.units[0], 2, 1).size(), 0)
 		eq(Game.targets_from(s, s.units[0], 1, 1).size(), 1)
 	)
+	run("rules tables = docs/spec.md (cost, atk, atkMax, def, mv, rmin, rmax; terrain def / cost)", func() -> void:
+		var spec := { "hero": [200, 55, 65, 20, 5, 1, 1], "soldier": [150, 50, 55, 5, 5, 1, 1], "archer": [250, 50, 55, 5, 5, 1, 2],
+			"boat": [300, 50, 55, 10, 5, 1, 1], "shaman": [400, 40, 45, 5, 5, 1, 1], "drum": [500, 35, 40, 10, 5, 1, 1],
+			"wolf": [600, 60, 65, 15, 6, 1, 1], "elephant": [600, 60, 70, 30, 5, 1, 1], "catapult": [700, 50, 70, 10, 4, 2, 4],
+			"bird": [1000, 70, 80, 25, 7, 1, 1], "ghost": [150, 40, 50, 2, 5, 1, 1] }
+		for t: String in spec:
+			var u: Dictionary = Rules.UNITS[t]
+			eq([u.cost, u.atk, u.atkMax, u.def, u.mv, u.rmin, u.rmax], spec[t], t)
+		eq(Rules.UNITS.keys().size(), spec.size(), "unit types")
+		var ter := { ".": [5, 1], "r": [0, 1], "f": [10, 2], "h": [10, 2], "m": [15, 3], "~": [0, 3], "=": [5, 1],
+			"v": [15, 1], "c": [15, 1], "x": [15, 1], "t": [15, 1] }
+		for k: String in ter:
+			eq([Rules.TERRAIN[k].def, Rules.TERRAIN[k].cost], ter[k], "terrain " + k)
+	)
+	run("AE2 damage modifiers: archer vs fly, drum vs ghost, poisoned attacker, defender rank, flyer terrain def", func() -> void:
+		var s := blank([["p", "archer", 1, 1], ["p", "soldier", 1, 2], ["e", "bird", 2, 1], ["p", "drum", 3, 3], ["e", "ghost", 4, 3], ["e", "soldier", 2, 2]])
+		var ar: Dictionary = s.units[0]
+		var so: Dictionary = s.units[1]
+		var bird: Dictionary = s.units[2]
+		var foe: Dictionary = s.units[5]
+		eq(Game.damage(s, ar, 1, 1, 100, bird, 0.0) - Game.damage(s, so, 1, 1, 100, bird, 0.0), 15, "archer +15 vs flyer")
+		eq(Game.damage(s, s.units[3], 3, 3, 100, s.units[4], 0.0), 43, "drum 35 +15 vs ghost - 2 def - 5 field")
+		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 40, "plain soldier hit")
+		so.poison = "e"
+		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 30, "poisoned attacker -10 atk")
+		so.erase("poison")
+		foe.rank = 2
+		eq(Game.damage(s, so, 1, 2, 100, foe, 0.0), 36, "defender rank 2 -> +4 def")
+		var field := Game.damage(s, so, 1, 1, 100, bird, 0.0)
+		s.tiles[1][2] = "f"
+		eq(field - Game.damage(s, so, 1, 1, 100, bird, 0.0), 5, "flyer still gets terrain def (forest 10 vs field 5)")
+	)
+	run("AE2 levels: capped at 9; an attacker killed by the counter does not level", func() -> void:
+		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 2, 1], ["p", "soldier", 3, 3, 1], ["e", "elephant", 4, 3]])
+		s.units[0].rank = Rules.RULES.maxRank
+		s.units[0].xp = 10000000
+		Game.fixed_roll = 0.0
+		var ev := Game.do_action(s, { "id": 1, "to": [1, 1], "kind": "attack", "target": 2 })
+		eq(s.units[0].rank, Rules.RULES.maxRank, "stays at max")
+		check(not ev.any(func(e: Dictionary) -> bool: return e.t == "rank"), "no rank event at max")
+		var weak: Dictionary = s.units[2]
+		weak.xp = 10000000
+		var ev2 := Game.do_action(s, { "id": weak.id, "to": [3, 3], "kind": "attack", "target": s.units[3].id })
+		check(Game.unit_by_id(s, weak.id) == null, "killed by the counter")
+		check(not ev2.any(func(e: Dictionary) -> bool: return e.t == "rank" and e.id == weak.id), "dead attacker never ranks up")
+	)
+	run("loss: a side that captures its first castle mid-game falls like a castled side (spec: never held a castle)", func() -> void:
+		var s := blank([["p", "hero", 3, 3], ["e", "hero", 4, 4], ["e", "soldier", 1, 4]])
+		s.owner.erase(Vector2i(5, 5))
+		s.tiles[5][5] = "c"
+		s.hadCastle.e = false
+		s.side = "e"
+		Game.do_action(s, { "id": 2, "to": [5, 5], "kind": "capture" })
+		check(s.hadCastle.e, "capturing a castle marks the side")
+		s.owner[Vector2i(5, 5)] = "p" # we retake it
+		s.units = s.units.filter(func(u: Dictionary) -> bool: return u.id != 2)
+		s.heroDead.e = true
+		eq(Game.loss_reason(s, "e"), "castlesLost", "no castle + commander dead, army left")
+	)
+	run("reach mission: commander dead and no castle to rebuy it = lost (no soft-lock until timeUp)", func() -> void:
+		var s := blank([["p", "soldier", 3, 3], ["e", "soldier", 5, 4]])
+		s.win = { "type": "reach", "at": [[2, 5]] }
+		s.owner.erase(Vector2i(0, 0))
+		s.hadCastle.p = false
+		s.heroDead.p = true
+		eq(Game.loss_reason(s, "p"), "heroFell")
+		s.owner[Vector2i(0, 0)] = "p"
+		eq(Game.loss_reason(s, "p"), null, "a castle left: can rebuy, still playing")
+	)
+	run("AI: commander rebought on the reach goal steps off (offGoal) instead of waiting there", func() -> void:
+		var s := blank([["e", "soldier", 5, 4]])
+		s.win = { "type": "reach", "at": [[0, 0]] }
+		s.heroDead.p = true
+		s.heroKey.p = "anhhung"
+		s.gold.p = 1000
+		var h: Dictionary = Game.buy(s, 0, 0, "hero")
+		AI.rng = func() -> float: return 0.5
+		var step: Variant = AI.next_step(s, {})
+		AI.rng = AI._gen.randf
+		check(step != null and step.kind == "act" and step.act.id == h.id, "acts with the commander")
+		check(step != null and step.act.to != [0, 0], "leaves the goal tile (got %s)" % [step.act.to if step != null else null])
+	)
 	run("AE2 loss: castles gone AND commander dead; hero capture of the last castle wins only then", func() -> void:
 		var s := blank([["p", "soldier", 4, 4], ["p", "hero", 4, 5], ["e", "hero", 1, 4]])
 		s.tiles[3][4] = "v"

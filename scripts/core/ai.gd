@@ -194,7 +194,8 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		if s.win.type == "reach" and u.side == "p" and u.type == "hero":
 			for g: Array in s.win.get("at", []):
 				if g[0] == rx and g[1] == ry:
-					pos += 20000 # stepping on the goal wins
+					# stepping on the goal wins; rebought on it (offGoal) -> must step off first, back next turn
+					pos += -500.0 if u.get("offGoal", false) else 20000.0
 		consider.call(pos, { "id": u.id, "to": [rx, ry], "kind": "wait" })
 
 		if Game.can_capture(s, u, rx, ry):

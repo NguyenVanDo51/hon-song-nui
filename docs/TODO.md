@@ -1,7 +1,7 @@
 # TODO
 
 ## Cân bằng / nhịp chơi
-- [ ] **m14 Rút Về Cấm Khê quá khó**: sim AI-vs-AI ta thắng 3/12 (AI `31a006e`; trước đổi nhịp quân, AI cũ: 1/12), phần lớn `timeUp` (hết 13 lượt, tướng chưa tới ô đích). Thử: tăng `turns`, bớt đợt địch, hoặc xem AI phe ta có đi thẳng tới đích không. Có từ trước, không do đổi nhịp quân.
+- [ ] **m14 Rút Về Cấm Khê quá khó** (2026-11-06: một phần do bug AI đứng mãi trên ô đích khi tướng mua lại ở đó — đã sửa, golden 3 ván m14 timeUp -> reached; đo lại): sim AI-vs-AI ta thắng 3/12 (AI `31a006e`; trước đổi nhịp quân, AI cũ: 1/12), phần lớn `timeUp` (hết 13 lượt, tướng chưa tới ô đích). Thử: tăng `turns`, bớt đợt địch, hoặc xem AI phe ta có đi thẳng tới đích không. Có từ trước, không do đổi nhịp quân.
 - [ ] **Chơi thử nhịp ra quân mới** (`docs/content.md` mục "Nhịp ra quân mới"): người thật chơi m03–m05 + m09–m13, xem có kịp quen quân cũ trước khi gặp quân mới không. Sim AI không đo được việc học quân.
 - [ ] Sau mỗi lần đổi AI (`scripts/core/ai.gd`): chạy lại `bash tools/sim_many.sh "m01 … m16" 12 8` + cập nhật bảng cân bằng README (số hiện tại đo với AI `31a006e`).
 
@@ -13,3 +13,4 @@
   4. `gdformat` toàn repo trong 1 commit riêng, chỉ style -> chạy lại tests + click_driver + rig_smoke.
   5. `tools/lint.sh` + git pre-commit hook (`gdformat --check` + `gdlint`); ghi cách dùng vào README "Kiểm tra".
   - Phương án khác nếu gdtoolkit chậm / thiếu cú pháp 4.7: GDScript Formatter của GDQuest (Rust, có linter).
+- [ ] **Backlog code review 2026-11-06**: `docs/review/code_review_2026-11-06.md` mục Backlog (hiệu năng P1–P8, mở rộng E1–E7, tái sử dụng R1–R5, test). User chọn mục làm.

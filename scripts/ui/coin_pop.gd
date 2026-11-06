@@ -59,16 +59,17 @@ func _draw() -> void:
 			h = 0.14 * 4.0 * k * (1.0 - k)
 			sc = lerpf(1.15, 1.0, k)
 		var a := 1.0 if t < HOLD else clampf(1.0 - (t - HOLD) / FADE, 0.0, 1.0)
-		var fs := maxi(10, int(T * 0.3 * sc))
+		# fixed font size (per tile size) + scale transform: animating fs would bake a glyph cache per size
+		var fs := maxi(10, int(T * 0.3))
 		var tw := font.get_string_size(p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
 		var cr := fs * 0.42 # coin radius
 		var w := cr * 2.0 + 3.0 + tw
-		var base := ground - Vector2(w * 0.5, h * T)
 		# landing shadow shrinks as the number rises
 		var sh := clampf(1.0 - h, 0.3, 1.0)
 		draw_set_transform(ground, 0.0, Vector2(1.0, 0.35))
-		draw_circle(Vector2.ZERO, w * 0.42 * sh, Color(0, 0, 0, 0.28 * a))
-		draw_set_transform(Vector2.ZERO)
+		draw_circle(Vector2.ZERO, w * sc * 0.42 * sh, Color(0, 0, 0, 0.28 * a))
+		draw_set_transform(ground - Vector2(0, h * T), 0.0, Vector2(sc, sc))
+		var base := Vector2(-w * 0.5, 0)
 		var ink := Color(0.17, 0.13, 0.12, a)
 		var cc := base + Vector2(cr, -fs * 0.36)
 		draw_circle(cc, cr + 2.0, ink)
@@ -84,3 +85,4 @@ func _draw() -> void:
 		var tp := base + Vector2(cr * 2.0 + 3.0, 0)
 		draw_string_outline(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, maxi(3, fs / 5), ink)
 		draw_string(font, tp, p.text, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0.69, 0.93, 0.55, a) if heal else Color(1.0, 0.86, 0.36, a))
+	draw_set_transform(Vector2.ZERO)

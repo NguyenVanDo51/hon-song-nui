@@ -50,10 +50,10 @@ m13 0 p reached t10 n93 a3927e64
 m13 1 p reached t5 n43 161c1d0e
 m13 2 p reached t7 n61 b8c42563
 m13 3 p reached t10 n91 cf9dbb35
-m14 0 e timeUp t14 n154 ac3b4bb3
-m14 1 e timeUp t14 n155 80394dac
+m14 0 p reached t10 n105 9d24d3dc
+m14 1 p reached t7 n70 fff15efb
 m14 2 p reached t9 n107 b234c3c4
-m14 3 e timeUp t14 n145 a1faa21d
+m14 3 p reached t11 n107 3f8e17ad
 m15 0 e castlesLost t10 n163 5b835cbc
 m15 1 p survived t11 n198 43fd6be8
 m15 2 e castlesLost t10 n166 a3d72071

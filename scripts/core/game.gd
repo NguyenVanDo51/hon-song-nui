@@ -456,6 +456,8 @@ static func do_action(s: Dictionary, act: Dictionary) -> Array:
 		var key := Vector2i(tx, ty)
 		var prev: Variant = s.owner.get(key)
 		s.owner[key] = u.side
+		if tile_at(s, tx, ty) == "c":
+			s.hadCastle[u.side] = true # spec: only a side that never held a castle falls by rout alone
 		ev.append({ "t": "capture", "x": tx, "y": ty, "side": u.side, "prev": prev, "tile": tile_at(s, tx, ty) })
 	elif act.kind == "raze":
 		var key := Vector2i(act.target[0], act.target[1])
@@ -606,6 +608,8 @@ static func loss_reason(s: Dictionary, side: String) -> Variant:
 		return "heroKilled"
 	if side == "e" and s.win.type == "reach" and hero_on_goal(s):
 		return "reached"
+	if side == "p" and s.win.type == "reach" and s.heroDead.p and castles(s, "p") == 0:
+		return "heroFell" # reach needs the commander and no castle is left to rebuy it
 	var c := castles(s, side)
 	if c > 0:
 		return null

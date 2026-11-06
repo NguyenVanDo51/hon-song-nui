@@ -1034,9 +1034,16 @@ func play(events: Array, before: Dictionary) -> void:
 					ds.hidden = false
 			"hit":
 				var kill := events.any(func(o: Dictionary) -> bool: return o.t == "die" and o.id == e.id)
-				await fx.attack({ "x": e.fx, "y": e.fy, "id": e.from, "type": e.type, "side": e.side }, { "x": e.x, "y": e.y, "id": e.id }, e.amount,
-					{ "counter": e.get("counter", false), "kill": kill })
-				hp[e.id] = hp.get(e.id, 100) - e.amount
+				var att := { "x": e.fx, "y": e.fy, "id": e.from, "type": e.type, "side": e.side }
+				var tu: Variant = before.get(e.id, Game.unit_by_id(s, e.id))
+				var dfd := { "x": e.x, "y": e.y, "id": e.id, "type": tu.type if tu != null else "soldier" }
+				var rig: Rig = Rigs.make(e.type, e.side) if board is Board else null
+				if rig != null: # code-rigged attack: hp drops at its big HIT (on_hit runs exactly once)
+					await fx.rig_attack(board, rig, att, dfd, e.amount, { "counter": e.get("counter", false), "kill": kill,
+						"on_hit": func() -> void: hp[e.id] = hp.get(e.id, 100) - e.amount })
+				else:
+					await fx.attack(att, dfd, e.amount, { "counter": e.get("counter", false), "kill": kill })
+					hp[e.id] = hp.get(e.id, 100) - e.amount
 			"die":
 				var sp: Variant = dying.get(e.id)
 				if sp != null:
@@ -1598,7 +1605,7 @@ func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
 	if b.def_from == "water":
 		out.append("[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông." % [Board.BUFF_UP.to_html(false), b.def, Game.stat(s, u).get("waterAtk", 0)])
 	if b.poison:
-		out.append("[color=#%s]🐕 Bị chó cắn: −%d công, −%d thủ[/color] tới lượt sau của phe kia." % [Style.BAD.to_html(false), b.poison, b.poison])
+		out.append("[color=#%s]🐺 Bị sói cắn: −%d công, −%d thủ[/color] tới lượt sau của phe kia." % [Style.BAD.to_html(false), b.poison, b.poison])
 	return out
 
 ## why the forecast numbers are what they are: every modifier that touches this attack

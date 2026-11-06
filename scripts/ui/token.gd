@@ -45,16 +45,20 @@ static var _has := {} # path -> bool
 ## this frame is never freed mid-frame (freed RID = white square in a one-shot bake / an icon not redrawn).
 ## Rotation redraws every Token icon so its texture moves into the new gen.
 static func raster(path: String, px: float) -> Texture2D:
+	return raster_svg(path, func() -> String: return FileAccess.get_file_as_string(path), px)
+
+## same cache for SVG markup built in code (rig parts): `src` returns the 256-viewBox SVG text, only called on a miss
+static func raster_svg(id: String, src: Callable, px: float) -> Texture2D:
 	var b := maxi(16, ceili(px / 8.0) * 8)
-	var key := "%s@%d" % [path, b]
+	var key := "%s@%d" % [id, b]
 	var tex: Texture2D = _rast.get(key)
 	if tex != null:
 		return tex
 	tex = _rast_old.get(key)
 	if tex == null:
 		var img := Image.new()
-		var src := FileAccess.get_file_as_string(path)
-		if src == "" or img.load_svg_from_string(src, b / 256.0) != OK:
+		var svg: String = src.call()
+		if svg == "" or img.load_svg_from_string(svg, b / 256.0) != OK:
 			return null
 		tex = ImageTexture.create_from_image(img)
 	if _rast.size() >= RAST_GEN:

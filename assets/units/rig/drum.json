@@ -1,0 +1,691 @@
+{
+ "name": "drum",
+ "title": "Trống đồng · Song hồi trống trận",
+ "feet": 244,
+ "cx": 128,
+ "outline": 7,
+ "range": 1,
+ "targetFront": 84,
+ "targetCY": 150,
+ "shadowR": 62,
+ "parts": {
+  "tails": "<path d=\"M84 70 Q66 56 50 58 Q58 68 58 76 Q70 74 84 78 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M84 78 Q70 84 56 94 Q66 98 70 106 Q78 94 88 86 Z\" fill=\"#93362b\" stroke-width=\"5\"/>",
+  "legs": "<rect x=\"104\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"134\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"98\" y=\"228\" width=\"30\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<rect x=\"130\" y=\"228\" width=\"32\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>",
+  "torso": "<path d=\"M100 128 Q128 118 156 128 L164 200 Q128 210 92 200 Z\" fill=\"#c9503f\"/>\n<path d=\"M104 134 Q101 168 97 198 Q106 201 113 202 L114 129 Z\" fill=\"#93362b\" stroke=\"none\"/>",
+  "strap": "<path d=\"M108 128 L176 172\" stroke=\"#2b2220\" stroke-width=\"16\"/>\n<path d=\"M108 128 L176 172\" stroke=\"#5a4a3c\" stroke-width=\"8\"/>",
+  "drumBody": "<path d=\"M92 170 C90 186 94 196 102 204 L98 222 Q146 236 194 222 L190 204 C198 196 202 186 200 170 Z\" fill=\"#b58a3e\"/>\n<path d=\"M92 170 C91 182 93 190 97 196 Q146 210 195 196 C199 190 201 182 200 170 Z\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M101 204 Q146 216 191 204\" fill=\"none\" stroke-width=\"5\"/>\n<path d=\"M100 214 Q146 226 192 214\" fill=\"none\" stroke=\"#e2c36e\" stroke-width=\"4\"/>\n<path d=\"M108 190 q4 -6 9 -2 q5 -5 9 1 M117 188 l9 2 M138 194 q4 -6 9 -2 q5 -5 9 1 M147 192 l9 2 M168 190 q4 -6 9 -2 q5 -5 9 1 M177 188 l9 2\" fill=\"none\" stroke=\"#8a6634\" stroke-width=\"3\"/>",
+  "drumFace": "<ellipse cx=\"146\" cy=\"170\" rx=\"54\" ry=\"15\" fill=\"#e2c36e\"/>\n<ellipse cx=\"146\" cy=\"170\" rx=\"42\" ry=\"11\" fill=\"none\" stroke=\"#b58a3e\" stroke-width=\"3\"/>\n<ellipse cx=\"146\" cy=\"170\" rx=\"28\" ry=\"7.5\" fill=\"none\" stroke=\"#b58a3e\" stroke-width=\"3\"/>\n<path d=\"M175 170 q3 -3 6 0 q3 -3 6 0 M105 170 q3 -3 6 0 q3 -3 6 0 M140 180.5 q3 -2 6 0 q3 -2 6 0 M140 160 q3 -2 6 0 q3 -2 6 0\" fill=\"none\" stroke=\"#8a6634\" stroke-width=\"2\"/>\n<polygon points=\"170.0,170.0 154.7,170.7 166.8,173.4 152.4,171.8 158.0,175.8 148.3,172.4 146.0,176.7 143.7,172.4 134.0,175.8 139.6,171.8 125.2,173.4 137.3,170.7 122.0,170.0 137.3,169.3 125.2,166.6 139.6,168.2 134.0,164.2 143.7,167.6 146.0,163.3 148.3,167.6 158.0,164.2 152.4,168.2 166.8,166.6 154.7,169.3\" fill=\"#b58a3e\" stroke=\"none\"/>",
+  "glow": "<ellipse cx=\"146\" cy=\"170\" rx=\"54\" ry=\"15\" fill=\"#fff6d6\"/>\n<polygon points=\"170.0,170.0 154.7,170.7 166.8,173.4 152.4,171.8 158.0,175.8 148.3,172.4 146.0,176.7 143.7,172.4 134.0,175.8 139.6,171.8 125.2,173.4 137.3,170.7 122.0,170.0 137.3,169.3 125.2,166.6 139.6,168.2 134.0,164.2 143.7,167.6 146.0,163.3 148.3,167.6 158.0,164.2 152.4,168.2 166.8,166.6 154.7,169.3\" fill=\"#e2c36e\" stroke=\"none\"/>",
+  "head": "<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#f3cfa6\"/>\n<path d=\"M76.5 76 A54 54 0 0 1 183.5 76 Z\" fill=\"#3a2e28\"/>\n<circle cx=\"112\" cy=\"30\" r=\"13\" fill=\"#3a2e28\" stroke-width=\"6\"/>\n<path d=\"M77 68 Q130 50 183 68 L184 82 Q130 64 76 82 Z\" fill=\"#c9503f\"/>\n<circle cx=\"82\" cy=\"76\" r=\"7\" fill=\"#93362b\" stroke-width=\"5\"/>",
+  "armB": "<path d=\"M106 146 Q80 144 64 124\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M106 146 Q80 144 64 124\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"12\"/>",
+  "stickB": "<line x1=\"66\" y1=\"128\" x2=\"36\" y2=\"60\" stroke=\"#2b2220\" stroke-width=\"13\"/>\n<line x1=\"66\" y1=\"128\" x2=\"36\" y2=\"60\" stroke=\"#a87a4c\" stroke-width=\"6\"/>\n<circle cx=\"34\" cy=\"55\" r=\"10\" fill=\"#c9503f\" stroke-width=\"5\"/>",
+  "handB": "<circle cx=\"62\" cy=\"122\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>",
+  "armF": "<path d=\"M150 144 Q184 142 202 114\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M150 144 Q184 142 202 114\" fill=\"none\" stroke=\"#c9503f\" stroke-width=\"12\"/>",
+  "stickF": "<line x1=\"200\" y1=\"120\" x2=\"226\" y2=\"50\" stroke=\"#2b2220\" stroke-width=\"13\"/>\n<line x1=\"200\" y1=\"120\" x2=\"226\" y2=\"50\" stroke=\"#a87a4c\" stroke-width=\"6\"/>\n<circle cx=\"228\" cy=\"45\" r=\"10\" fill=\"#c9503f\" stroke-width=\"5\"/>",
+  "handF": "<circle cx=\"204\" cy=\"108\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>",
+  "face": "<circle cx=\"148\" cy=\"112\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"170\" cy=\"112\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"150\" cy=\"110\" r=\"2\" fill=\"#fff\"/>\n<circle cx=\"172\" cy=\"110\" r=\"2\" fill=\"#fff\"/>\n<ellipse cx=\"179\" cy=\"124\" rx=\"6\" ry=\"4\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M150 128 Q157 138 164 128 Z\" fill=\"#2b2220\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linejoin=\"round\"/>"
+ },
+ "raw": [
+  "face"
+ ],
+ "bones": [
+  {
+   "name": "body",
+   "parent": "root",
+   "pivot": [
+    128,
+    236
+   ],
+   "ch": "lean"
+  },
+  {
+   "name": "drum",
+   "parent": "body",
+   "pivot": [
+    146,
+    196
+   ],
+   "ty": "drumY"
+  },
+  {
+   "name": "head",
+   "parent": "body",
+   "pivot": [
+    130,
+    138
+   ],
+   "ch": "head"
+  },
+  {
+   "name": "tails",
+   "parent": "head",
+   "pivot": [
+    84,
+    76
+   ],
+   "ch": "tails"
+  },
+  {
+   "name": "armB",
+   "parent": "body",
+   "pivot": [
+    106,
+    146
+   ],
+   "ch": "armB"
+  },
+  {
+   "name": "stickB",
+   "parent": "armB",
+   "pivot": [
+    62,
+    122
+   ],
+   "ch": "wristB"
+  },
+  {
+   "name": "armF",
+   "parent": "body",
+   "pivot": [
+    150,
+    144
+   ],
+   "ch": "armF"
+  },
+  {
+   "name": "stickF",
+   "parent": "armF",
+   "pivot": [
+    204,
+    108
+   ],
+   "ch": "wristF"
+  }
+ ],
+ "draw": [
+  [
+   "tails",
+   "tails"
+  ],
+  [
+   "legs",
+   "root"
+  ],
+  [
+   "torso",
+   "body"
+  ],
+  [
+   "strap",
+   "body"
+  ],
+  [
+   "drumBody",
+   "drum"
+  ],
+  [
+   "drumFace",
+   "drum"
+  ],
+  [
+   "glow",
+   "drum",
+   "glow"
+  ],
+  [
+   "head",
+   "head"
+  ],
+  [
+   "armB",
+   "armB"
+  ],
+  [
+   "stickB",
+   "stickB"
+  ],
+  [
+   "handB",
+   "armB"
+  ],
+  [
+   "armF",
+   "armF"
+  ],
+  [
+   "stickF",
+   "stickF"
+  ],
+  [
+   "handF",
+   "armF"
+  ],
+  [
+   "face",
+   "head"
+  ]
+ ],
+ "points": {
+  "tipB": [
+   "stickB",
+   34,
+   55
+  ],
+  "tipF": [
+   "stickF",
+   228,
+   45
+  ],
+  "midF": [
+   "stickF",
+   215,
+   80
+  ],
+  "face": [
+   "drum",
+   146,
+   170
+  ],
+  "rim": [
+   "drum",
+   200,
+   170
+  ]
+ },
+ "springs": {
+  "tails": {
+   "k": 190,
+   "c": 9
+  }
+ },
+ "hooks": {
+  "idle": true,
+  "order": true
+ },
+ "attacks": [
+  {
+   "id": "boom",
+   "label": "🥁 Song hồi trống",
+   "dur": 1250,
+   "tr": {
+    "y": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      5,
+      "out"
+     ],
+     [
+      220,
+      5,
+      "io"
+     ],
+     [
+      272,
+      0,
+      "outExpo"
+     ],
+     [
+      398,
+      2,
+      "outExpo"
+     ],
+     [
+      470,
+      0,
+      "out"
+     ]
+    ],
+    "sy": [
+     [
+      0,
+      1,
+      "io"
+     ],
+     [
+      170,
+      0.9,
+      "out"
+     ],
+     [
+      220,
+      0.89,
+      "io"
+     ],
+     [
+      272,
+      1.04,
+      "outExpo"
+     ],
+     [
+      340,
+      0.98,
+      "io"
+     ],
+     [
+      398,
+      0.86,
+      "outExpo"
+     ],
+     [
+      470,
+      1.05,
+      "out"
+     ],
+     [
+      560,
+      1,
+      "io"
+     ]
+    ],
+    "lean": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -6,
+      "outBack"
+     ],
+     [
+      220,
+      -7,
+      "io"
+     ],
+     [
+      272,
+      -2,
+      "outExpo"
+     ],
+     [
+      340,
+      -5,
+      "io"
+     ],
+     [
+      398,
+      8,
+      "outExpo"
+     ],
+     [
+      720,
+      6,
+      "out"
+     ],
+     [
+      1150,
+      0,
+      "io"
+     ]
+    ],
+    "head": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -7,
+      "out"
+     ],
+     [
+      220,
+      -7,
+      "io"
+     ],
+     [
+      272,
+      2,
+      "outExpo"
+     ],
+     [
+      340,
+      -3,
+      "io"
+     ],
+     [
+      398,
+      7,
+      "outExpo"
+     ],
+     [
+      720,
+      4,
+      "out"
+     ],
+     [
+      1150,
+      0,
+      "io"
+     ]
+    ],
+    "armB": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      26,
+      "outBack"
+     ],
+     [
+      220,
+      28,
+      "io"
+     ],
+     [
+      272,
+      -25,
+      "outExpo"
+     ],
+     [
+      340,
+      -20,
+      "out"
+     ],
+     [
+      398,
+      -24,
+      "outExpo"
+     ],
+     [
+      720,
+      -20,
+      "out"
+     ],
+     [
+      1150,
+      0,
+      "io"
+     ]
+    ],
+    "wristB": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -14,
+      "outBack"
+     ],
+     [
+      220,
+      -18,
+      "io"
+     ],
+     [
+      272,
+      160,
+      "outExpo"
+     ],
+     [
+      340,
+      142,
+      "out"
+     ],
+     [
+      398,
+      156,
+      "outExpo"
+     ],
+     [
+      720,
+      146,
+      "out"
+     ],
+     [
+      1150,
+      0,
+      "io"
+     ]
+    ],
+    "armF": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -18,
+      "outBack"
+     ],
+     [
+      220,
+      -18,
+      "io"
+     ],
+     [
+      280,
+      -16,
+      "out"
+     ],
+     [
+      340,
+      -22,
+      "out"
+     ],
+     [
+      398,
+      32,
+      "outExpo"
+     ],
+     [
+      720,
+      28,
+      "out"
+     ],
+     [
+      1150,
+      0,
+      "io"
+     ]
+    ],
+    "wristF": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      28,
+      "outBack"
+     ],
+     [
+      220,
+      30,
+      "io"
+     ],
+     [
+      280,
+      26,
+      "out"
+     ],
+     [
+      340,
+      38,
+      "out"
+     ],
+     [
+      398,
+      -167,
+      "outExpo"
+     ],
+     [
+      720,
+      -155,
+      "out"
+     ],
+     [
+      1150,
+      0,
+      "io"
+     ]
+    ],
+    "drumY": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      268,
+      0,
+      "io"
+     ],
+     [
+      282,
+      4,
+      "lin"
+     ],
+     [
+      380,
+      0,
+      "out"
+     ],
+     [
+      394,
+      0,
+      "io"
+     ],
+     [
+      408,
+      6,
+      "lin"
+     ],
+     [
+      520,
+      0,
+      "out"
+     ]
+    ],
+    "glow": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      266,
+      0,
+      "io"
+     ],
+     [
+      274,
+      0.95,
+      "lin"
+     ],
+     [
+      360,
+      0,
+      "out"
+     ],
+     [
+      392,
+      0,
+      "io"
+     ],
+     [
+      400,
+      1,
+      "lin"
+     ],
+     [
+      520,
+      0,
+      "out"
+     ]
+    ],
+    "kick": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      266,
+      0,
+      "io"
+     ],
+     [
+      280,
+      22,
+      "out"
+     ],
+     [
+      380,
+      0,
+      "io"
+     ],
+     [
+      396,
+      0,
+      "io"
+     ],
+     [
+      410,
+      30,
+      "out"
+     ],
+     [
+      560,
+      0,
+      "io"
+     ]
+    ]
+   },
+   "sampled": [],
+   "smear": {
+    "tip": "tipF",
+    "base": "midF",
+    "from": 352,
+    "to": 440,
+    "window": 36,
+    "fill": "#fff6d6",
+    "inner": "#e2c36e"
+   },
+   "ev_times": [
+    160,
+    268,
+    396
+   ],
+   "draw": true
+  }
+ ],
+ "consts": {
+  "HIT": {
+   "stop": 90,
+   "amp": 9,
+   "kx": 420,
+   "debris": "spark",
+   "n": 8,
+   "sparkColor": "#ffe08a",
+   "cut": true,
+   "cutAng": -24
+  },
+  "HIT_SMALL": {
+   "small": true,
+   "stop": 45,
+   "amp": 4,
+   "kx": 0,
+   "debris": "spark",
+   "n": 3,
+   "sparkColor": "#ffe08a",
+   "cut": false
+  },
+  "BRONZE": "#e2c36e",
+  "PALE": "#fff6d6"
+ }
+}

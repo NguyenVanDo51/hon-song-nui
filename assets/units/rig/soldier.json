@@ -1,0 +1,711 @@
+{
+ "name": "soldier",
+ "title": "Bộ binh · Đâm thương xuyên giáp",
+ "feet": 244,
+ "cx": 128,
+ "outline": 7,
+ "range": 1,
+ "targetFront": 84,
+ "targetCY": 150,
+ "shadowR": 62,
+ "parts": {
+  "shield": "<circle cx=\"84\" cy=\"166\" r=\"40\" fill=\"#c9503f\"/>\n<circle cx=\"84\" cy=\"166\" r=\"27\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"5\"/>\n<path d=\"M84 145 L84 187 M63 166 L105 166\" stroke=\"#93362b\" stroke-width=\"4\"/>\n<circle cx=\"84\" cy=\"166\" r=\"10\" fill=\"#e2c36e\" stroke-width=\"5\"/>",
+  "legB": "<rect x=\"104\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"98\" y=\"228\" width=\"30\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>",
+  "legF": "<rect x=\"134\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"130\" y=\"228\" width=\"32\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>",
+  "torso": "<path d=\"M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z\" fill=\"#c9503f\"/>\n<path d=\"M93 191 Q128 200 163 191\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"6\"/>\n<path d=\"M95 172 L161 172\" stroke=\"#5a4a3c\" stroke-width=\"10\"/>\n<circle cx=\"128\" cy=\"172\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"4\"/>",
+  "spear": "<line x1=\"198\" y1=\"50\" x2=\"198\" y2=\"240\" stroke=\"#2b2220\" stroke-width=\"15\"/>\n<line x1=\"198\" y1=\"50\" x2=\"198\" y2=\"240\" stroke=\"#a87a4c\" stroke-width=\"7\"/>",
+  "tassel": "<path d=\"M198 58 Q186 70 188 90 Q194 84 198 92 Q202 84 208 90 Q210 70 198 58 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>",
+  "spearHead": "<path d=\"M198 6 Q213 28 205 48 L191 48 Q183 28 198 6 Z\" fill=\"#cdd4da\" stroke-width=\"5\"/>\n<path d=\"M198 16 L198 42\" stroke=\"#aab3bd\" stroke-width=\"4\"/>\n<rect x=\"190\" y=\"46\" width=\"16\" height=\"12\" rx=\"3\" fill=\"#e2c36e\" stroke-width=\"5\"/>",
+  "crest": "<path d=\"M138 38 C144 16 128 2 102 6 C114 12 116 24 116 38 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M131 30 C131 18 122 11 110 10\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"4\"/>",
+  "head": "<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#f3cfa6\"/>\n<path d=\"M76 86 A54 54 0 0 1 184 86 L192 96 L68 96 Z\" fill=\"#aab3bd\"/>\n<path d=\"M88 70 Q94 52 110 42\" fill=\"none\" stroke=\"#cdd4da\" stroke-width=\"5\"/>\n<path d=\"M72 90 L188 90\" stroke=\"#7e8790\" stroke-width=\"5\"/>\n<rect x=\"119\" y=\"28\" width=\"20\" height=\"10\" rx=\"4\" fill=\"#e2c36e\" stroke-width=\"5\"/>",
+  "arm": "<path d=\"M152 140 Q176 150 198 158\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M152 140 Q176 150 198 158\" fill=\"none\" stroke=\"#c9503f\" stroke-width=\"12\"/>\n<circle cx=\"198\" cy=\"160\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>",
+  "face": "<path d=\"M141 104 L154 107 M164 107 L177 104\" stroke=\"#2b2220\" stroke-width=\"4\" stroke-linecap=\"round\"/>\n<circle cx=\"148\" cy=\"115\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"170\" cy=\"115\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"150\" cy=\"113\" r=\"2\" fill=\"#fff\"/>\n<circle cx=\"172\" cy=\"113\" r=\"2\" fill=\"#fff\"/>\n<ellipse cx=\"179\" cy=\"127\" rx=\"6\" ry=\"4\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M151 132 Q158 137 165 132\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linecap=\"round\"/>"
+ },
+ "raw": [
+  "face"
+ ],
+ "bones": [
+  {
+   "name": "body",
+   "parent": "root",
+   "pivot": [
+    128,
+    200
+   ],
+   "ch": "lean"
+  },
+  {
+   "name": "shield",
+   "parent": "body",
+   "pivot": [
+    104,
+    142
+   ],
+   "ch": "shield"
+  },
+  {
+   "name": "head",
+   "parent": "body",
+   "pivot": [
+    130,
+    136
+   ],
+   "ch": "head"
+  },
+  {
+   "name": "crest",
+   "parent": "head",
+   "pivot": [
+    127,
+    38
+   ],
+   "ch": "crest"
+  },
+  {
+   "name": "arm",
+   "parent": "body",
+   "pivot": [
+    152,
+    140
+   ],
+   "ch": "arm",
+   "tx": "armX"
+  },
+  {
+   "name": "spear",
+   "parent": "arm",
+   "pivot": [
+    198,
+    160
+   ],
+   "ch": "wrist",
+   "tx": "slide"
+  },
+  {
+   "name": "tassel",
+   "parent": "spear",
+   "pivot": [
+    198,
+    58
+   ],
+   "ch": "tassel"
+  },
+  {
+   "name": "legB",
+   "parent": "root",
+   "pivot": [
+    114,
+    198
+   ],
+   "ch": "legB"
+  },
+  {
+   "name": "legF",
+   "parent": "root",
+   "pivot": [
+    144,
+    198
+   ],
+   "ch": "legF"
+  }
+ ],
+ "draw": [
+  [
+   "shield",
+   "shield"
+  ],
+  [
+   "legB",
+   "legB"
+  ],
+  [
+   "legF",
+   "legF"
+  ],
+  [
+   "torso",
+   "body"
+  ],
+  [
+   "spear",
+   "spear"
+  ],
+  [
+   "tassel",
+   "tassel"
+  ],
+  [
+   "spearHead",
+   "spear"
+  ],
+  [
+   "crest",
+   "crest"
+  ],
+  [
+   "head",
+   "head"
+  ],
+  [
+   "arm",
+   "arm"
+  ],
+  [
+   "face",
+   "head"
+  ]
+ ],
+ "points": {
+  "tip": [
+   "spear",
+   198,
+   8
+  ],
+  "mid": [
+   "spear",
+   198,
+   110
+  ],
+  "hand": [
+   "arm",
+   198,
+   160
+  ]
+ },
+ "springs": {
+  "crest": {
+   "k": 230,
+   "c": 9
+  },
+  "tassel": {
+   "k": 200,
+   "c": 8
+  }
+ },
+ "hooks": {
+  "idle": true,
+  "order": false
+ },
+ "attacks": [
+  {
+   "id": "thrust",
+   "label": "🗡 Đâm thương",
+   "dur": 1100,
+   "tr": {
+    "x": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      8,
+      "out"
+     ],
+     [
+      300,
+      -20,
+      "out"
+     ],
+     [
+      345,
+      -21,
+      "io"
+     ],
+     [
+      410,
+      26,
+      "outExpo"
+     ],
+     [
+      660,
+      22,
+      "out"
+     ],
+     [
+      760,
+      4,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "y": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      65,
+      -6,
+      "out"
+     ],
+     [
+      130,
+      0,
+      "in"
+     ],
+     [
+      300,
+      4,
+      "out"
+     ],
+     [
+      345,
+      4,
+      "io"
+     ],
+     [
+      385,
+      -6,
+      "outExpo"
+     ],
+     [
+      470,
+      0,
+      "in"
+     ]
+    ],
+    "sy": [
+     [
+      0,
+      1,
+      "io"
+     ],
+     [
+      130,
+      0.97,
+      "io"
+     ],
+     [
+      300,
+      0.88,
+      "out"
+     ],
+     [
+      345,
+      0.87,
+      "io"
+     ],
+     [
+      385,
+      1.1,
+      "outExpo"
+     ],
+     [
+      470,
+      0.96,
+      "out"
+     ],
+     [
+      580,
+      1,
+      "out"
+     ]
+    ],
+    "lean": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      3,
+      "out"
+     ],
+     [
+      300,
+      -13,
+      "out"
+     ],
+     [
+      345,
+      -14,
+      "io"
+     ],
+     [
+      410,
+      15,
+      "outExpo"
+     ],
+     [
+      660,
+      12,
+      "out"
+     ],
+     [
+      760,
+      2,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "head": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      2,
+      "io"
+     ],
+     [
+      300,
+      -6,
+      "out"
+     ],
+     [
+      345,
+      -6,
+      "io"
+     ],
+     [
+      410,
+      6,
+      "outExpo"
+     ],
+     [
+      660,
+      4,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "arm": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      -4,
+      "io"
+     ],
+     [
+      300,
+      10,
+      "out"
+     ],
+     [
+      345,
+      10,
+      "io"
+     ],
+     [
+      410,
+      -10,
+      "outExpo"
+     ],
+     [
+      660,
+      -8,
+      "io"
+     ],
+     [
+      760,
+      0,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "armX": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      2,
+      "io"
+     ],
+     [
+      300,
+      -26,
+      "out"
+     ],
+     [
+      345,
+      -27,
+      "io"
+     ],
+     [
+      410,
+      18,
+      "outExpo"
+     ],
+     [
+      660,
+      14,
+      "out"
+     ],
+     [
+      760,
+      -22,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "slide": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      300,
+      -10,
+      "out"
+     ],
+     [
+      345,
+      -10,
+      "io"
+     ],
+     [
+      410,
+      18,
+      "outExpo"
+     ],
+     [
+      660,
+      14,
+      "out"
+     ],
+     [
+      760,
+      -12,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "wrist": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      25,
+      "out"
+     ],
+     [
+      300,
+      66,
+      "out"
+     ],
+     [
+      345,
+      68,
+      "io"
+     ],
+     [
+      372,
+      85,
+      "outExpo"
+     ],
+     [
+      660,
+      86,
+      "io"
+     ],
+     [
+      760,
+      40,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "shield": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      -3,
+      "io"
+     ],
+     [
+      300,
+      -8,
+      "out"
+     ],
+     [
+      345,
+      -8,
+      "io"
+     ],
+     [
+      410,
+      14,
+      "outExpo"
+     ],
+     [
+      660,
+      10,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "legF": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      65,
+      -16,
+      "out"
+     ],
+     [
+      130,
+      -4,
+      "in"
+     ],
+     [
+      300,
+      8,
+      "out"
+     ],
+     [
+      345,
+      8,
+      "io"
+     ],
+     [
+      410,
+      -28,
+      "outExpo"
+     ],
+     [
+      660,
+      -24,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ],
+    "legB": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      130,
+      3,
+      "io"
+     ],
+     [
+      300,
+      -4,
+      "out"
+     ],
+     [
+      345,
+      -4,
+      "io"
+     ],
+     [
+      410,
+      22,
+      "outExpo"
+     ],
+     [
+      660,
+      18,
+      "io"
+     ],
+     [
+      1100,
+      0,
+      "io"
+     ]
+    ]
+   },
+   "sampled": [],
+   "smear": {
+    "tip": "tip",
+    "base": "mid",
+    "from": 350,
+    "to": 440,
+    "window": 48,
+    "fill": "#fffdf4",
+    "inner": "#ffe08a"
+   },
+   "ev_times": [
+    130,
+    230,
+    345
+   ],
+   "draw": false
+  }
+ ],
+ "consts": {
+  "HIT": {
+   "stop": 90,
+   "amp": 9,
+   "kx": 420,
+   "debris": "spark",
+   "n": 8,
+   "sparkColor": "#ffe08a",
+   "cut": true,
+   "cutAng": -24
+  },
+  "HIT_SMALL": {
+   "small": true,
+   "stop": 45,
+   "amp": 4,
+   "kx": 0,
+   "debris": "spark",
+   "n": 3,
+   "sparkColor": "#ffe08a",
+   "cut": false
+  },
+  "DMG": 50
+ }
+}

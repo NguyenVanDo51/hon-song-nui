@@ -1,0 +1,904 @@
+{
+ "name": "archer",
+ "title": "Nỏ thủ · Nỏ thần liên châu",
+ "feet": 244,
+ "cx": 128,
+ "outline": 7,
+ "range": 2,
+ "targetFront": 84,
+ "targetCY": 150,
+ "shadowR": 62,
+ "parts": {
+  "quiver": "<path d=\"M52 120 L40 84\" stroke-width=\"5\"/>\n<path d=\"M64 116 L58 78\" stroke-width=\"5\"/>\n<path d=\"M76 112 L76 76\" stroke-width=\"5\"/>\n<path d=\"M40 84 L30 72 L46 76 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M58 78 L52 64 L66 70 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M76 76 L72 62 L84 68 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M40 128 L80 112 L108 182 L80 198 Z\" fill=\"#5a4a3c\"/>\n<path d=\"M46 142 L84 126\" stroke=\"#e2c36e\" stroke-width=\"5\"/>\n<circle cx=\"80\" cy=\"162\" r=\"8\" fill=\"#e2c36e\" stroke-width=\"4\"/>",
+  "legB": "<rect x=\"104\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"98\" y=\"228\" width=\"30\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>",
+  "legF": "<rect x=\"134\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"130\" y=\"228\" width=\"32\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>",
+  "torso": "<path d=\"M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z\" fill=\"#c9503f\"/>\n<path d=\"M94 196 Q128 206 163 196\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"5\"/>\n<path d=\"M150 130 L100 194\" stroke=\"#3a2e28\" stroke-width=\"8\"/>\n<path d=\"M95 182 L161 182\" stroke=\"#5a4a3c\" stroke-width=\"10\"/>\n<circle cx=\"140\" cy=\"182\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"4\"/>",
+  "tails": "<path d=\"M84 96 Q60 104 50 128 L62 132 Q68 114 88 104 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M84 102 Q70 118 70 140 L80 140 Q80 120 90 108 Z\" fill=\"#93362b\" stroke-width=\"5\"/>",
+  "head": "<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#f3cfa6\"/>\n<path d=\"M76 92 A54 54 0 0 1 184 84 Q132 70 80 104 Z\" fill=\"#c9503f\"/>\n<path d=\"M88 84 Q132 60 176 72\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"5\"/>\n<circle cx=\"84\" cy=\"98\" r=\"9\" fill=\"#c9503f\" stroke-width=\"5\"/>",
+  "arm": "<path d=\"M152 144 Q174 158 194 166\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M152 144 Q174 158 194 166\" fill=\"none\" stroke=\"#c9503f\" stroke-width=\"12\"/>",
+  "bow": "<path d=\"M206 116 Q230 152 206 190\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"16\"/>\n<path d=\"M206 116 Q230 152 206 190\" fill=\"none\" stroke=\"#a87a4c\" stroke-width=\"8\"/>\n<circle cx=\"206\" cy=\"116\" r=\"5\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<circle cx=\"206\" cy=\"190\" r=\"5\" fill=\"#e2c36e\" stroke-width=\"4\"/>",
+  "stock": "<path d=\"M112 148 L228 148 L228 162 L152 164 Q138 180 114 170 Z\" fill=\"#a87a4c\"/>\n<path d=\"M122 156 L222 156\" stroke=\"#5a4a3c\" stroke-width=\"3\"/>\n<rect x=\"150\" y=\"160\" width=\"22\" height=\"14\" rx=\"3\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M162 174 L158 188\" stroke-width=\"5\"/>",
+  "stringC": "<path d=\"M206 116 L164 148 L206 190\" fill=\"none\" stroke-width=\"4\"/>",
+  "stringR": "<path d=\"M206 116 Q209 153 206 190\" fill=\"none\" stroke-width=\"4\"/>",
+  "bolt": "<path d=\"M168 140 L230 140\" stroke-width=\"9\"/>\n<path d=\"M168 140 L230 140\" stroke=\"#e2c36e\" stroke-width=\"3\"/>\n<path d=\"M230 133 L246 140 L230 147 Z\" fill=\"#cdd4da\" stroke-width=\"4\"/>\n<path d=\"M176 140 L163 131 L167 140 L163 149 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>",
+  "handF": "<circle cx=\"198\" cy=\"168\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>",
+  "handB": "<circle cx=\"138\" cy=\"172\" r=\"11\" fill=\"#f3cfa6\" stroke-width=\"5\"/>",
+  "face": "<path d=\"M141 100 L154 104 M164 104 L177 100\" stroke=\"#2b2220\" stroke-width=\"4\" stroke-linecap=\"round\"/>\n<circle cx=\"148\" cy=\"112\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"170\" cy=\"112\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"150\" cy=\"110\" r=\"2\" fill=\"#fff\"/>\n<circle cx=\"172\" cy=\"110\" r=\"2\" fill=\"#fff\"/>\n<ellipse cx=\"179\" cy=\"124\" rx=\"6\" ry=\"4\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M150 130 Q156 134 162 131\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linecap=\"round\"/>"
+ },
+ "raw": [
+  "face"
+ ],
+ "bones": [
+  {
+   "name": "body",
+   "parent": "root",
+   "pivot": [
+    128,
+    200
+   ],
+   "ch": "lean"
+  },
+  {
+   "name": "head",
+   "parent": "body",
+   "pivot": [
+    130,
+    140
+   ],
+   "ch": "head"
+  },
+  {
+   "name": "tails",
+   "parent": "head",
+   "pivot": [
+    86,
+    100
+   ],
+   "ch": "tails"
+  },
+  {
+   "name": "quiver",
+   "parent": "body",
+   "pivot": [
+    84,
+    122
+   ],
+   "ch": "quiv"
+  },
+  {
+   "name": "xbow",
+   "parent": "body",
+   "pivot": [
+    150,
+    146
+   ],
+   "ch": "aim",
+   "tx": "kick",
+   "ty": "raise"
+  },
+  {
+   "name": "handB",
+   "parent": "xbow",
+   "pivot": [
+    138,
+    172
+   ],
+   "tx": "pull"
+  },
+  {
+   "name": "legB",
+   "parent": "root",
+   "pivot": [
+    114,
+    198
+   ],
+   "ch": "legB"
+  },
+  {
+   "name": "legF",
+   "parent": "root",
+   "pivot": [
+    144,
+    198
+   ],
+   "ch": "legF"
+  }
+ ],
+ "draw": [
+  [
+   "quiver",
+   "quiver"
+  ],
+  [
+   "legB",
+   "legB"
+  ],
+  [
+   "legF",
+   "legF"
+  ],
+  [
+   "torso",
+   "body"
+  ],
+  [
+   "tails",
+   "tails"
+  ],
+  [
+   "head",
+   "head"
+  ],
+  [
+   "arm",
+   "xbow"
+  ],
+  [
+   "bow",
+   "xbow"
+  ],
+  [
+   "stock",
+   "xbow"
+  ],
+  [
+   "stringC",
+   "xbow",
+   "cock"
+  ],
+  [
+   "stringR",
+   "xbow",
+   "rel"
+  ],
+  [
+   "bolt",
+   "xbow",
+   "cock"
+  ],
+  [
+   "handF",
+   "xbow"
+  ],
+  [
+   "handB",
+   "handB"
+  ],
+  [
+   "face",
+   "head"
+  ]
+ ],
+ "points": {
+  "muzzle": [
+   "xbow",
+   246,
+   140
+  ],
+  "nut": [
+   "xbow",
+   166,
+   146
+  ],
+  "mid": [
+   "xbow",
+   206,
+   140
+  ]
+ },
+ "springs": {
+  "tails": {
+   "k": 190,
+   "c": 9
+  },
+  "quiv": {
+   "k": 260,
+   "c": 10
+  }
+ },
+ "hooks": {
+  "idle": true,
+  "order": true
+ },
+ "attacks": [
+  {
+   "id": "volley",
+   "label": "🏹 Nỏ thần liên châu",
+   "dur": 1450,
+   "tr": {
+    "x": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -4,
+      "out"
+     ],
+     [
+      300,
+      -4,
+      "io"
+     ],
+     [
+      310,
+      -8,
+      "outExpo"
+     ],
+     [
+      400,
+      -8,
+      "io"
+     ],
+     [
+      410,
+      -12,
+      "outExpo"
+     ],
+     [
+      500,
+      -12,
+      "io"
+     ],
+     [
+      516,
+      -22,
+      "outExpo"
+     ],
+     [
+      760,
+      -18,
+      "out"
+     ],
+     [
+      1400,
+      0,
+      "io"
+     ]
+    ],
+    "sy": [
+     [
+      0,
+      1,
+      "io"
+     ],
+     [
+      160,
+      0.9,
+      "out"
+     ],
+     [
+      260,
+      0.94,
+      "io"
+     ],
+     [
+      300,
+      0.94,
+      "io"
+     ],
+     [
+      310,
+      1.03,
+      "outExpo"
+     ],
+     [
+      370,
+      0.96,
+      "io"
+     ],
+     [
+      410,
+      1.03,
+      "outExpo"
+     ],
+     [
+      470,
+      0.96,
+      "io"
+     ],
+     [
+      516,
+      1.07,
+      "outExpo"
+     ],
+     [
+      620,
+      0.95,
+      "out"
+     ],
+     [
+      760,
+      1,
+      "out"
+     ],
+     [
+      960,
+      0.97,
+      "io"
+     ],
+     [
+      1060,
+      1,
+      "io"
+     ]
+    ],
+    "lean": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -7,
+      "out"
+     ],
+     [
+      300,
+      -5,
+      "io"
+     ],
+     [
+      516,
+      -12,
+      "outExpo"
+     ],
+     [
+      760,
+      -9,
+      "out"
+     ],
+     [
+      920,
+      4,
+      "io"
+     ],
+     [
+      1100,
+      4,
+      "io"
+     ],
+     [
+      1400,
+      0,
+      "io"
+     ]
+    ],
+    "head": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      6,
+      "out"
+     ],
+     [
+      300,
+      6,
+      "io"
+     ],
+     [
+      516,
+      -5,
+      "outExpo"
+     ],
+     [
+      760,
+      -2,
+      "io"
+     ],
+     [
+      920,
+      10,
+      "io"
+     ],
+     [
+      1100,
+      10,
+      "io"
+     ],
+     [
+      1400,
+      0,
+      "io"
+     ]
+    ],
+    "aim": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -14,
+      "outBack"
+     ],
+     [
+      260,
+      -6,
+      "io"
+     ],
+     [
+      300,
+      -6,
+      "io"
+     ],
+     [
+      312,
+      -12,
+      "outExpo"
+     ],
+     [
+      385,
+      -6,
+      "out"
+     ],
+     [
+      400,
+      -6,
+      "io"
+     ],
+     [
+      412,
+      -12,
+      "outExpo"
+     ],
+     [
+      485,
+      -6,
+      "out"
+     ],
+     [
+      500,
+      -6,
+      "io"
+     ],
+     [
+      516,
+      -16,
+      "outExpo"
+     ],
+     [
+      700,
+      -11,
+      "out"
+     ],
+     [
+      900,
+      18,
+      "io"
+     ],
+     [
+      1100,
+      18,
+      "io"
+     ],
+     [
+      1180,
+      12,
+      "outBack"
+     ],
+     [
+      1400,
+      0,
+      "io"
+     ]
+    ],
+    "raise": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -10,
+      "outBack"
+     ],
+     [
+      260,
+      -7,
+      "io"
+     ],
+     [
+      500,
+      -7,
+      "io"
+     ],
+     [
+      516,
+      -3,
+      "outExpo"
+     ],
+     [
+      700,
+      -5,
+      "io"
+     ],
+     [
+      900,
+      4,
+      "io"
+     ],
+     [
+      1100,
+      4,
+      "io"
+     ],
+     [
+      1400,
+      0,
+      "io"
+     ]
+    ],
+    "kick": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      300,
+      0,
+      "io"
+     ],
+     [
+      312,
+      -9,
+      "outExpo"
+     ],
+     [
+      385,
+      0,
+      "out"
+     ],
+     [
+      400,
+      0,
+      "io"
+     ],
+     [
+      412,
+      -9,
+      "outExpo"
+     ],
+     [
+      485,
+      0,
+      "out"
+     ],
+     [
+      500,
+      0,
+      "io"
+     ],
+     [
+      516,
+      -16,
+      "outExpo"
+     ],
+     [
+      700,
+      -7,
+      "out"
+     ],
+     [
+      1000,
+      0,
+      "io"
+     ]
+    ],
+    "pull": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      880,
+      0,
+      "io"
+     ],
+     [
+      980,
+      -18,
+      "io"
+     ],
+     [
+      1040,
+      -18,
+      "io"
+     ],
+     [
+      1060,
+      0,
+      "outExpo"
+     ]
+    ],
+    "cock": [
+     [
+      0,
+      1,
+      "io"
+     ],
+     [
+      300,
+      1,
+      "io"
+     ],
+     [
+      301,
+      0,
+      "lin"
+     ],
+     [
+      350,
+      0,
+      "io"
+     ],
+     [
+      351,
+      1,
+      "lin"
+     ],
+     [
+      400,
+      1,
+      "io"
+     ],
+     [
+      401,
+      0,
+      "lin"
+     ],
+     [
+      450,
+      0,
+      "io"
+     ],
+     [
+      451,
+      1,
+      "lin"
+     ],
+     [
+      500,
+      1,
+      "io"
+     ],
+     [
+      501,
+      0,
+      "lin"
+     ],
+     [
+      1040,
+      0,
+      "io"
+     ],
+     [
+      1041,
+      1,
+      "lin"
+     ]
+    ],
+    "rel": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      300,
+      0,
+      "io"
+     ],
+     [
+      301,
+      1,
+      "lin"
+     ],
+     [
+      350,
+      1,
+      "io"
+     ],
+     [
+      351,
+      0,
+      "lin"
+     ],
+     [
+      400,
+      0,
+      "io"
+     ],
+     [
+      401,
+      1,
+      "lin"
+     ],
+     [
+      450,
+      1,
+      "io"
+     ],
+     [
+      451,
+      0,
+      "lin"
+     ],
+     [
+      500,
+      0,
+      "io"
+     ],
+     [
+      501,
+      1,
+      "lin"
+     ],
+     [
+      1040,
+      1,
+      "io"
+     ],
+     [
+      1041,
+      0,
+      "lin"
+     ]
+    ],
+    "legF": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      -9,
+      "out"
+     ],
+     [
+      760,
+      -9,
+      "io"
+     ],
+     [
+      1400,
+      0,
+      "io"
+     ]
+    ],
+    "legB": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      170,
+      6,
+      "out"
+     ],
+     [
+      760,
+      6,
+      "io"
+     ],
+     [
+      1400,
+      0,
+      "io"
+     ]
+    ]
+   },
+   "sampled": [],
+   "smear": null,
+   "ev_times": [
+    150,
+    210,
+    300,
+    400,
+    500,
+    1042
+   ],
+   "draw": false
+  }
+ ],
+ "consts": {
+  "HIT": {
+   "stop": 90,
+   "amp": 9,
+   "kx": 420,
+   "debris": "spark",
+   "n": 8,
+   "sparkColor": "#ffe08a",
+   "cut": true,
+   "cutAng": -24
+  },
+  "HIT_SMALL": {
+   "small": true,
+   "stop": 45,
+   "amp": 4,
+   "kx": 0,
+   "debris": "spark",
+   "n": 3,
+   "sparkColor": "#ffe08a",
+   "cut": false
+  },
+  "SHOTS": [
+   300,
+   400,
+   500
+  ],
+  "COCK": [
+   [
+    0,
+    1
+   ],
+   [
+    300,
+    1
+   ],
+   [
+    301,
+    0,
+    "lin"
+   ],
+   [
+    350,
+    0
+   ],
+   [
+    351,
+    1,
+    "lin"
+   ],
+   [
+    400,
+    1
+   ],
+   [
+    401,
+    0,
+    "lin"
+   ],
+   [
+    450,
+    0
+   ],
+   [
+    451,
+    1,
+    "lin"
+   ],
+   [
+    500,
+    1
+   ],
+   [
+    501,
+    0,
+    "lin"
+   ],
+   [
+    1040,
+    0
+   ],
+   [
+    1041,
+    1,
+    "lin"
+   ]
+  ]
+ }
+}

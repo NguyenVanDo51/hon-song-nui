@@ -1,0 +1,660 @@
+{
+ "name": "catapult",
+ "title": "Máy bắn đá · Nện đá tảng",
+ "feet": 244,
+ "cx": 128,
+ "outline": 7,
+ "range": 3,
+ "targetFront": 84,
+ "targetCY": 150,
+ "shadowR": 118,
+ "parts": {
+  "pole": "<line x1=\"218\" y1=\"104\" x2=\"218\" y2=\"20\" stroke-width=\"13\"/>\n<line x1=\"218\" y1=\"104\" x2=\"218\" y2=\"20\" stroke=\"#6b4a2e\" stroke-width=\"5\"/>",
+  "flag": "<path d=\"M221 22 Q238 28 253 40 Q238 52 221 66 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M226 42 L242 41\" stroke=\"#93362b\" stroke-width=\"4\"/>",
+  "aframe": "<line x1=\"180\" y1=\"178\" x2=\"206\" y2=\"122\" stroke-width=\"22\"/>\n<line x1=\"180\" y1=\"178\" x2=\"206\" y2=\"122\" stroke=\"#a87a4c\" stroke-width=\"10\"/>\n<line x1=\"238\" y1=\"178\" x2=\"226\" y2=\"122\" stroke-width=\"22\"/>\n<line x1=\"238\" y1=\"178\" x2=\"226\" y2=\"122\" stroke=\"#a87a4c\" stroke-width=\"10\"/>\n<rect x=\"194\" y=\"100\" width=\"44\" height=\"26\" rx=\"11\" fill=\"#c9503f\"/>\n<path d=\"M207 103 L207 123 M224 103 L224 123\" stroke=\"#93362b\" stroke-width=\"5\"/>",
+  "arm": "<line x1=\"154\" y1=\"188\" x2=\"112\" y2=\"100\" stroke-width=\"26\"/>\n<line x1=\"154\" y1=\"188\" x2=\"112\" y2=\"100\" stroke=\"#a87a4c\" stroke-width=\"13\"/>\n<path d=\"M131 126 L139 142\" stroke=\"#aab3bd\" stroke-width=\"6\"/>",
+  "bucket": "<path d=\"M78 76 Q80 106 108 106 Q136 106 138 76 Z\" fill=\"#6b4a2e\"/>\n<path d=\"M88 90 Q96 98 108 98\" fill=\"none\" stroke=\"#5a4a3c\" stroke-width=\"4\"/>\n<path d=\"M74 76 L142 76\" stroke-width=\"10\"/>\n<path d=\"M74 76 L142 76\" stroke=\"#a87a4c\" stroke-width=\"3\"/>",
+  "rock": "<circle cx=\"108\" cy=\"54\" r=\"23\" fill=\"#9b958c\"/>\n<path d=\"M95 49 Q99 39 109 37\" fill=\"none\" stroke=\"#c9c3b9\" stroke-width=\"5\"/>",
+  "base": "<rect x=\"70\" y=\"174\" width=\"174\" height=\"26\" rx=\"9\" fill=\"#a87a4c\"/>\n<path d=\"M80 192 L234 192\" stroke=\"#6b4a2e\" stroke-width=\"5\"/>\n<rect x=\"70\" y=\"174\" width=\"11\" height=\"26\" fill=\"#aab3bd\" stroke-width=\"5\"/>\n<rect x=\"233\" y=\"174\" width=\"11\" height=\"26\" fill=\"#aab3bd\" stroke-width=\"5\"/>\n<circle cx=\"150\" cy=\"178\" r=\"12\" fill=\"#aab3bd\" stroke-width=\"5\"/>\n<circle cx=\"150\" cy=\"178\" r=\"4\" fill=\"#5a4a3c\" stroke-width=\"3\"/>\n<path d=\"M136 198 L176 198 L176 230 L166 223 L156 232 L146 223 L136 230 Z\" fill=\"#c9503f\"/>\n<path d=\"M136 207 L176 207\" stroke=\"#93362b\" stroke-width=\"5\"/>\n<circle cx=\"156\" cy=\"217\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"4\"/>",
+  "wheels": "<circle cx=\"104\" cy=\"214\" r=\"28\" fill=\"#6b4a2e\"/>\n<circle cx=\"104\" cy=\"214\" r=\"18\" fill=\"#a87a4c\" stroke-width=\"5\"/>\n<path d=\"M86 214 L122 214 M104 196 L104 232\" stroke=\"#6b4a2e\" stroke-width=\"5\"/>\n<circle cx=\"208\" cy=\"214\" r=\"28\" fill=\"#6b4a2e\"/>\n<circle cx=\"208\" cy=\"214\" r=\"18\" fill=\"#a87a4c\" stroke-width=\"5\"/>\n<path d=\"M190 214 L226 214 M208 196 L208 232\" stroke=\"#6b4a2e\" stroke-width=\"5\"/>\n<circle cx=\"208\" cy=\"214\" r=\"7\" fill=\"#aab3bd\" stroke-width=\"5\"/>",
+  "lever": "<line x1=\"104\" y1=\"214\" x2=\"68\" y2=\"184\" stroke-width=\"15\"/>\n<line x1=\"104\" y1=\"214\" x2=\"68\" y2=\"184\" stroke=\"#a87a4c\" stroke-width=\"7\"/>\n<circle cx=\"104\" cy=\"214\" r=\"8\" fill=\"#aab3bd\" stroke-width=\"5\"/>",
+  "opBody": "<rect x=\"21\" y=\"218\" width=\"12\" height=\"20\" rx=\"3\" fill=\"#5a4a3c\"/>\n<rect x=\"38\" y=\"218\" width=\"12\" height=\"20\" rx=\"3\" fill=\"#5a4a3c\"/>\n<rect x=\"15\" y=\"232\" width=\"21\" height=\"12\" rx=\"5\" fill=\"#3a2e28\"/>\n<rect x=\"35\" y=\"232\" width=\"21\" height=\"12\" rx=\"5\" fill=\"#3a2e28\"/>\n<path d=\"M20 184 Q36 176 52 184 L57 222 Q36 228 15 222 Z\" fill=\"#c9503f\"/>\n<path d=\"M28 188 L28 204\" stroke=\"#93362b\" stroke-width=\"4\"/>\n<path d=\"M17 207 L55 207\" stroke=\"#5a4a3c\" stroke-width=\"6\"/>",
+  "opHead": "<circle cx=\"36\" cy=\"156\" r=\"26\" fill=\"#f3cfa6\"/>\n<path d=\"M10 154 A26 26 0 0 1 62 154 Q48 148 36 148 Q22 148 10 154 Z\" fill=\"#3a2e28\" stroke-width=\"5\"/>\n<path d=\"M14 150 L4 142 L6 156 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M11 146 Q36 134 61 146 L62 154 Q36 142 10 154 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>",
+  "opArm": "<path d=\"M44 197 Q56 196 66 189\" fill=\"none\" stroke-width=\"17\"/>\n<path d=\"M44 197 Q56 196 66 189\" fill=\"none\" stroke=\"#c9503f\" stroke-width=\"8\"/>\n<circle cx=\"68\" cy=\"187\" r=\"8\" fill=\"#f3cfa6\" stroke-width=\"5\"/>",
+  "face": "<circle cx=\"44\" cy=\"165\" r=\"4\" fill=\"#2b2220\"/>\n<circle cx=\"56\" cy=\"165\" r=\"4\" fill=\"#2b2220\"/>\n<circle cx=\"45.4\" cy=\"163.6\" r=\"1.4\" fill=\"#fff\"/>\n<circle cx=\"57.4\" cy=\"163.6\" r=\"1.4\" fill=\"#fff\"/>\n<ellipse cx=\"58\" cy=\"174\" rx=\"4\" ry=\"3\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M45 175 Q49 178 53 175\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"2.5\" stroke-linecap=\"round\"/>"
+ },
+ "raw": [
+  "face"
+ ],
+ "bones": [
+  {
+   "name": "frame",
+   "parent": "root",
+   "pivot": [
+    208,
+    242
+   ],
+   "ch": "tilt"
+  },
+  {
+   "name": "flag",
+   "parent": "frame",
+   "pivot": [
+    220,
+    40
+   ],
+   "ch": "flag"
+  },
+  {
+   "name": "arm",
+   "parent": "frame",
+   "pivot": [
+    150,
+    178
+   ],
+   "ch": "arm"
+  },
+  {
+   "name": "bucket",
+   "parent": "arm",
+   "pivot": [
+    110,
+    102
+   ],
+   "ch": "bucket"
+  },
+  {
+   "name": "lever",
+   "parent": "frame",
+   "pivot": [
+    104,
+    214
+   ],
+   "ch": "lever"
+  },
+  {
+   "name": "opBody",
+   "parent": "root",
+   "pivot": [
+    36,
+    244
+   ],
+   "ch": "opLean"
+  },
+  {
+   "name": "opHead",
+   "parent": "opBody",
+   "pivot": [
+    36,
+    182
+   ],
+   "ch": "opHead"
+  },
+  {
+   "name": "opArm",
+   "parent": "opBody",
+   "pivot": [
+    44,
+    197
+   ],
+   "ch": "opArm"
+  }
+ ],
+ "draw": [
+  [
+   "pole",
+   "frame"
+  ],
+  [
+   "flag",
+   "flag"
+  ],
+  [
+   "aframe",
+   "frame"
+  ],
+  [
+   "arm",
+   "arm"
+  ],
+  [
+   "bucket",
+   "bucket"
+  ],
+  [
+   "rock",
+   "bucket",
+   "rockA"
+  ],
+  [
+   "base",
+   "frame"
+  ],
+  [
+   "wheels",
+   "frame"
+  ],
+  [
+   "lever",
+   "lever"
+  ],
+  [
+   "opBody",
+   "opBody"
+  ],
+  [
+   "opHead",
+   "opHead"
+  ],
+  [
+   "face",
+   "opHead"
+  ],
+  [
+   "opArm",
+   "opArm"
+  ]
+ ],
+ "points": {
+  "rock": [
+   "bucket",
+   108,
+   54
+  ],
+  "cup": [
+   "bucket",
+   108,
+   100
+  ],
+  "mid": [
+   "arm",
+   133,
+   144
+  ],
+  "hub": [
+   "frame",
+   150,
+   178
+  ]
+ },
+ "springs": {
+  "bucket": {
+   "k": 320,
+   "c": 13
+  },
+  "flag": {
+   "k": 140,
+   "c": 6
+  }
+ },
+ "hooks": {
+  "idle": true,
+  "order": false
+ },
+ "attacks": [
+  {
+   "id": "boulder",
+   "label": "🪨 Nện đá tảng",
+   "dur": 2050,
+   "tr": {
+    "sy": [
+     [
+      0,
+      1,
+      "io"
+     ],
+     [
+      150,
+      1.01,
+      "io"
+     ],
+     [
+      520,
+      0.95,
+      "io"
+     ],
+     [
+      600,
+      0.945,
+      "io"
+     ],
+     [
+      650,
+      1.05,
+      "outExpo"
+     ],
+     [
+      760,
+      0.98,
+      "out"
+     ],
+     [
+      880,
+      1,
+      "io"
+     ]
+    ],
+    "tilt": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      660,
+      0,
+      "io"
+     ],
+     [
+      715,
+      5,
+      "out"
+     ],
+     [
+      790,
+      0,
+      "in"
+     ],
+     [
+      835,
+      -1,
+      "out"
+     ],
+     [
+      900,
+      0,
+      "io"
+     ]
+    ],
+    "arm": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      150,
+      3,
+      "out"
+     ],
+     [
+      250,
+      -7,
+      "out"
+     ],
+     [
+      290,
+      -6,
+      "io"
+     ],
+     [
+      360,
+      -13,
+      "out"
+     ],
+     [
+      400,
+      -12,
+      "io"
+     ],
+     [
+      470,
+      -20,
+      "out"
+     ],
+     [
+      520,
+      -22,
+      "out"
+     ],
+     [
+      545,
+      -21,
+      "io"
+     ],
+     [
+      570,
+      -23,
+      "io"
+     ],
+     [
+      595,
+      -21.5,
+      "io"
+     ],
+     [
+      610,
+      -22,
+      "io"
+     ],
+     [
+      680,
+      55,
+      "outExpo"
+     ],
+     [
+      735,
+      44,
+      "out"
+     ],
+     [
+      790,
+      52,
+      "io"
+     ],
+     [
+      1080,
+      49,
+      "out"
+     ],
+     [
+      1650,
+      0,
+      "io"
+     ]
+    ],
+    "lever": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      150,
+      6,
+      "out"
+     ],
+     [
+      250,
+      -10,
+      "out"
+     ],
+     [
+      290,
+      -8,
+      "io"
+     ],
+     [
+      360,
+      -19,
+      "out"
+     ],
+     [
+      400,
+      -17,
+      "io"
+     ],
+     [
+      470,
+      -28,
+      "out"
+     ],
+     [
+      520,
+      -30,
+      "out"
+     ],
+     [
+      600,
+      -30,
+      "io"
+     ],
+     [
+      630,
+      -40,
+      "out"
+     ],
+     [
+      700,
+      12,
+      "outBack"
+     ],
+     [
+      900,
+      0,
+      "io"
+     ]
+    ],
+    "opLean": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      150,
+      5,
+      "out"
+     ],
+     [
+      520,
+      -11,
+      "io"
+     ],
+     [
+      600,
+      -11,
+      "io"
+     ],
+     [
+      630,
+      -15,
+      "out"
+     ],
+     [
+      700,
+      -19,
+      "out"
+     ],
+     [
+      900,
+      -8,
+      "io"
+     ],
+     [
+      1250,
+      0,
+      "io"
+     ]
+    ],
+    "opArm": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      150,
+      -4,
+      "out"
+     ],
+     [
+      250,
+      22,
+      "out"
+     ],
+     [
+      290,
+      20,
+      "io"
+     ],
+     [
+      360,
+      38,
+      "out"
+     ],
+     [
+      400,
+      36,
+      "io"
+     ],
+     [
+      470,
+      52,
+      "out"
+     ],
+     [
+      520,
+      55,
+      "out"
+     ],
+     [
+      600,
+      55,
+      "io"
+     ],
+     [
+      630,
+      68,
+      "out"
+     ],
+     [
+      700,
+      -30,
+      "outBack"
+     ],
+     [
+      950,
+      -24,
+      "io"
+     ],
+     [
+      1250,
+      0,
+      "io"
+     ]
+    ],
+    "opHead": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      150,
+      4,
+      "io"
+     ],
+     [
+      520,
+      -6,
+      "io"
+     ],
+     [
+      630,
+      -8,
+      "io"
+     ],
+     [
+      700,
+      -16,
+      "out"
+     ],
+     [
+      950,
+      -10,
+      "io"
+     ],
+     [
+      1250,
+      0,
+      "io"
+     ]
+    ],
+    "rockA": [
+     [
+      0,
+      1,
+      "io"
+     ],
+     [
+      664,
+      1,
+      "io"
+     ],
+     [
+      665,
+      0,
+      "lin"
+     ],
+     [
+      1780,
+      0,
+      "io"
+     ],
+     [
+      1960,
+      1,
+      "out"
+     ]
+    ],
+    "flagX": [
+     [
+      0,
+      0,
+      "io"
+     ],
+     [
+      660,
+      0,
+      "io"
+     ],
+     [
+      700,
+      -30,
+      "out"
+     ],
+     [
+      860,
+      0,
+      "io"
+     ]
+    ]
+   },
+   "sampled": [],
+   "smear": {
+    "tip": "rock",
+    "base": "cup",
+    "from": 612,
+    "to": 715,
+    "window": 40,
+    "fade": 675
+   },
+   "ev_times": [
+    630,
+    672,
+    665,
+    800
+   ],
+   "draw": true
+  }
+ ],
+ "consts": {
+  "HIT": {
+   "stop": 90,
+   "amp": 9,
+   "kx": 420,
+   "debris": "spark",
+   "n": 8,
+   "sparkColor": "#ffe08a",
+   "cut": true,
+   "cutAng": -24
+  },
+  "HIT_SMALL": {
+   "small": true,
+   "stop": 45,
+   "amp": 4,
+   "kx": 0,
+   "debris": "spark",
+   "n": 3,
+   "sparkColor": "#ffe08a",
+   "cut": false
+  },
+  "REL": 665,
+  "STONE": "#9b958c",
+  "FLY": 640,
+  "LAND": 1305,
+  "STONE_D": "#7a746c",
+  "SAND": "#efe3c8"
+ }
+}

@@ -705,6 +705,10 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 	list.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y)
 	var sel_id: int = v.sel.id if v.sel != null else -1
 	var st := ci.get_screen_transform()
+	var rig_t := {} # target id -> live attack rig: its back / mid fx wrap that token (tornado halves)
+	for r: Rig in fx.rigs:
+		rig_t[r.d_id] = fx.rig_of_target(r.d_id)
+	var rig_done := {}
 	for it: Dictionary in list:
 		var u: Dictionary = it.u
 		var x: float = it.x
@@ -719,6 +723,7 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		var c := Vector2((x + 0.5) * T, (y + 0.5) * T)
 		var fl: float = fx.flash_until.get(u.id, 0.0)
 		var flash := (fl - time) / 180.0 if fl > time else 0.0
+		var rt: Rig = rig_t.get(u.id) if not rig_done.has(u.id) else null
 		var is_sel: bool = u.id == sel_id
 		if is_sel:
 			Draw.ellipse_line(ci, c + Vector2(0, T * 0.32), T * 0.36, T * 0.12, Color(1, 0.878, 0.541, 0.6 + sin(time / 160.0) * 0.4), maxf(2.0, T * 0.05))
@@ -726,13 +731,23 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		var acted: bool = u.get("acted", false) and s.side == u.side and not v.busy and not it.has("die")
 		var tint := Color(0.42, 0.42, 0.45) if acted else Color.WHITE # done this turn: the figure greys out
 		var pose := _pose(u, it, x, y, off, time, is_sel)
-		_atlas.draw_shadow(ci, c, it.scale, alpha, pose.shadow)
-		Draw.set_xf(ci, pose.xf)
-		if flash > 0 or _zoom > 0.0: # hit flash / close-up: paint live (white figure; crisp at any scale)
-			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "flash": flash, "shadow": false, "tint": tint })
-		elif not _atlas.draw(ci, st, c, u.side, u.type, 0.0, it.scale, alpha, tint, false, pose.still):
-			Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "shadow": false })
-		Draw.set_xf(ci, Transform2D.IDENTITY)
+		flash = maxf(flash, pose.flash)
+		if rt != null:
+			rt.draw_layer(ci, "back")
+		var rg: Rig = fx.rig_of_attacker(u.id) if not it.has("die") else null
+		if rg != null: # mid-attack: the rig stands in for the token (same size, same feet)
+			rg.draw_char(ci)
+		else:
+			_atlas.draw_shadow(ci, c, it.scale, alpha, pose.shadow)
+			Draw.set_xf(ci, pose.xf)
+			if flash > 0 or _zoom > 0.0: # hit flash / close-up: paint live (white figure; crisp at any scale)
+				Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "flash": flash, "shadow": false, "tint": tint })
+			elif not _atlas.draw(ci, st, c, u.side, u.type, 0.0, it.scale, alpha, tint, false, pose.still):
+				Token.paint(ci, c, T * it.scale, u.side, u.type, s.heroKey[u.side], { "alpha": alpha, "shadow": false })
+			Draw.set_xf(ci, Transform2D.IDENTITY)
+		if rt != null:
+			rig_done[u.id] = true
+			rt.draw_layer(ci, "mid")
 		var hp: int = v.hp.get(u.id, u.hp) if v.hp != null else u.hp
 		if it.alpha < 0 or it.alpha > 0.5:
 			var w := T * 0.62
@@ -749,6 +764,10 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 				Draw.text_a(ci, Style.body, Vector2(c.x + T * 0.24, c.y - T * 0.52), "💤", int(round(T * 0.22)), Color.WHITE, 1.0, true)
 			if it.alpha < 0 and off == null and not v.busy and not it.has("die"):
 				_draw_buffs(ci, u, c, int(round(x)), int(round(y)), time)
+	for r: Rig in fx.rigs:
+		if not rig_done.has(r.d_id) or rig_t.get(r.d_id) != r: # target not drawn, or an older rig on the same target
+			r.draw_layer(ci, "back")
+			r.draw_layer(ci, "mid")
 
 ## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
 ## striking leans into the blow (fx.offsets), getting hit shoves it back (fx.knock), dying topples it over (ghost),
@@ -765,6 +784,7 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 	var lift := 0.0
 	var shift := Vector2.ZERO
 	var still := true
+	var rflash := 0.0
 	var bx: float = it.x
 	var by: float = it.y
 	var last: Variant = _last_xy.get(id)
@@ -803,6 +823,15 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 			lean += kn.dir.x * 0.32 * a - (0.0 if absf(kn.dir.x) > 0.3 else 0.12 * a)
 			sy *= 1.0 - 0.12 * a
 			sx *= 1.0 + 0.08 * a
+	# struck by a code-rigged attack: the rig's target physics (knock along the blow, lift, squash, spin, flash)
+	var rp: Variant = fx.rig_target_pose(id) if not it.has("die") else null
+	if rp != null:
+		still = false
+		shift += rp.shift
+		lift += rp.lift
+		sy *= rp.sy
+		sx *= rp.sx * rp.face
+		rflash = rp.flash
 	# dying: topple backwards and sink a little
 	if it.has("die"):
 		still = false
@@ -819,7 +848,14 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 		still = false
 	var foot := Vector2((x + 0.5) * T, (y + 0.5) * T + T * 0.30)
 	var xf := Transform2D(lean, Vector2(sx * face * home, sy), 0.0, foot + shift - Vector2(0, lift)) * Transform2D(0.0, Vector2.ONE, 0.0, -foot)
-	return { "xf": xf, "still": still and is_equal_approx(sy, 1.0), "shadow": clampf(1.0 - lift / T * 1.6, 0.6, 1.0) }
+	return { "xf": xf, "still": still and is_equal_approx(sy, 1.0), "shadow": clampf(1.0 - lift / T * 1.6, 0.6, 1.0), "flash": rflash }
+
+## which way a unit's figure looks on screen (+1 right / -1 left); a rig attack turns it toward its target
+func face_of(id: int, side: String) -> float:
+	return _face.get(id, 1.0 if side == "p" else -1.0)
+
+func set_face(id: int, f: float) -> void:
+	_face[id] = f
 
 ## live buffs from Game.buffs_at (what the forecast counts): green up arrow per bonus (drum aura, water),
 ## red down arrow when bitten (-atk / -def), plus a soft ground ring in the dominant colour

@@ -1,0 +1,71 @@
+extends SceneTree
+## plays every rigged unit's attack once per side and direction through the real path (FX.rig_attack on the 2D board),
+## then checks: on_hit fired exactly once, the attack ended, its sparks drained. Any SCRIPT ERROR lands in the .err log.
+##   MAX_SEC=300 tools/run_guarded.sh /tmp/rig_smoke.log -- --headless --path . -s sim/probes/rig_smoke.gd -- mission=m02 fresh nointro nobattle profile=test speed=3
+##   grep -c "SCRIPT ERROR" /tmp/rig_smoke.log.err   # must be 0;  log ends with "RIG SMOKE DONE fails=0"
+var main: Node
+var t := 0.0
+var started := false
+var fails := 0
+
+func _initialize() -> void:
+	main = load("res://main.tscn").instantiate()
+	root.add_child(main)
+
+func _process(dt: float) -> bool:
+	t += dt
+	if not started and main.game != null and not main.game.s.is_empty() and t > 1.0:
+		started = true
+		_run()
+	return false
+
+func _run() -> void:
+	var g: Node = main.game
+	var s: Dictionary = g.s
+	if not (g.board is Board):
+		print("RIG SMOKE: board is not the 2D Board, nothing to test")
+		quit(1)
+		return
+	var dirs := [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1), Vector2i(1, 1), Vector2i(-2, 1)]
+	var ax := Vector2i(s.w / 2 - 1, s.h / 2)
+	var p_any: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "p")[0]
+	var e_any: Dictionary = s.units.filter(func(u: Dictionary) -> bool: return u.side == "e")[0]
+	for u: Dictionary in s.units:
+		if u.id != p_any.id and u.id != e_any.id and absi(u.x - ax.x) + absi(u.y - ax.y) <= 4:
+			u.x = 0
+			u.y = 0
+	var n := 0
+	for type: String in Rigs.types():
+		for side: String in ["p", "e"]:
+			if not Rigs.has(type, side):
+				print("  skip %s/%s: no data" % [type, side])
+				continue
+			var a: Dictionary = p_any if side == "p" else e_any
+			var d: Dictionary = e_any if side == "p" else p_any
+			for dv: Vector2i in dirs:
+				var r := Rigs.make(type, side)
+				a.type = type
+				d.type = "soldier"
+				a.x = ax.x; a.y = ax.y
+				d.x = ax.x + dv.x; d.y = ax.y + dv.y
+				g.refresh()
+				var hits := [0]
+				var t0 := Time.get_ticks_msec()
+				await g.fx.rig_attack(g.board, r, { "x": a.x, "y": a.y, "id": a.id, "type": type, "side": side },
+					{ "x": d.x, "y": d.y, "id": d.id, "type": d.type }, 37, { "kill": false, "counter": dv.x < 0,
+					"on_hit": func() -> void: hits[0] += 1 })
+				var ms := Time.get_ticks_msec() - t0
+				var ok: bool = hits[0] == 1 and not r.playing and r.hit_t >= 0.0
+				if not ok:
+					fails += 1
+				n += 1
+				print("  %s %s/%s dir %s: %d ms, on_hit x%d, HIT at %d ms" % ["ok  " if ok else "FAIL", type, side, dv, ms, hits[0], int(r.hit_t)])
+	# leftover fx must drain
+	var w0 := Time.get_ticks_msec()
+	while not g.fx.rigs.is_empty() and Time.get_ticks_msec() - w0 < 4000:
+		await process_frame
+	if not g.fx.rigs.is_empty():
+		fails += 1
+		print("  FAIL rigs not drained: %d" % g.fx.rigs.size())
+	print("RIG SMOKE DONE attacks=%d fails=%d" % [n, fails])
+	quit(1 if fails else 0)

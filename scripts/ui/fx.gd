@@ -22,6 +22,7 @@ var offsets := {}
 var knock := {} # unit id -> { dir, t0, dur, mag }: hit reaction the board turns into a shove + lean
 var facing := {} # unit id -> -1 / 1: which way an attacker turned to strike
 var aim := {} # unit id -> Vector2 direction of its current strike (3D board turns the figure to it)
+var rigs: Array = [] # live code-rigged attacks (Rig), drawn by the 2D board; kept until their sparks fade
 var _last := 0.0
 
 static func now() -> float:
@@ -37,6 +38,7 @@ func clear() -> void:
 	_gen += 1
 	parts.clear(); projs.clear(); rings.clear(); floats.clear(); rays.clear(); ghosts.clear()
 	flash_until.clear(); offsets.clear(); knock.clear(); facing.clear(); aim.clear(); shake_until = 0.0
+	rigs.clear()
 
 func _play(name: String) -> void:
 	if audio:
@@ -124,6 +126,58 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
 				offsets.erase(a.id)
 		tween(170.0, back)
 	await sleep(260.0 if opts.get("counter", false) else 320.0)
+
+## code-rigged attack on the 2D board (Rigs.make): the attacker's token is drawn by the rig until its timeline ends;
+## the target token takes the rig's knock / lift / squash / flash. opts.on_hit fires once, at the rig's one big HIT
+## (or at the end if it never got there). Returns at the end of the timeline; leftover sparks keep fading after.
+func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: int, opts := {}) -> void:
+	var dx: int = d.x - a.x
+	var f: float = signf(dx) if dx != 0 else board.face_of(a.id, a.side)
+	r.fxh = self
+	r.a_id = a.id
+	r.d_id = d.id
+	r.d_type = d.get("type", "soldier")
+	r.amount = amount
+	r.kill = opts.get("kill", false)
+	r.on_hit = opts.get("on_hit", Callable())
+	if opts.get("counter", false):
+		r.time_scale = Rigs.COUNTER_SPEED
+	r.place(board, Vector2i(a.x, a.y), Vector2i(d.x, d.y), f)
+	board.set_face(a.id, f)
+	aim[a.id] = Vector2(d.x - a.x, d.y - a.y).normalized()
+	rigs.append(r)
+	var g := _gen
+	var t0 := now()
+	var limit: float = float(r.A.dur) * 1.5 + 2500.0 # wall-time bail: the board only ticks rigs while it is visible
+	while r.playing and g == _gen and is_inside_tree() and now() - t0 < limit:
+		await get_tree().process_frame
+	r.playing = false
+	r.shown = false
+	if not r.hit_done:
+		r.hit_done = true
+		if r.on_hit.is_valid():
+			r.on_hit.call()
+
+func rig_of_attacker(id: int) -> Rig:
+	for r: Rig in rigs:
+		if r.shown and r.a_id == id:
+			return r
+	return null
+
+## the target pose a live rig imposes on unit `id` (null = none)
+func rig_target_pose(id: int) -> Variant:
+	var r := rig_of_target(id)
+	return r.target_pose() if r != null else null
+
+## the rig acting on unit `id`: a playing one first (a finished one lingers while its number fades)
+func rig_of_target(id: int) -> Rig:
+	var any: Rig = null
+	for r: Rig in rigs:
+		if r.d_id == id:
+			if r.playing:
+				return r
+			any = r
+	return any
 
 ## each troop's own melee strike (drawn at the moment of contact). Ranged shots keep their projectile.
 func _signature(a: Dictionary, d: Dictionary, dir: Vector2) -> void:
@@ -273,6 +327,10 @@ func dust(x: float, y: float) -> void:
 func update(t: float) -> void:
 	var dt := minf(0.05, (t - _last) / 1000.0) * speed
 	_last = t
+	if not rigs.is_empty():
+		for r: Rig in rigs:
+			r.tick(dt * 1000.0)
+		rigs = rigs.filter(func(r: Rig) -> bool: return not r.done())
 	for p: Dictionary in parts:
 		p.life += dt * 1000.0
 		if p.life < 0:
@@ -383,6 +441,8 @@ func draw_over(ci: CanvasItem, T: float, t: float) -> void:
 		elif p.kind == "coin":
 			col.a = 1.0 - k * k
 			Draw.ellipse(ci, X, R, maxf(0.5, R * absf(cos(p.life / 80.0))), col, 0.0, 16)
+	for r: Rig in rigs:
+		r.draw_layer(ci, "front")
 
 ## additive effects (canvas 'lighter'): rank rays, slash arcs, orbs, glows, sparks
 func draw_add(ci: CanvasItem, T: float, t: float) -> void:
@@ -462,6 +522,8 @@ func draw_add(ci: CanvasItem, T: float, t: float) -> void:
 
 ## floating numbers / labels
 func draw_top(ci: CanvasItem, T: float, t: float) -> void:
+	for r: Rig in rigs:
+		r.draw_flash(ci, Rect2(Vector2.ZERO, (ci as Control).size))
 	for f: Dictionary in floats:
 		var k: float = (t - f.t0) / f.dur
 		var pop := 0.6 + (k / 0.15) * 0.7 if k < 0.15 else 1.3 - minf(0.3, (k - 0.15) * 1.5)

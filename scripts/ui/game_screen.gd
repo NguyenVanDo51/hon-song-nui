@@ -990,8 +990,7 @@ func _income_fx() -> void:
 	var items: Array = []
 	for k: Vector2i in s.owner:
 		if s.owner[k] == "p":
-			var castle: bool = s.tiles[k.y][k.x] == "c"
-			items.append({ "x": k.x, "y": k.y, "amount": Rules.RULES.incomeCastle if castle else Rules.RULES.incomeVillage })
+			items.append({ "x": k.x, "y": k.y, "amount": Game.income_of(s.tiles[k.y][k.x]) })
 	items.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.y < b.y or (a.y == b.y and a.x < b.x))
 	_coins.board = board
 	_coins.play(items)
@@ -1079,9 +1078,9 @@ func play(events: Array, before: Dictionary) -> void:
 		if e.t == "raise" or e.t == "spawn":
 			v.hide[e.id] = true
 		if e.t == "raze": # keep the village standing until the rock lands
-			v.hold[Vector2i(e.x, e.y)] = ["v", e.prev]
+			v.hold[Vector2i(e.x, e.y)] = [e.tile, e.prev]
 		if e.t == "repair":
-			v.hold[Vector2i(e.x, e.y)] = ["x", null]
+			v.hold[Vector2i(e.x, e.y)] = [e.tile, null]
 	var dived := false
 	for ei in events.size():
 		var e: Dictionary = events[ei]
@@ -1146,8 +1145,9 @@ func play(events: Array, before: Dictionary) -> void:
 				await fx.sleep(380.0)
 			"capture":
 				fx.capture(e.x, e.y, e.side)
-				fx.float_text(e.x, e.y - 0.3, Content.text("captureCastle") if e.tile == "c" else Content.text("captureVillage"), "#ffe08a", 1300.0, e.tile == "c")
-				await fx.sleep(700.0 if e.tile == "c" else 450.0)
+				var castle := Game.sells(e.tile)
+				fx.float_text(e.x, e.y - 0.3, Content.text("captureCastle") if castle else Content.text("captureVillage"), "#ffe08a", 1300.0, castle)
+				await fx.sleep(700.0 if castle else 450.0)
 			"raze":
 				await fx.raze({ "x": e.fx, "y": e.fy, "id": e.from }, e.x, e.y)
 				v.hold.erase(Vector2i(e.x, e.y))
@@ -1746,7 +1746,7 @@ func refresh() -> void:
 						ui.target = best.id
 						refresh()))
 				if Game.can_capture(s, u, dx, dy):
-					_actions.add_child(_act("🏯 Chiếm thành" if s.tiles[dy][dx] == "c" else "🏠 Chiếm làng", func() -> void: commit({ "kind": "capture" }),
+					_actions.add_child(_act("🏯 Chiếm thành" if Game.sells(s.tiles[dy][dx]) else "🏠 Chiếm làng", func() -> void: commit({ "kind": "capture" }),
 						{ "hot": hk == "capture" or hk == null, "go": true }))
 				if Game.can_repair(s, u, dx, dy):
 					_info.add_child(_note("Làng hỏng: sửa xong thành làng chưa ai chiếm, lượt sau mới chiếm được."))

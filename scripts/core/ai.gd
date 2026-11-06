@@ -119,7 +119,7 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 				var key := Vector2i(x, y)
 				if s.owner.get(key) == u.side or claims.has(key):
 					continue
-				if (t == "v" and cap_v) or (t == "c" and cap_c) or (t == "x" and cap_v):
+				if Game.can_take(st, t):
 					out.append([x, y])
 	if not out.size() or not cap_v or cap_c: # pure village takers (capV only) chase villages, not fights
 		for e: Dictionary in s.units:
@@ -127,8 +127,9 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 				out.append([e.x, e.y])
 		for key: Vector2i in s.owner:
 			var o: Variant = s.owner[key]
-			if o != null and o != u.side and s.tiles[key.y][key.x] == "c":
-				if cap_c:
+			var kt: String = s.tiles[key.y][key.x]
+			if o != null and o != u.side and Game.sells(kt):
+				if st.get(Game.cap_flag(kt), false):
 					out.append([key.x, key.y])
 				else: # crowd round it, never stand on it (that blocks our own commander's capture)
 					for d: Array in Game.DIRS:
@@ -183,15 +184,16 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key))
 		pos -= _risk(hurt, u.hp, hp_val, die_val)
 		var own: Variant = s.owner.get(key)
-		if (own == u.side or Game.TERRAIN[t].get("temple", false)) and u.hp < 70:
+		if Game.heals_at(s, u.side, rx, ry) and u.hp < 70:
 			pos += (100 - u.hp) * minf(val, 300.0) * 0.004 # capped: a 60-hp commander must not glue to a village
 		if st.get("aura", 0): # drum: allies within 2 get +atk after it acts
 			for o: Dictionary in s.units:
 				if o.side == u.side and o.id != u.id and not o.acted and Game.dist(o.x, o.y, rx, ry) <= 2:
 					pos += 15
-		if t == "c" and own == u.side:
+		var castle := Game.sells(t)
+		if castle and own == u.side:
 			pos -= 40 # AE2 sells under one unit: only a nudge to keep moving (it also guards the castle)
-		elif t == "c" and own != null and not st.get("capC", false):
+		elif castle and own != null and not st.get(Game.cap_flag(t), false):
 			pos -= 600 # parked on an enemy castle it cannot take: blocks our commander
 
 		if danger.has(key):
@@ -204,10 +206,10 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		consider.call(pos, { "id": u.id, "to": [rx, ry], "kind": "wait" })
 
 		if Game.can_capture(s, u, rx, ry):
-			var c := 700 if t == "c" else 220
+			var c := 700 if castle else 220
 			if own != null:
-				c += 400 if t == "c" else 100
-			if t == "c" and own == Game.other(u.side) and enemy_castles == 1:
+				c += 400 if castle else 100
+			if castle and own == Game.other(u.side) and enemy_castles == 1:
 				c += 10000
 			consider.call(pos + c + gd * 12, { "id": u.id, "to": [rx, ry], "kind": "capture" })
 		if Game.can_repair(s, u, rx, ry):
@@ -248,13 +250,15 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null) -> Varia
 			counts[u.type] = counts.get(u.type, 0) + 1
 		elif Game.UNITS[u.type].move == "fly":
 			enemy_fly = true
-	var open := 0
+	var open := {} # cap flag -> buildings needing it that are not ours
 	var water := 0
 	for y in s.h:
 		for x in s.w:
-			if s.tiles[y][x] == "v" and s.owner.get(Vector2i(x, y)) != side:
-				open += 1
-			elif s.tiles[y][x] == "~":
+			var t: String = s.tiles[y][x]
+			var f := Game.cap_flag(t)
+			if f != "" and s.owner.get(Vector2i(x, y)) != side:
+				open[f] = open.get(f, 0) + 1
+			elif Game.TERRAIN[t].get("water", false):
 				water += 1
 	var best: Variant = null
 	for type: String in s.allowed[side]:
@@ -268,7 +272,11 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null) -> Varia
 		var w := weight(type)
 		if st.get("antiAir", 0) and enemy_fly:
 			w += 2
-		if st.get("capV", false) and open > counts.get(type, 0) * 3:
+		var takes := 0
+		for f: String in open:
+			if st.get(f, false):
+				takes += open[f]
+		if takes > counts.get(type, 0) * 3:
 			w += 2
 		if st.get("raise", "") and s.graves.size():
 			w += 0.5
@@ -291,7 +299,7 @@ static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -
 			var key := Vector2i(x, y)
 			if s.owner.get(key) == u.side or claims.has(key):
 				continue
-			if not (t == "v" or t == "x" or (t == "c" and st.get("capC", false))):
+			if not Game.can_take(st, t):
 				continue
 			var d := absi(x - act.to[0]) + absi(y - act.to[1])
 			if best == null or d < best.d:

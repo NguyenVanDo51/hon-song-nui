@@ -82,7 +82,7 @@ func content_tests() -> void:
 			var need := []
 			for y in s.h:
 				for x in s.w:
-					if s.tiles[y][x] == "c":
+					if Game.sells(s.tiles[y][x]):
 						need.append(Vector2i(x, y))
 			for u: Dictionary in s.units:
 				if u.side == "e" and u.type == "hero":
@@ -148,7 +148,7 @@ func content_tests() -> void:
 				check(not seen.has(Vector2i(u.x, u.y)), "two units on %d,%d" % [u.x, u.y])
 				seen[Vector2i(u.x, u.y)] = true
 			for key: Vector2i in s.owner:
-				check(Game.tile_at(s, key.x, key.y) in ["v", "c"], "owner on non-building %s" % key)
+				check(Game.cap_flag(Game.tile_at(s, key.x, key.y)) != "", "owner on non-building %s" % key)
 			for side: String in ["p", "e"]:
 				if s.units.any(func(u: Dictionary) -> bool: return u.side == side and u.type == "hero"):
 					check(s.heroKey[side] != null, side + " hero unit but no hero key")
@@ -246,7 +246,7 @@ func rule_tests() -> void:
 		check(not s.owner.has(Vector2i(4, 1)), "owner cleared")
 		check(ev.any(func(e: Dictionary) -> bool: return e.t == "raze" and e.prev == "e"), "raze event with prev owner")
 		check(c.acted, "catapult done for the turn")
-		eq(Game.income(s, "e"), Rules.RULES.incomeCastle, "enemy lost the village income")
+		eq(Game.income(s, "e"), Rules.TERRAIN.c.income, "enemy lost the village income")
 	)
 	run("ruined village: no capture; capV unit repairs -> unowned village, capture on a later turn", func() -> void:
 		var s := blank([["p", "soldier", 2, 2], ["p", "archer", 3, 3], ["e", "soldier", 5, 4]])
@@ -310,6 +310,39 @@ func rule_tests() -> void:
 		s.units[0].acted = false
 		Game.do_action(s, { "id": 1, "to": [2, 1], "kind": "wait" })
 		eq(s.graves.size(), 0, "stepped on")
+	)
+	run("buildings are descriptors: a new tile type works from TERRAIN alone (income, capture, heal, sells, raze / repair)", func() -> void:
+		var ter: Dictionary = Rules.TERRAIN.duplicate(true)
+		ter["p"] = { "def": 10, "cost": 1, "building": "port", "income": 40, "cap": "capV", "heals": "owner", "razeTo": "q" }
+		ter["q"] = { "def": 5, "cost": 1, "repairTo": "p", "repairBy": "capV" }
+		ter["o"] = { "def": 20, "cost": 1, "building": "fort", "income": 10, "cap": "capC", "heals": "owner", "sells": true }
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, ter)
+		eq([Game.income_of("p"), Game.income_of("."), Game.sells("o"), Game.sells("p"), Game.cap_flag("o"), Game.cap_flag("t")], [40, 0, true, false, "capC", ""])
+		var s := blank([["p", "soldier", 2, 2, 50], ["p", "hero", 3, 3], ["e", "catapult", 5, 1]])
+		s.tiles[2][2] = "p"
+		s.tiles[3][3] = "o"
+		check(Game.can_capture(s, s.units[0], 2, 2), "soldier takes a port (cap capV)")
+		check(not Game.can_capture(s, s.units[0], 3, 3) and Game.can_capture(s, s.units[1], 3, 3), "fort needs capC")
+		Game.do_action(s, { "id": 1, "to": [2, 2], "kind": "capture" })
+		Game.do_action(s, { "id": 2, "to": [3, 3], "kind": "capture" })
+		eq(Game.income(s, "p"), 50 + 40 + 10, "income = sum over owned tiles")
+		eq(Game.castle_tiles(s, "p"), [Vector2i(0, 0), Vector2i(3, 3)], "fort sells")
+		check(Game.buy_options(s, "p", 3, 3).size() > 0 and Game.buy_options(s, "p", 2, 2).is_empty(), "buy only where it sells")
+		Game.end_turn(s); Game.end_turn(s)
+		eq(s.units[0].hp, 70, "port heals its owner")
+		s.units[0].x = 1
+		s.units[1].x = 4; s.units[1].y = 4
+		s.side = "e"
+		s.units[2].acted = false
+		check(Game.razable_from(s, s.units[2], 5, 1).has([2, 2]), "port razable (razeTo)")
+		Game.do_action(s, { "id": 3, "to": [5, 1], "kind": "raze", "target": [2, 2] })
+		eq(s.tiles[2][2], "q", "razed into razeTo")
+		Game.end_turn(s)
+		s.units[0].acted = false
+		check(Game.can_repair(s, s.units[0], 2, 2), "repairBy capV")
+		Game.do_action(s, { "id": 1, "to": [2, 2], "kind": "repair" })
+		eq(s.tiles[2][2], "p", "repaired into repairTo")
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
 	)
 	run("AE2 income: village 30, castle 50", func() -> void:
 		var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
@@ -570,7 +603,7 @@ func rule_tests() -> void:
 		s.side = "e"
 		s.gold.p = 0
 		Game.end_turn(s)
-		eq(s.gold.p, Rules.RULES.incomeCastle)
+		eq(s.gold.p, Rules.TERRAIN.c.income)
 		eq(s.units[0].hp, 70)
 		s.units[0].x = 1
 		s.gold.p = 99999

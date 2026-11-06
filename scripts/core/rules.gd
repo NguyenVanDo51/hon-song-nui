@@ -4,6 +4,9 @@ extends RefCounted
 
 ## AE2 rules (docs/review/rules_compare.html). def = defense bonus, cost = move cost (INF = impassable)
 ## water: every walker may wade at cost 3 with 0 def; the water class (boat) pays 1; fliers pay 1 everywhere.
+## buildings (Game reads only these fields, never the letter): building (name, can be owned), income (gold / turn to
+## the owner), cap (unit flag needed to capture), heals ("owner" | "any"), sells (owner buys units here; counts as a
+## castle for the loss rule), razeTo (a raze unit wrecks it into), repairTo + repairBy (unit flag that repairs it)
 const TERRAIN := {
 	".": { "def": 5, "cost": 1 },
 	"f": { "def": 10, "cost": 2 },
@@ -12,10 +15,10 @@ const TERRAIN := {
 	"~": { "def": 0, "cost": 3, "water": true },
 	"=": { "def": 5, "cost": 1 },
 	"r": { "def": 0, "cost": 1 }, # path: drawn as a dirt track that links villages, castles, bridges
-	"v": { "def": 15, "cost": 1, "building": "village" },
-	"c": { "def": 15, "cost": 1, "building": "castle" },
-	"x": { "def": 15, "cost": 1, "ruin": true }, # ruined village: no owner / income / heal; a capV unit repairs it -> "v"
-	"t": { "def": 15, "cost": 1, "temple": true }, # shrine: heals any side's unit standing on it, no owner, no income
+	"v": { "def": 15, "cost": 1, "building": "village", "income": 30, "cap": "capV", "heals": "owner", "razeTo": "x" },
+	"c": { "def": 15, "cost": 1, "building": "castle", "income": 50, "cap": "capC", "heals": "owner", "sells": true },
+	"x": { "def": 15, "cost": 1, "repairTo": "v", "repairBy": "capV" }, # ruined village: no owner / income / heal
+	"t": { "def": 15, "cost": 1, "heals": "any" }, # shrine: heals any side's unit standing on it, no owner, no income
 }
 
 ## atk..atkMax = AE2 table attack; a hit rolls atk..atkMax-1 (AE2 never rolls the max). move classes: foot, fly (all cost 1), water (river cost 1, land as foot).
@@ -23,7 +26,7 @@ const TERRAIN := {
 ##   capV/capC capture village/castle (= the TERRAIN `cap` flag); antiAir +atk vs fliers; vsType {type: +atk};
 ##   aura N: after acting, allies within 2 get +N atk until our next turn; poison N: a hit leaves the target -N atk / -N def
 ##   until our next turn; waterAtk / waterDef: bonus standing in water; raise "type": graves -> that type;
-##   siege (no move+attack, no counter); raze (wreck an enemy / unowned village in range -> "x"); noGrave;
+##   siege (no move+attack, no counter); raze (wreck an enemy / unowned building with `razeTo` in range); noGrave;
 ##   noCap (not counted toward unitCap); buyable=false; heavy (bigger hit fx / knockback / sound)
 ##   AI: aiWeight (buy weight, default AI.DEFAULT_WEIGHT); aiValue (worth when scoring trades, default cost)
 const UNITS := {
@@ -50,7 +53,7 @@ const HEROES := {
 }
 
 const RULES := {
-	"startGold": 300, "incomeVillage": 30, "incomeCastle": 50, "heal": 20,
+	"startGold": 300, "heal": 20, # building income: TERRAIN
 	# graves: ttl counts down at the start of every side's turn (AE2: 3) -> a grave lasts through the next turn of each side
 	"graveRounds": 3,
 	# xp: a hit gives dmg x victim quality; next level needs own quality x XP_SCALE (quality = atk + atkMax + def incl.

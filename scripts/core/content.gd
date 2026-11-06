@@ -150,7 +150,7 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	if st.get("capC", false):
 		out.append("Chiếm được cả thành lẫn làng.")
 	elif st.get("capV", false):
-		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.RULES.incomeVillage)
+		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.TERRAIN.v.income)
 	var lo: int = st.atk
 	var hi: int = maxi(lo, st.get("atkMax", st.atk) - 1) # AE2 never rolls atkMax (same as Game.atk_range)
 	if hi > lo:
@@ -249,13 +249,13 @@ static func tile_note(t: String) -> String:
 		return " hoặc ".join(names)
 	match t:
 		"v":
-			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.RULES.incomeVillage })
+			return text("tileVillage").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)), "income": Rules.TERRAIN.v.income })
 		"x":
 			return text("tileRuin").format({ "capV": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capV", false)),
 				"raze": who.call(func(st: Dictionary, _t: String) -> bool: return st.get("raze", false)) })
 		"c":
 			var cc: String = who.call(func(st: Dictionary, _t: String) -> bool: return st.get("capC", false))
-			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.RULES.incomeCastle })
+			return text("tileCastle").format({ "capC": cc, "capC_l": cc.to_lower(), "income": Rules.TERRAIN.c.income })
 		"~":
 			return text("tileWater").format({ "water": who.call(func(st: Dictionary, _t: String) -> bool: return st.move == "water") })
 		"t":

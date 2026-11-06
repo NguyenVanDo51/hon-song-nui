@@ -5,6 +5,10 @@ extends RefCounted
 
 ## buy weight for a type without `aiWeight` (a new unit still gets bought, never crashes the AI)
 const DEFAULT_WEIGHT := 1.0
+## below HOME_HP a unit heads for its side's heal tiles (the < 70 heal bonus then keeps it there to ~70 hp)
+const HOME_HP := 50
+## nearest free heal tile further than this many moves: no way home -> fight on instead of idling
+const HOME_TURNS := 4
 
 ## own stream (UI effects draw from the global randf); seeded per game by the screen, swapped by the sims
 static var _gen := RandomNumberGenerator.new()
@@ -189,6 +193,29 @@ static func goals_for(s: Dictionary, u: Dictionary, claims: Dictionary) -> Array
 							out.append([nx, ny])
 	return out
 
+## heal tiles of u's side (own villages / castles, temples) not taken by another unit; map scan once per step
+static func _home_goals(s: Dictionary, u: Dictionary, mem: Dictionary) -> Array:
+	var side: String = u.side
+	if not mem.has("heal"):
+		mem.heal = {}
+	var cache: Dictionary = mem.heal
+	if not cache.has(side):
+		var tiles := []
+		for y: int in s.h:
+			for x: int in s.w:
+				if Game.heals_at(s, side, x, y):
+					tiles.append([x, y])
+		cache[side] = tiles
+	var out := []
+	var tiles_of: Array = cache[side]
+	for t: Array in tiles_of:
+		var tx: int = t[0]
+		var ty: int = t[1]
+		var o: Variant = Game.unit_at(s, tx, ty)
+		if o == null or o == u:
+			out.append(t)
+	return out
+
 ## own castles an enemy castle-capturer could step on next turn
 static func endangered_castles(s: Dictionary, side: String, reach_of := {}) -> Dictionary:
 	var out := {}
@@ -213,12 +240,27 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var st := Game.stat(s, u)
 	var reach := _reach_cached(s, u, mem)
 	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
-	var df := _dist_cached(s, mc, goals_for(s, u, claims), mem)
+	var df := {}
+	var homeless := false
+	if u.hp < HOME_HP and Objectives.ai_goals(s, u) == null: # wounded: walk home over turns (reach objective first)
+		var home := _home_goals(s, u, mem)
+		if home.size():
+			df = _dist_cached(s, mc, home, mem)
+		var mv: int = st.mv
+		var ux: int = u.x
+		var uy: int = u.y
+		if df.get(Vector2i(ux, uy), INF) > HOME_TURNS * mv:
+			df = {}
+			homeless = true
+	if df.is_empty():
+		df = _dist_cached(s, mc, goals_for(s, u, claims), mem)
 	var val := value(s, u)
 	var caution := 1.3 if u.type == "hero" else 0.6
 	# hp heals: every hp costs the same (soldier price); the unit's full value only as death risk -> a healthy commander advances
 	var hp_val := minf(val, 150.0) * 0.6 / 100.0
 	var die_val := maxf(0.0, val - 150.0) * caution # soldier-priced hp already covers a soldier's death
+	if homeless and u.type != "hero":
+		die_val = 0.0 # cannot heal: its hp is all it is worth, spend it rather than idle out of reach
 	var has_df := df.size() > 0
 	var side: String = u.side
 	var enemy_castles := Game.castles(s, Game.other(side))
@@ -411,6 +453,7 @@ static func next_step(s: Dictionary, mem: Dictionary) -> Variant:
 			mem.tm = {}
 			mem.rc = {}
 		mem.tiles_h = hash(s.tiles) # raze / repair change a tile mid-turn
+		mem.erase("heal") # captures change heal tile owners mid-turn
 		var reach_of := {}
 		var threat := threat_map(s, side, reach_of, mem)
 		var danger := endangered_castles(s, side, reach_of)

@@ -8,6 +8,8 @@ const TURN_MS := 110.0
 
 ## playback speed x1 / x2 / x3: every duration is divided by it
 static var speed := 1.0
+## >0 = this FX ignores the game speed (intro popup plays at 1x)
+var fixed_speed := 0.0
 
 var audio: Audio
 var parts: Array = []
@@ -28,13 +30,16 @@ var _gen := 0 # bumped by clear(): delayed effects of an older scene drop out
 var _last := 0.0
 
 static func now() -> float:
-	return Time.get_ticks_usec() / 1000.0
+	return PauseClock.ms()
 
-static func sp(ms: float) -> float:
-	return ms / speed
+func spd() -> float:
+	return fixed_speed if fixed_speed > 0.0 else speed
+
+func sp(ms: float) -> float:
+	return ms / spd()
 
 func sleep(ms: float) -> void:
-	await get_tree().create_timer(sp(ms) / 1000.0).timeout
+	await get_tree().create_timer(sp(ms) / 1000.0, false).timeout
 
 func clear() -> void:
 	_gen += 1
@@ -426,7 +431,7 @@ func capture(x: int, y: int, side: String) -> void:
 	var c: String = Content.theme().factions[side].glow
 	ring(x, y, c, 700.0, 1.4, 0.12)
 	var g := _gen
-	get_tree().create_timer(sp(150.0) / 1000.0).timeout.connect(
+	get_tree().create_timer(sp(150.0) / 1000.0, false).timeout.connect(
 		func() -> void:
 			if g == _gen:
 				ring(x, y, "#ffe39a", 600.0, 1.0, 0.06),
@@ -582,7 +587,7 @@ func dust(x: float, y: float) -> void:
 
 # ---------- update + draw ----------
 func update(t: float) -> void:
-	var dt := minf(0.05, (t - _last) / 1000.0) * speed
+	var dt := minf(0.05, (t - _last) / 1000.0) * spd()
 	_last = t
 	if not rigs.is_empty():
 		for r: Rig in rigs:

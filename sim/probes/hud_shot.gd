@@ -54,8 +54,32 @@ func _run(g: GameScreen) -> void:
 		g.cancel()
 	await _wait(4)
 	await main.shot(tag + "_back")
+	await _terrain_shots(g, tag)
 	await _quest_shots(g, tag)
 	quit()
+
+## terrain card per tile kind (left + right half): card height vs its minimum after it settles (empty paper strip = gap)
+func _terrain_shots(g: GameScreen, tag: String) -> void:
+	var s: Dictionary = g.s
+	var seen := { }
+	var w: int = s.w
+	var h: int = s.h
+	for y: int in h:
+		for x: int in w:
+			var t: String = s.tiles[y][x]
+			var k := "%s%s" % [t, x * 2 >= w]
+			if seen.has(k) or Game.unit_at(s, x, y) != null:
+				continue
+			seen[k] = true
+			g._on_tile(x, y)
+			await _wait(8)
+			var cs := g.hud.card.size
+			var cm := g.hud.card.get_combined_minimum_size()
+			print("TERRAIN %s at %d,%d: card %s at %s, min %s, gap %d px" % [t, x, y, cs, g.hud.card.position, cm, int(cs.y - cm.y)])
+			if seen.size() <= 2 or t == "v":
+				await main.shot("%s_terrain_%s_%d_%d" % [tag, t, x, y])
+			g.cancel()
+			await _wait(2)
 
 ## quest slip (synthetic list, m02 ships none): collapsed, open, covered by a unit, hidden on pick, stamp, end card row
 func _quest_shots(g: GameScreen, tag: String) -> void:

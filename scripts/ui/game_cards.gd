@@ -83,6 +83,7 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(center)
+	Style.inset_safe(center)
 	var card := PanelContainer.new()
 	var cs := Style.paper(22.0, 10.0)
 	card.add_theme_stylebox_override("panel", cs)
@@ -187,6 +188,7 @@ func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], b
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	end_layer.add_child(center)
+	Style.inset_safe(center)
 	var card := PanelContainer.new()
 	var cs := Style.paper(26.0, 10.0)
 	cs.edge = Style.INK_D if win else Style.ROYAL_D
@@ -194,6 +196,12 @@ func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], b
 	card.custom_minimum_size.x = 500
 	card.clip_contents = true
 	center.add_child(card)
+	card.resized.connect(
+		func() -> void: # phone landscape: shrink to fit the safe area, never clip
+			var f := minf(1.0, minf((center.size.y - 16.0) / card.size.y, (center.size.x - 16.0) / card.size.x))
+			center.pivot_offset = center.size / 2
+			center.scale = Vector2(f, f),
+	)
 	if win:
 		var rays := HudWidgets.Rays.new()
 		rays.mouse_filter = Control.MOUSE_FILTER_IGNORE

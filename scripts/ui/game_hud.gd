@@ -24,6 +24,7 @@ var card_box: VBoxContainer
 var map_wrap: Control
 var btn_end: Button
 var quests: QuestPanel
+var queued_runs := 0 # deferred place_hud runs (driver: at most 1 per frame)
 
 var _gold_box: HBoxContainer
 var _income: Label
@@ -39,6 +40,9 @@ var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _frame: Panel
 var _banner: HudWidgets.Banner
 var _end_pulse: Tween = null
+var _place_queued := false
+var _under := false # ⚙ card hidden for the codex / restart ask, game still paused; closing it comes back to the card
+var _placed_frame := -1
 
 func _init(screen: GameScreen) -> void:
 	gs = screen
@@ -95,10 +99,7 @@ func build_hud() -> void:
 	# top-right: ⏩ (enemy turn) + ⚙
 	var top_r := Style.hbox(8)
 	top_r.z_index = 40
-	top_r.minimum_size_changed.connect(
-		func() -> void:
-			place_hud.call_deferred(),
-	) # ⏩ shown / hidden
+	top_r.minimum_size_changed.connect(queue_place) # ⏩ shown / hidden
 	gs.add_child(top_r)
 	hud_tr = top_r
 	btn_ff = _ibtn(
@@ -126,10 +127,7 @@ func build_hud() -> void:
 	quests = QuestPanel.new()
 	quests.sfx = func() -> void:
 		gs.main.audio.play("ui")
-	quests.minimum_size_changed.connect(
-		func() -> void:
-			place_hud.call_deferred(),
-	)
+	quests.minimum_size_changed.connect(queue_place)
 	gs.add_child(quests)
 	_build_menu()
 	# bottom-left: what is selected
@@ -141,6 +139,7 @@ func build_hud() -> void:
 	card_box = Style.vbox(5)
 	card_box.custom_minimum_size.x = 270
 	card.add_child(card_box)
+	card.minimum_size_changed.connect(queue_place) # wrapped text settles after a pass: size shrinks back with it
 	# bottom-right: Hết lượt
 	btn_end = Style.menu_button("Hết lượt", "Còn 0 quân chưa đi", true)
 	var end_title: Label = btn_end.get_meta("title")
@@ -198,6 +197,7 @@ func _build_menu() -> void:
 	menu = Control.new()
 	menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	menu.z_index = 55
+	menu.process_mode = Node.PROCESS_MODE_ALWAYS # the rest of the game screen pauses under it
 	menu.visible = false
 	gs.add_child(menu)
 	var dim := ColorRect.new()
@@ -265,12 +265,16 @@ func _build_menu() -> void:
 	v.add_child(hr)
 	var row := Style.hbox(10)
 	v.add_child(row)
-	var tile := func(text: String, tip: String, fn: Callable) -> Button:
+	var tile := func(text: String, tip: String, fn: Callable, keep_paused: bool) -> Button:
 		var b := _ibtn(
 			text,
 			tip,
 			func() -> void:
-				show_menu(false)
+				if keep_paused:
+					_under = true
+					menu.visible = false
+				else:
+					show_menu(false)
 				fn.call(),
 		)
 		b.theme_type_variation = "TileBtn"
@@ -286,14 +290,17 @@ func _build_menu() -> void:
 		"Tính chất từng loại quân",
 		func() -> void:
 			gs.main.menus.open_codex(gs._me()),
+		true,
 	)
-	_btn_restart = tile.call("↩ Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart)
+	gs.main.menus.codex_closed.connect(back_to_menu)
+	_btn_restart = tile.call("↩ Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart, true)
 	var home: Button = tile.call(
 		"🏠 Về menu",
 		"Lưu ván và về menu chính",
 		func() -> void:
 			gs.save()
 			gs.main.show_title(),
+		false,
 	)
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
 		home.add_theme_color_override(c, Style.CRIMSON_D)
@@ -324,8 +331,14 @@ func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
 	col.add_child(l)
 	return b
 
+## ⚙ = real pause: game screen (its _process, tweens, FX.sleep timers) + FX.now() stop; resume continues mid-animation
 func show_menu(on: bool) -> void:
+	_under = false
 	menu.visible = on
+	gs.get_tree().paused = on
+	PauseClock.hold(on)
+	if on and gs.tutorial != null:
+		gs.tutorial.visible = false # its _process (which hides it under the menu) is paused too
 	_btn_skip.visible = gs.def.has("tutorial")
 	if on:
 		sound_label()
@@ -337,6 +350,22 @@ func show_menu(on: bool) -> void:
 ## Terrain picked: HUD stays; card prefers the free bottom-left corner, else takes a top corner from its HUD panel.
 func _side_w() -> float:
 	return maxf(card.get_combined_minimum_size().x, 210.0)
+
+## layout from a minimum_size_changed: never more than 1 queued, and at most 1 per frame -> no emit pattern can loop
+func queue_place() -> void:
+	if _place_queued:
+		return
+	_place_queued = true
+	if Engine.get_process_frames() == _placed_frame:
+		gs.get_tree().process_frame.connect(_queued_place, CONNECT_ONE_SHOT)
+	else:
+		_queued_place.call_deferred()
+
+func _queued_place() -> void:
+	_place_queued = false
+	_placed_frame = Engine.get_process_frames()
+	queued_runs += 1
+	place_hud()
 
 func place_hud() -> void:
 	if btn_end == null:
@@ -430,10 +459,12 @@ func _place_pause() -> void:
 	_ribbon.reset_size()
 	var ps := _pause.get_combined_minimum_size()
 	var rs := _ribbon.get_combined_minimum_size()
-	var k := minf(1.0, minf((gs.size.y - 24.0) / (ps.y + rs.y / 2.0), (gs.size.x - 24.0) / ps.x))
-	var top := (gs.size.y - (ps.y + rs.y / 2.0) * k) / 2.0 + rs.y / 2.0 * k
+	var e := Style.safe_insets(gs)
+	var room := gs.size - Vector2(e.x + e.z, e.y + e.w)
+	var k := minf(1.0, minf((room.y - 24.0) / (ps.y + rs.y / 2.0), (room.x - 24.0) / ps.x))
+	var top := e.y + (room.y - (ps.y + rs.y / 2.0) * k) / 2.0 + rs.y / 2.0 * k
 	_pause.scale = Vector2(k, k)
-	_pause.position = Vector2((gs.size.x - ps.x * k) / 2.0, top).floor()
+	_pause.position = Vector2(e.x + (room.x - ps.x * k) / 2.0, top).floor()
 	_ribbon.scale = Vector2(k, k)
 	_ribbon.position = (_pause.position + Vector2((ps.x - rs.x) / 2.0, -rs.y / 2.0 - 4.0) * k).floor()
 
@@ -466,8 +497,14 @@ func _skip_tutorial() -> void:
 	Store.record_result(gs.ctx, "p", 1)
 	gs.main.show_levels(LevelSelect.page_of(maxi(0, Content.level_index(id))))
 
+## codex / restart ask opened from ⚙ closed without leaving: back to the pause card
+func back_to_menu() -> void:
+	if _under:
+		show_menu(true)
+
 func _confirm_restart() -> void:
 	if gs.s.is_empty() or gs.ui.busy:
+		back_to_menu() # nothing to ask mid-animation: stay on the card
 		return
 	gs.main.menus.confirm(
 		"Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất." % gs.def.get("title", ""),
@@ -475,6 +512,9 @@ func _confirm_restart() -> void:
 		func() -> void:
 			var c := gs.ctx.duplicate()
 			gs.main.start_game(Game.new_game(gs._def_for(c)), c),
+		"",
+		Callable(),
+		back_to_menu,
 	)
 
 func sound_label() -> void:

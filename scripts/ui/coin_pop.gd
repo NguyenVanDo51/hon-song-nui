@@ -19,7 +19,7 @@ func _init(p_board: Control) -> void:
 
 ## items: [{x, y, amount}]; kind "coin" lands low on the tile, "heal" higher (over the unit) so both fit one tile
 func play(items: Array, kind := "coin", delay := 0.0) -> void:
-	var t0 := Time.get_ticks_msec() / 1000.0 + delay
+	var t0 := FX.now() / 1000.0 + delay
 	for i in items.size():
 		var it: Dictionary = items[i]
 		var txt := ("+%d" if kind == "heal" else "%d") % it.amount # coin icon already says "gain"
@@ -33,7 +33,7 @@ func clear() -> void:
 func _process(_dt: float) -> void:
 	if pops.is_empty():
 		return
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := FX.now() / 1000.0
 	pops = pops.filter(
 		func(p: Dictionary) -> bool:
 			return now - p.t0 < HOLD + FADE,
@@ -41,7 +41,7 @@ func _process(_dt: float) -> void:
 	queue_redraw()
 
 func _draw() -> void:
-	var now := Time.get_ticks_msec() / 1000.0
+	var now := FX.now() / 1000.0
 	var font: Font = Style.bold
 	for p: Dictionary in pops:
 		var t0: float = p.t0

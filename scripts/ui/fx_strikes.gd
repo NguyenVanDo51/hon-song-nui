@@ -10,7 +10,7 @@ static func signature(fx: FX, a: Dictionary, d: Dictionary, dir: Vector2) -> voi
 	var dy: float = d.y
 	var ang := atan2(dy - ay, dx - ax)
 	var r := func(kind: String, dur: float, extra := { }) -> void:
-		var e := { "kind": kind, "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": FX.now(), "dur": FX.sp(dur) }
+		var e := { "kind": kind, "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": FX.now(), "dur": fx.sp(dur) }
 		e.merge(extra, true)
 		fx.rays.append(e)
 	match a.type:
@@ -78,7 +78,7 @@ static func signature(fx: FX, a: Dictionary, d: Dictionary, dir: Vector2) -> voi
 		"drum": # bronze drum boom: sound rings rolling from the drummer to the target
 			for i in 3:
 				fx.rays.append(
-					{ "kind": "boom", "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": FX.now() + i * FX.sp(70.0), "dur": FX.sp(380.0) }
+					{ "kind": "boom", "x": d.x, "y": d.y, "ax": a.x, "ay": a.y, "ang": ang, "t0": FX.now() + i * fx.sp(70.0), "dur": fx.sp(380.0) }
 				)
 		"wolf": # claw rake + bite
 			r.call("claw", 300.0)

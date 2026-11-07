@@ -3,6 +3,8 @@ extends SceneTree
 ## mission=t01 / t02 fresh: walks the tutorial steps instead (intro cards on, guide lock, ⚙ skip)
 
 const LayoutStorm := preload("res://sim/layout_storm.gd")
+const IntroSpeedCheck := preload("res://sim/intro_speed_check.gd")
+const HudChecks := preload("res://sim/hud_checks.gd")
 
 var main: Main
 var fails := 0
@@ -387,6 +389,8 @@ func _run() -> void:
 	ok(not g.hud.hud_tr.visible, "terrain card took the ⏩ ⚙ corner (card at %s)" % g.hud.card.position)
 	ok(storm.peak <= 4, "⏩ ⚙ + quest slip hidden: no layout storm (peak %d minimum_size_changed/frame)" % storm.peak)
 	g._on_tile(plain.x, plain.y)
+	for r: Array in await HudChecks.layout_queue(self, g):
+		okv(r[0], str(r[1]))
 	root.size = old_size
 	await process_frame
 	g._on_tile(pos(hero).x, pos(hero).y)
@@ -498,6 +502,7 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	ok(g.cards.intro_layer == null, "intro card closes")
+	await IntroSpeedCheck.run(self, g, any_u)
 	for k: Key in [KEY_ENTER, KEY_SPACE]:
 		await _intro_replay_then_key(g, any_u, k)
 	g._on_hint()
@@ -515,6 +520,8 @@ func _run() -> void:
 		g.cancel()
 	ok(g.hud.btn_end.visible and not g.hud.card.visible, "nothing picked -> HUD back, card gone")
 	press("Hết lượt")
+	for r: Array in await HudChecks.pause_menu(self, g):
+		okv(r[0], str(r[1]))
 	var low := 1 << 30
 	for i in 1200:
 		if s.side == "p" and not g.ui.busy:
@@ -534,6 +541,8 @@ func _run() -> void:
 	ok(count_ok, "gold counts up at turn start (lowest shown %d, total %d)" % [low, s.gold.p])
 	var total_ok: bool = int(g.hud.gold_num.text) == s.gold.p
 	ok(total_ok, "gold count-up ends on the real total")
+	for r: Array in await HudChecks.restart_cancel(self, g):
+		okv(r[0], str(r[1]))
 	# buy on top of a unit standing on our castle; click its own tile = keep, click outside its reach = take back (refund)
 	var cas: Vector2i = Game.castle_tiles(s, "p")[0]
 	var moved := { }

@@ -246,17 +246,6 @@ static func end_stars(v: VBoxContainer, goals: Array, best_before: int, got: int
 		v.add_child(best)
 	return row
 
-## soft pulsing halo behind the token on the intro card
-class IntroGlow extends Control:
-	var col := Color.WHITE
-
-	func _process(_dt: float) -> void:
-		queue_redraw()
-
-	func _draw() -> void:
-		var k := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 400.0)
-		Draw.glow(self, size / 2, size.x * (0.62 + 0.06 * k), Color(col, 0.35 + 0.2 * k))
-
 ## hotseat hand-over: dims the board, names the side to move; a tap anywhere / the button / Space goes on
 class Handoff extends Control:
 	static func make(title: String, sub: String, col: Color, on_go: Callable) -> Handoff:

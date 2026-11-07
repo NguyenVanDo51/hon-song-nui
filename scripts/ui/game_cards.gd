@@ -7,6 +7,7 @@ signal intro_closed
 var gs: GameScreen
 var end_layer: Control
 var intro_layer: Control = null
+var intro_stage: IntroStage = null
 
 func _init(screen: GameScreen) -> void:
 	gs = screen
@@ -58,7 +59,8 @@ func intro_new_units() -> void:
 			break
 	gs._intro_on = false
 
-## one animated card; returns when the player dismisses it (button, Space/Enter, or a click outside after a moment)
+## one card = a short scene of the unit moving + attacking (IntroStage), name + stat icons, almost no text (role / traits
+## stay in ⓘ and the codex). Returns when the player dismisses it (button, Space/Enter, or a click outside after a moment)
 func intro_card(u: Dictionary, i: int, n: int) -> void:
 	var hk: Variant = gs.s.heroKey[u.side]
 	var side: String = u.side
@@ -84,9 +86,8 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	var card := PanelContainer.new()
 	var cs := Style.paper(22.0, 10.0)
 	card.add_theme_stylebox_override("panel", cs)
-	card.custom_minimum_size.x = 620
 	center.add_child(card)
-	var v := Style.vbox(12)
+	var v := Style.vbox(6)
 	card.add_child(v)
 	var side_col := Style.P_NAME if mine else Style.SEA_HI
 	var eyebrow := Content.text(("introHero" if u.type == "hero" else "introUnit") + ("P" if mine else "E"))
@@ -97,43 +98,25 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	if n > 1:
 		eh.add_child(Style.lbl("%d / %d" % [i + 1, n], 13, Style.MUTED, Style.semi))
 	v.add_child(eh)
-	var head := Style.hbox(18)
-	var holder := Control.new()
-	holder.custom_minimum_size = Vector2(120, 120)
-	var glow := HudWidgets.IntroGlow.new()
-	glow.col = side_col
-	glow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	holder.add_child(glow)
-	var tok := Token.make(side, type, hk, 104)
-	tok.position = Vector2(8, 8)
-	tok.pivot_offset = Vector2(52, 52)
-	tok.scale = Vector2(0.2, 0.2)
-	holder.add_child(tok)
-	head.add_child(holder)
-	var tv := Style.vbox(4)
-	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var look_name: String = look.name
-	tv.add_child(Style.lbl(look_name, 32, Style.GOLD, Style.display_x))
-	tv.add_child(Style.lbl(Content.role(type), 15, side_col, Style.semi))
-	var desc: String = look.blurb if u.type == "hero" else look.desc
-	tv.add_child(Style.lbl(desc, 14, Style.INK, null, true))
-	head.add_child(tv)
-	v.add_child(head)
-	v.add_child(Style.stat_bars([["Công", st.atk, 75], ["Thủ", st.def, 30], ["Đi", st.mv, 7], ["Tầm", Style.stat_range(st)]]))
-	var lines: Array = []
-	for t: String in Content.traits(type, hk):
-		var l := Style.rich("[color=#%s]•[/color] %s" % [Style.GOLD.to_html(false), t], 15, Style.INK, Style.GOLD)
-		lines.append(l)
-		v.add_child(l)
-	var how := Style.rich("[b]Cách dùng:[/b] " + Content.how_to_play(type), 15, Style.GOLD, Style.GOLD_HI)
-	lines.append(how)
-	v.add_child(how)
+	v.add_child(Style.lbl(look_name, 32, Style.GOLD, Style.display_x))
+	var stage := IntroStage.new()
+	stage.setup(side, type, hk)
+	stage.fx.audio = gs.main.audio
+	stage.set_meta("card", card)
+	stage.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(stage)
+	intro_stage = stage
 	var br := Style.hbox(10)
+	br.add_child(_stat_icons(st))
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	br.add_child(sp)
-	br.add_child(Style.lbl("Space / Enter", 12, Style.MUTED))
-	var ok := Style.button("Tiếp ›" if i < n - 1 else "Đã hiểu", "PrimaryBtn")
+	var again := Style.button(Content.text("introReplay"))
+	again.custom_minimum_size = Vector2(0, 48)
+	again.pressed.connect(stage.play)
+	br.add_child(again)
+	var ok := Style.button(Content.text("introOk"), "PrimaryBtn")
 	ok.custom_minimum_size = Vector2(150, 48)
 	ok.pressed.connect(
 		func() -> void:
@@ -148,33 +131,50 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 			if mb != null and mb.pressed and Time.get_ticks_msec() - t0 > 600:
 				intro_closed.emit(),
 	)
-	# animate: fade in, card rises, token pops, lines appear one by one
+	# animate: fade in, card rises, then the scene plays once
 	gs.main.audio.play("spawn" if not mine else "rank")
 	layer.modulate.a = 0.0
 	card.resized.connect(
 		func() -> void: # phone landscape: shrink to fit, never clip the top
 			var f := minf(1.0, (center.size.y - 16.0) / card.size.y)
 			center.pivot_offset = center.size / 2
-			center.scale = Vector2(f, f),
+			center.scale = Vector2(f, f)
+			card.pivot_offset = card.size / 2,
 	)
-	card.pivot_offset = Vector2(310, 200)
 	card.scale = Vector2(0.94, 0.94)
-	for l: Control in lines:
-		l.modulate.a = 0.0
 	var tw := layer.create_tween().set_parallel(true)
 	tw.tween_property(layer, "modulate:a", 1.0, 0.22)
 	tw.tween_property(card, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(tok, "scale", Vector2.ONE, 0.5).set_delay(0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	for k in lines.size():
-		var line: Control = lines[k]
-		tw.tween_property(line, "modulate:a", 1.0, 0.25).set_delay(0.35 + k * 0.12)
+	stage.play()
 	await intro_closed
 	gs.main.audio.play("ui")
+	again.disabled = true
+	await stage.stop() # its coroutines let go before the layer is freed
+	intro_stage = null
 	var out := layer.create_tween()
 	out.tween_property(layer, "modulate:a", 0.0, 0.15)
 	await out.finished
 	layer.queue_free()
 	intro_layer = null
+
+## ⚔ atk 🛡 def 👣 move 🎯 range: icon + number, nothing else
+static func _stat_icons(st: Dictionary) -> HBoxContainer:
+	var row := Style.hbox(14)
+	var cells := [["sword", str(st.atk)], ["shield", str(st.def)], ["foot", str(st.mv)], ["target", Style.stat_range(st)]]
+	for c: Array in cells:
+		var cell := Style.hbox(4)
+		var ic := TextureRect.new()
+		var icon: String = c[0]
+		ic.texture = Icons.tex(icon)
+		ic.custom_minimum_size = Vector2(24, 24)
+		ic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		ic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		cell.add_child(ic)
+		var val: String = c[1]
+		cell.add_child(Style.lbl(val, 18, Style.INK, Style.xbold))
+		row.add_child(cell)
+	return row
 
 ## stars = Stars.final (quest penalty applied), drawn over the goal rows
 func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], best_before := 0, stars := 0) -> void:

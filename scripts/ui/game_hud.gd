@@ -450,10 +450,12 @@ func _place_pause() -> void:
 	_ribbon.reset_size()
 	var ps := _pause.get_combined_minimum_size()
 	var rs := _ribbon.get_combined_minimum_size()
-	var k := minf(1.0, minf((gs.size.y - 24.0) / (ps.y + rs.y / 2.0), (gs.size.x - 24.0) / ps.x))
-	var top := (gs.size.y - (ps.y + rs.y / 2.0) * k) / 2.0 + rs.y / 2.0 * k
+	var e := Style.safe_insets(gs)
+	var room := gs.size - Vector2(e.x + e.z, e.y + e.w)
+	var k := minf(1.0, minf((room.y - 24.0) / (ps.y + rs.y / 2.0), (room.x - 24.0) / ps.x))
+	var top := e.y + (room.y - (ps.y + rs.y / 2.0) * k) / 2.0 + rs.y / 2.0 * k
 	_pause.scale = Vector2(k, k)
-	_pause.position = Vector2((gs.size.x - ps.x * k) / 2.0, top).floor()
+	_pause.position = Vector2(e.x + (room.x - ps.x * k) / 2.0, top).floor()
 	_ribbon.scale = Vector2(k, k)
 	_ribbon.position = (_pause.position + Vector2((ps.x - rs.x) / 2.0, -rs.y / 2.0 - 4.0) * k).floor()
 

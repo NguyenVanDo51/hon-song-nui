@@ -267,6 +267,7 @@ class Handoff extends Control:
 		center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		h.add_child(center)
+		center.ready.connect(Style.inset_safe.bind(center))
 		var card := PanelContainer.new()
 		var cs := Style.paper(26.0, 10.0)
 		card.add_theme_stylebox_override("panel", cs)

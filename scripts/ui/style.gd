@@ -259,6 +259,14 @@ static func safe_insets(c: CanvasItem) -> Vector4:
 		clampf((win.y - safe.end.y) * k.y, EDGE_MOBILE, cap.y),
 	)
 
+## full-rect control c pulled in by the safe area (centred cards / overlays stay clear of the notch)
+static func inset_safe(c: Control) -> void:
+	var e := safe_insets(c)
+	c.offset_left = e.x
+	c.offset_top = e.y
+	c.offset_right = -e.z
+	c.offset_bottom = -e.w
+
 # ---------- builders ----------
 static func lbl(text: String, size := 15, color := INK, font: Font = null, autowrap := false) -> Label:
 	var l := Label.new()

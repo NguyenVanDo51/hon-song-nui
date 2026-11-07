@@ -530,8 +530,11 @@ func place_pop() -> void:
 	var sz := pop.get_combined_minimum_size()
 	pop.size = sz
 	var lim := gs.hud.map_wrap.size
+	var e := Style.safe_insets(gs) # phone notch / rounded corners
+	var lo := Vector2(6.0 + e.x, 6.0 + e.y)
+	var hi := Vector2(maxf(lo.x, lim.x - sz.x - 6.0 - e.z), maxf(lo.y, lim.y - sz.y - 6.0 - e.w))
 	if _pop_anchor == null:
-		pop.position = Vector2(((lim.x - sz.x) / 2.0), gs.board.position.y + 10).floor()
+		pop.position = Vector2(((lim.x - sz.x) / 2.0), maxf(gs.board.position.y + 10, lo.y)).floor()
 		return
 	var anc_x: int = _pop_anchor[0]
 	var anc_y: int = _pop_anchor[1]
@@ -561,8 +564,7 @@ func place_pop() -> void:
 	var best_cost := INF
 	for k in cands.size():
 		var p := cands[k]
-		p.x = clampf(p.x, 6, maxf(6.0, lim.x - sz.x - 6))
-		p.y = clampf(p.y, 6, maxf(6.0, lim.y - sz.y - 6))
+		p = p.clamp(lo, hi)
 		var r := Rect2(p, sz)
 		var cost := float(k) * 0.1
 		for kr: Rect2 in keep:

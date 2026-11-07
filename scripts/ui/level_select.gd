@@ -8,6 +8,10 @@ signal level_picked(id: String)
 
 const PER_PAGE := 20
 const COLS := 5
+const TILE := 84.0 # px at full size; shrinks on short screens so the page never scrolls
+const TILE_MIN := 52.0
+const GAP := 10.0
+const CHROME_Y := 120.0 # page margins (2x28) + "Trở lại / Thử thách" header + gap, from Menus._page / _head
 const TIER_COL := { "easy": Color("#3f7a2e"), "mid": Color("#c98a1e"), "hard": Color("#b3262e") }
 const TIER_NAME := { "easy": "Dễ", "mid": "Trung bình", "hard": "Khó" }
 
@@ -18,6 +22,7 @@ var sel := 0 # selected level (info panel); a second tap on it starts it
 var _grid: GridContainer
 var _info: VBoxContainer
 var _pager: HBoxContainer
+var _tile := TILE
 
 static func page_of(index: int) -> int:
 	@warning_ignore("integer_division")
@@ -44,22 +49,35 @@ func setup(lv: Array, open: int, pg: int) -> void:
 	levels = lv
 	open_index = open
 	page = clampi(pg, 0, page_of(maxi(0, levels.size() - 1)))
-	add_theme_constant_override("separation", 14)
-	_pager = Style.hbox(10)
-	_pager.alignment = BoxContainer.ALIGNMENT_CENTER
-	add_child(_pager)
 	var row := Style.hbox(18)
 	add_child(row)
 	_grid = GridContainer.new()
 	_grid.columns = COLS
-	_grid.add_theme_constant_override("h_separation", 10)
-	_grid.add_theme_constant_override("v_separation", 10)
+	_grid.add_theme_constant_override("h_separation", int(GAP))
+	_grid.add_theme_constant_override("v_separation", int(GAP))
 	row.add_child(_grid)
+	var side := Style.vbox(10) # pager above the info: the grid gets the whole page height
+	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side.custom_minimum_size.x = 260
+	row.add_child(side)
+	_pager = Style.hbox(10)
+	side.add_child(_pager)
 	_info = Style.vbox(6)
-	_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_info.custom_minimum_size.x = 260
-	row.add_child(_info)
+	side.add_child(_info)
 	_build()
+
+func _ready() -> void:
+	_fit()
+	get_viewport().size_changed.connect(_fit)
+
+## tile edge so 4 rows fit the canvas height under the page chrome + safe insets (phone landscape ~487 px tall)
+func _fit() -> void:
+	var e := Style.safe_insets(self)
+	var rows := ceili(float(PER_PAGE) / COLS)
+	var room := get_viewport_rect().size.y - e.y - e.w - CHROME_Y - GAP * (rows - 1) - 3.0 # 3: tile hard shadow
+	_tile = clampf(floorf(room / rows), TILE_MIN, TILE)
+	for c in _grid.get_children():
+		(c as Control).custom_minimum_size = Vector2(_tile, _tile)
 
 func _build() -> void:
 	for c in _grid.get_children():
@@ -88,6 +106,7 @@ func _build() -> void:
 		var cell := Cell.new()
 		var def: Dictionary = levels[i]
 		cell.index = i
+		cell.custom_minimum_size = Vector2(_tile, _tile)
 		cell.tier = tier_of(def)
 		cell.locked = i > open_index
 		cell.stars = Store.stars_of(str(def.id))
@@ -178,7 +197,7 @@ class Cell extends Control:
 	var stars := 0
 
 	func _init() -> void:
-		custom_minimum_size = Vector2(84, 84)
+		custom_minimum_size = Vector2(LevelSelect.TILE, LevelSelect.TILE)
 		mouse_filter = Control.MOUSE_FILTER_STOP
 		mouse_entered.connect(queue_redraw)
 		mouse_exited.connect(queue_redraw)
@@ -205,15 +224,16 @@ class Cell extends Control:
 			box.face = Color("#f6dc8e")
 			box.inner = Style.CRIMSON
 		draw_style_box(box, Rect2(Vector2.ZERO, size - Vector2(3, 3)))
-		draw_rect(Rect2(7, size.y - 13, size.x - 17, 4), Color(col, 0.9 if not locked else 0.35))
+		var k := minf(size.x, size.y) / LevelSelect.TILE # content scales with the tile on short screens
+		draw_rect(Rect2(7 * k, size.y - 13 * k, size.x - 17 * k, 4 * k), Color(col, 0.9 if not locked else 0.35))
 		var c := Vector2((size.x - 3) / 2, size.y * 0.42)
 		if locked:
-			var lk := 22.0
+			var lk := 22.0 * k
 			draw_texture_rect(Icons.tex("lock"), Rect2(c - Vector2(lk, lk) / 2, Vector2(lk, lk)), false, Color(1, 1, 1, 0.55))
 		else:
-			Draw.text_c(self, Style.display, c, str(index + 1), 28, Style.CRIMSON_D if done or next else Style.INK)
+			Draw.text_c(self, Style.display, c, str(index + 1), roundi(28 * k), Style.CRIMSON_D if done or next else Style.INK)
 		if not locked:
-			for k in 3:
-				var sc := Vector2((size.x - 3) / 2 + (k - 1) * 17, size.y - 24)
-				var on := k < stars
-				Draw.star(self, sc, 7.0, Style.LEAF if on else Style.PAPER_2, Style.INK_D, 1.0)
+			for j in 3:
+				var sc := Vector2((size.x - 3) / 2 + (j - 1) * 17 * k, size.y - 24 * k)
+				var on := j < stars
+				Draw.star(self, sc, 7.0 * k, Style.LEAF if on else Style.PAPER_2, Style.INK_D, 1.0)

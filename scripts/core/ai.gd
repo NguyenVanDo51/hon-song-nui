@@ -56,7 +56,21 @@ const DEFAULT := {
 	"buy_sea": 1.5,
 	"buy_cost_exp": 0.35,
 	"save_hero_units": 4.0, # commander dead + this many units: save gold for the rebuy
+	# human tactics (docs/ai.md "Kinh nghiệm người chơi"), 0 = off
+	"lone_w": 0.0, # x own value x focus-kill chance: ending in enemy reach with < lone_n allies within 2 (no lone crossing)
+	"lone_n": 1.0,
+	"tgt_sup": 0.0, # target worth x (1 + this) for support units (shaman, wolf, drum)
+	"tgt_thr": 0.0, # target worth + this x its own hit (mid atk + rank + aura) x hp / 100 (kill what hurts most)
+	"home_val": 0.0, # non-commander walk-home hp + this x (value - 150) / 100, capped at home_cap
+	"home_cap": 80.0,
+	"bld_w": 0.0, # non-commander on an own heal tile: + this x (value - 150) / 100
+	"trade_w": 0.0, # non-kill hit: - this x value lost beyond value dealt (counter x own vs dmg x target) / 100
+	"order_w": 0.0, # melee non-kill hit while an unacted ranged ally can hit the target: - this x counter x own value / 100
+	"feed_w": 0.0, # non-kill hit whose counter levels the target up: - this x 0.2 x target value
+	"escort_w": 0.0, # non-commander ending within 2 of own commander while it has < 3 such allies
+	"hero_cgoal": 0.0, # 1 = commander heads for castles only (villages left to the others)
 }
+const SUPPORT := ["shaman", "wolf", "drum"]
 
 ## own stream (UI effects draw from the global randf); seeded per game by the screen, swapped by the sims
 static var _gen := RandomNumberGenerator.new()
@@ -84,6 +98,52 @@ static func weight(type: String) -> float:
 static func value(_s: Dictionary, u: Dictionary) -> float:
 	var b: Dictionary = Game.UNITS[u.type]
 	return b.get("aiValue", b.cost) * (1 + 0.2 * u.rank)
+
+## worth as a target: value, support units up, + what it hits for next turn (tgt_sup / tgt_thr; 0 = value)
+static func tvalue(s: Dictionary, d: Dictionary, sup_w: float, thr_w: float) -> float:
+	var v := value(s, d)
+	if sup_w > 0.0 and SUPPORT.has(d.type):
+		v *= 1.0 + sup_w
+	if thr_w > 0.0:
+		var r := Game.atk_range(s, d)
+		var lo: int = r[0]
+		var hi: int = r[1]
+		var hp: int = d.hp
+		v += thr_w * ((lo + hi) * 0.5 + Game.aura_atk(d)) * hp / 100.0
+	return v
+
+## own units per tile within 2 (lone_w): built once per greedy step
+static func support_map(s: Dictionary, side: String) -> Dictionary:
+	var out := { }
+	for o: Dictionary in s.units:
+		if o.side != side:
+			continue
+		var ox: int = o.x
+		var oy: int = o.y
+		for dy in range(-2, 3):
+			for dx in range(-2 + absi(dy), 3 - absi(dy)):
+				var k := Vector2i(ox + dx, oy + dy)
+				out[k] = out.get(k, 0) + 1
+	return out
+
+## an unacted ranged ally (not u) that can hit d this turn: melee should wait for it (order_w)
+static func ranged_ready(s: Dictionary, u: Dictionary, d: Dictionary) -> bool:
+	var dx: int = d.x
+	var dy: int = d.y
+	for o: Dictionary in s.units:
+		if o.side != u.side or o.acted or o.id == u.id:
+			continue
+		var st := Game.stat(s, o)
+		var rmax: int = st.rmax
+		if rmax < 2:
+			continue
+		var ox: int = o.x
+		var oy: int = o.y
+		var dd := Game.dist(ox, oy, dx, dy)
+		var mv: int = 0 if st.get("siege", false) else st.mv
+		if dd <= mv + rmax:
+			return true
+	return false
 
 ## multi-source terrain distance (ignores units)
 static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dictionary:
@@ -303,7 +363,14 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
 	var df := { }
 	var homeless := false
-	if u.hp < P.home_hp and Objectives.ai_goals(s, u) == null: # wounded: walk home over turns (reach objective first)
+	var val := value(s, u)
+	var is_hero: bool = u.type == "hero"
+	var home_hp: float = P.home_hp
+	var home_val: float = P.home_val
+	if home_val > 0.0 and not is_hero: # dearer units walk home earlier
+		var home_cap: float = P.home_cap
+		home_hp = maxf(home_hp, minf(home_hp + home_val * (val - 150.0) / 100.0, home_cap))
+	if u.hp < home_hp and Objectives.ai_goals(s, u) == null: # wounded: walk home over turns (reach objective first)
 		var home := _home_goals(s, u, mem)
 		if home.size():
 			df = _dist_cached(s, mc, home, mem)
@@ -315,8 +382,13 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			df = { }
 			homeless = true
 	if df.is_empty():
-		df = _dist_cached(s, mc, goals_for(s, u, claims), mem)
-	var val := value(s, u)
+		var hero_goals: Array = []
+		var hcg: float = P.hero_cgoal
+		if hcg > 0.0 and is_hero and Objectives.ai_goals(s, u) == null:
+			for key: Vector2i in s.owner:
+				if s.owner[key] != u.side and Game.sells(Game.tile_at(s, key.x, key.y)):
+					hero_goals.append([key.x, key.y])
+		df = _dist_cached(s, mc, hero_goals if hero_goals.size() else goals_for(s, u, claims), mem)
 	var caution: float = P.caution_hero if u.type == "hero" else P.caution
 	var hp_cap: float = P.hp_cap
 	var hp_w: float = P.hp_w
@@ -362,6 +434,21 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var maykill_hero: float = P.maykill_hero
 	var die_w: float = P.die_w
 	var maydie_w: float = P.maydie_w
+	var lone_w: float = P.lone_w
+	var lone_n: float = P.lone_n
+	var tgt_sup: float = P.tgt_sup
+	var tgt_thr: float = P.tgt_thr
+	var bld_w: float = 0.0 if is_hero else P.bld_w * maxf(0.0, val - 150.0) / 100.0
+	var trade_w: float = P.trade_w
+	var order_w: float = P.order_w
+	var feed_w: float = P.feed_w
+	var escort_w: float = 0.0 if is_hero else P.escort_w
+	var sup: Dictionary = mem.get("sup", { }) if lone_w > 0.0 else { }
+	var hero_at: Vector2i = mem.get("hero_at", Vector2i(-99, -99))
+	var u0x: int = u.x
+	var u0y: int = u.y
+	var u0 := Vector2i(u0x, u0y)
+	var ranged_ok := { } # target id -> ranged_ready (order_w)
 	var best: Array = [null] # [ {score, act} ]
 	var consider := func(score: float, act: Dictionary) -> void:
 		score += (rng.call() - 0.5) * noise
@@ -379,9 +466,24 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key), reach_w)
 		var uhp: int = u.hp
 		pos -= _risk(hurt, uhp, hp_val, die_val)
+		var lone_full := 0.0 # alone in reach: every attacker can pick this unit (lone_w)
+		if lone_w > 0.0 and not is_hero and threat.has(key):
+			var n_sup: int = sup.get(key, 0)
+			if Game.dist(u0.x, u0.y, rx, ry) <= 2:
+				n_sup -= 1
+			if n_sup < lone_n:
+				lone_full = expected_hit(s, u, rx, ry, threat.get(key), 1.0)
+				pos -= lone_w * val * clampf((lone_full / uhp - 0.6) / 0.4, 0.0, 1.0)
 		var own: Variant = owner.get(key)
-		if Game.heals_at(s, side, rx, ry) and u.hp < heal_hp:
+		var heals := Game.heals_at(s, side, rx, ry)
+		if heals and u.hp < heal_hp:
 			pos += (100 - u.hp) * minf(val, heal_cap) * heal_w # capped: a 60-hp commander must not glue to a village
+		if heals and bld_w > 0.0:
+			pos += bld_w
+		if escort_w > 0.0 and Game.dist(hero_at.x, hero_at.y, rx, ry) <= 2:
+			var near_hero: int = mem.get("hero_near", 0)
+			if near_hero - (1 if Game.dist(hero_at.x, hero_at.y, u0.x, u0.y) <= 2 else 0) < 3:
+				pos += escort_w
 		if st.get("aura", 0): # drum: allies within 2 get +atk after it acts
 			for o: Dictionary in s.units:
 				var ox: int = o.x
@@ -422,7 +524,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			var p := Game.preview(s, u, rx, ry, d)
 			if p.dmgMax <= 0:
 				continue # AE2: armour can soak the whole hit
-			var dv := value(s, d)
+			var dv := tvalue(s, d, tgt_sup, tgt_thr)
 			var sc: float = (p.dmg / 100.0) * dv - (p.counter / 100.0) * val
 			if p.kill:
 				sc += dv * kill_w + (kill_hero if d.type == "hero" else 0.0)
@@ -436,6 +538,22 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			var counter: int = p.counter
 			var left := maxi(0, uhp - counter)
 			var exposure := _risk(minf(left, hurt), left, hp_val, die_val) if left > 0 else 0.0
+			if not p.kill:
+				var pdmg: int = p.dmg
+				if trade_w > 0.0:
+					sc -= trade_w * maxf(0.0, counter * val - pdmg * dv) / 100.0
+				if order_w > 0.0 and counter > 0:
+					if not ranged_ok.has(d.id):
+						ranged_ok[d.id] = ranged_ready(s, u, d)
+					var rdy: bool = ranged_ok[d.id]
+					if rdy:
+						sc -= order_w * counter * val / 100.0
+				if feed_w > 0.0 and counter > 0:
+					var dxp: int = d.xp
+					if dxp + counter * Game.quality(s, u) >= Game.xp_need(s, d):
+						sc -= feed_w * 0.2 * value(s, d)
+				if lone_full > 0.0 and left > 0:
+					exposure += lone_w * val * clampf((minf(lone_full, left) / left - 0.6) / 0.4, 0.0, 1.0)
 			var atk_sc := sc + (-gd * goal_w + tdef * def_w) * atk_pos_w - exposure + atk_bias
 			consider.call(atk_sc, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
 	return best[0]
@@ -569,6 +687,13 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		var reach_of := { }
 		var threat := threat_map(s, side, reach_of, mem)
 		var danger := endangered_castles(s, side, reach_of)
+		var P := params(s, side, mem)
+		var lone_w: float = P.lone_w
+		if lone_w > 0.0:
+			mem.sup = support_map(s, side)
+		var escort_w: float = P.escort_w
+		if escort_w > 0.0:
+			_hero_near(s, side, mem)
 		var best: Variant = null
 		var claims: Dictionary = mem.claims
 		for u: Dictionary in mine:
@@ -581,6 +706,25 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		_claim_nearest(s, best_act, claims)
 		return { "kind": "act", "act": best.act }
 	return buy_step(s, mem)
+
+## escort_w: own commander's tile + allies within 2 of it (mem.hero_at / hero_near)
+static func _hero_near(s: Dictionary, side: String, mem: Dictionary) -> void:
+	mem.hero_at = Vector2i(-99, -99)
+	mem.hero_near = 0
+	for h: Dictionary in s.units:
+		if h.side != side or h.type != "hero":
+			continue
+		var hx: int = h.x
+		var hy: int = h.y
+		mem.hero_at = Vector2i(hx, hy)
+		var n := 0
+		for o: Dictionary in s.units:
+			var ox: int = o.x
+			var oy: int = o.y
+			if o.side == side and o.id != h.id and Game.dist(ox, oy, hx, hy) <= 2:
+				n += 1
+		mem.hero_near = n
+		return
 
 ## v1's buy: the next unit to buy (commander first, else choose_buy per castle) or null (none / saving for the commander)
 static func buy_step(s: Dictionary, mem: Dictionary) -> Variant:

@@ -1,6 +1,20 @@
 extends "res://sim/tests/test_base.gd"
 ## planner tests (run by sim/tests.gd)
 
+## human-tactics knobs (AI.DEFAULT lone_w .. hero_cgoal, docs/ai.md "Kinh nghiệm người chơi")
+const TACTICS := {
+	"lone_w": 0.3,
+	"tgt_sup": 0.5,
+	"tgt_thr": 2.0,
+	"home_val": 10.0,
+	"bld_w": 20.0,
+	"trade_w": 1.0,
+	"order_w": 1.0,
+	"feed_w": 1.0,
+	"escort_w": 30.0,
+	"hero_cgoal": 1.0,
+}
+
 func planner_tests() -> void:
 	run(
 		"hard v2: only legal steps, state untouched, rng / roll globals restored",
@@ -88,4 +102,62 @@ func planner_tests() -> void:
 					AI.apply_step(c, st)
 				check(not Game.hero_alive(c, "e"), "commander dead at mid rolls")
 				Game.fixed_roll = -1.0,
+	)
+
+func tactics_tests() -> void:
+	run(
+		"hard v2 + tactics knobs: legal steps, state untouched, no AI.rng draws",
+		func() -> void:
+			var prev: Callable = AI.rng
+			var draw := [0]
+			AI.rng = func() -> float:
+				draw[0] += 1
+				return 0.5
+			for mid: String in Content.SKIRMISH.MAPS:
+				var s := hard_duel(mid)
+				for sd: String in ["p", "e"]:
+					s.aiParams[sd] = AI.PRESETS.hard.merged(TACTICS, true)
+				var steps := planner_game(mid, 5, s)
+				check(steps.size() > 10, "%s: game went on (%d steps)" % [mid, steps.size()])
+			eq(draw[0], 0, "planner never draws from AI.rng")
+			AI.rng = prev,
+	)
+	run(
+		"lone_w: a lone soldier stops outside the reach of 2 enemies that could kill it",
+		func() -> void:
+			var s := blank([["p", "soldier", 0, 2, 60], ["e", "soldier", 5, 2], ["e", "soldier", 5, 3], ["p", "hero", 0, 5], ["e", "hero", 5, 0]])
+			var u: Dictionary = unit(s, 0)
+			var threat := AI.threat_map(s, "p")
+			s.aiParams = { "p": { "noise": 0.0 } }
+			var off: Dictionary = AI.best_for_unit(s, u, threat, { }, { }, { })
+			s.aiParams = { "p": { "noise": 0.0, "lone_w": 1.0 } }
+			var on: Dictionary = AI.best_for_unit(s, u, threat, { }, { }, { "sup": AI.support_map(s, "p") })
+			var to_off: Array = off.act.to
+			var to_on: Array = on.act.to
+			var t_off := xy(to_off)
+			var t_on := xy(to_on)
+			var f_off := AI.expected_hit(s, u, t_off.x, t_off.y, threat.get(t_off), 1.0)
+			var f_on := AI.expected_hit(s, u, t_on.x, t_on.y, threat.get(t_on), 1.0)
+			check(f_off >= 60, "knob off: walks into focus range (%s, focus %d)" % [t_off, f_off])
+			check(f_on < 60, "knob on: ends where 2 enemies cannot kill it (%s, focus %d)" % [t_on, f_on]),
+	)
+	run(
+		"tgt_sup / tgt_thr: support unit first, a healthy hitter over a wounded one",
+		func() -> void:
+			var s := blank([["e", "elephant", 2, 2], ["e", "wolf", 3, 3], ["e", "soldier", 4, 4, 100], ["e", "soldier", 4, 1, 20]])
+			var ele: Dictionary = unit(s, 0)
+			var wolf: Dictionary = unit(s, 1)
+			eq(AI.tvalue(s, ele, 0.0, 0.0), AI.tvalue(s, wolf, 0.0, 0.0), "same cost, knobs off")
+			check(AI.tvalue(s, wolf, 0.5, 0.0) > AI.tvalue(s, ele, 0.5, 0.0), "wolf over elephant with tgt_sup")
+			check(AI.tvalue(s, unit(s, 2), 0.0, 2.0) > AI.tvalue(s, unit(s, 3), 0.0, 2.0), "full-hp soldier over 20-hp one with tgt_thr"),
+	)
+	run(
+		"order_w: the archer shoots before the soldier hits",
+		func() -> void:
+			var s := blank([["p", "soldier", 1, 2], ["p", "archer", 0, 4], ["e", "soldier", 3, 3], ["p", "hero", 0, 0], ["e", "hero", 5, 5]])
+			s.aiParams = { "p": { "noise": 0.0, "order_w": 3.0 } }
+			var st: Dictionary = AI.greedy_step(s, { })
+			var act: Dictionary = st.act
+			eq(act.kind, "attack", "first step attacks")
+			eq(act.id, 2, "archer first (soldier would eat a counter it can wait out)"),
 	)

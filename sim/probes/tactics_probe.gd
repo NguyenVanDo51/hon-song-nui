@@ -115,6 +115,10 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 				start_support = _support_in_reach(s, me)
 			continue
 		var st: Dictionary = stv
+		if s.side == me and st.kind == "buy":
+			add("buys")
+			if SUPPORT.has(st.type):
+				add("buys_support")
 		if s.side == me and st.kind == "act":
 			var act: Dictionary = st.act
 			if act.kind == "attack":
@@ -389,6 +393,8 @@ func _report(args: Dictionary) -> void:
 		["  dmg by fresh foe buys / game", gm("fresh_dmg") / maxf(1.0, g)],
 		["  own deaths to fresh foe buys / game", gm("fresh_kills") / maxf(1.0, g)],
 		["foe without commander at our turn end %", gm("foe_no_hero_turns") * 100.0 / t],
+		["own buys / game", gm("buys") / maxf(1.0, g)],
+		["  support buys / game", gm("buys_support") / maxf(1.0, g)],
 		["pl_dp plans / game", gm("pl_plans") / maxf(1.0, g)],
 		[
 			"  decision point (snipe / kill / both) %",

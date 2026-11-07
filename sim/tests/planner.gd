@@ -166,6 +166,20 @@ func tactics_tests() -> void:
 
 func v4_tests() -> void:
 	run(
+		"buy_sup: an army of 4 without drum saves for one, then buys it; off = a cheap unit now",
+		func() -> void:
+			var s := blank([["p", "soldier", 1, 1], ["p", "soldier", 1, 2], ["p", "soldier", 2, 1], ["p", "archer", 2, 2], ["p", "hero", 0, 1]])
+			s.gold.p = 400
+			check(AI.choose_buy(s, "p") != null, "off: buys something now")
+			s.aiParams = { "p": { "buy_sup": 4.0 } }
+			eq(AI.buy_step(s, { }), null, "on: 400 + 2 x 50 income reaches a drum -> save")
+			s.gold.p = 500
+			var st: Dictionary = AI.buy_step(s, { })
+			eq(st.get("type"), "drum", "on: 500 gold -> drum")
+			s.gold.p = 100
+			check(AI.choose_buy(s, "p") == null, "100 gold: nothing affordable either way"),
+	)
+	run(
 		"hard v3 + v4 knobs: legal steps, state untouched, no AI.rng draws, deterministic",
 		func() -> void:
 			var prev: Callable = AI.rng

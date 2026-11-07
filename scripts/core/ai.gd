@@ -84,6 +84,7 @@ const DEFAULT := {
 	"buy_threat": 0.0, # > 0: foe castles threaten like the unit it can buy next turn (acts at once), at this x 100 hp
 	"promo_w": 0.0, # hit that levels our attacker up: + this x the rank's worth (0.2 x base value); also in AIPlan.focus
 	"ret_terr": 0.0, # non-commander walk-home hp x lerp(1, clamp((40 - unit def - rank - tile def) / 20, 0.5, 1.5), this)
+	"buy_sup": 0.0, # n > 0: army >= n without a drum / wolf -> save up for one (_support_want)
 }
 const SUPPORT := ["shaman", "wolf", "drum"]
 
@@ -681,6 +682,11 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {
 	var ok_types: Dictionary = { }
 	if ok != null:
 		ok_types = ok
+	var want := _support_want(s, side, counts, P)
+	if want != "": # T12: a support unit for the army, saved up for within 2 turns of income
+		if ok == null or ok_types.has(want):
+			return want
+		return null
 	var graves: Array = s.graves
 	var best: Variant = null
 	for type: String in s.allowed[side]:
@@ -709,6 +715,27 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {
 		if best == null or sc > best.sc:
 			best = { "type": type, "sc": sc }
 	return best.type if best != null else null
+
+## buy_sup = n > 0: army of >= n non-commanders without a drum (+10 atk aura) / wolf (-10 def bite) -> that type,
+## while gold + 2 turns of income reach it ("" = buy as usual)
+static func _support_want(s: Dictionary, side: String, counts: Dictionary, P: Dictionary) -> String:
+	var n_sup: float = P.buy_sup
+	if n_sup <= 0.0:
+		return ""
+	var army := 0
+	for t: String in counts:
+		if t != "hero":
+			var c: int = counts[t]
+			army += c
+	if army < n_sup:
+		return ""
+	var gold: int = s.gold[side]
+	var allowed: Array = s.allowed[side]
+	for t: String in ["drum", "wolf"]:
+		var cost: int = Game.UNITS[t].cost
+		if allowed.has(t) and counts.get(t, 0) == 0 and gold + 2 * Game.income(s, side) >= cost:
+			return t
+	return ""
 
 static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -> void:
 	var aid: int = act.id

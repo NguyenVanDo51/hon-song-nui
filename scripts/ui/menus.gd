@@ -6,7 +6,8 @@ extends Control
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
 const TITLE_SIZE := Vector2(1000, 560) # title stage, scaled to fit the window
 ## 1 vs 1: who plays Blue (s.ctrl.e)
-const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Thường"], ["ai:hard", "Máy Khó"]]
+## Khó = ai:army (hard v5, varied army); Siêu khó = ai:hard (v3; campaign "hard" levels keep it)
+const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Trung bình"], ["ai:army", "Máy Khó"], ["ai:hard", "Máy Siêu khó"]]
 
 var main: Main
 var bg: MenuBg

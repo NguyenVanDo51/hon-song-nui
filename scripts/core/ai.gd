@@ -7,7 +7,7 @@ extends RefCounted
 const DEFAULT_WEIGHT := 1.0
 
 ## every scoring knob; a side's override = s.aiParams[side] (partial dict merged over this; absent = DEFAULT, save unchanged)
-## 1 vs 1 difficulty: partial overrides of DEFAULT (measured in docs/ai.md: easy < normal < hard)
+## 1 vs 1 difficulty: partial overrides of DEFAULT (measured in docs/ai.md: easy < normal < hard; army = hard v5)
 const PRESETS := {
 	"easy": { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }, # reckless
 	"normal": { },
@@ -23,6 +23,32 @@ const PRESETS := {
 		"order_w": 1.0,
 		"feed_w": 1.0,
 	},
+	# 1 vs 1 "Khó" = hard + V5_ARMY (varied army; tune.gd hard_v5). Literal: const can't merge; test = hard.merged(V5_ARMY)
+	"army": {
+		"hp_cap": 81.2937,
+		"kill_hero": 552.335,
+		"planner": 2,
+		"lone_w": 0.3,
+		"tgt_sup": 0.5,
+		"tgt_thr": 2.0,
+		"trade_w": 1.0,
+		"order_w": 1.0,
+		"feed_w": 1.0,
+		"role_w": 1.0,
+		"mix_w": 1.0,
+		"pl_chain": 1.0,
+		"mix_save": 0.1,
+		"sham_save": 1.0,
+	},
+}
+
+## hard v5 knobs = flexible army (docs/ai.md "Đội hình linh hoạt = Khó v5"); PRESETS.army + tune.gd hard_v5 use these
+const V5_ARMY := {
+	"role_w": 1.0, # unit jobs: shaman last + by graves, drum first, wolf bite first, boats on water
+	"mix_w": 1.0, # situational buys, affordable now
+	"pl_chain": 1.0, # drum / wolf first in kill chains (added in v4, kept)
+	"mix_save": 0.1, # lead >= 10%: save one income for a called-for unit >= 500
+	"sham_save": 1.0, # ... or a shaman with graves in reach
 }
 
 const DEFAULT := {

@@ -291,7 +291,7 @@ func _duel(g: GameScreen) -> void:
 	await wait(0.6)
 	press("1 đấu 1")
 	await wait(0.6)
-	press("Máy Khó")
+	press("Máy Siêu khó")
 	await process_frame
 	press("Xuất quân")
 	await wait(0.8)

@@ -19,7 +19,7 @@ func duel_tests() -> void:
 		"duel_def valid on every skirmish map",
 		func() -> void:
 			for mid: String in Content.SKIRMISH.MAPS:
-				for ctrl_e: String in ["human", "ai:easy", "ai:normal", "ai:hard"]:
+				for ctrl_e: String in Content.CTRLS:
 					var def := duel(mid, ctrl_e)
 					var s := Game.new_game(def)
 					eq(s.ctrl, { "p": "human", "e": ctrl_e }, mid)
@@ -90,6 +90,26 @@ func duel_tests() -> void:
 				else:
 					AI.apply_step(s0, sd)
 			eq(var_to_str(s0), var_to_str(s), "replay matches"),
+	)
+	run(
+		"ai:army (UI Khó) = hard v5 preset; ai:hard (UI Siêu khó) = v3 unchanged",
+		func() -> void:
+			eq(AI.PRESETS.army, AI.PRESETS.hard.merged(AI.V5_ARMY), "army = hard + V5_ARMY")
+			var army := Game.new_game(duel("dong_bang", "ai:army"))
+			eq(army.aiParams, { "e": AI.PRESETS.army }, "army stored in state")
+			eq(Content.ai_level(army, "e"), "army")
+			eq(AI.params(army, "e").mix_w, 1.0, "AI reads the army knobs")
+			eq(Game.new_game(duel("dong_bang", "ai:hard")).aiParams, { "e": AI.PRESETS.hard }, "hard unchanged")
+			check(Content.save_fits({ "state": army, "ctx": duel_ctx("dong_bang", "ai:army") }), "ai:army save fits"),
+	)
+	run(
+		"ai:army vs normal: whole game to a winner, legal steps",
+		func() -> void:
+			var s := Game.new_game(duel("dong_bang", "ai:army"))
+			s.seed = 4242
+			s.rng = 4242
+			planner_game("dong_bang", 40, s)
+			check(s.winner != null, "game ends by turn 40 (turn %d)" % s.turn),
 	)
 	run(
 		"save / load keeps ctrl; bad duel saves refused",

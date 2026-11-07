@@ -48,6 +48,8 @@
 
 ## Nợ kỹ thuật
 Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
+- [ ] (2026-11-07) scripts/core/ai.gd PRESETS.army — chép tay = hard + V5_ARMY (const không merge được) -> sửa hard / V5_ARMY quên army thì lệch; test duel "ai:army" bắt (hoặc đổi PRESETS thành static var + merged).
+- [ ] (2026-11-07) scripts/ui/menus.gd `_duel_side` — 5 nút đối thủ gần chạm mép thẻ Xanh (1280x720 còn ~3px) + thẻ Xanh rộng hơn thẻ Đỏ -> thêm mức / nhãn dài là tràn (2 hàng hoặc nút nhỏ hơn).
 - [ ] (2026-11-07) `scripts/ui/game_log.gd` crash detect: tắt game bằng `kill` (SIGTERM, vd Claude mở lại game) không ghi `clean exit` -> lần mở sau báo nhầm CRASHED + giữ `crash_*.log` (gặp 21:46). Cân nhắc bắt SIGTERM / ghi "killed" nếu Godot cho phép; tạm thời: crash log có `| ... ai end turn` bình thường + không có dòng X/E = bị tắt, không phải crash.
 - [ ] (2026-11-07) `scripts/core/ai.gd:659` `greedy_step` (= `AI.next_step` Thường / Dễ) đổi `s` khi chỉ đang chọn nước (`u.guard = false`: đánh thức lính gác) -> state đổi ngoài step (`do_action` / `buy` / `end_turn`); ghi trận phải bỏ `guard` khỏi hash (`Replay.UNIT_UNHASHED`), phát hiện khi chạy cửa sổ thật. Gán kiểu chấm tạo khoá StringName `&"guard"` cạnh khoá String `"guard"` từ nội dung -> 1 state có 2 kiểu khoá. Sửa: đánh thức trong `Game` (lúc áp bước) hoặc để `next_step` thuần + dùng `u["guard"]`.
 - [ ] (2026-11-07) `sim/review_lib.gd line_score` chép logic `AIPlan._rollout` + `_reply_score` (phản đòn greedy, `pl_opp_kill` / `pl_ply3` tắt như Khó v3) -> bật 2 knob đó cho Khó là điểm phân tích lệch planner. Sửa: thêm `AIPlan.score_line(s, side, steps, mem)` công khai, cả planner lẫn review dùng.

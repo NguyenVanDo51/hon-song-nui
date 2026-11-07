@@ -16,7 +16,7 @@ const V3_STAMP := 10
 ## saves from before the two-commander change named the commander per mission; same stats, so map onto the fixed ones
 const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "tuonggiac" }
 ## who plays a side (s.ctrl, docs/1v1.md)
-const CTRLS := ["human", "ai:easy", "ai:normal", "ai:hard"]
+const CTRLS := ["human", "ai:easy", "ai:normal", "ai:army", "ai:hard"]
 
 static var _levels: Array = []
 static var _theme := { }
@@ -106,7 +106,7 @@ static func ctrl_of(s: Dictionary, side: String) -> String:
 static func is_ai(s: Dictionary, side: String) -> bool:
 	return ctrl_of(s, side).begins_with("ai:")
 
-## "easy" | "normal" | "hard"; "" for a human side
+## "easy" | "normal" | "army" (UI Khó) | "hard" (UI Siêu khó); "" for a human side
 static func ai_level(s: Dictionary, side: String) -> String:
 	var c := ctrl_of(s, side)
 	return c.substr(3) if c.begins_with("ai:") else ""

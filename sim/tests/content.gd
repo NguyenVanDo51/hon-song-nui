@@ -31,7 +31,7 @@ func content_tests() -> void:
 				var b: int = orders[i]
 				check(b > a, "order %d after %d" % [b, a])
 			eq(Content.LEVEL_DIR, "res://content/levels")
-			eq(orders[0], 10, "old orders x10 (room to insert)"),
+			eq(orders[0], 1, "tutorial t01 first; campaign orders x10 (room to insert)"),
 	)
 	run(
 		"levels carry no story keys",

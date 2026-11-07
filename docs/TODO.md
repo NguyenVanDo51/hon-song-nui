@@ -43,6 +43,9 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
-- [ ] 2026-11-07 `sim/tests/quests.gd` (7eca24a) chưa qua gdscript-formatter -> `tools/lint.sh` báo "not formatted" trên nhánh feat/tutorial-quests (chạy formatter lên file đó).
+Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
 - [ ] 2026-11-07 `scripts/ui/game_hud.gd:326` `_side_w()` không ai gọi -> code chết (xoá).
 - [ ] 2026-11-07 `scripts/ui/quest_panel.gd` bảng nhiệm vụ chặn chuột (khi không mờ) -> ô trống nằm trọn dưới bảng không rê / bấm được bằng chuột (chỉ mờ khi ô rê lấn mép bảng / có quân dưới); cân nhắc mờ khi chuột vào bảng từ phía bàn cờ.
+- [ ] (2026-11-07) `sim/golden.txt` cũ so với code: trace mới ra `m02 0..3` khác golden (từ 59bd10a chỉnh vàng m02), g01–g20 chưa từng có trong golden, trace đủ > 600 s khi máy bận -> regen đủ không còn "chỉ thêm dòng"; test parity chỉ replay 4 key nên không bắt được. Sửa: 1 commit riêng regen golden (`only=` theo lô nếu chậm) + replay thêm 1 key mỗi loại (m, g, t).
+- [ ] (2026-11-07) Tên màn m01–m16 + bảng "Nhịp ra mắt" (`docs/content.md`) vẫn là địa danh / sử Việt (Lời Thề Hát Môn, Mê Linh…) sau reskin fantasy -> lệch giọng với t01/t02 + quân hiệp sĩ. Đặt lại tên trung tính.
+- [x] (2026-11-07) `sim/tests/quests.gd` (Task 1, 7eca24a) chưa qua `gdscript-formatter` -> `tools/lint.sh` đỏ trên commit đó (đã format ở nhánh feat/tq-content) -> chạy `tools/lint.sh` trước mỗi commit task, kể cả khi hook pre-commit chưa cài.

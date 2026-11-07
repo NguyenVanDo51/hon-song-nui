@@ -14,6 +14,7 @@ const DEF := {
 	"ai": "normal",
 	"win": { "type": "hero" },
 	"stars": { "turns": 8 },
+	"quests": [{ "do": "buy", "what": "drum" }, { "do": "hit_type", "what": "hero" }],
 	"map": {
 		"rows": [
 			"fhf...........",

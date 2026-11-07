@@ -41,3 +41,15 @@
 - [x] Code review 2026-11-06 backlog: hiệu năng P1–P8 (trừ P9), mở rộng E2/E3/E4/E7, tái sử dụng R1–R5 — merged e5a3520.
 - [ ] Còn lại từ review (`docs/review/code_review_2026-11-06.md`): E1 nhiều phe / đồng minh, E6 i18n (E5 tách `game_screen.gd` xong 2026-11-07); P9 vẽ lại khi idle; spike ~18 ms khi rig đánh lần đầu (raster phần rig); test UI phá/sửa làng/gọi hồn qua click, phím tắt, save giữa ván; đo hiệu năng trên điện thoại thật (web/iOS).
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
+
+## Nợ kỹ thuật
+Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
+- [ ] (2026-11-07) `scripts/ui/game_hud.gd:197` menu ⚙ "Tạm dừng" chỉ che bàn, không dừng game -> mở giữa lượt địch thì bot vẫn đi phía sau. Dừng thật cần cả tween lẫn `create_timer` của turn_driver cùng pause (timer mặc định chạy khi pause) -> dễ lệch hoạt cảnh.
+- [ ] (2026-11-07) Bot gần như không mua quân đắt: 72 ván đấu tự do (bot vs bot, Thường, cap 15) chỉ 2 Golem + 1 Sói, 0 Máy Bắn Đá / Rồng; cấm lính+cung thì mua Hải Tặc trên bản đồ đất liền. Chỉ mua lính+cung thắng 39/72 vs 27/72 khi mua đủ loại -> người chơi dồn quân rẻ không bị trừng phạt. Script đo: `spam_sim.gd` (p `s.allowed` = soldier+archer / full / cấm). Sửa = đụng `ai.gd` -> chờ user cho phép.
+- [ ] (2026-11-07) `assets/ui/icons/*.svg` mới import mặc định `svg/scale=1.0`; phải sửa tay `.import` lên 2.0 rồi `--import` lại -> quên là icon mờ. Thêm test kiểm mọi icon `.import` có `svg/scale=2.0`.
+- [ ] (2026-11-07) Nút tròn bật/tắt âm thanh / nhạc / tốc độ viết 2 lần: `game_hud.gd:303 _toggle` + `sound_label()` vs `menus.gd:309 _round` + lambda `sync` (`menus.gd:262`) -> sửa 1 chỗ quên chỗ kia. Gom vào 1 widget chung (vd `HudWidgets.SettingsRow`).
+- [ ] (2026-11-07) `game_hud.gd:230` nút to "Tiếp tục" / "Gợi ý": icon nằm sát mép trái, chữ ở giữa (Button không xếp icon cạnh chữ khi căn giữa) -> lệch thị giác. Sửa: HBox con (icon + label) căn giữa.
+- [ ] (2026-11-07) Click driver chỉ test mở/đóng menu ⚙; chưa bấm Tiếp tục / Gợi ý / 3 nút tròn / Sách lính / Đánh lại / Về menu, cũng chưa test 4 nút tròn màn chính.
+- [ ] (2026-11-07) Đã bỏ màn "Ghi công": giấy phép font (Paytone One, Be Vietnam Pro — OFL) chỉ còn file trong repo, game không hiển thị -> OFL không bắt buộc hiển thị, nhưng kiểm lại nếu thêm asset CC BY (bắt buộc ghi công).
+- [ ] (2026-11-07) `.claude/worktrees/`: 11 worktree `agent-*` cũ (3 locked) + `fantasy-reskin` (đã merge qua `feat/fantasy-reskin-main`) -> tốn đĩa, dễ nhầm nhánh. Dọn khi chắc không phiên nào dùng.
+- [ ] (2026-11-07) `.superpowers/` chưa track ở checkout chính, không rõ nguồn -> thêm `.gitignore` hoặc xoá sau khi hỏi user.

@@ -21,4 +21,4 @@ for m in $missions; do
 	if [ $((n % jobs)) -eq 0 ]; then wait; fi
 done
 wait
-for m in $missions; do tr -d '\000' < "$out/$m.log" | grep -E "^m[0-9]+ " ; tr -d '\000' < "$out/$m.log.guard" 2>/dev/null | grep KILLED; done
+for m in $missions; do tr -d '\000' < "$out/$m.log" | grep -E "^[mg][0-9]+ " ; tr -d '\000' < "$out/$m.log.guard" 2>/dev/null | grep KILLED; done

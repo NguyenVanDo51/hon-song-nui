@@ -41,6 +41,7 @@ var _frame: Panel
 var _banner: HudWidgets.Banner
 var _end_pulse: Tween = null
 var _place_queued := false
+var _under := false # ⚙ card hidden for the codex / restart ask, game still paused; closing it comes back to the card
 var _placed_frame := -1
 
 func _init(screen: GameScreen) -> void:
@@ -264,12 +265,16 @@ func _build_menu() -> void:
 	v.add_child(hr)
 	var row := Style.hbox(10)
 	v.add_child(row)
-	var tile := func(text: String, tip: String, fn: Callable) -> Button:
+	var tile := func(text: String, tip: String, fn: Callable, keep_paused: bool) -> Button:
 		var b := _ibtn(
 			text,
 			tip,
 			func() -> void:
-				show_menu(false)
+				if keep_paused:
+					_under = true
+					menu.visible = false
+				else:
+					show_menu(false)
 				fn.call(),
 		)
 		b.theme_type_variation = "TileBtn"
@@ -285,14 +290,17 @@ func _build_menu() -> void:
 		"Tính chất từng loại quân",
 		func() -> void:
 			gs.main.menus.open_codex(gs._me()),
+		true,
 	)
-	_btn_restart = tile.call("↩ Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart)
+	gs.main.menus.codex_closed.connect(back_to_menu)
+	_btn_restart = tile.call("↩ Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart, true)
 	var home: Button = tile.call(
 		"🏠 Về menu",
 		"Lưu ván và về menu chính",
 		func() -> void:
 			gs.save()
 			gs.main.show_title(),
+		false,
 	)
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
 		home.add_theme_color_override(c, Style.CRIMSON_D)
@@ -325,6 +333,7 @@ func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
 
 ## ⚙ = real pause: game screen (its _process, tweens, FX.sleep timers) + FX.now() stop; resume continues mid-animation
 func show_menu(on: bool) -> void:
+	_under = false
 	menu.visible = on
 	gs.get_tree().paused = on
 	PauseClock.hold(on)
@@ -488,8 +497,14 @@ func _skip_tutorial() -> void:
 	Store.record_result(gs.ctx, "p", 1)
 	gs.main.show_levels(LevelSelect.page_of(maxi(0, Content.level_index(id))))
 
+## codex / restart ask opened from ⚙ closed without leaving: back to the pause card
+func back_to_menu() -> void:
+	if _under:
+		show_menu(true)
+
 func _confirm_restart() -> void:
 	if gs.s.is_empty() or gs.ui.busy:
+		back_to_menu() # nothing to ask mid-animation: stay on the card
 		return
 	gs.main.menus.confirm(
 		"Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất." % gs.def.get("title", ""),
@@ -497,6 +512,9 @@ func _confirm_restart() -> void:
 		func() -> void:
 			var c := gs.ctx.duplicate()
 			gs.main.start_game(Game.new_game(gs._def_for(c)), c),
+		"",
+		Callable(),
+		back_to_menu,
 	)
 
 func sound_label() -> void:

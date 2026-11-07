@@ -104,6 +104,19 @@ static func pause_menu(tree: SceneTree, g: GameScreen) -> Array:
 	out.append([same, "pause: no bot step in 1.5 s + 20 frames under the menu"])
 	out.append([FX.now() == clock, "pause: FX clock frozen (%.1f ms moved)" % (FX.now() - clock)])
 	out.append([g.board.view.hold == hold, "pause: board playback state unchanged"])
+	# ⚙ -> Sách lính: card hides, game stays paused under the book; closing it comes back to the card
+	var menus := g.main.menus
+	_find_text(g.hud.menu, "Sách lính").pressed.emit()
+	await tree.create_timer(1.0).timeout
+	out.append([menus.is_codex_open() and not g.hud.menu.visible and tree.paused, "pause: Sách lính from ⚙ opens over a paused game"])
+	out.append([_state_sig(s) == sig and FX.now() == clock, "pause: no bot step / clock move in 1 s under the book"])
+	menus.close_codex()
+	await tree.process_frame
+	out.append([g.hud.menu.visible and tree.paused, "pause: closing the book -> back on the ⚙ card, still paused"])
+	# Đánh lại mid-animation: nothing to ask, card stays, still paused
+	_find_text(g.hud.menu, "Đánh lại").pressed.emit()
+	await tree.process_frame
+	out.append([g.hud.menu.visible and tree.paused and _state_sig(s) == sig, "pause: Đánh lại during the bot turn keeps the ⚙ card, paused"])
 	var old_size := tree.root.size
 	tree.root.size = Vector2i(1280, 720) # headless window is 64 px: real picking needs the button inside the viewport
 	await tree.process_frame
@@ -129,6 +142,24 @@ static func pause_menu(tree: SceneTree, g: GameScreen) -> Array:
 			break
 		await tree.process_frame
 	out.append([_state_sig(s) != sig and FX.now() > t1, "pause: bot plays on after closing"])
+	return out
+
+## ⚙ -> Đánh lại on our turn: the ask shows over a paused game; Thôi -> back to the ⚙ card, still paused
+static func restart_cancel(tree: SceneTree, g: GameScreen) -> Array:
+	var out := []
+	var turn0: int = g.s.turn
+	g.hud.gear.pressed.emit()
+	await tree.process_frame
+	_find_text(g.hud.menu, "Đánh lại").pressed.emit()
+	await tree.process_frame
+	var no := _find_text(g.main, "Thôi")
+	out.append([no != null and tree.paused and not g.hud.menu.visible, "pause: Đánh lại asks over a paused game"])
+	if no != null:
+		no.pressed.emit()
+	await tree.process_frame
+	out.append([g.hud.menu.visible and tree.paused and g.s.turn == turn0, "pause: Thôi -> back on the ⚙ card, still paused, game kept"])
+	g.hud.show_menu(false)
+	out.append([not tree.paused, "pause: ⚙ closed -> running"])
 	return out
 
 static func _find_text(n: Node, part: String) -> Button:

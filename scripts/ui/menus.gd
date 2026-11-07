@@ -3,6 +3,8 @@ extends Control
 ## menu screens over the animated backdrop: title, levels (Thử thách grid), skirmish, 1 vs 1,
 ## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
 
+signal codex_closed
+
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
 const TITLE_SIZE := Vector2(1000, 560) # title stage, scaled to fit the window
 ## 1 vs 1: who plays Blue (s.ctrl.e)
@@ -673,8 +675,8 @@ func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
 			main.start_game(state, ctx),
 	)
 
-## small modal: message + [Thôi] [alt] [yes]
-func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callable()) -> void:
+## small modal: message + [Thôi] [alt] [yes]; no_fn = after Thôi
+func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callable(), no_fn := Callable()) -> void:
 	var layer := Control.new()
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -697,7 +699,9 @@ func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callabl
 		_on(
 			Style.button("Thôi", "ActBtn"),
 			func() -> void:
-				layer.queue_free(),
+				layer.queue_free()
+				if no_fn.is_valid():
+					no_fn.call(),
 		)
 	)
 	if alt != "":
@@ -737,6 +741,7 @@ func add_overlays() -> void:
 		return
 	codex = Control.new()
 	codex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	codex.z_index = 110 # over the in-game HUD (40) and ⚙ (55), under confirm (120)
 	codex.visible = false
 	var dim := ColorRect.new()
 	dim.color = Color(0.16, 0.10, 0.05, 0.7)
@@ -863,8 +868,9 @@ func _codex_terrain() -> void:
 		_codex_grid.add_child(card)
 
 func close_codex() -> void:
-	if codex:
+	if codex and codex.visible:
 		codex.visible = false
+		codex_closed.emit()
 
 func is_codex_open() -> bool:
 	return codex != null and codex.visible

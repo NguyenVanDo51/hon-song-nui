@@ -539,6 +539,8 @@ func _run() -> void:
 	ok(count_ok, "gold counts up at turn start (lowest shown %d, total %d)" % [low, s.gold.p])
 	var total_ok: bool = int(g.hud.gold_num.text) == s.gold.p
 	ok(total_ok, "gold count-up ends on the real total")
+	for r: Array in await HudChecks.restart_cancel(self, g):
+		okv(r[0], str(r[1]))
 	# buy on top of a unit standing on our castle; click its own tile = keep, click outside its reach = take back (refund)
 	var cas: Vector2i = Game.castle_tiles(s, "p")[0]
 	var moved := { }

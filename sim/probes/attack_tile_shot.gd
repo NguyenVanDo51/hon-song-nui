@@ -40,9 +40,10 @@ func _run(g: GameScreen) -> void:
 	for i in 6:
 		await process_frame
 	var v: Dictionary = g.board.view
-	print("ATTACK_TILE archer=(%d,%d) enemy=(%d,%d) mountain=(%d,%d) dest=%s path=%s" % [
-		spot.x, spot.y, spot.x + 1, spot.y + 1, spot.x + 1, spot.y, v.dest, v.path,
-	])
+	print(
+		"ATTACK_TILE archer=(%d,%d) enemy=(%d,%d) mountain=(%d,%d) dest=%s path=%s"
+		% [spot.x, spot.y, spot.x + 1, spot.y + 1, spot.x + 1, spot.y, v.dest, v.path]
+	)
 	RenderingServer.force_draw() # occluded macOS window: frame_post_draw may never fire, so no main.shot()
 	var dir: String = args.get("shots", "res://shots")
 	DirAccess.make_dir_recursive_absolute(dir)

@@ -67,7 +67,7 @@ File mới `scripts/core/quests.gd` (game.gd đã chạm trần 1000 dòng gdlin
 
 - Thêm verb = thêm 1 mục registry (giống `objectives.gd` `TYPES`): hàm khớp event + hàm "còn làm được không" (cho test).
 - Chữ nhiệm vụ sinh từ mẫu theo verb trong `content/theme.gd` `text` (vd `quest_attack_with`: "Đánh bằng {unit}") + tên quân / ô từ theme. Ghi đè được bằng `"text"` trong nhiệm vụ.
-- Tiến độ lưu trong state: `s.quests = [{ do, what, n, have, done }]`, ghi theo event của phe người chơi (`p`). Đổi hình state -> tăng `Content.STATE_V` + `migrate_save` (bản lưu cũ: `quests = []`).
+- Tiến độ lưu trong state: `s.quests = [{ do, what, n, have, done }]`, ghi theo event của phe người chơi (`p`). Không tăng `STATE_V`: thiếu khoá `quests` (bản lưu cũ) -> `GameScreen.start` khởi tạo lười.
 - Nơi gọi: sau `Game.do_action` / `Game.buy` / end turn, một hàm thuần `Quests.observe(s, ev)` (không đổi RNG / kết quả ván). **`sim/golden.txt` phải y hệt.**
 
 ### 6.2 Nhiệm vụ "lần đầu" gắn vào loại quân (không có cho địa hình)
@@ -100,7 +100,7 @@ File mới `scripts/core/quests.gd` (game.gd đã chạm trần 1000 dòng gdlin
 - Trường mới `"tutorial": [bước…]` — chỉ 2 màn này có. Mỗi bước: `{ quest (verb như §6.1), allow (ô / nút được bấm), point (ô | "end_turn" | "buy:<loại>"), say (1 dòng, tuỳ chọn) }`. Bước xong khi quest của nó xong -> sang bước kế. Hết bước -> chơi tự do tới khi thắng, bảng nhiệm vụ vẫn hiện.
 - **Khoá input**: trong bước, mọi click ô / nút ngoài `allow` bị nuốt (không âm thanh lỗi; vòng sáng nháy lại). Phím tắt (Space, Tab, E, H) tắt trong bước. Hint (H) tắt.
 - **Overlay**: lớp tối toàn màn có lỗ tròn quanh ô / nút đang chỉ; vòng vàng nhấp nháy; bàn tay 👆 nhún; 1 bong bóng chữ ngắn cạnh lỗ (font + màu giấy F1). Tránh che lỗ khác.
-- Địch: cờ `guard` có sẵn (giữ chỗ tới khi quân ta tới gần `mv + rmax + 1`, xem `ai.gd` ~682) + máu thấp. Không sửa bot.
+- t02 **không có quân địch** (chỉ thành địch) để lính bị thương không chết giữa bước hồi máu; t01: địch cờ `guard` có sẵn (giữ chỗ tới khi quân ta tới gần `mv + rmax + 1`, xem `ai.gd` ~682) + máu thấp. Không sửa bot.
 - **t01** (map nhỏ, 1 tướng ta, 1–2 địch gác máu thấp, 1 làng trống, 1 ô rừng sát vùng địch; thắng `rout`):
   1. `select hero` — "Chọn tướng"
   2. `capture v` — vùng xanh hiện, chỉ ô làng bấm được; chiếm xong bay "+30 🪙" + ❤. say: "Làng: vàng mỗi lượt, đứng trên thì hồi máu"

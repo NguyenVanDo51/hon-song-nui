@@ -14,7 +14,8 @@ extends SceneTree
 ##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard)
 ##       | hard_v2_0 (hard v2 as first shipped, frozen) | hard_v3 (hard_v2_0 + V3_TACTICS, frozen)
 ##       | hard_v4 (hard_v3 + V4_TACTICS, frozen) | file:<path> (tuned file)
-##       + optional overrides: <spec>+key:value+key:value (e.g. hard_v2+pl_cands:4)
+##       + optional overrides: <spec>+key:value+key:value (e.g. hard_v2+pl_cands:4); +_spam:1 = that side buys only
+##       soldier / archer (spam test)
 ## seeds: game k of salt -> 1000 + (salt * 64 + k) * 7919 (evolve salts < 9e6; held-out / presets >= 9e6)
 const FROZEN := ["noise", "cap_last"] # not tuned: noise = difficulty knob, last-castle capture = instant win
 const HELD_OUT := 9000000
@@ -123,7 +124,8 @@ func spec(full: String) -> Dictionary:
 		out[p[0]] = float(p[1])
 	return out
 
-func base_spec(sp: String) -> Dictionary:
+## frozen specs + normal (probes share them); {} for anything else
+static func frozen(sp: String) -> Dictionary:
 	if sp == "hard_v1":
 		return HARD_V1
 	if sp == "hard_v2":
@@ -134,6 +136,20 @@ func base_spec(sp: String) -> Dictionary:
 		return HARD_V2_0.merged(V3_TACTICS)
 	if sp == "hard_v4":
 		return HARD_V2_0.merged(V3_TACTICS).merged(V4_TACTICS)
+	return { }
+
+## frozen spec name + overrides (static twin of spec(); no tuned files)
+static func spec_of(full: String) -> Dictionary:
+	var parts := full.split("+")
+	var out := frozen(parts[0]).duplicate()
+	for kv: String in parts.slice(1):
+		var p := kv.split(":", true, 1)
+		out[p[0]] = float(p[1])
+	return out
+
+func base_spec(sp: String) -> Dictionary:
+	if sp.begins_with("hard_v"):
+		return frozen(sp)
 	if sp == "easy" or sp == "easy_gold":
 		# reckless: no death fear, no walk home, no heal stop, coarse picks; _gold = start gold factor (not an AI knob)
 		var e := { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }
@@ -184,6 +200,8 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 			var gf: float = sp._gold
 			var g0: int = s.gold[side]
 			s.gold[side] = int(g0 * gf)
+		if sp.get("_spam", 0.0) > 0.0: # spam test: this side may buy only the cheap pair
+			s.allowed[side] = ["soldier", "archer"]
 	s.aiParams = { "p": pp, "e": pe }
 	var mem := { }
 	var steps := 0

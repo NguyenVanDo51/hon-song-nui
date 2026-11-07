@@ -15,7 +15,7 @@ const TACTICS := {
 	"hero_cgoal": 1.0,
 }
 ## internet-tactics knobs (docs/ai.md "Mẹo người chơi trên mạng = Khó v4")
-const V4 := { "buy_threat": 0.5, "promo_w": 1.0, "pl_dp": 1.0, "pl_chain": 1.0, "ret_terr": 1.0 }
+const V4 := { "buy_threat": 0.5, "promo_w": 1.0, "pl_dp": 1.0, "pl_chain": 1.0, "ret_terr": 1.0, "buy_sup": 4.0 }
 
 func planner_tests() -> void:
 	run(

@@ -36,7 +36,7 @@ func mission_tests() -> void:
 	run(
 		"survive: win when turn passes limit; waves spawn, occupied tile shifts",
 		func() -> void:
-			var def: Dictionary = Content.mission("m03")
+			var def: Dictionary = Content.level("m03")
 			var s := Game.new_game(def)
 			var w: Array = def.waves[0].units[0]
 			Game.spawn(s, "p", "soldier", xy(w, 1).x, xy(w, 1).y)

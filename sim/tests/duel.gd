@@ -144,7 +144,7 @@ func duel_tests() -> void:
 	run(
 		"level ai: hard preset saved in state, normal = built-in",
 		func() -> void:
-			var m02: Dictionary = Content.mission("m02")
+			var m02: Dictionary = Content.level("m02")
 			var d := m02.duplicate(true)
 			d.ai = "hard"
 			var s := Game.new_game(d)
@@ -156,10 +156,19 @@ func duel_tests() -> void:
 			check(not Game.new_game(d).has("aiParams"), "normal adds no params"),
 	)
 	run(
+		"old save of a level (ctx carries the dropped story key) still fits the content",
+		func() -> void:
+			var m05: Dictionary = Content.level("m05")
+			var sv := { "state": Game.new_game(m05), "ctx": { "kind": "campaign", "id": "m05", "story": true }, "title": "x" }
+			check(Store.fits_content(sv), "m05 save fits")
+			var gone := { "state": Game.new_game(m05), "ctx": { "kind": "campaign", "id": "m99" }, "title": "x" }
+			check(not Store.fits_content(gone), "unknown level id does not fit"),
+	)
+	run(
 		"unlock: furthest win opens everything before it",
 		func() -> void:
 			Store.use_profile("unit_tests")
-			var ids: Array = Content.campaign().map(
+			var ids: Array = Content.levels().map(
 				func(m: Dictionary) -> String:
 					return m.id,
 			)

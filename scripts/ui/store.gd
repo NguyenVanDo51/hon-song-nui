@@ -62,7 +62,7 @@ static func stars_of(id: String) -> int:
 
 ## levels open = every level up to the furthest one won, + the next (a level inserted before it never locks the rest)
 static func unlocked_index() -> int:
-	var c := Content.campaign()
+	var c := Content.levels()
 	var open := 0
 	for i in c.size():
 		var mid: String = c[i].id

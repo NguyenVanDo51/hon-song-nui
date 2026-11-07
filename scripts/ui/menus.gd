@@ -215,7 +215,7 @@ func show_title() -> void:
 	var list := Style.vbox(10)
 	list.custom_minimum_size.x = 420
 	list.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	var camp := Content.campaign()
+	var camp := Content.levels()
 	var ui := Store.unlocked_index()
 	var prog := "Đã thắng mọi thử thách"
 	if ui < camp.size():
@@ -362,7 +362,7 @@ func _logo(text: String) -> Control:
 ## levels grid; page -1 = the page holding the first level not yet won
 func show_levels(pg := -1) -> void:
 	var open := Store.unlocked_index()
-	var all := Content.campaign()
+	var all := Content.levels()
 	var v := _page(1040)
 	v.add_child(
 		_head(
@@ -377,7 +377,7 @@ func show_levels(pg := -1) -> void:
 	ls.level_picked.connect(
 		func(id: String) -> void:
 			_sfx("ui")
-			var md: Dictionary = Content.mission(id)
+			var md: Dictionary = Content.level(id)
 			main.play_mission(md),
 	)
 	v.add_child(ls)

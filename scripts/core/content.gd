@@ -1,11 +1,11 @@
 class_name Content
 extends RefCounted
-## content registry: levels (content/campaign/*.gd, sorted by `order`), skirmish maps, theme lookups.
+## content registry: levels (content/levels/*.gd, sorted by `order`), skirmish maps, theme lookups.
 ## All name / icon resolution goes through here.
 
 const THEME_SCRIPT := preload("res://content/theme.gd")
 const SKIRMISH := preload("res://content/skirmish_maps.gd")
-const CAMPAIGN_DIR := "res://content/campaign"
+const LEVEL_DIR := "res://content/levels"
 ## level difficulty label (def.tier) and the enemy bot preset a level may ask for (def.ai; never "easy": too weak to be fun)
 const TIERS := ["easy", "mid", "hard"]
 const LEVEL_AI := ["normal", "hard"]
@@ -18,7 +18,7 @@ const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "
 ## who plays a side (s.ctrl, docs/1v1.md)
 const CTRLS := ["human", "ai:easy", "ai:normal", "ai:hard"]
 
-static var _campaign: Array = []
+static var _levels: Array = []
 static var _theme := { }
 
 static func _defs(dir: String) -> Array:
@@ -43,19 +43,19 @@ static func theme() -> Dictionary:
 		_theme = THEME_SCRIPT.THEME.duplicate(true)
 	return _theme
 
-static func campaign() -> Array:
-	if _campaign.is_empty():
-		_campaign = _defs(CAMPAIGN_DIR)
-	return _campaign
+static func levels() -> Array:
+	if _levels.is_empty():
+		_levels = _defs(LEVEL_DIR)
+	return _levels
 
-static func mission(id: String) -> Variant:
-	for m: Dictionary in campaign():
+static func level(id: String) -> Variant:
+	for m: Dictionary in levels():
 		if m.id == id:
 			return m
 	return null
 
-static func mission_index(id: String) -> int:
-	var c := campaign()
+static func level_index(id: String) -> int:
+	var c := levels()
 	for i in c.size():
 		if c[i].id == id:
 			return i
@@ -63,8 +63,8 @@ static func mission_index(id: String) -> int:
 
 ## the level after this one in order, null after the last
 static func next_level(id: String) -> Variant:
-	var i := mission_index(id)
-	var c := campaign()
+	var i := level_index(id)
+	var c := levels()
 	return c[i + 1] if i >= 0 and i + 1 < c.size() else null
 
 ## free-play def: any hero vs the map's enemy hero (default: the first enemy hero in the theme)
@@ -379,7 +379,7 @@ static func save_fits(v: Dictionary) -> bool:
 			if not Rules.UNITS.has(t):
 				return false
 	var ctx: Dictionary = v.get("ctx", { }) if v.get("ctx") is Dictionary else { }
-	if ctx.get("kind") == "campaign" and mission(str(ctx.get("id", ""))) == null:
+	if ctx.get("kind") == "campaign" and level(str(ctx.get("id", ""))) == null:
 		return false
 	if ctx.get("kind") == "skirmish" and not heroes_of("p").has(ctx.get("hero")):
 		return false

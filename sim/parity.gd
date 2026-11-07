@@ -14,7 +14,7 @@ func restore() -> void:
 ## [name, games, def_for(game), naive]: every campaign mission + skirmish maps, current rules
 func runs() -> Array:
 	var out := []
-	for m: Dictionary in Content.campaign():
+	for m: Dictionary in Content.levels():
 		var md := m
 		out.append(
 			[

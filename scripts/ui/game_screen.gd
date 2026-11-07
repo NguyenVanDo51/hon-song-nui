@@ -91,7 +91,7 @@ func _process(_dt: float) -> void:
 func _def_for(c: Dictionary) -> Dictionary:
 	if c.kind == "campaign":
 		var mid: String = c.id
-		return Content.mission(mid)
+		return Content.level(mid)
 	var map_id: String = c.get("map", "dong_bang")
 	var hero: String = c.hero
 	var gold: int = c.get("gold", 300)

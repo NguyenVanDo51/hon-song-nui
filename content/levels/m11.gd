@@ -3,7 +3,7 @@ extends RefCounted
 
 const DEF := {
 	"id": "m11",
-	"order": 11,
+	"order": 110,
 	"title": "Bát Nàn Giữ Ải",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",

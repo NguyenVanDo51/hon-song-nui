@@ -13,7 +13,7 @@ func _init() -> void:
 	quit()
 
 func play(mid: String) -> void:
-	var def: Dictionary = Content.mission(mid)
+	var def: Dictionary = Content.level(mid)
 	var s := Game.new_game(def)
 	s.rng = int(lib.seed_v)
 	var last := [0]

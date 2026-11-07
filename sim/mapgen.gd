@@ -17,7 +17,7 @@ func _init() -> void:
 		if a.begins_with("only="):
 			only = Array(a.substr(5).split(","))
 	var jobs := []
-	for m: Dictionary in Content.campaign():
+	for m: Dictionary in Content.levels():
 		jobs.append([m.id, m])
 	for mid: String in Content.SKIRMISH.MAPS:
 		var sm: Dictionary = Content.SKIRMISH.MAPS[mid]

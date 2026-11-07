@@ -6,7 +6,7 @@ var lib := SimLib.new()
 func _init() -> void:
 	lib.seed_v = 1000.0
 	AI.rng = lib.rng
-	var def: Dictionary = Content.mission(OS.get_cmdline_user_args()[0])
+	var def: Dictionary = Content.level(OS.get_cmdline_user_args()[0])
 	var s := Game.new_game(def)
 	s.rng = 1000
 	var last := [-1]

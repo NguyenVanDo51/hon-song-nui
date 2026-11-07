@@ -296,7 +296,7 @@ func rule_tests_2() -> void:
 	run(
 		"AE2 unit cap: campaign 100 unless the mission sets one; skirmish keeps its chosen cap",
 		func() -> void:
-			for m: Dictionary in Content.campaign():
+			for m: Dictionary in Content.levels():
 				eq(Game.new_game(m).unitCap, m.get("unitCap", 100), str(m.id))
 			eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false)).unitCap, 15, "skirmish default")
 			eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false, 300, 30)).unitCap, 30, "skirmish chosen")
@@ -325,7 +325,7 @@ func rule_tests_2() -> void:
 		"mission order values are unique",
 		func() -> void:
 			var seen := { }
-			for m: Dictionary in Content.campaign():
+			for m: Dictionary in Content.levels():
 				check(not seen.has(m.order), "duplicate order %s (%s)" % [m.order, m.id])
 				seen[m.order] = true,
 	)

@@ -12,7 +12,7 @@ func _init() -> void:
 		var ts: Array[int] = []
 		for g in games:
 			lib.seed_v = 1000.0 + g * 7919
-			var def: Dictionary = Content.mission(id)
+			var def: Dictionary = Content.level(id)
 			var s := Game.new_game(def)
 			s.rng = int(lib.seed_v)
 			var mem := { }

@@ -1,6 +1,6 @@
 extends SceneTree
 ## headless balance sim (line starts as the old JS scripts/sim.cjs; + win turns / lost / stars columns for mission stars)
-## <godot> --headless --path . -s sim/sim.gd -- mission <id|all> [games]   -> AI plays both sides of a campaign mission
+## <godot> --headless --path . -s sim/sim.gd -- mission <id|all> [games]   -> AI plays both sides of a level (Content.levels)
 ## <godot> --headless --path . -s sim/sim.gd -- skirmish [games] [easy]    -> AI vs AI on the free-play map, heroes rotate
 ## <godot> --headless --path . -s sim/sim.gd -- naive [games]              -> random bot (p) vs AI (e) on skirmish map
 ## <godot> --headless --path . -s sim/sim.gd -- rng                        -> first 10 rng values (parity check)
@@ -24,12 +24,12 @@ func _init() -> void:
 	elif mode == "mission":
 		var ids := []
 		if a1 == "" or a1 == "all":
-			for m: Dictionary in Content.campaign():
+			for m: Dictionary in Content.levels():
 				ids.append(m.id)
 		else:
 			ids = [a1]
 		for id: String in ids:
-			var def: Dictionary = Content.mission(id)
+			var def: Dictionary = Content.level(id)
 			report(
 				"%s %s" % [id, def.title],
 				int(a2) if a2 != "" else 20,
@@ -81,7 +81,7 @@ func report(label: String, games: int, mk: Callable) -> void:
 			win_turns.append(s.turn)
 			var deaths: Dictionary = s.heroDeaths
 			hero_ok += 1 if deaths.p == 0 else 0
-		var mdef: Variant = Content.mission(str(s.get("scenario", "")))
+		var mdef: Variant = Content.level(str(s.get("scenario", "")))
 		if mdef != null:
 			var md: Dictionary = mdef
 			if md.has("stars"):

@@ -6,7 +6,7 @@
 - Chỉ số, luật: `scripts/core/rules.gd` (không chứa tên).
 
 ## Level (Thử thách)
-Mỗi level = 1 file `content/campaign/*.gd` (`DEF`), xếp theo `order`; số hiện cho người chơi = thứ tự trong danh sách. Mở khóa: mọi level tới level xa nhất đã thắng, + level kế (`Store.unlocked_index`). Màn chọn: `scripts/ui/level_select.gd` (20 ô / trang, màu theo `tier`, sao tốt nhất, khóa). Không chương (bỏ 2026-11-07).
+Mỗi level = 1 file `content/levels/*.gd` (`DEF`), xếp theo `order`; số hiện cho người chơi = thứ tự trong danh sách. Mở khóa: mọi level tới level xa nhất đã thắng, + level kế (`Store.unlocked_index`). Màn chọn: `scripts/ui/level_select.gd` (20 ô / trang, màu theo `tier`, sao tốt nhất, khóa). Không chương (bỏ 2026-11-07).
 
 ## Bản đồ đấu tự do
 `content/skirmish_maps.gd`: `name`, `blurb`, `rows`, `owner`, `units`, tùy chọn `enemyHero`. Nên vẽ đối xứng xoay 180° (test kiểm tra cho các bản đồ mới).
@@ -43,7 +43,7 @@ Trước: `Game` / `AI` / UI so ký tự `v` / `c` / `x` / `t` ở ~15 chỗ, th
 Trước: sửa 7 chỗ (`Game.loss_reason` + `end_turn`, `AI.goals_for` + `best_for_unit`, `board.gd` + `board3d.gd` vẽ ô đích, `game_screen._goal_line`, `Content.WIN_TYPES`, validator trong `sim/tests.gd`) + theme.
 
 ## Thêm level
-Tạo `content/campaign/<id>.gd` (game tự gom mọi file trong thư mục, xếp theo `order`):
+Tạo `content/levels/<id>.gd` (game tự gom mọi file trong thư mục, xếp theo `order`):
 
 ```gdscript
 extends RefCounted

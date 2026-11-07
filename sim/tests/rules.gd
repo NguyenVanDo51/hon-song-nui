@@ -393,7 +393,7 @@ func rule_tests() -> void:
 	run(
 		"mission stars: win · commander never fell · turns / lost bar",
 		func() -> void:
-			var m02: Dictionary = Content.mission("m02")
+			var m02: Dictionary = Content.level("m02")
 			var n: int = m02.stars.turns
 			var s := Game.new_game(m02)
 			s.winner = "p"
@@ -405,7 +405,7 @@ func rule_tests() -> void:
 			eq(Stars.count(s, m02), 1, "commander fell once")
 			s.winner = "e"
 			eq(Stars.count(s, m02), 0, "loss = no stars")
-			var m03: Dictionary = Content.mission("m03")
+			var m03: Dictionary = Content.level("m03")
 			var k: int = m03.stars.lost
 			var s3 := Game.new_game(m03)
 			s3.winner = "p"

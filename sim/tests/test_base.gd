@@ -49,7 +49,7 @@ static func xy(a: Array, i := 0) -> Vector2i:
 	return Vector2i(x, y)
 
 static func mission(id: String) -> Dictionary:
-	return Content.mission(id)
+	return Content.level(id)
 
 func run(name: String, fn: Callable) -> void:
 	_cur = name

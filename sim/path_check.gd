@@ -6,7 +6,7 @@ var bad := 0
 var checked := 0
 
 func _init() -> void:
-	for m: Dictionary in Content.campaign():
+	for m: Dictionary in Content.levels():
 		var s := Game.new_game(m)
 		var mid: String = m.id
 		for u: Dictionary in s.units:

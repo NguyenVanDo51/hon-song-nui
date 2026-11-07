@@ -5,7 +5,7 @@ extends RefCounted
 
 const DEF := {
 	"id": "m13",
-	"order": 13,
+	"order": 130,
 	"title": "Địu Con Phá Vây",
 	"hero": "anhhung",
 	"enemyHero": null,

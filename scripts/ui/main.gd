@@ -94,7 +94,7 @@ func _build_rotate_hint() -> void:
 func _boot() -> void:
 	if flags.has("mission"):
 		var mid := str(flags.mission)
-		var md: Dictionary = Content.mission(mid)
+		var md: Dictionary = Content.level(mid)
 		var mctx := { "kind": "campaign", "id": flags.mission }
 		start_game(Game.new_game(md), mctx)
 		return

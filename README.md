@@ -101,7 +101,7 @@ Tham số AI (`AI.DEFAULT`, ghi đè theo phe `s.aiParams`), tự đấu để t
 |---|---|
 | Tên, icon, màu phe, chữ giao diện | `content/theme.gd` |
 | Lối chơi từng loại quân (thẻ giới thiệu, ⓘ) | `content/guide.gd` (đặc tính tự sinh từ chỉ số) |
-| Level (1 file / level, tự gom theo `order`) | `content/campaign/mNN.gd`, định dạng ở `docs/content.md` |
+| Level (1 file / level, tự gom theo `order`) | `content/levels/mNN.gd`, định dạng ở `docs/content.md` |
 | Bản đồ đấu tự do | `content/skirmish_maps.gd` |
 | Chỉ số lính, tướng, địa hình, kinh tế | `scripts/core/rules.gd` |
 | Ảnh thật thay emoji / hình vẽ | thêm `"img": "res://…png"` vào lính / tướng / địa hình trong theme |

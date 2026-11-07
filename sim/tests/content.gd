@@ -3,7 +3,7 @@ extends "res://sim/tests/test_base.gd"
 
 # ---------- content ----------
 func content_tests() -> void:
-	var all: Array = Content.campaign().duplicate()
+	var all: Array = Content.levels().duplicate()
 	var hero_p: String = Content.heroes_of("p")[0]
 	var hero_e1: String = Content.heroes_of("e")[0]
 	for mid: String in Content.SKIRMISH.MAPS:
@@ -18,11 +18,25 @@ func content_tests() -> void:
 					var mirror: String = rows[rows.size() - 1 - y]
 					eq(rows[y], mirror.reverse(), "%s row %d" % [mid, y]),
 	)
-	eq(Content.campaign().size(), 16, "campaign size")
+	run(
+		"levels: content/levels, orders strictly increasing",
+		func() -> void:
+			var orders: Array = Content.levels().map(
+				func(m: Dictionary) -> int:
+					return m.order,
+			)
+			check(orders.size() >= 16, "16 old levels at least")
+			for i in range(1, orders.size()):
+				var a: int = orders[i - 1]
+				var b: int = orders[i]
+				check(b > a, "order %d after %d" % [b, a])
+			eq(Content.LEVEL_DIR, "res://content/levels")
+			eq(orders[0], 10, "old orders x10 (room to insert)"),
+	)
 	run(
 		"levels carry no story keys",
 		func() -> void:
-			for m: Dictionary in Content.campaign():
+			for m: Dictionary in Content.levels():
 				for k: String in ["story", "history", "tips"]:
 					check(not m.has(k), "%s has %s" % [m.id, k])
 			check(not Content.theme().has("people"), "theme people gone"),
@@ -30,7 +44,7 @@ func content_tests() -> void:
 	run(
 		"next level + paging",
 		func() -> void:
-			var lv := Content.campaign()
+			var lv := Content.levels()
 			var first: Dictionary = lv[0]
 			var second: Dictionary = lv[1]
 			var last: Dictionary = lv.back()
@@ -44,7 +58,7 @@ func content_tests() -> void:
 	run(
 		"our commander can walk (over turns) to every castle, the enemy commander and the reach goal",
 		func() -> void:
-			for m: Dictionary in Content.campaign():
+			for m: Dictionary in Content.levels():
 				var s := Game.new_game(m)
 				var hero: Variant = null
 				for u: Dictionary in s.units:
@@ -97,7 +111,7 @@ func content_tests() -> void:
 			eq(Content.heroes_of("p"), ["anhhung"])
 			eq(Content.heroes_of("e"), ["tuonggiac"])
 			eq(Rules.HEROES.keys(), ["anhhung", "tuonggiac"])
-			for m: Dictionary in Content.campaign():
+			for m: Dictionary in Content.levels():
 				var mid: String = m.id
 				eq(m.hero, "anhhung", mid)
 				var eh_ok: bool = m.enemyHero == null or m.enemyHero == "tuonggiac"
@@ -135,7 +149,7 @@ func content_tests() -> void:
 		run(
 			"content valid: %s" % def.id,
 			func() -> void:
-				if Content.mission(str(def.id)) != null: # campaign only
+				if Content.level(str(def.id)) != null: # campaign only
 					eq(Stars.check_def(def), "", "stars bar")
 					check(Content.TIERS.has(def.get("tier")), "tier")
 					check(Content.LEVEL_AI.has(def.get("ai", "normal")), "ai")

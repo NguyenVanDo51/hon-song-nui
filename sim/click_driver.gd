@@ -501,7 +501,7 @@ func _run() -> void:
 	var restore_ok: bool = g.visible and g.s.turn == 2 and units_of(g.s).size() == units_of(s).size()
 	ok(restore_ok, "continue restores the save")
 	# map node of the mission in progress: ask, never wipe it silently
-	var m02: Dictionary = Content.mission("m02")
+	var m02: Dictionary = Content.level("m02")
 	main.menus.confirm_start(Game.new_game(m02), { "kind": "campaign", "id": "m02" })
 	await process_frame
 	var asked_ok: bool = find_btn(main, "Đánh lại từ đầu") != null and g.s.turn == 2
@@ -530,7 +530,7 @@ func _run() -> void:
 	var play_ok: bool = not g._intro_on and g.s.side == "p" and g.s.turn == 1
 	ok(play_ok, "then the game is playable")
 	# an old ctx still carrying "story": no overlay, plays, key dropped from the save
-	var m03: Dictionary = Content.mission("m03")
+	var m03: Dictionary = Content.level("m03")
 	main.start_game(Game.new_game(m03), { "kind": "campaign", "id": "m03", "story": true })
 	await wait(0.6)
 	for i in 20:
@@ -557,7 +557,7 @@ func _run() -> void:
 	await wait(0.6)
 	var grid := _find_cls(main, "LevelSelect")
 	ok(grid != null, "level grid shows")
-	var all := Content.campaign()
+	var all := Content.levels()
 	var want: Dictionary = all[mini(Store.unlocked_index(), all.size() - 1)]
 	press("Vào trận")
 	await wait(0.8)

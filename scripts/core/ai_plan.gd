@@ -497,7 +497,7 @@ static func hero_kill_prefix(c: Dictionary, foe: String) -> Array:
 	for u: Dictionary in c.units:
 		if u.side == me and u.type == "hero":
 			hid = u.id
-	if hid < 0:
+	if hid < 0 or _hit_cap(c, foe, hid) < Game.unit_by_id(c, hid).hp:
 		return []
 	var r: Dictionary = c.duplicate(true)
 	var buys := []
@@ -519,6 +519,46 @@ static func hero_kill_prefix(c: Dictionary, foe: String) -> Array:
 		if not bought:
 			break
 	return []
+
+## upper bound of what foe can deal to unit hid this turn (max rolls + slack per hit, <= 4 buys): skips hopeless searches
+static func _hit_cap(c: Dictionary, foe: String, hid: int) -> float:
+	const SLACK := 15.0 # tile / water / poison mods the bound does not place
+	var h: Dictionary = Game.unit_by_id(c, hid)
+	var hx: int = h.x
+	var hy: int = h.y
+	var cap := 0.0
+	for u: Dictionary in c.units:
+		if u.side != foe:
+			continue
+		var st := Game.stat(c, u)
+		var mv: int = 0 if st.get("siege", false) else st.mv
+		var rmax: int = st.rmax
+		var ux: int = u.x
+		var uy: int = u.y
+		if Game.dist(ux, uy, hx, hy) <= mv + rmax:
+			var uhp: int = u.hp
+			cap += Game.damage(c, u, ux, uy, uhp, h, 1.0) + SLACK
+	var gold: int = c.gold[foe]
+	var best := 0.0
+	var cheap := 0
+	for key: Vector2i in Game.castle_tiles(c, foe):
+		for o: Dictionary in Game.buy_options(c, foe, key.x, key.y):
+			var ot: String = o.type
+			var cost: int = o.cost
+			var base: Dictionary = Game.UNITS[ot]
+			if cost > gold or base.get("siege", false):
+				continue
+			var vu := { "id": -1, "side": foe, "type": ot, "x": key.x, "y": key.y, "hp": 100, "xp": 0, "rank": 0, "acted": false }
+			var st := Game.stat(c, vu)
+			var mv: int = st.mv
+			var rmax: int = st.rmax
+			if Game.dist(key.x, key.y, hx, hy) > mv + rmax:
+				continue
+			best = maxf(best, Game.damage(c, vu, key.x, key.y, 100, h, 1.0) + SLACK)
+			cheap = cost if cheap == 0 else mini(cheap, cost)
+	if cheap > 0:
+		cap += best * mini(4, floori(float(gold) / cheap))
+	return cap
 
 ## affordable type bought at castle key that hits unit hid hardest this turn (mid roll); "" = none reaches it
 static func _best_hitter(r: Dictionary, foe: String, key: Vector2i, hid: int) -> String:

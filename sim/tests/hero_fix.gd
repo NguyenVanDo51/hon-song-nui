@@ -9,6 +9,18 @@ const CASTLE := Vector2i(11, 8) # unowned castle next to the bot's side of dong_
 
 func hero_tests() -> void:
 	run(
+		"presets: hard / army carry HERO_FIX (= tune.gd frozen copy); army = hard + V5_ARMY",
+		func() -> void:
+			eq(AI.HERO_FIX, Tune.HERO_FIX, "frozen copy")
+			for k: String in AI.HERO_FIX:
+				eq(AI.PRESETS.hard.get(k), AI.HERO_FIX[k], "hard " + k)
+				eq(AI.PRESETS.army.get(k), AI.HERO_FIX[k], "army " + k)
+			var v3: Dictionary = Tune.frozen("hard_v3")
+			for k: String in AI.PRESETS.hard:
+				if not AI.HERO_FIX.has(k):
+					eq(AI.PRESETS.hard[k], v3[k], "hard = hard_v3 + HERO_FIX: " + k),
+	)
+	run(
 		"t5: commander (49 hp) no longer ends where fresh buys + units kill it (roll 0.75); old presets do",
 		func() -> void:
 			for name: String in ["hard_v3", "hard_v5"]:

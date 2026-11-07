@@ -11,7 +11,7 @@ const DEFAULT_WEIGHT := 1.0
 const PRESETS := {
 	"easy": { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }, # reckless
 	"normal": { },
-	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2") + human tactics (v3)
+	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2") + human tactics (v3) + HERO_FIX
 	"hard": {
 		"hp_cap": 81.2937,
 		"kill_hero": 552.335,
@@ -22,6 +22,9 @@ const PRESETS := {
 		"trade_w": 1.0,
 		"order_w": 1.0,
 		"feed_w": 1.0,
+		"hero_bt": 1.0, # HERO_FIX (literal: const can't merge)
+		"hero_ncast": 2.0,
+		"pl_hero_kill": 0.75,
 	},
 	# 1 vs 1 "Khó" = hard + V5_ARMY (varied army; tune.gd hard_v5). Literal: const can't merge; test = hard.merged(V5_ARMY)
 	"army": {
@@ -39,6 +42,9 @@ const PRESETS := {
 		"pl_chain": 1.0,
 		"mix_save": 0.1,
 		"sham_save": 1.0,
+		"hero_bt": 1.0,
+		"hero_ncast": 2.0,
+		"pl_hero_kill": 0.75,
 	},
 }
 
@@ -739,7 +745,7 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		if hero_bt > 0.0:
 			for o: Dictionary in mine:
 				if o.type == "hero":
-					_buy_hits(s, side, mem)
+					_buy_hits(s, side, mem, o)
 		var best: Variant = null
 		var claims: Dictionary = mem.claims
 		var role_w: float = P.role_w
@@ -827,36 +833,52 @@ static func _hero_near(s: Dictionary, side: String, mem: Dictionary) -> void:
 		return
 
 ## hero_bt: tile -> [[castle, virtual unit, cost]] the foe could buy next turn and hit that tile with (mem.hbt), + its
-## gold then (mem.hbt_gold)
-static func _buy_hits(s: Dictionary, side: String, mem: Dictionary) -> void:
+## gold then (mem.hbt_gold); only castles within reach of what hero can reach
+static func _buy_hits(s: Dictionary, side: String, mem: Dictionary, hero: Dictionary) -> void:
 	var out := { }
 	var foe := Game.other(side)
 	var g: int = s.gold[foe]
 	mem.hbt_gold = g + Game.income(s, foe)
+	var hx: int = hero.x
+	var hy: int = hero.y
+	var hmv: int = Game.stat(s, hero).mv
+	var tiles_of := { } # [castle, move, mv, rmin, rmax] -> tiles hit: same reach for every type of that shape
 	for b: Array in AIBuy.buy_reach(s, side):
 		var vu: Dictionary = b[1]
 		var st := Game.stat(s, vu)
 		var rmin: int = st.rmin
 		var rmax: int = st.rmax
-		var units: Array = s.units
-		units.append(vu) # reachable reads occupancy: the new unit must step off a castle someone stands on
-		var reach := _reach_cached(s, vu, mem)
-		units.pop_back()
-		var seen := { }
-		for r: Dictionary in reach.values():
-			var fx: int = r.x
-			var fy: int = r.y
-			for y in range(fy - rmax, fy + rmax + 1):
-				for x in range(fx - rmax, fx + rmax + 1):
-					var dd := absi(x - fx) + absi(y - fy)
-					var k := Vector2i(x, y)
-					if dd < rmin or dd > rmax or seen.has(k) or Game.tile_at(s, x, y) == null:
-						continue
-					seen[k] = true
-					if not out.has(k):
-						out[k] = []
-					var on_k: Array = out[k]
-					on_k.append(b)
+		var vmv: int = st.mv
+		var vx: int = vu.x
+		var vy: int = vu.y
+		if Game.dist(vx, vy, hx, hy) > hmv + vmv + rmax:
+			continue # cannot touch any tile the commander can reach
+		var gk := [b[0], st.move, vmv, rmin, rmax]
+		if not tiles_of.has(gk):
+			var units: Array = s.units
+			units.append(vu) # reachable reads occupancy: the new unit must step off a castle someone stands on
+			var reach := _reach_cached(s, vu, mem)
+			units.pop_back()
+			var seen := { }
+			var hit := []
+			for r: Dictionary in reach.values():
+				var fx: int = r.x
+				var fy: int = r.y
+				for y in range(fy - rmax, fy + rmax + 1):
+					for x in range(fx - rmax, fx + rmax + 1):
+						var dd := absi(x - fx) + absi(y - fy)
+						var k := Vector2i(x, y)
+						if dd < rmin or dd > rmax or seen.has(k) or Game.tile_at(s, x, y) == null:
+							continue
+						seen[k] = true
+						hit.append(k)
+			tiles_of[gk] = hit
+		var hits: Array = tiles_of[gk]
+		for k: Vector2i in hits:
+			if not out.has(k):
+				out[k] = []
+			var on_k: Array = out[k]
+			on_k.append(b)
 	mem.hbt = out
 
 ## hero_bt: damage the foe's fresh buys could add on u at (x, y): best type per castle, castles by damage while gold lasts

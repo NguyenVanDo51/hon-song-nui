@@ -30,8 +30,6 @@ func _ready() -> void:
 		flags[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	if flags.has("profile"): # profile=test: settings / progress / save kept apart from the player's
 		Store.use_profile(str(flags.profile))
-	if flags.has("3d"): # 3d=1 / 3d=0: board renderer for this run
-		Store.board3d_flag = 0 if str(flags["3d"]) == "0" else 1
 	if flags.has("norig"): # norig: every attack uses the old FX.attack instead of the code-rigged animation
 		Rigs.enabled = false
 	if flags.has("figstyle"): # figstyle=<dir> art set; figstyle=off -> silhouettes + procedural terrain

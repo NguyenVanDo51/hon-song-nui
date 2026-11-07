@@ -21,7 +21,7 @@ Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ kh
 Luật + AI chỉ đọc dữ liệu (`scripts/core/rules.gd` `UNITS`), không còn danh sách tên quân trong code.
 1. `rules.gd` `UNITS`: chỉ số bắt buộc (`cost atk atkMax def mv rmin rmax move`) + cờ tùy chọn: `capV`/`capC`, `antiAir`, `vsType {loại: +công}`, `aura N`, `poison N`, `waterAtk`/`waterDef`, `raise "loại"`, `siege`, `raze`, `noGrave`, `noCap`, `buyable: false`, `heavy` (hiệu ứng đòn nặng), `shot` (`arrow`/`rock`), `aiWeight` (AI mua), `aiValue` (AI định giá, mặc định = `cost`). Mua được -> thêm vào `BUY_ORDER`.
 2. `content/theme.gd` `units.p` + `units.e`: tên, icon, `fig`; `content/guide.gd` `ROLE` / `PLAY` (thẻ ⓘ). Đặc tính tự sinh từ cờ (`Content.traits`).
-3. Hình: `assets/units/styles/chibi/<loại>_p|e.svg`. Tùy chọn (thiếu thì dùng mặc định): rig đòn đánh `scripts/ui/rig/rigs.gd` + `specs/<loại>.gd`, nét chém `fx.gd` `_signature`, mô hình 3D `board3d.gd` `ROSTER`, âm thanh `audio.gd`.
+3. Hình: `assets/units/styles/chibi/<loại>_p|e.svg`. Tùy chọn (thiếu thì dùng mặc định): rig đòn đánh `scripts/ui/rig/rigs.gd` + `specs/<loại>.gd`, nét chém `fx.gd` `_signature`, âm thanh `audio.gd`.
 4. Màn: `allowed` / `units` / `waves`; `sim/tests.gd` (bảng chỉ số = spec) + `docs/spec.md` bảng lính.
 
 Trước (2026-11-06): thêm cả `AI.WEIGHTS` (thiếu = crash), danh sách quân nặng ở `fx.gd` / `rigs.gd`, `"ghost"` cứng trong `game.gd` (gọi hồn, +công vs âm binh), +10 hào quang / độc cứng, danh sách quân không mua được trong `menus.gd`, thưởng mua của AI theo tên quân.
@@ -30,7 +30,7 @@ Trước (2026-11-06): thêm cả `AI.WEIGHTS` (thiếu = crash), danh sách qu�
 Luật đọc mô tả trong `scripts/core/rules.gd` `TERRAIN`, không đọc ký tự ô (`Game.ter / income_of / sells / cap_flag / can_take / heals_at`).
 1. `TERRAIN["<ký tự>"]`: `def`, `cost`, tùy chọn `water`; công trình thêm `building` (tên, có chủ), `income` (vàng/lượt), `cap` (cờ quân cần để chiếm: `capV` / `capC` / cờ mới), `heals` (`"owner"` | `"any"`), `sells` (mua lính ở đây; tính là thành cho luật thua), `razeTo` (máy bắn đá phá thành ô gì), `repairTo` + `repairBy` (ô hỏng: sửa thành gì, cờ quân sửa được).
 2. `content/theme.gd` `terrain`: tên + màu; ghi chú ô `Content.tile_note` (tùy chọn).
-3. Hình: `scripts/ui/board.gd` `_draw_building` / `_tile_art` + `assets/terrain/chibi/`; 3D `board3d.gd` (`TOP`, công trình).
+3. Hình: `scripts/ui/board.gd` `_draw_building` / `_tile_art` + `assets/terrain/chibi/`.
 4. Thu nhập = tổng `income` các ô đang giữ; thành = ô `sells` đang giữ (`Game.castle_tiles`).
 
 Trước: `Game` / `AI` / UI so ký tự `v` / `c` / `x` / `t` ở ~15 chỗ, thu nhập = (ô sở hữu − thành) × 30 + thành × 50 trong `RULES`.

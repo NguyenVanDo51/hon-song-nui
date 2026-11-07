@@ -32,7 +32,7 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 1 thắng · 2 tướng ta không ngã lần nào · 3 mốc của màn: thắng trong ≤ N lượt, hoặc (màn giữ vững) mất ≤ K lính (không tính tướng, âm binh). Giữ số sao cao nhất. Mốc = trung vị lượt / lính mất khi AI phe ta thắng (sim 12 ván, 2026-11-06), chờ chơi thử.
 
 ## Vùng địch đánh tới (UI, không đổi luật)
-Bấm 1 quân địch: ô trắng mờ = ô nó đi tới được; ô đỏ = chỉ đánh tới được (máy bắn đá: cả vòng 2–4 quanh chỗ đứng, vì đi rồi không ném được); viền đỏ = mọi ô nó đánh được lượt sau nếu không ai di chuyển (`Game.threat_tiles`). Quân ta đứng trong vùng có dấu "!" đỏ. Chưa có trên bàn 3D.
+Bấm 1 quân địch: ô trắng mờ = ô nó đi tới được; ô đỏ = chỉ đánh tới được (máy bắn đá: cả vòng 2–4 quanh chỗ đứng, vì đi rồi không ném được); viền đỏ = mọi ô nó đánh được lượt sau nếu không ai di chuyển (`Game.threat_tiles`). Quân ta đứng trong vùng có dấu "!" đỏ.
 
 ## Địa hình (thủ +, giá đi)
 Đồng 5/1 · Đường 0/1 · Rừng 10/2 · Đồi 10/2 · Núi 15/3 (mọi quân) · Sông 0/3 (thủy binh 1) · Cầu 5/1 · Làng 15/1 · Thành 15/1 · Làng hỏng 15/1 · Đền 15/1 (không chiếm, hồi máu mọi phe). Rồng: mọi ô 1.

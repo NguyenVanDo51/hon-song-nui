@@ -21,7 +21,7 @@ var gen := 0
 var ui := { }
 var stats := { "p": 0, "e": 0 } # units lost per side
 var fx: FX
-var board: BoardBase # Board (2D) or Board3D: same surface (signals, view, fit, set_state, tile_rect, focus)
+var board: Board
 var hud: GameHud
 var panel: InfoPanel
 var player: EventPlayer
@@ -117,8 +117,6 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	ctx = c
 	def = _def_for(c)
 	Content.use_chapter(Content.chapter_of(def)) # enemy skin + wording of this chapter
-	if (board is Board3D) != Store.board_3d():
-		hud.make_board(Store.board_3d())
 	_reset_ui()
 	stats = { "p": 0, "e": 0 }
 	var view_hide: Dictionary = board.view.hide
@@ -134,7 +132,6 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	hud.speed_label()
 	hud.sound_label()
 	hud.show_menu(false)
-	hud.board_label()
 	hud.fit.call_deferred()
 	board.refresh_terrain()
 	var story_on := StoryOverlay.should_play(ctx, main.flags)

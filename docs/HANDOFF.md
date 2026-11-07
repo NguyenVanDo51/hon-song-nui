@@ -96,5 +96,11 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 ## 2026-11-06 — sao màn + vùng địch đánh tới (nhánh `feat/stars-threat`)
 - Nguồn: research thể loại `docs/review/genre_hooks.html` (main checkout, chưa commit) -> đợt 1 chọn: sao màn + vùng địch.
 - Sao: `scripts/core/stars.gd`, `s.lost`, `Store.stars_of`, thẻ thắng + bản đồ chiến dịch. Mốc sao 3 = trung vị sim AI-vs-AI 12 ván (m08 hạ 30 -> 25).
-- Vùng địch: `Game.threat_tiles` + `board.gd` (tô đỏ / viền / dấu !); thẻ thắng ở `game_cards.gd`, tính sao ở `turn_driver.gd` `finish`. Chỉ 2D.
+- Vùng địch: `Game.threat_tiles` + `board.gd` (tô đỏ / viền / dấu !); thẻ thắng ở `game_cards.gd`, tính sao ở `turn_driver.gd` `finish`.
 - Kiểm: tests 96/96 (sau rebase lên master 20fae2e), click driver 0 lỗi, ảnh probe `sim/probes/stars_threat_shot.gd` (3 sao + cung / máy bắn đá / rồng). Chưa chụp được thẻ 1–2 sao (màn hình tắt -> cửa sổ Godot treo).
+
+## 2026-11-07 — xoá bàn 3D
+- Yêu cầu: "xoá hẳn code của màn 3D". Chỉ còn bàn 2D.
+- Xoá: `board3d.gd`, `kit.gd`, `pieces.gd`, `kk.gd`, `shaders/water3d` + `team_tint`, `assets/kaykit/` (~19 MB, chỉ 3D dùng), nút "Bàn cờ 2D/3D" (menu chính + ⚙), cờ debug `3d=`, `Store.board_3d`, `FX.aim`, dòng ghi công KayKit.
+- `BoardBase` giữ (gộp vào `board.gd` sẽ vượt trần 1000 dòng); chỉ còn `Board` kế thừa. Khoá cài đặt `board3d` cũ trong `user://hsn.cfg` bị bỏ qua.
+- Lấy lại: git history.

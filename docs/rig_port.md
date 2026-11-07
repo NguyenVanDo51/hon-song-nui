@@ -34,7 +34,7 @@ Never edit `docs/anim_demo/*` or `assets/units/styles/*`.
    - channels listed in JSON `attacks[].sampled` (JS `track + wobble` combos) are exported as 5 ms linear samples: fine as is; override `channels(p, t, attack)` only if it must be exact.
    - numbers/colours/timings: read `data.consts` (every plain top-level JS const, evaluated, incl. `bake()` results; tracks as `{track: keys}`, sample with `RigData.sample(RigData.keys_of(c.X.track), t)`).
 4. Register: one line in `Rigs.SPECS`: `"<type>": { "script": "res://scripts/ui/rig/specs/<unit>.gd", "p": "<unit>", "e": "<unit>" }` (same name both sides = enemy gets the team-colour swap `#c9503f->#4f74c9`, `#93362b->#32508f`).
-5. Test (below). Units without an entry keep `FX.attack`; so does `Board3D`.
+5. Test (below). Units without an entry keep `FX.attack`.
 
 ## JS -> GDScript api
 | JS | GD |

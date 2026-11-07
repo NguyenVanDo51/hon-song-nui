@@ -6,7 +6,6 @@ var fails := 0
 
 func _init() -> void:
 	Store.use_profile("driver") # never touch the player's save / progress / settings
-	Store.board3d_flag = 0 # this driver walks the 2D board
 	var scn: PackedScene = load("res://main.tscn")
 	main = scn.instantiate()
 	main.flags["nozoom"] = "1"
@@ -64,7 +63,7 @@ static func pos(u: Dictionary) -> Vector2i:
 	var y: int = u.y
 	return Vector2i(x, y)
 
-## 2D board (board3d_flag = 0), read fresh like g.board
+## board, read fresh like g.board
 static func board(g: GameScreen) -> Board:
 	return g.board
 

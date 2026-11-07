@@ -9,7 +9,6 @@ const CREDITS := [
 	["Phông chữ", "Be Vietnam Pro, Alegreya SC, Noto Sans Symbols 2 · SIL Open Font License 1.1."],
 	["Biểu tượng", "Noto Emoji của Google · Apache License 2.0."],
 	["Hình quân", "Icons made by Delapouite, HeavenlyDog, Lorc, Cathelineau. Available on game-icons.net · CC BY 3.0."],
-	["Mô hình 3D", "KayKit của Kay Lousberg (www.kaylousberg.com) · CC0."],
 	["Âm thanh", "Tổng hợp bằng mã ngay khi chạy, nhạc nền theo thang ngũ cung."],
 	[
 		"Sử liệu",
@@ -255,8 +254,6 @@ func show_title() -> void:
 	var snd := Style.button("", "ChipBtn")
 	var mus := Style.button("", "ChipBtn")
 	var spd := Style.button("", "ChipBtn")
-	var b3 := Style.button("", "ChipBtn")
-	b3.tooltip_text = "Sa bàn 3D hoặc bản đồ phẳng 2D (trong trận: menu cài đặt › Bàn cờ)"
 	spd.tooltip_text = "Tốc độ hoạt cảnh x1 / x2 / x3"
 	var sync := func() -> void:
 		var a: Audio = null
@@ -267,17 +264,9 @@ func show_title() -> void:
 		snd.text = "Âm thanh: " + ("Bật" if snd_on else "Tắt")
 		mus.text = "Nhạc nền: " + ("Bật" if mus_on else "Tắt")
 		spd.text = "Tốc độ x%d" % int(FX.speed)
-		b3.text = "Bàn cờ: " + ("3D" if Store.board_3d() else "2D")
-		b3.theme_type_variation = "ChipOn"
 		snd.theme_type_variation = "ChipOn" if snd_on else "ChipBtn"
 		mus.theme_type_variation = "ChipOn" if mus_on else "ChipBtn"
 		spd.theme_type_variation = "ChipOn"
-	_on(
-		b3,
-		func() -> void:
-			Store.set_board_3d(not Store.board_3d())
-			sync.call(),
-	)
 	_on(
 		spd,
 		func() -> void:
@@ -303,7 +292,6 @@ func show_title() -> void:
 	tg.add_child(snd)
 	tg.add_child(mus)
 	tg.add_child(spd)
-	tg.add_child(b3)
 	tg.add_child(_on(Style.button("Ghi công ›", "LinkBtn"), _open_credits))
 	v.add_child(tg)
 

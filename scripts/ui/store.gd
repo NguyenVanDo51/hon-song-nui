@@ -5,7 +5,6 @@ extends RefCounted
 static var CFG := "user://hsn.cfg"
 static var SAVE := "user://hsn_save_v1.txt"
 static var _cfg: ConfigFile
-static var board3d_flag := -1 # debug flag 3d=1/0 for one run; -1 = use the setting
 
 ## test runs (click driver, tests) keep their settings / progress / save apart from the player's
 static func use_profile(name: String) -> void:
@@ -31,15 +30,6 @@ static func set_v(key: String, v: Variant) -> void:
 		push_warning("store: save %s failed (%s)" % [CFG, error_string(err)])
 
 # ---------- settings ----------
-## flat 2D map (default) or the 3D tabletop board; `board3d_flag` (debug flag 3d=1/0) overrides it for one run
-static func board_3d() -> bool:
-	var on: bool = get_v("board3d", false)
-	return on if board3d_flag < 0 else board3d_flag == 1
-
-static func set_board_3d(on: bool) -> void:
-	board3d_flag = -1
-	set_v("board3d", on)
-
 # ---------- campaign progress ----------
 static func done_list() -> Array:
 	return get_v("campaign_done", [])

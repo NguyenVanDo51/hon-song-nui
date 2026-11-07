@@ -72,17 +72,11 @@ static func stage(g: GameScreen, a: Dictionary, d: Dictionary, ax: Vector2i, dx:
 	refresh_terrain(g)
 	g.refresh()
 
-## g.board is Board (2D) or Board3D; no shared base method for these
 static func refresh_terrain(g: GameScreen) -> void:
-	if g.board is Board3D:
-		(g.board as Board3D).refresh_terrain()
-	else:
-		(g.board as Board).refresh_terrain()
+	g.board.refresh_terrain()
 
 static func tile_rect(g: GameScreen, x: int, y: int) -> Rect2:
-	if g.board is Board3D:
-		return (g.board as Board3D).tile_rect(x, y)
-	return (g.board as Board).tile_rect(x, y)
+	return g.board.tile_rect(x, y)
 
 ## black-on-white caption over everything (frame time on a contact sheet)
 func ms_label(size: int) -> Label:

@@ -219,7 +219,7 @@ func _apply_zoom(shake: Vector2) -> void:
 		_terrain_view.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR if zoomed else CanvasItem.TEXTURE_FILTER_NEAREST
 		_terrain_view.queue_redraw()
 
-## a tile's rectangle in the parent's coordinates (popup placement; Board3D returns its projected footprint)
+## a tile's rectangle in the parent's coordinates (popup placement)
 func tile_rect(x: int, y: int) -> Rect2:
 	return Rect2(position + Vector2(x * T, y * T), Vector2(T, T))
 
@@ -606,8 +606,7 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			Draw.text_c(ci, Style.xbold, bc, "!", roundi(T * 0.2), Color.WHITE)
 
 ## hp bar + number (when hurt), rank stars, sleeping-sentry 💤 around a figure centred at c (tile size ts).
-## zz = 💤 height above c, tiles (3D projects c at the chest, so it sits higher there)
-static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Vector2, ts: float, zz := 0.52) -> void:
+static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Vector2, ts: float) -> void:
 	var hp: int = u.hp
 	if v.hp != null:
 		var hps: Dictionary = v.hp
@@ -636,7 +635,7 @@ static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Ve
 	if u.rank:
 		Draw.text_a(ci, Style.xbold, Vector2(c.x - ts * 0.48, c.y - ts * 0.5), "Lv%d" % u.rank, roundi(ts * 0.2), STAR, 0.0, true, 3, STAR_INK)
 	if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat*)
-		Draw.text_a(ci, Style.body, Vector2(c.x + ts * 0.24, c.y - ts * zz), "💤", roundi(ts * 0.22), Color.WHITE, 1.0, true)
+		Draw.text_a(ci, Style.body, Vector2(c.x + ts * 0.24, c.y - ts * 0.52), "💤", roundi(ts * 0.22), Color.WHITE, 1.0, true)
 
 ## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
 ## striking leans into the blow (fx.offsets), getting hit shoves it back (fx.knock), dying topples it over (ghost),

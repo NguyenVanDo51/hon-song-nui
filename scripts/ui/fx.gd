@@ -23,7 +23,6 @@ var flash_until := { }
 var offsets := { }
 var knock := { } # unit id -> { dir, t0, dur, mag }: hit reaction the board turns into a shove + lean
 var facing := { } # unit id -> -1 / 1: which way an attacker turned to strike
-var aim := { } # unit id -> Vector2 direction of its current strike (3D board turns the figure to it)
 var rigs: Array = [] # live code-rigged attacks (Rig), drawn by the 2D board; kept until their sparks fade
 var _gen := 0 # bumped by clear(): delayed effects of an older scene drop out
 var _last := 0.0
@@ -49,7 +48,6 @@ func clear() -> void:
 	offsets.clear()
 	knock.clear()
 	facing.clear()
-	aim.clear()
 	shake_until = 0.0
 	rigs.clear()
 
@@ -144,7 +142,6 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := { }) -> void:
 	var dir := Vector2(dx - ax, dy - ay).normalized()
 	if absf(dir.x) > 0.01:
 		facing[a.id] = signf(dir.x)
-	aim[a.id] = dir
 	if shot != "":
 		# draw: lean back, then loose the shot and spring forward
 		await tween(
@@ -217,7 +214,6 @@ func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: in
 	var dx: int = d.x
 	var dy: int = d.y
 	r.place(board, Vector2i(ax, ay), Vector2i(dx, dy), f)
-	aim[a.id] = Vector2(dx - ax, dy - ay).normalized()
 	rigs.append(r)
 	var t0 := now()
 	var adur: float = r.A.dur
@@ -320,7 +316,6 @@ func raze(a: Dictionary, x: int, y: int) -> void:
 	var dir := Vector2(x - ax, y - ay).normalized()
 	if absf(dir.x) > 0.01:
 		facing[a.id] = signf(dir.x)
-	aim[a.id] = dir
 	await tween(
 		130.0,
 		func(t: float) -> void:

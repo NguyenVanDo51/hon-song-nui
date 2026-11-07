@@ -29,7 +29,6 @@ var _goal: RichTextLabel
 var _btn_speed: Button
 var _btn_sound: Button
 var _btn_restart: Button
-var _btn_board: Button
 var _hud_tl: Control
 var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _frame: Panel
@@ -61,7 +60,7 @@ func build_hud() -> void:
 	_frame.add_theme_stylebox_override("panel", fs)
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	map_wrap.add_child(_frame)
-	make_board(Store.board_3d())
+	make_board()
 	coins = CoinPop.new(gs.board)
 	map_wrap.add_child(coins)
 	_banner = HudWidgets.Banner.new()
@@ -148,16 +147,8 @@ func build_hud() -> void:
 	)
 	gs.add_child(btn_end)
 
-## 3D tabletop or 2D map; swapping keeps the game, only the renderer changes
-func make_board(three_d: bool) -> void:
-	var at := -1
-	if gs.board != null:
-		at = gs.board.get_index()
-		gs.board.queue_free()
-	if three_d:
-		gs.board = Board3D.new()
-	else:
-		gs.board = Board.new()
+func make_board() -> void:
+	gs.board = Board.new()
 	gs.board.fx = gs.fx
 	if coins != null:
 		coins.board = gs.board
@@ -171,23 +162,6 @@ func make_board(three_d: bool) -> void:
 	gs.board.cancel_requested.connect(gs.cancel)
 	gs.board.info_requested.connect(gs._on_info_requested)
 	map_wrap.add_child(gs.board)
-	if at >= 0:
-		map_wrap.move_child(gs.board, at)
-	_frame.visible = not three_d # the 3D board sits on its own table
-
-func _toggle_3d() -> void:
-	if gs.ui.busy:
-		return
-	Store.set_board_3d(not (gs.board is Board3D))
-	make_board(Store.board_3d())
-	gs.board.set_state(gs.s)
-	gs.board.refresh_terrain()
-	fit()
-	board_label()
-	gs.refresh()
-
-func board_label() -> void:
-	_btn_board.text = "⛰ Bàn cờ: " + ("3D" if gs.board is Board3D else "2D")
 
 func _hud_box() -> StyleBoxFlat:
 	var b := Style.box(Color(0.075, 0.045, 0.03, 0.86), Color(Style.BRONZE_2, 0.7), 10, 10)
@@ -237,7 +211,6 @@ func _build_menu() -> void:
 			sound_label(),
 		false,
 	)
-	_btn_board = item.call("", "Sa bàn 3D hoặc bản đồ phẳng 2D", _toggle_3d, false)
 	_btn_restart = item.call("↩ Đánh lại màn này", "Chơi lại màn này từ đầu", _confirm_restart)
 	item.call(
 		"🏠 Về menu chính",

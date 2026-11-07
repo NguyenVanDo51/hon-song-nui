@@ -1,7 +1,7 @@
 class_name BoardBase
 extends Control
-## what the 2D Board and the 3D Board3D share: GameScreen's surface (signals, s, fx, T, view, hover), mouse input
-## (only the tile picker differs), close-up easing, the list of figures to draw, the selected-unit pulse.
+## Board's GameScreen surface (signals, s, fx, T, view, hover), mouse input
+## close-up easing, the list of figures to draw, the selected-unit pulse.
 
 signal tile_clicked(x: int, y: int)
 signal hover_changed(tile: Variant)
@@ -51,7 +51,7 @@ func _pick(_p: Vector2) -> Variant:
 func tile_rect(_x: int, _y: int) -> Rect2:
 	return Rect2()
 
-## board API used by GameScreen; Board / Board3D override
+## board API used by GameScreen; Board overrides
 func set_state(_state: Dictionary) -> void:
 	pass
 

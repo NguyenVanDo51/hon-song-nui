@@ -397,18 +397,27 @@ static func _river(g: Array, w: int, h: int, recipe: Dictionary, rng: RandomNumb
 			var along := k.y if vert else k.x
 			if along > 0 and along < n - 1:
 				cand.append(k)
-	if cand.size() < nb:
-		return "river has no room for %d bridges" % nb
+	# sym: pick in the first half only, the mirror adds the other; picks keep 2+ cells apart along the river
+	var want := ceili(nb / 2.0) if sym else nb
+	var span_n := ((n + 1) >> 1) if sym else n
 	var picked := []
-	for i in nb:
-		var target := roundi((i + 0.5) * n / float(nb))
-		var best: Vector2i = cand[0]
+	for i in want:
+		var target := roundi((i + 0.5) * span_n / float(want))
+		var best := Vector2i(-1, -1)
 		var best_d := 999
 		for k: Vector2i in cand:
 			var along := k.y if vert else k.x
-			if absi(along - target) < best_d and not picked.has(k):
+			if sym and (along >= span_n or (n - 1 - along) - along < 3): # its mirror lands 3+ cells away
+				continue
+			var near := false
+			for q: Vector2i in picked:
+				if absi((q.y if vert else q.x) - along) < 3:
+					near = true
+			if not near and absi(along - target) < best_d:
 				best = k
 				best_d = absi(along - target)
+		if best == Vector2i(-1, -1):
+			return "river has no room for %d bridges" % nb
 		picked.append(best)
 		g[best.y][best.x] = "="
 		if sym:
@@ -485,8 +494,9 @@ static func _place_group(
 
 static func _free_near(g: Array, w: int, h: int, rng: RandomNumberGenerator, c: Vector2i, taken: Dictionary, r: int, ty: String) -> Vector2i:
 	var opts := []
-	for dy in range(-r, r + 1):
-		for dx in range(-r, r + 1):
+	var rr := r * 2 if ty == "boat" else r # boats need the river, which may run further off
+	for dy in range(-rr, rr + 1):
+		for dx in range(-rr, rr + 1):
 			var k := c + Vector2i(dx, dy)
 			if not _in(k, w, h) or taken.has(k):
 				continue

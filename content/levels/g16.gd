@@ -1,0 +1,50 @@
+extends RefCounted
+## level g16: drawn by sim/levelgen.gd (recipe g16, seed 1). Format: docs/content.md
+
+const DEF := {
+	"id": "g16",
+	"order": 155,
+	"title": "Núi Rồng",
+	"tier": "mid",
+	"ai": "normal",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
+	"newUnits": [],
+	"allowed": {
+		"p": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"],
+		"e": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"],
+	},
+	"gold": { "p": 700, "e": 350 },
+	"win": { "type": "hero" },
+	"stars": { "turns": 12 },
+	"unitCap": 15,
+	"night": false,
+	"map": {
+		"rows": [
+			"v.f......hhfhhm",
+			"rhhh..vffmffmhf",
+			"rmfmh.rhhffhfh.",
+			"rh.ff.rmhhmh...",
+			"rvrrrrrfffhf.c.",
+			"hfr...rrrvrrrr.",
+			"f.r......hh..r.",
+			"..r......hmf.r.",
+			"..c....f.ff..r.",
+			"f.....hmh....r.",
+			"hmh.....vrrrrv.",
+		],
+	},
+	"owner": [[2, 8, "p"], [13, 4, "e"], [1, 4, "p"], [9, 5, "e"]],
+	"units": [
+		["p", "hero", 1, 9],
+		["p", "soldier", 2, 9],
+		["p", "archer", 1, 8],
+		["p", "elephant", 3, 8],
+		["e", "hero", 14, 5],
+		["e", "bird", 12, 5],
+		["e", "soldier", 13, 5],
+		["e", "archer", 14, 4],
+	],
+	"waves": [],
+	"gen": { "recipe": "g16", "seed": 1 },
+}

@@ -1,0 +1,48 @@
+extends RefCounted
+## level g02: drawn by sim/levelgen.gd (recipe g02, seed 4). Format: docs/content.md
+
+const DEF := {
+	"id": "g02",
+	"order": 55,
+	"title": "Đồi Sim",
+	"tier": "mid",
+	"ai": "normal",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
+	"newUnits": [],
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": [] },
+	"gold": { "p": 600, "e": 0 },
+	"win": { "type": "rout" },
+	"stars": { "turns": 12 },
+	"unitCap": 15,
+	"night": false,
+	"map": {
+		"rows": [
+			"....hf...hf..f",
+			"....f..ffff.fh",
+			".c..f.fhfhffh.",
+			".r.fmhhfmh.hmf",
+			".rrrrrvff..f.v",
+			"......rf.....r",
+			"......rhf....r",
+			"......rf.....r",
+			"......rrrrrrvr",
+			"vrrrrrv.......",
+		],
+	},
+	"owner": [[1, 2, "p"], [6, 4, "p"]],
+	"units": [
+		["p", "hero", 1, 2],
+		["p", "soldier", 1, 1],
+		["p", "elephant", 0, 1],
+		["e", "hero", 13, 6],
+		["e", "soldier", 12, 5],
+		["e", "soldier", 12, 6],
+		["e", "archer", 11, 6],
+		["e", "archer", 11, 5],
+		["e", "drum", 13, 5],
+		["e", "elephant", 12, 4],
+	],
+	"waves": [],
+	"gen": { "recipe": "g02", "seed": 4 },
+}

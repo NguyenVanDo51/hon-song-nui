@@ -1,0 +1,45 @@
+extends RefCounted
+## level g12: drawn by sim/levelgen.gd (recipe g12, seed 7). Format: docs/content.md
+
+const DEF := {
+	"id": "g12",
+	"order": 127,
+	"title": "Bãi Lau",
+	"tier": "easy",
+	"ai": "normal",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
+	"newUnits": [],
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "boat", "wolf"], "e": [] },
+	"gold": { "p": 600, "e": 0 },
+	"win": { "type": "rout" },
+	"stars": { "turns": 8 },
+	"unitCap": 15,
+	"night": false,
+	"map": {
+		"rows": [
+			"....fhmmfff.",
+			".....fhf.m..",
+			".........hf.",
+			".crrrv......",
+			"...r.rrrrrrv",
+			"fhfr........",
+			"mmfr.....fh.",
+			"hf.r......ff",
+			"f..vrrrv.fmh",
+		],
+	},
+	"owner": [[1, 3, "p"], [5, 3, "p"]],
+	"units": [
+		["p", "hero", 1, 3],
+		["p", "soldier", 2, 4],
+		["p", "archer", 1, 4],
+		["p", "wolf", 2, 3],
+		["e", "hero", 10, 5],
+		["e", "soldier", 10, 4],
+		["e", "soldier", 9, 5],
+		["e", "archer", 11, 5],
+	],
+	"waves": [],
+	"gen": { "recipe": "g12", "seed": 7 },
+}

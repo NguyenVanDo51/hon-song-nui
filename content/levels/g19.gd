@@ -1,0 +1,50 @@
+extends RefCounted
+## level g19: drawn by sim/levelgen.gd (recipe g19, seed 2). Format: docs/content.md
+
+const DEF := {
+	"id": "g19",
+	"order": 175,
+	"title": "Giữ Thành",
+	"tier": "mid",
+	"ai": "normal",
+	"hero": "anhhung",
+	"enemyHero": null,
+	"newUnits": [],
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"], "e": [] },
+	"gold": { "p": 700, "e": 0 },
+	"win": { "type": "survive", "turns": 10 },
+	"stars": { "lost": 4 },
+	"unitCap": 15,
+	"night": false,
+	"map": {
+		"rows": [
+			"ffvrrrv~.......",
+			"mmr..fh~.......",
+			"hhr.fhf~......v",
+			"hfr.fmh=..fh..r",
+			"f.r..fh~~..m..r",
+			"..r...f.~.ff..r",
+			"..c.f...~~h...r",
+			"..r.hf...~mf..r",
+			"..rfmhrrr=r...r",
+			"..rrrrv..~rrrvr",
+		],
+	},
+	"owner": [[2, 6, "p"], [6, 9, "p"]],
+	"units": [
+		["p", "hero", 3, 5],
+		["p", "soldier", 3, 7],
+		["p", "archer", 1, 7],
+		["p", "drum", 1, 6],
+		["e", "soldier", 13, 5],
+		["e", "soldier", 13, 6],
+		["e", "archer", 14, 6],
+	],
+	"waves": [
+		{ "turn": 2, "units": [["soldier", 14, 4], ["soldier", 14, 9], ["wolf", 14, 3]] },
+		{ "turn": 4, "units": [["elephant", 13, 2], ["archer", 14, 1], ["soldier", 13, 3]] },
+		{ "turn": 6, "units": [["wolf", 13, 8], ["wolf", 12, 7], ["archer", 13, 4]] },
+		{ "turn": 8, "units": [["elephant", 13, 0], ["soldier", 13, 1], ["archer", 12, 1], ["soldier", 12, 0]] },
+	],
+	"gen": { "recipe": "g19", "seed": 2 },
+}

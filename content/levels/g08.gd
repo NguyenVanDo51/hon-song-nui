@@ -1,0 +1,47 @@
+extends RefCounted
+## level g08: drawn by sim/levelgen.gd (recipe g08, seed 1). Format: docs/content.md
+
+const DEF := {
+	"id": "g08",
+	"order": 105,
+	"title": "Sông Đáy",
+	"tier": "mid",
+	"ai": "normal",
+	"hero": "anhhung",
+	"enemyHero": "tuonggiac",
+	"newUnits": [],
+	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "boat"], "e": ["soldier", "archer", "drum", "elephant", "boat"] },
+	"gold": { "p": 700, "e": 400 },
+	"win": { "type": "castles" },
+	"stars": { "turns": 16 },
+	"unitCap": 15,
+	"night": false,
+	"map": {
+		"rows": [
+			"hmfv.....fmhmf.",
+			"mmhr.....fh....",
+			"h..r...rvrrrrc.",
+			"f.crrr.r..r....",
+			"f~~.fvrr~~=~~fh",
+			"~~~~mmhh~frf~~~",
+			"fhf~=~~f~vr..~~",
+			".......f..rrc..",
+			".crrrrvrrrrr...",
+			"...hh.....fr...",
+			".ffmmf...fhv...",
+		],
+	},
+	"owner": [[2, 3, "p"], [12, 7, "e"], [1, 8, "p"], [13, 2, "e"], [3, 0, "p"], [11, 10, "e"]],
+	"units": [
+		["p", "hero", 2, 3],
+		["p", "soldier", 1, 3],
+		["p", "archer", 3, 2],
+		["p", "boat", 0, 5],
+		["e", "hero", 12, 7],
+		["e", "soldier", 13, 7],
+		["e", "archer", 11, 8],
+		["e", "boat", 14, 5],
+	],
+	"waves": [],
+	"gen": { "recipe": "g08", "seed": 1 },
+}

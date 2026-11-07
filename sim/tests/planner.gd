@@ -16,6 +16,8 @@ const TACTICS := {
 }
 ## internet-tactics knobs (docs/ai.md "Mẹo người chơi trên mạng = Khó v4")
 const V4 := { "buy_threat": 0.5, "promo_w": 1.0, "pl_dp": 1.0, "pl_chain": 1.0, "ret_terr": 1.0, "buy_sup": 4.0 }
+## flexible army knobs (docs/ai.md "Đội hình linh hoạt = Khó v5")
+const V5 := { "role_w": 1.0, "mix_w": 1.0, "pl_chain": 1.0 }
 
 func planner_tests() -> void:
 	run(
@@ -270,4 +272,117 @@ func v4_tests() -> void:
 				eq(Game.dist(to.x, to.y, 5, 5), 5, "ends one move (5 tiles) from the castle")
 			s.gold.e = 500
 			eq(AIPlan.decision_point(s, "p", { }).get("why", ""), "snipe", "foe can rebuy: no kill point"),
+	)
+
+func v5_tests() -> void:
+	run(
+		"role_w: shaman raises an adjacent grave; never acts before other units unless raising",
+		func() -> void:
+			var s := blank([["p", "soldier", 1, 2], ["e", "soldier", 4, 4, 40], ["p", "shaman", 2, 4], ["p", "soldier", 1, 3]])
+			s.aiParams = { "p": { "noise": 0.0, "role_w": 1.0 } }
+			var mem := { }
+			var raised := false
+			for i in 6:
+				var stv: Variant = AI.greedy_step(s, mem)
+				if stv == null:
+					break
+				var st: Dictionary = stv
+				if st.kind == "act" and st.act.id == 3:
+					raised = st.act.kind == "raise"
+				AI.apply_step(s, st)
+			check(raised, "kill at (4, 4) -> shaman raises its grave")
+			for mid: String in Content.SKIRMISH.MAPS:
+				var c := hard_duel(mid)
+				c.aiParams.p = { "role_w": 1.0 }
+				c.aiParams.e = { }
+				var sy := 8 if mid == "dong_bang" else 9
+				Game.spawn(c, "p", "shaman", 2, sy)
+				var bad := 0
+				var seen := 0
+				while c.winner == null and c.turn <= 6:
+					var m := { }
+					for i in 80:
+						var stv: Variant = AI.greedy_step(c, m)
+						if stv == null:
+							break
+						var st: Dictionary = stv
+						if c.side == "p" and st.kind == "act":
+							var uid: int = st.act.id
+							var u: Dictionary = Game.unit_by_id(c, uid)
+							if u.type == "shaman":
+								seen += 1
+								for o: Dictionary in c.units:
+									if st.act.kind != "raise" and o.side == "p" and not o.acted and o.type != "shaman":
+										bad += 1
+						AI.apply_step(c, st)
+					if c.winner == null:
+						Game.end_turn(c)
+				check(seen > 0, mid + ": shaman acted")
+				eq(bad, 0, mid + ": shaman acted last unless raising"),
+	)
+	run(
+		"role_w: drum covering 2 attackers acts first; boat counts waterDef as cover on water",
+		func() -> void:
+			var s := blank([["p", "soldier", 2, 3], ["e", "soldier", 4, 3], ["p", "drum", 0, 2], ["p", "soldier", 2, 2]])
+			s.aiParams = { "p": { "noise": 0.0 } }
+			var off: Dictionary = AI.greedy_step(s.duplicate(true), { })
+			s.aiParams = { "p": { "noise": 0.0, "role_w": 1.0 } }
+			var on: Dictionary = AI.greedy_step(s.duplicate(true), { })
+			var off_id: int = off.act.id
+			check(off_id != 3, "off: an attack first")
+			eq(on.act.id, 3, "on: drum first")
+			var to_a: Array = on.act.to
+			var to := xy(to_a)
+			check(Game.dist(to.x, to.y, 2, 3) <= 2 and Game.dist(to.x, to.y, 2, 2) <= 2, "aura reaches both soldiers")
+			var b := blank([["p", "boat", 0, 2], ["e", "soldier", 5, 5]])
+			for x in 6:
+				b.tiles[2][x] = "~"
+				b.tiles[3][x] = "f"
+			var u := unit(b, 0)
+			b.aiParams = { "p": { "noise": 0.0 } }
+			var w0: Dictionary = AI.best_for_unit(b, u, AI.threat_map(b, "p"), { }, { })
+			b.aiParams = { "p": { "noise": 0.0, "role_w": 1.0 } }
+			var w1: Dictionary = AI.best_for_unit(b, u, AI.threat_map(b, "p"), { }, { })
+			eq(w1.act.to, w0.act.to, "same water tile")
+			var sc0: float = w0.score
+			var sc1: float = w1.score
+			check(absf(sc1 - sc0 - 0.8 * 15.0) < 0.01, "+ def_w x waterDef (%.2f -> %.2f)" % [sc0, sc1]),
+	)
+	run(
+		"mix_w: a grave the shaman reaches from the castle -> shaman; off -> a cheap unit; only affordable types",
+		func() -> void:
+			var s := blank([["p", "soldier", 1, 1], ["e", "soldier", 4, 4]])
+			s.graves = [{ "x": 2, "y": 3, "ttl": 2 }]
+			s.gold.p = 400
+			var at := Vector2i(0, 0)
+			var off: Variant = AI.choose_buy(s, "p", null, { }, at)
+			s.aiParams = { "p": { "mix_w": 1.0 } }
+			eq(AI.choose_buy(s, "p", null, { }, at), "shaman", "on: shaman (raises this turn)")
+			check(str(off) != "shaman", "off: %s" % off)
+			s.gold.p = 300
+			check(str(AI.choose_buy(s, "p", null, { }, at)) != "shaman", "300 gold: no shaman, no saving up")
+			check(AI.buy_step(s, { }) != null, "still buys now"),
+	)
+	run(
+		"hard v5 knobs: legal steps, state untouched, no AI.rng draws, deterministic",
+		func() -> void:
+			var prev: Callable = AI.rng
+			var draw := [0]
+			AI.rng = func() -> float:
+				draw[0] += 1
+				return 0.5
+			for mid: String in Content.SKIRMISH.MAPS:
+				var s := hard_duel(mid)
+				for sd: String in ["p", "e"]:
+					s.aiParams[sd] = AI.PRESETS.hard.merged(V5, true)
+				var steps := planner_game(mid, 5, s)
+				check(steps.size() > 10, "%s: game went on (%d steps)" % [mid, steps.size()])
+			eq(draw[0], 0, "planner never draws from AI.rng")
+			AI.rng = prev
+			var runs := []
+			for i in 2:
+				var c := hard_duel("cua_bien")
+				c.aiParams.p = AI.PRESETS.hard.merged(V5, true)
+				runs.append(var_to_str(planner_game("cua_bien", 4, c)))
+			eq(runs[0], runs[1], "same state -> same game"),
 	)

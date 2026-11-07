@@ -85,6 +85,9 @@ const DEFAULT := {
 	"promo_w": 0.0, # hit that levels our attacker up: + this x the rank's worth (0.2 x base value); also in AIPlan.focus
 	"ret_terr": 0.0, # non-commander walk-home hp x lerp(1, clamp((40 - unit def - rank - tile def) / 20, 0.5, 1.5), this)
 	"buy_sup": 0.0, # n > 0: army >= n without a drum / wolf -> save up for one (_support_want)
+	# flexible army (docs/ai.md "Đội hình linh hoạt = Khó v5"), 0 = off
+	"role_w": 0.0, # unit jobs: shaman acts last + waits by fresh graves, drum acts first, boats count waterDef as cover
+	"mix_w": 0.0, # situational buys, affordable now only (AIBuy._mix_bonus)
 }
 const SUPPORT := ["shaman", "wolf", "drum"]
 
@@ -487,6 +490,10 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var feed_w: float = P.feed_w
 	var promo_w: float = P.promo_w
 	var escort_w: float = 0.0 if is_hero else P.escort_w
+	var role_w: float = P.role_w
+	var wdef: int = st.get("waterDef", 0)
+	var wet_def: int = roundi(role_w * wdef)
+	var fresh: Array = _fresh_graves(s) if role_w > 0.0 and st.get("raise", "") != "" else []
 	var sup: Dictionary = mem.get("sup", { }) if lone_w > 0.0 else { }
 	var hero_at: Vector2i = mem.get("hero_at", Vector2i(-99, -99))
 	var u0x: int = u.x
@@ -507,6 +514,9 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var t: String = s.tiles[ry][rx]
 		var gd: float = df.get(key, 30.0) if has_df else 0.0
 		var tdef: int = Game.TERRAIN[t].def
+		var tt: Dictionary = Game.TERRAIN[t]
+		if wet_def > 0 and tt.get("water", false):
+			tdef += wet_def # boats: river cover the terrain table does not show
 		var pos := -gd * goal_w + tdef * def_w
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key), reach_w)
 		var uhp: int = u.hp
@@ -545,6 +555,10 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			pos += guard_castle # block the capture
 		if has_goal_tile:
 			pos += goal_tile.call(s, u, rx, ry)
+		for g: Vector2i in fresh: # raisable next turn from here (a grave made this turn lasts one more of ours)
+			if Game.dist(g.x, g.y, rx, ry) == 1:
+				pos += role_w * raise_w * 0.5
+				break
 		consider.call(pos, { "id": u.id, "to": [rx, ry], "kind": "wait" })
 
 		if Game.can_capture(s, u, rx, ry):
@@ -609,8 +623,8 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	return best[0]
 
 ## AIBuy.choose_buy
-static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := { }) -> Variant:
-	return AIBuy.choose_buy(s, side, ok, mem)
+static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := { }, at: Variant = null) -> Variant:
+	return AIBuy.choose_buy(s, side, ok, mem, at)
 
 static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -> void:
 	var aid: int = act.id
@@ -690,16 +704,70 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 			_hero_near(s, side, mem)
 		var best: Variant = null
 		var claims: Dictionary = mem.claims
+		var role_w: float = P.role_w
+		var first: Variant = null # role_w: a drum covering >= 2 attackers acts before them
+		var late: Variant = null # role_w: a shaman with no raise waits for this turn's graves
 		for u: Dictionary in mine:
 			var b: Variant = best_for_unit(s, u, threat, claims, danger, mem)
-			if b != null and (best == null or b.score > best.score):
+			if b == null:
+				continue
+			if role_w > 0.0:
+				var ust := Game.stat(s, u)
+				var bact: Dictionary = b.act
+				if ust.get("raise", "") != "" and bact.kind != "raise":
+					if late == null or b.score > late.score:
+						late = b
+					continue
+				var bto: Array = bact.to
+				if ust.get("aura", 0) > 0 and _aura_cover(s, u, bto) >= 2 and (first == null or b.score > first.score):
+					first = b
+			if best == null or b.score > best.score:
 				best = b
+		if first != null:
+			best = first
+		if best == null:
+			best = late
 		if best == null:
 			return null # nothing legal left (boxed in): end the turn
 		var best_act: Dictionary = best.act
 		_claim_nearest(s, best_act, claims)
 		return { "kind": "act", "act": best.act }
 	return buy_step(s, mem)
+
+## graves made this turn (ttl untouched): still raisable on our next turn
+static func _fresh_graves(s: Dictionary) -> Array:
+	var out := []
+	var full: int = Game.RULES.graveRounds
+	for g: Dictionary in s.graves:
+		var ttl: int = g.ttl
+		var gx: int = g.x
+		var gy: int = g.y
+		if ttl >= full and Game.unit_at(s, gx, gy) == null:
+			out.append(Vector2i(gx, gy))
+	return out
+
+## unacted allies of u within 2 of tile `to` that can still reach an enemy this turn (drum aura worth)
+static func _aura_cover(s: Dictionary, u: Dictionary, to: Array) -> int:
+	var tx: int = to[0]
+	var ty: int = to[1]
+	var n := 0
+	for o: Dictionary in s.units:
+		if o.side != u.side or o.acted or o.id == u.id:
+			continue
+		var ox: int = o.x
+		var oy: int = o.y
+		if Game.dist(ox, oy, tx, ty) > 2:
+			continue
+		var st := Game.stat(s, o)
+		var mv: int = 0 if st.get("siege", false) else st.mv
+		var rmax: int = st.rmax
+		for e: Dictionary in s.units:
+			var ex: int = e.x
+			var ey: int = e.y
+			if e.side != u.side and Game.dist(ox, oy, ex, ey) <= mv + rmax:
+				n += 1
+				break
+	return n
 
 ## escort_w: own commander's tile + allies within 2 of it (mem.hero_at / hero_near)
 static func _hero_near(s: Dictionary, side: String, mem: Dictionary) -> void:

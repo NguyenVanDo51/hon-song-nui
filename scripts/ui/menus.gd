@@ -4,19 +4,6 @@ extends Control
 ## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
 
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
-const CREDITS := [
-	["Trò chơi", "Công Thành Chiến · chiến thuật theo lượt, viết bằng Godot Engine 4.7 (MIT)."],
-	["Phông chữ", "Be Vietnam Pro, Alegreya SC, Noto Sans Symbols 2 · SIL Open Font License 1.1."],
-	["Biểu tượng", "Noto Emoji của Google · Apache License 2.0."],
-	["Hình quân", "Icons made by Delapouite, HeavenlyDog, Lorc, Cathelineau. Available on game-icons.net · CC BY 3.0."],
-	["Âm thanh", "Tổng hợp bằng mã ngay khi chạy, nhạc nền theo thang ngũ cung."],
-	[
-		"Sử liệu",
-		# gdlint:ignore = max-line-length
-		"Phỏng theo Đại Việt sử ký toàn thư, Hậu Hán thư, Tam quốc chí và truyền thuyết dân gian. Bản đồ là sơ đồ, không đúng tỉ lệ; một số chi tiết được lược bớt hoặc thêm thắt cho hợp lối chơi.",
-	],
-	["Tưởng nhớ", "Hai Bà Trưng và các nữ tướng đã đứng lên giành lại non sông."],
-]
 const TITLE_SIZE := Vector2(1000, 560) # title stage, scaled to fit the window
 ## 1 vs 1: who plays Blue (s.ctrl.e)
 const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Thường"], ["ai:hard", "Máy Khó"]]
@@ -309,9 +296,6 @@ func show_title() -> void:
 			open_codex(),
 	)
 	sync.call()
-	var credits := _on(Style.button("Ghi công ›", "LinkBtn"), _open_credits)
-	credits.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	tg.add_child(credits)
 	# enter: fade + slide up 14px
 	holder.modulate.a = 0.0
 	holder.offset_top = 14
@@ -337,47 +321,6 @@ func _round(parent: Control, caption: String) -> Button:
 	col.add_child(l)
 	return b
 
-func _open_credits() -> void:
-	var ov := Control.new()
-	ov.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var dim := ColorRect.new()
-	dim.color = Color(0.16, 0.10, 0.05, 0.7)
-	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	ov.add_child(dim)
-	var center := CenterContainer.new()
-	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	ov.add_child(center)
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", Style.paper(22.0, 10.0))
-	card.custom_minimum_size.x = 620
-	center.add_child(card)
-	var v := Style.vbox(12)
-	v.add_child(_h2("Ghi công"))
-	for row: Array in CREDITS:
-		var r := Style.vbox(2)
-		var head: String = row[0]
-		var body: String = row[1]
-		r.add_child(Style.lbl(head, 15, Style.GOLD, Style.display))
-		r.add_child(Style.lbl(body, 14, Style.INK, null, true))
-		v.add_child(r)
-	var close := Style.button("Đóng ✕", "BackBtn")
-	close.size_flags_horizontal = Control.SIZE_SHRINK_END
-	_on(
-		close,
-		func() -> void:
-			ov.queue_free(),
-	)
-	v.add_child(close)
-	card.add_child(v)
-	dim.gui_input.connect(
-		func(ev: InputEvent) -> void:
-			var mb := ev as InputEventMouseButton
-			if mb != null and mb.pressed:
-				ov.queue_free(),
-	)
-	add_child(ov)
-
-## gold-leaf logo: shimmer shader label over a dark offset copy (CSS drop-shadow 0 3px 0 #4a2c0e)
 func _logo(text: String, fs := 104) -> Control:
 	var holder := Control.new()
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE

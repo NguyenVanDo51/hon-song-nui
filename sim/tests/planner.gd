@@ -14,6 +14,8 @@ const TACTICS := {
 	"escort_w": 30.0,
 	"hero_cgoal": 1.0,
 }
+## internet-tactics knobs (docs/ai.md "Mẹo người chơi trên mạng = Khó v4")
+const V4 := { "buy_threat": 0.5, "promo_w": 1.0, "pl_dp": 1.0, "pl_chain": 1.0, "ret_terr": 1.0 }
 
 func planner_tests() -> void:
 	run(
@@ -160,4 +162,98 @@ func tactics_tests() -> void:
 			var act: Dictionary = st.act
 			eq(act.kind, "attack", "first step attacks")
 			eq(act.id, 2, "archer first (soldier would eat a counter it can wait out)"),
+	)
+
+func v4_tests() -> void:
+	run(
+		"hard v3 + v4 knobs: legal steps, state untouched, no AI.rng draws, deterministic",
+		func() -> void:
+			var prev: Callable = AI.rng
+			var draw := [0]
+			AI.rng = func() -> float:
+				draw[0] += 1
+				return 0.5
+			for mid: String in Content.SKIRMISH.MAPS:
+				var s := hard_duel(mid)
+				for sd: String in ["p", "e"]:
+					s.aiParams[sd] = AI.PRESETS.hard.merged(V4, true)
+				var steps := planner_game(mid, 5, s)
+				check(steps.size() > 10, "%s: game went on (%d steps)" % [mid, steps.size()])
+			eq(draw[0], 0, "planner never draws from AI.rng")
+			AI.rng = prev
+			var runs := []
+			for i in 2:
+				var c := hard_duel("nui_rung")
+				c.aiParams.p = AI.PRESETS.hard.merged(V4, true)
+				runs.append(var_to_str(planner_game("nui_rung", 4, c)))
+			eq(runs[0], runs[1], "same state -> same game"),
+	)
+	run(
+		"buy_threat: foe castle threatens like its best affordable non-siege buy, budget shared, at buy_hp",
+		func() -> void:
+			var s := blank([["p", "soldier", 2, 2], ["p", "hero", 0, 0]])
+			s.gold.e = 0
+			eq(AI.buy_threats(s, "p", 1.0).size(), 0, "50 income only: nothing to buy")
+			s.gold.e = 1000
+			var v: Array = AI.buy_threats(s, "p", 0.5)
+			eq(v.size(), 1, "one castle, one buy")
+			var b: Dictionary = v[0]
+			eq(b.type, "bird", "best attacker within 1050 gold")
+			eq(b.hp, 50, "hp = buy_hp x 100")
+			eq(pos(b), Vector2i(5, 5), "on the castle")
+			s.gold.e = 700
+			var w: Dictionary = AI.buy_threats(s, "p", 1.0)[0]
+			eq(w.type, "elephant", "no catapult (siege cannot move + attack), elephant within 750")
+			var off := AI.threat_map(s, "p")
+			var on := AI.threat_map(s, "p", { }, { }, 1.0)
+			check(off.is_empty() and on.has(Vector2i(4, 2)), "no foe unit: only the buy threatens (4, 2)")
+			eq(units_of(s).size(), 2, "virtual units never enter s.units"),
+	)
+	run(
+		"promo_gain: a hit that levels our unit up is worth 0.2 x its base value",
+		func() -> void:
+			var s := blank([["p", "soldier", 2, 2], ["e", "soldier", 3, 2]])
+			var u := unit(s, 0)
+			var d := unit(s, 1)
+			eq(AI.promo_gain(s, u, 40, d), 0.0, "fresh soldier: no level")
+			u.xp = Game.xp_need(s, u) - 1
+			eq(AI.promo_gain(s, u, 40, d), 30.0, "about to level: 0.2 x 150"),
+	)
+	run(
+		"pl_chain: the wolf bites first so the follow-up hits land on a weakened target",
+		func() -> void:
+			var s := blank(
+				[["e", "soldier", 3, 3], ["p", "soldier", 1, 3], ["p", "archer", 3, 0], ["p", "wolf", 5, 3], ["p", "hero", 0, 0], ["e", "hero", 5, 0]]
+			)
+			Game.fixed_roll = 0.5
+			var off := AIPlan.focus(s.duplicate(true), "p", 1)
+			var on := AIPlan.focus(s.duplicate(true), "p", 1, 0.0, 0.0, 0.0, 3.0)
+			Game.fixed_roll = -1.0
+			check(on.size() > 0, "a kill chain exists")
+			if on.size() and off.size():
+				var first_on: Dictionary = on[0]
+				var first_off: Dictionary = off[0]
+				eq(first_on.act.id, 4, "wolf first (off: #%d first)" % first_off.act.id)
+			var t: Dictionary = Game.unit_by_id(s, 1)
+			eq(t.hp, 100, "s untouched"),
+	)
+	run(
+		"pl_dp: commander 2 moves from an empty foe castle -> snipe step closer; weak foe commander, no rebuy -> kill point",
+		func() -> void:
+			var s := blank([["p", "hero", 0, 0], ["e", "hero", 5, 0, 30], ["p", "soldier", 4, 2], ["p", "soldier", 3, 0]])
+			s.gold.e = 0
+			var dp := AIPlan.decision_point(s, "p", { })
+			var why: String = dp.get("why", "")
+			eq(why, "snipe+kill", "both points")
+			var snipe: Array = dp.get("snipe", [])
+			eq(snipe.size(), 1, "one snipe step")
+			if snipe.size():
+				var st: Dictionary = snipe[0]
+				check(AIPlan.legal(s, st), "legal snipe step")
+				var act: Dictionary = st.act
+				var to_a: Array = act.to
+				var to := xy(to_a)
+				eq(Game.dist(to.x, to.y, 5, 5), 5, "ends one move (5 tiles) from the castle")
+			s.gold.e = 500
+			eq(AIPlan.decision_point(s, "p", { }).get("why", ""), "snipe", "foe can rebuy: no kill point"),
 	)

@@ -28,6 +28,9 @@ const DEFAULT := {
 	"pl_ply3": 0.0, # 1 = also play our next turn (greedy) before scoring
 	"pl_buy": 0.0, # >= 1: also try v1's buys first (AE2: bought units act this turn); >= 2: + buys then n-1 kill prefixes
 	"pl_ms": 4000.0, # emergency wall-clock cap per plan
+	# internet tactics (docs/ai.md "Mẹo người chơi trên mạng"), 0 = off
+	"pl_dp": 0.0, # 1 = decision points (castle snipe next turn / foe commander killable, no rebuy) also play our next turn
+	"pl_chain": 0.0, # focus: drum (aura) / wolf (poison) hit first: + this x buff x follow-up hitters x target worth / 100
 }
 ## knob sets for the greedy turn (merged over the side's own knobs); first = as is
 const STYLES := [
@@ -47,6 +50,8 @@ const WIN := 1000000.0
 static var last := { }
 ## plans cut by pl_ms since start (sims: non-zero = wall clock leaked into results)
 static var capped_n := 0
+## pl_dp probes: plans with the knob on, decision points by kind, snipe candidate picked
+static var tally := { }
 
 static func knob(P: Dictionary, k: String) -> float:
 	var v: float = P.get(k, DEFAULT[k])
@@ -177,6 +182,11 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 			cands.append({ "pre": buys, "over": own, "tag": "buy" })
 			for pre: Array in kill_prefixes(bc, side, nbuy - 1):
 				cands.append({ "pre": buys + pre, "over": own, "tag": "buy+kill%d" % pre.size() })
+	var dp := decision_point(s, side, mem) if knob(P, "pl_dp") > 0.0 else { }
+	var deep := not dp.is_empty()
+	var snipe: Array = dp.get("snipe", [])
+	if not snipe.is_empty():
+		cands.append({ "pre": snipe, "over": own, "tag": "snipe" })
 	var safe := hero_safe_prefix(s, side) if knob(P, "pl_herosafe") > 0.0 else []
 	if not safe.is_empty():
 		cands.append({ "pre": safe, "over": own, "tag": "herosafe" })
@@ -191,7 +201,7 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 			break
 		var pre: Array = c.pre
 		var over: Dictionary = c.over
-		var r := _rollout(s, side, over, pre, mem, P)
+		var r := _rollout(s, side, over, pre, mem, P, deep)
 		runs += 1
 		if r.is_empty():
 			continue
@@ -211,7 +221,15 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 		"score": best.get("score", 0.0),
 		"tag": best.get("tag", ""),
 		"mid": mid,
+		"dp": dp.get("why", ""),
 	}
+	if knob(P, "pl_dp") > 0.0:
+		tally.plans = tally.get("plans", 0) + 1
+		if deep:
+			var k: String = "dp_" + dp.why
+			tally[k] = tally.get(k, 0) + 1
+		if best.get("tag", "") == "snipe":
+			tally.snipe_pick = tally.get("snipe_pick", 0) + 1
 
 ## focus fire: for the n most valuable enemies we can reach, the attack sequence that kills it (mid rolls), plus the
 ## best kill chained with a second one. Each = a forced prefix; the greedy AI finishes the turn
@@ -221,6 +239,8 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 	var P := AI.params(s, side)
 	var sup: float = P.tgt_sup
 	var thr: float = P.tgt_thr
+	var promo: float = P.get("promo_w", 0.0)
+	var chain := knob(P, "pl_chain")
 	var foes := []
 	for u: Dictionary in s.units:
 		if u.side != side:
@@ -237,7 +257,7 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 			break
 		var c: Dictionary = s.duplicate(true)
 		var fid: int = f.id
-		var pre := focus(c, side, fid, sup, thr)
+		var pre := focus(c, side, fid, sup, thr, promo, chain)
 		if pre.is_empty():
 			continue
 		if out.is_empty() and c.winner == null: # chain a second kill onto the best one (c is past the first)
@@ -245,7 +265,7 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 			for g: Dictionary in foes:
 				var gid: int = g.id
 				if gid != fid and Game.unit_by_id(c, gid) != null:
-					more = focus(c.duplicate(true), side, gid, sup, thr)
+					more = focus(c.duplicate(true), side, gid, sup, thr, promo, chain)
 					if not more.is_empty():
 						break
 			out.append(pre)
@@ -256,8 +276,9 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 	return out
 
 ## attacks on c (mutated, mid rolls) by our unacted units until target tid dies; [] if it survives them all.
-## Order: a kill now by the cheapest unit that can; else the hit with the best damage-for-counter (ranged first)
-static func focus(c: Dictionary, side: String, tid: int, sup := 0.0, thr := 0.0) -> Array:
+## Order: a kill now by the cheapest unit that can; else the hit with the best damage-for-counter (ranged first).
+## promo (promo_w): + a hit that levels our unit up; chain (pl_chain): drum / wolf buff the follow-up hits -> first
+static func focus(c: Dictionary, side: String, tid: int, sup := 0.0, thr := 0.0, promo := 0.0, chain := 0.0) -> Array:
 	var steps := []
 	for k in 6:
 		var tv: Variant = Game.unit_by_id(c, tid)
@@ -280,6 +301,7 @@ static func focus(c: Dictionary, side: String, tid: int, sup := 0.0, thr := 0.0)
 			if Game.dist(ux, uy, tx, ty) > mv + rmax:
 				continue
 			var uval := AI.value(c, u)
+			var buff: int = st.get("aura", 0) + st.get("poison", 0) if chain > 0.0 else 0
 			for r: Dictionary in Game.reachable(c, u).values():
 				var rx: int = r.x
 				var ry: int = r.y
@@ -298,6 +320,10 @@ static func focus(c: Dictionary, side: String, tid: int, sup := 0.0, thr := 0.0)
 					sc = dmg * tval / 100.0 - counter * uval / 100.0 + tdef * 0.5
 					if p.mayDie:
 						sc -= uval
+					if buff > 0:
+						sc += chain * buff * _followers(c, u, t, rx, ry) * tval / 100.0
+				if promo > 0.0 and not p.mayDie:
+					sc += promo * AI.promo_gain(c, u, dmg, t)
 				if best.is_empty() or sc > best.sc:
 					best = { "sc": sc, "step": { "kind": "act", "act": { "id": u.id, "to": [rx, ry], "kind": "attack", "target": tid } } }
 		if best.is_empty():
@@ -306,6 +332,87 @@ static func focus(c: Dictionary, side: String, tid: int, sup := 0.0, thr := 0.0)
 		AI.apply_step(c, step)
 		steps.append(step)
 	return steps if Game.unit_by_id(c, tid) == null else []
+
+## other unacted allies of u that can still hit t this turn (aura: only those within 2 of u's tile rx, ry)
+static func _followers(c: Dictionary, u: Dictionary, t: Dictionary, rx: int, ry: int) -> int:
+	var aura: bool = Game.stat(c, u).get("aura", 0) > 0
+	var tx: int = t.x
+	var ty: int = t.y
+	var n := 0
+	for o: Dictionary in c.units:
+		if o.side != u.side or o.acted or o.id == u.id:
+			continue
+		var st := Game.stat(c, o)
+		var ox: int = o.x
+		var oy: int = o.y
+		var mv: int = 0 if st.get("siege", false) else st.mv
+		var rmax: int = st.rmax
+		if Game.dist(ox, oy, tx, ty) <= mv + rmax and (not aura or Game.dist(ox, oy, rx, ry) <= 2):
+			n += 1
+	return n
+
+## T7 / T8 decision points -> the plan also plays our next turn (rewards set-ups). snipe: our commander reaches an empty
+## foe castle next turn, not this one (+ candidate: it moves closest first); kill: our 2-turn damage on the foe
+## commander >= its hp while the foe cannot afford its rebuy. {} = none
+static func decision_point(s: Dictionary, side: String, mem: Dictionary) -> Dictionary:
+	var foe := Game.other(side)
+	var out := { }
+	var why := []
+	for h: Dictionary in s.units:
+		if h.side != side or h.type != "hero" or h.acted:
+			continue
+		var mv: int = Game.stat(s, h).mv
+		var hx: int = h.x
+		var hy: int = h.y
+		var best_df: Dictionary = { }
+		var best_d := INF
+		for key: Vector2i in Game.castle_tiles(s, foe):
+			if Game.unit_at(s, key.x, key.y) != null:
+				continue
+			var df := AI._dist_cached(s, "foot", [[key.x, key.y]], mem)
+			var d: float = df.get(Vector2i(hx, hy), INF)
+			if d > mv and d <= 2 * mv and d < best_d:
+				best_d = d
+				best_df = df
+		if best_df.is_empty():
+			continue
+		var to: Variant = null
+		var to_sc := INF
+		for r: Dictionary in Game.reachable(s, h).values():
+			var rx: int = r.x
+			var ry: int = r.y
+			var sc: float = best_df.get(Vector2i(rx, ry), INF) * 100.0 - Game.TERRAIN[s.tiles[ry][rx]].def
+			if sc < to_sc:
+				to_sc = sc
+				to = [rx, ry]
+		if to != null and to != [hx, hy]:
+			out.snipe = [{ "kind": "act", "act": { "id": h.id, "to": to, "kind": "wait" } }]
+			why.append("snipe")
+	var gold: int = s.gold[foe]
+	if gold + Game.income(s, foe) < Game.hero_cost(s, foe):
+		for fh: Dictionary in s.units:
+			if fh.side != foe or fh.type != "hero":
+				continue
+			var fx: int = fh.x
+			var fy: int = fh.y
+			var sum := 0
+			for u: Dictionary in s.units:
+				if u.side != side:
+					continue
+				var st := Game.stat(s, u)
+				var ux: int = u.x
+				var uy: int = u.y
+				var mv: int = st.mv
+				var rmax: int = st.rmax
+				var uhp: int = u.hp
+				if Game.dist(ux, uy, fx, fy) <= 2 * mv + rmax:
+					sum += Game.damage(s, u, ux, uy, uhp, fh)
+			var fhp: int = fh.hp
+			if sum >= fhp:
+				why.append("kill")
+	if not why.is_empty():
+		out.why = "+".join(why)
+	return out
 
 ## hold every own castle an enemy castle-taker could step on next turn: a unit already on it stays, else the cheapest
 ## unit that can reach it moves on (AE2: the castle is lost the moment their commander stands on it)
@@ -398,7 +505,7 @@ static func _sim_mem(shared: Dictionary) -> Dictionary:
 
 ## copy of s: forced prefix, then the greedy AI with `over` knobs to the end of the turn, then the opponent's turn.
 ## {} when the prefix is illegal
-static func _rollout(s: Dictionary, side: String, over: Dictionary, pre: Array, shared: Dictionary, P: Dictionary) -> Dictionary:
+static func _rollout(s: Dictionary, side: String, over: Dictionary, pre: Array, shared: Dictionary, P: Dictionary, deep := false) -> Dictionary:
 	var c: Dictionary = s.duplicate(true)
 	var foe := Game.other(side)
 	c.aiParams = { side: over, foe: OPP }
@@ -421,12 +528,12 @@ static func _rollout(s: Dictionary, side: String, over: Dictionary, pre: Array, 
 		AI.apply_step(c, st)
 		steps.append(st)
 		alive.append(alive_ids(c))
-	var score := evaluate(c, side, shared, P) if c.winner != null else _reply_score(c, side, shared, P)
+	var score := evaluate(c, side, shared, P) if c.winner != null else _reply_score(c, side, shared, P, deep)
 	return { "steps": steps, "alive": alive, "score": score }
 
 ## the opponent's turn on c (mutated) -> our score after it. Replies tried: its greedy turn, and its focus-fire kills
 ## (our most valuable units first) finished greedily; the worst one for us counts (2-ply minimax over a portfolio)
-static func _reply_score(c: Dictionary, side: String, shared: Dictionary, P: Dictionary) -> float:
+static func _reply_score(c: Dictionary, side: String, shared: Dictionary, P: Dictionary, deep := false) -> float:
 	Game.end_turn(c)
 	var foe := Game.other(side)
 	Game.fixed_roll = knob(P, "pl_opp_roll") # > 0.5: plan against a lucky reply
@@ -442,7 +549,7 @@ static func _reply_score(c: Dictionary, side: String, shared: Dictionary, P: Dic
 		Game.fixed_roll = 0.5
 		if r.winner == null:
 			Game.end_turn(r)
-		if r.winner == null and knob(P, "pl_ply3") > 0.0: # our follow-up turn: rewards set-ups
+		if r.winner == null and (deep or knob(P, "pl_ply3") > 0.0): # our follow-up turn: rewards set-ups
 			play_greedy(r, shared)
 		worst = minf(worst, evaluate(r, side, shared, P))
 		Game.fixed_roll = knob(P, "pl_opp_roll")

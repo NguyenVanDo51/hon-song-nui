@@ -80,6 +80,10 @@ const DEFAULT := {
 	"feed_w": 0.0, # non-kill hit whose counter levels the target up: - this x 0.2 x target value
 	"escort_w": 0.0, # non-commander ending within 2 of own commander while it has < 3 such allies
 	"hero_cgoal": 0.0, # 1 = commander heads for castles only (villages left to the others)
+	# internet tactics (docs/ai.md "Mẹo người chơi trên mạng"), 0 = off
+	"buy_threat": 0.0, # > 0: foe castles threaten like the unit it can buy next turn (acts at once), at this x 100 hp
+	"promo_w": 0.0, # hit that levels our attacker up: + this x the rank's worth (0.2 x base value); also in AIPlan.focus
+	"ret_terr": 0.0, # non-commander walk-home hp x lerp(1, clamp((40 - unit def - rank - tile def) / 20, 0.5, 1.5), this)
 }
 const SUPPORT := ["shaman", "wolf", "drum"]
 
@@ -122,6 +126,14 @@ static func tvalue(s: Dictionary, d: Dictionary, sup_w: float, thr_w: float) -> 
 		var hp: int = d.hp
 		v += thr_w * ((lo + hi) * 0.5 + Game.aura_atk(d)) * hp / 100.0
 	return v
+
+## AE2 xp = dmg x victim quality on every hit, +1 rank = +2 atk / +2 def: worth 0.2 x base value if this hit levels u up
+static func promo_gain(s: Dictionary, u: Dictionary, dmg: int, d: Dictionary) -> float:
+	var rank: int = u.rank
+	var uxp: int = u.xp
+	if rank >= Game.RULES.maxRank or uxp + dmg * Game.quality(s, d) < Game.xp_need(s, u):
+		return 0.0
+	return value(s, u) / (1.0 + 0.2 * rank) * 0.2
 
 ## own units per tile within 2 (lone_w): built once per greedy step
 static func support_map(s: Dictionary, side: String) -> Dictionary:
@@ -185,10 +197,14 @@ static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dic
 				open.append([nc, nx, ny])
 	return d
 
-## tile -> list of enemy attackers that could hit it next turn; mem (one turn) keeps each enemy's reach + hits across steps
-static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { }) -> Dictionary:
+## tile -> list of enemy attackers that could hit it next turn; mem (one turn) keeps each enemy's reach + hits across steps.
+## buy_hp > 0: + the foe's next-turn buys (buy_threats) as attackers at that hp
+static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { }, buy_hp := 0.0) -> Dictionary:
 	var m := { }
-	for e: Dictionary in s.units:
+	var foes: Array = s.units
+	if buy_hp > 0.0:
+		foes = foes + buy_threats(s, side, buy_hp)
+	for e: Dictionary in foes:
 		if e.side == side:
 			continue
 		var st := Game.stat(s, e)
@@ -229,6 +245,52 @@ static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { })
 			var on_key: Array = m[key]
 			on_key.append(e)
 	return m
+
+## AE2: a unit bought at a castle moves + attacks that turn. Per foe castle with room (<= 1 unit on it), the best
+## attacker its gold + next income buys (budget shared in castle order; siege cannot move + attack): virtual units, ids < 0
+static func buy_threats(s: Dictionary, side: String, buy_hp: float) -> Array:
+	var foe := Game.other(side)
+	var out := []
+	if Game.cap_count(s, foe) >= s.unitCap:
+		return out
+	var g: int = s.gold[foe]
+	var budget: int = g + Game.income(s, foe)
+	var allowed: Array = s.allowed[foe]
+	var hero_ok: bool = s.heroDead[foe] and s.heroKey[foe] != null
+	var hp := clampi(roundi(buy_hp * 100.0), 1, 100)
+	var i := 0
+	for key: Vector2i in Game.castle_tiles(s, foe):
+		var on := 0
+		for o: Dictionary in s.units:
+			if o.x == key.x and o.y == key.y:
+				on += 1
+		if on > 1:
+			continue
+		var best := ""
+		var best_q := -1
+		var best_c := 0
+		for t: String in allowed + (["hero"] if hero_ok else []):
+			var st: Dictionary = Game.UNITS[t]
+			var c: int = Game.hero_cost(s, foe) if t == "hero" else st.cost
+			if c > budget or st.get("siege", false):
+				continue
+			var a: int = st.atk
+			var amax: int = st.get("atkMax", a)
+			var mv: int = st.mv
+			var rmax: int = st.rmax
+			var q: int = (a + amax) * 100 + mv + rmax
+			if q > best_q:
+				best = t
+				best_q = q
+				best_c = c
+		if best == "":
+			break
+		budget -= best_c
+		if best == "hero":
+			hero_ok = false
+		i += 1
+		out.append({ "id": -100 - i, "side": foe, "type": best, "x": key.x, "y": key.y, "hp": hp, "xp": 0, "rank": 0, "acted": false })
+	return out
 
 ## everything Game.reachable(s, u) reads: u, the terrain, and the units within its move range (costs are >= 1)
 static func _local_key(s: Dictionary, u: Dictionary, mem: Dictionary) -> Array:
@@ -379,6 +441,12 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var home_hp: float = P.home_hp
 	var home_val: float = P.home_val
 	var home_rank: float = P.home_rank
+	var ret_terr: float = P.ret_terr
+	if ret_terr > 0.0 and not is_hero: # thin armour on open ground walks home earlier, tanks / cover later
+		var ux0: int = u.x
+		var uy0: int = u.y
+		var udef: int = st.def + Game.RULES.rankBonus * u.rank + Game.terrain_def(s, u, ux0, uy0)
+		home_hp *= lerpf(1.0, clampf((40.0 - udef) / 20.0, 0.5, 1.5), ret_terr)
 	if (home_val > 0.0 or home_rank > 0.0) and not is_hero: # dearer / veteran units walk home earlier
 		var home_cap: float = P.home_cap
 		var cost: float = Game.UNITS[u.type].cost
@@ -458,6 +526,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var trade_w: float = P.trade_w
 	var order_w: float = P.order_w
 	var feed_w: float = P.feed_w
+	var promo_w: float = P.promo_w
 	var escort_w: float = 0.0 if is_hero else P.escort_w
 	var sup: Dictionary = mem.get("sup", { }) if lone_w > 0.0 else { }
 	var hero_at: Vector2i = mem.get("hero_at", Vector2i(-99, -99))
@@ -553,6 +622,9 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 				sc -= val * die_w
 			elif p.mayDie:
 				sc -= val * maydie_w
+			elif promo_w > 0.0:
+				var pd: int = p.dmg
+				sc += promo_w * promo_gain(s, u, pd, d)
 			# after counter, remaining exposure scales with remaining hp
 			var counter: int = p.counter
 			var left := maxi(0, uhp - counter)
@@ -704,9 +776,10 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		mem.tiles_h = hash(s.tiles) # raze / repair change a tile mid-turn
 		mem.erase("heal") # captures change heal tile owners mid-turn
 		var reach_of := { }
-		var threat := threat_map(s, side, reach_of, mem)
-		var danger := endangered_castles(s, side, reach_of)
 		var P := params(s, side, mem)
+		var buy_hp: float = P.buy_threat
+		var threat := threat_map(s, side, reach_of, mem, buy_hp)
+		var danger := endangered_castles(s, side, reach_of)
 		var lone_w: float = P.lone_w
 		if lone_w > 0.0:
 			mem.sup = support_map(s, side)

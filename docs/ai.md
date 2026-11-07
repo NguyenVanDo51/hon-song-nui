@@ -102,7 +102,7 @@ Seed dev: bộ A salt 100–107, bộ B 200–207 (`games=3` -> 144 ván / lần
 | `pl_gold` 0,6 | 0,521 | |
 | **`pl_opp_kill` 1** (địch đáp thêm bằng dồn đòn giết quân giá trị nhất = tướng ta) | **0,556** | **0,569** |
 | `pl_opp_kill` 1 + `pl_adv` 2 / + `pl_adv` 0 | 0,535 | 0,580 / 0,521 |
-| (vs Khó v1, salt 300–307) `pl_opp_kill` 1 / `hard_v2_0` | 0,854 / 0,872 | |
+| (vs Khó v1, salt 300–307) `pl_opp_kill` 1 + `pl_adv` 2 / `hard_v2_0` | 0,854 / 0,872 | |
 
 - Mua trước: được chọn 17 / 97 lần lập đầu lượt (`plan_probe over=pl_buy:2`, salt 300) nhưng không thắng hơn -> hàm điểm coi vàng = giá quân (mua là trung tính), lợi 1 lượt đi sớm nhỏ.
 - Hàm điểm hiện tại gần đỉnh cục bộ: đổi trọng số 2× theo hướng nào cũng hòa hoặc thua; `pl_adv` cao (đẩy quân lên) thua đậm, thấp hơn hơi tốt (0,54, chưa chắc).
@@ -120,7 +120,7 @@ Seed dev: bộ A salt 100–107, bộ B 200–207 (`games=3` -> 144 ván / lần
 | `hard_v2_0` vs Thường | 0,878 ± 0,017 |
 
 - **Kết luận: luyện thêm không làm máy khôn hơn rõ** — ứng viên tốt nhất dev (0,563 / 288 ván, bộ A+B) chỉ còn 0,517 trên seed mới (= nhiễu + chọn lọc), lại yếu hơn chút vs Khó v1 / Thường (−0,024 / −0,029, ~1 SE): mô hình địch bi quan hợp với địch mạnh, thừa thận trọng với địch yếu. **Không đổi `AI.PRESETS.hard` / `AIPlan.DEFAULT`** (chỉ thêm công cụ + knob tắt).
-- `pl_ms` (phanh 4 s) bị chạm 5 lần trong 384 ván v2–v2 khi máy chạy 8 sim + game người dùng (tải ~10–12) -> các ván đó không tất định tuyệt đối; lúc thường không chạm. Sim song song nên giữ ≤ 8 tiến trình.
+- `pl_ms` (phanh 4 s) bị chạm vài lần khi 8 sim song song + game người dùng (tải ~10–12), chỉ ở ứng viên có `pl_opp_kill` (lời đáp đắt): held-out 5 lần / 384 ván; dev: 1–8 tiến trình mỗi lần chạy có `pl_opp_kill`. Các ván đó không tất định tuyệt đối (không đổi kết luận). `hard_v2_0` và các knob trọng số: không chạm lần nào.
 - Thời gian (hành vi không đổi): đo lại `tune.gd -- time a=hard_v2_0 b=hard_v1 games=4 salt=9100000` (24 ván, chạy song song 3 gate, tải ~3–7): lượt TB 255 ms, p95 658 ms, tệ nhất 1,58 s; bước TB 28 ms, tệ nhất 1,18 s (cũ: 202 ms / 1,19 s ở tải ~5,7) -> tệ nhất nhạy với tải máy, cần đo trên điện thoại thật. `pl_opp_kill` 1 lúc tải ~10: +18% thời gian / lượt so với `hard_v2_0` cùng lúc.
 - Vì sao không lên: hàm điểm 7 trọng số tay đã ở gần đỉnh cục bộ (mọi bước 2× đều ≤ hòa); lợi thế ghế theo map rất mạnh (v2 vs v2 seed giữ riêng: núi rừng ghế e thắng ~75%, cửa biển ghế e ~64%, đồng bằng ghế p ~63%) -> 144 ván chỉ phân biệt được chênh ≥ ~0,08; ứng viên cấu trúc (mua trước, địch đáp dồn đòn) tăng ≤ ~0,02 thật.
 - Muốn "siêu khó" tiếp, thử theo thứ tự: (1) đổi nguồn mạnh chứ không chỉnh trọng số — tìm kiếm sâu hơn ở chỗ quyết định (2 lượt của ta khi có thể giết tướng / mất thành), (2) đánh giá học từ nhiều dữ liệu hơn (≥ 2000 ván, đặc trưng theo loại quân / vị trí tướng so với thành), dùng làm thứ tự ứng viên chứ không thay hàm điểm, (3) thưởng / chấp vàng cho "Siêu khó" (rẻ, chắc chắn mạnh hơn), (4) mỗi đánh giá ≥ 400 ván (paired, cả 2 ghế) — dưới mức đó chênh 0,05 không thấy.

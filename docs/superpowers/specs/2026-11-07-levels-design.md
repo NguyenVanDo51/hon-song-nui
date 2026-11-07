@@ -32,7 +32,7 @@ Ký hiệu: **(user)** = người dùng quyết · **(Claude)** = Claude tự qu
 
 ## 5. Hiện trạng (đã đọc code, master `20fae2e`)
 - 16 màn `content/campaign/m01–m16.gd` (`DEF`), 2 chương `content/chapters/c1.gd`, `c2.gd`. Định dạng `DEF`: `docs/content.md` § "Thêm màn chiến dịch".
-- Phần truyện: `scripts/ui/story_overlay.gd`, khóa `story` / `history` / `tips`, `people` trong theme, `outro` chương, theme ghi đè theo chương (c2 đổi skin + tên phe địch). Bản đồ chiến dịch: `scripts/ui/camp_map.gd`. Registry: `scripts/core/content.gd` (`campaign()`, `chapters()`, `use_chapter`, `chapter_unlocked`…).
+- Phần truyện: `scripts/ui/story_overlay.gd`, khóa `story` / `history` / `tips`, `people` trong theme, `outro` chương. Chương hiện **không** ghi đè theme (c1, c2 cùng skin địch). Bản đồ chiến dịch: `scripts/ui/camp_map.gd`. Registry: `scripts/core/content.gd` (`campaign()`, `chapters()`, `use_chapter`, `chapter_unlocked`…).
 - Nội dung có sẵn: 9 quân mua được + rồng + âm binh; ô `. r f h m ~ = v x c t`; đêm; `waves`; quân `guard`; `unitCap`; `gold`.
 - 5 kiểu thắng (`objectives.gd`): `castles`, `rout`, `hero`, `survive`, `reach`.
 - Nhịp ra quân kiểu AE2: thấy -> cầm -> mua (`docs/content.md` § "Nhịp ra quân mới").
@@ -47,13 +47,16 @@ Ký hiệu: **(user)** = người dùng quyết · **(Claude)** = Claude tự qu
 - Giữ: `id` (`"L001"`), `order`, `title` (tên ngắn, chỉ là nhãn, vd "Bến sông"), `hero`, `enemyHero`, `newUnits`, `allowed`, `gold`, `win`, `stars`, `unitCap`, `night`, `map`, `owner`, `units`, `waves`.
 - Thêm:
   - `tier`: `"easy" | "mid" | "hard"` -> nhãn Dễ / Trung bình / Khó.
-  - `ai`: preset bot phe địch (`"easy" | "normal"`; mặc định `normal`). Chỉ **chọn** preset có sẵn qua `s.aiParams`, không đổi logic bot. MVP không dùng `hard` (đang huấn luyện, chậm, sẽ đổi). (Claude)
+  - `ai`: preset bot phe địch (`"easy" | "normal"`; mặc định `normal`). Chỉ **chọn** preset có sẵn qua `s.aiParams`, không đổi logic bot. Hiện `Game.new_game` chỉ điền `aiParams` khi def có `ctrl` (1 đấu 1) -> nối thêm cho level (ngoài logic bot); sim tự dùng theo. MVP không dùng `hard` (đang huấn luyện, chậm, sẽ đổi). (Claude)
   - `gen` (tùy chọn): `{ recipe, seed, sim: { win, turnsMed, n, ai_rev } }` — công thức + kết quả sim lúc chọn, để tái tạo / biết khi nào phải đo lại. (Claude)
 - `Content.levels()` thay `Content.campaign()`; bỏ API chương.
 
 ## 7. Nguồn level MVP
 - 16 màn cũ -> bỏ truyện / chương, đổi thành level (đã cân bằng, có nhịp dạy chơi m01–m04). (Claude, user đồng ý)
-- 14–34 level còn lại: sinh bằng công cụ (§10), xếp xen vào theo nhịp thứ mới (§8) và đường độ khó (§9).
+- Màn cũ giữ nguyên nội dung: chỉ sim đo + gắn `tier` theo band. Chỉ sửa màn lệch hẳn luật mới (trung vị > 25 lượt như m08 = 30): bớt vàng / `waves` / quân địch tới khi vào khoảng. (Claude)
+- 14–34 level còn lại: sinh bằng công cụ (§10). Thứ tự (Claude):
+  - m01–m04 (dạy chơi) giữ liền nhau ở đầu, **được miễn** luật "không 2 level ra mắt liền nhau".
+  - Từ sau m04: màn cũ giữ thứ tự tương đối, level sinh **chèn xen giữa** (sau mỗi lần ra mắt ≥ 1 level luyện thứ vừa ra mắt, không có thứ mới) -> thứ mới trải đều trên 30–50 level thay vì dồn vào 16 level đầu. Luật nhịp §8 áp cho mọi chỗ trừ m01–m04.
 
 ## 8. Thứ mới theo level
 - MVP chỉ dùng nội dung đã có, ra dần theo luật hiện hành: thấy -> cầm -> mua; không 2 level ra mắt liền nhau; level ra mắt không bao giờ là Khó.
@@ -77,6 +80,7 @@ Chạy headless, ngoài game. Quy trình:
 5. **Sim**: K ván (đề xuất 12) -> % thắng phe ta, trung vị lượt, % ván chạm giới hạn lượt, chỉ số giằng co (vd số lần đổi bên dẫn điểm theo thế cờ; định nghĩa cụ thể = builder).
 6. **Lọc + chấm**: đúng band tier, trung vị lượt trong khoảng (~8–25), giằng co ≥ ngưỡng, không trùng khung với level đã chọn. Giữ top vài bản / công thức.
 7. **Xuất**: `content/levels/LNNN.gd` (+ `gen`), ảnh bàn cờ (probe có cửa sổ — cần màn hình máy bật) -> Claude xem, chọn bản hay nhất. Mốc sao = trung vị như `Stars` hiện nay.
+- Làm công cụ + sinh level **không cần chờ** bot V2-hard (chỉ chạy sim, không sửa bot). Bot mới xong -> chạy lại sim mọi level 1 lần (§9). (Claude)
 - Ngân sách: 50 level × ~5 ứng viên × 12 ván ≈ 3000 ván ≈ 15–25 phút với 2–4 tiến trình (bot v1). Bot huấn luyện chạy cùng máy -> giới hạn số tiến trình; đo thực tế trước khi chạy đại trà.
 
 ## 11. Skill tạo level
@@ -91,7 +95,8 @@ Chạy headless, ngoài game. Quy trình:
 
 ## 13. Xoá / dọn
 - Xoá: `story_overlay.gd`, `camp_map.gd`, `content/chapters/`, `content/campaign/` (sau khi chuyển sang `content/levels/`), khóa `story` / `history` / `people` / outro, API chương trong `Content`, theme ghi đè theo chương, cờ debug `story`. Docs: `README.md`, `docs/content.md`, `docs/spec.md`.
-- Tiến độ đã lưu: `campaign_done` / `campaign_stars` theo id màn -> đổi sang id level tương ứng của 16 màn cũ, người đã chơi không mất tiến độ. (Claude) Ván đang dở của màn cũ: builder chọn (đổi id hoặc bỏ có báo).
+- Tiến độ đã lưu: `campaign_done` / `campaign_stars` theo id màn -> đổi sang id level tương ứng của 16 màn cũ, người đã chơi không mất tiến độ. (Claude)
+  - Mở khóa sau khi đổi: mở mọi level có thứ tự ≤ level (đổi từ màn cũ) xa nhất đã thắng, kể cả level sinh chèn xen chưa chơi -> người đã xong m16 không bị đẩy về level sớm. Hiện `Store.unlocked_index()` = level chưa thắng đầu tiên -> đổi cách tính (vd lưu `levels_open` = thứ tự cao nhất đã mở). (Claude) Ván đang dở của màn cũ: builder chọn (đổi id hoặc bỏ có báo).
 - Đấu tự do + 1 đấu 1 giữ nguyên (bỏ phụ thuộc chương nếu có, vd `skirmish_def` gắn `chapter`).
 - `sim/golden.txt`: thêm / đổi level -> tạo lại. Nhánh huấn luyện bot cũng có thể tạo lại golden -> merge tuần tự, tạo lại golden sau merge.
 

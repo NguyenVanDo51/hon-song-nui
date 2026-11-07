@@ -47,7 +47,7 @@ func _run(g: GameScreen) -> void:
 	stage(g, a, d, ax, dx)
 	label = ms_label(20)
 	await process_frame
-	var before: Dictionary = g._snapshot()
+	var before: Dictionary = g.player.snapshot()
 	var ev := Game.do_action(s, { "id": a.id, "to": [a.x, a.y], "kind": "attack", "target": d.id })
 	print(
 		"[rig_live] events: ",
@@ -60,7 +60,7 @@ func _run(g: GameScreen) -> void:
 	g.refresh() # as GameScreen.commit: busy view (no 'acted' grey while it plays)
 	var t0 := Time.get_ticks_msec()
 	_shoot(g, t0)
-	await g.play(ev, before)
+	await g.player.play(ev, before)
 	print("[rig_live] play() took %d ms" % (Time.get_ticks_msec() - t0))
 	await create_timer(0.5).timeout
 	if frames.is_empty():

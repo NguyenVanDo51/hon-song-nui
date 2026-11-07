@@ -96,14 +96,14 @@ func click_card(key: String, val: String) -> void:
 ## wait until the side to move is `side` and input is open (or frames run out)
 func turn_of(g: GameScreen, side: String, frames := 3000) -> bool:
 	for i in frames:
-		if g.s.side == side and not g.ui.busy and g._handoff_layer == null:
+		if g.s.side == side and not g.ui.busy and g.turns.handoff_layer == null:
 			return true
 		await process_frame
 	return false
 
 func wait_handoff(g: GameScreen) -> bool:
 	for i in 120:
-		if g._handoff_layer != null:
+		if g.turns.handoff_layer != null:
 			return true
 		await process_frame
 	return false
@@ -127,7 +127,7 @@ func _duel(g: GameScreen) -> void:
 	ok(await wait_handoff(g), "handoff card before Red's first turn")
 	press("Bắt đầu lượt")
 	ok(await turn_of(g, "p"), "Red to move")
-	ok(g._turn.text.contains(g._side_name("p")), "HUD names Red's turn (%s)" % g._turn.text)
+	ok(g.hud.turn_label.text.contains(g._side_name("p")), "HUD names Red's turn (%s)" % g.hud.turn_label.text)
 	# P1: hero moves + waits, then ends the turn
 	var hero: Dictionary = units_of(s).filter(
 		func(u: Dictionary) -> bool:
@@ -150,13 +150,13 @@ func _duel(g: GameScreen) -> void:
 		g.cancel()
 	press("Hết lượt")
 	ok(await wait_handoff(g), "handoff card after P1 ends the turn")
-	var hb := find_btn(g._handoff_layer, "Bắt đầu")
+	var hb := find_btn(g.turns.handoff_layer, "Bắt đầu")
 	okv(hb != null and s.side == "e" and not Content.is_ai(s, "e"), "handoff waits for Blue (no AI turn)")
 	await main.shot("duel_handoff")
 	press("Bắt đầu lượt")
 	ok(await turn_of(g, "e"), "Blue to move")
-	var gold_ok: bool = int(g._gold_num.text) == s.gold.e or g._gold_shown >= 0
-	ok(gold_ok, "HUD shows Blue's gold (%s vs %d)" % [g._gold_num.text, s.gold.e])
+	var gold_ok: bool = int(g.hud.gold_num.text) == s.gold.e or g.hud.gold_shown >= 0
+	ok(gold_ok, "HUD shows Blue's gold (%s vs %d)" % [g.hud.gold_num.text, s.gold.e])
 	# P2: buy at Blue's castle
 	var cas: Vector2i = Game.castle_tiles(s, "e")[0]
 	ok(Game.unit_at(s, cas.x, cas.y) == null, "Blue castle free")
@@ -164,7 +164,7 @@ func _duel(g: GameScreen) -> void:
 	await process_frame
 	okv(g.ui.buyAt == [cas.x, cas.y], "Blue castle opens Blue's shop")
 	var ge0: int = s.gold.e
-	press("", g._actions)
+	press("", g.panel.actions)
 	await process_frame
 	var ge1: int = s.gold.e
 	ok(ge1 < ge0, "P2 bought (%d -> %d)" % [ge0, ge1])
@@ -218,9 +218,12 @@ func _duel(g: GameScreen) -> void:
 	# end card: faction wins, no campaign progress
 	g.s.winner = "e"
 	g.s.reason = "castlesLost"
-	g.finish()
+	g.turns.finish()
 	await wait(1.5)
-	ok(g._end.visible and find_btn(g._end, "Chơi lại") != null and find_btn(g._end, "Về menu") != null, "duel end card: Chơi lại / Về menu")
+	ok(
+		g.cards.end_layer.visible and find_btn(g.cards.end_layer, "Chơi lại") != null and find_btn(g.cards.end_layer, "Về menu") != null,
+		"duel end card: Chơi lại / Về menu",
+	)
 	await main.shot("duel_end")
 	ok(Store.done_list() == done0, "duel result leaves campaign progress alone")
 	press("Chơi lại")
@@ -237,7 +240,7 @@ func _duel(g: GameScreen) -> void:
 	press("Xuất quân")
 	await wait(0.8)
 	var ai_ctrl: Dictionary = g.s.get("ctrl", { })
-	okv(ai_ctrl.e == "ai:hard" and g._handoff_layer == null, "vs AI: Blue = ai:hard, no handoff")
+	okv(ai_ctrl.e == "ai:hard" and g.turns.handoff_layer == null, "vs AI: Blue = ai:hard, no handoff")
 	ok(await turn_of(g, "p"), "vs AI: Red to move")
 	press("Hết lượt")
 	var ai_back: bool = await turn_of(g, "p")
@@ -256,7 +259,7 @@ func _run() -> void:
 	)[0]
 	# select hero -> reach, hover path
 	g._on_tile(pos(hero).x, pos(hero).y)
-	ok(board(g).view.reach != null and not g._pop.visible, "select hero shows reach, board stays clear (no popup yet)")
+	ok(board(g).view.reach != null and not g.panel.pop.visible, "select hero shows reach, board stays clear (no popup yet)")
 	var dest: Dictionary
 	var reach: Dictionary = board(g).view.reach
 	for r: Dictionary in reach.values():
@@ -276,10 +279,13 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	await main.shot("ux_float")
-	ok(g._pop.visible and g._actions.get_child_count() >= 2, "popup with orders next to the tile (%d buttons)" % g._actions.get_child_count())
+	ok(
+		g.panel.pop.visible and g.panel.actions.get_child_count() >= 2,
+		"popup with orders next to the tile (%d buttons)" % g.panel.actions.get_child_count(),
+	)
 	var T: float = board(g).T
 	var dest_r := Rect2(board(g).position + Vector2(pos(dest)) * T, Vector2(T, T))
-	ok(not Rect2(g._pop.position, g._pop.size).intersects(dest_r.grow(-2)), "popup does not cover the destination tile")
+	ok(not Rect2(g.panel.pop.position, g.panel.pop.size).intersects(dest_r.grow(-2)), "popup does not cover the destination tile")
 	g._on_tile(pos(dest).x, pos(dest).y) # same tile again = default action (wait here)
 	await idle(g)
 	var moved_ok: bool = hero.acted and hero.x == dest.x
@@ -296,15 +302,15 @@ func _run() -> void:
 				plain = Vector2i(tx, ty)
 	g._on_tile(plain.x, plain.y)
 	await process_frame
-	var card_ok: bool = g.ui.info != null and g._card.visible and g._btn_end.is_visible_in_tree()
+	var card_ok: bool = g.ui.info != null and g.hud.card.visible and g.hud.btn_end.is_visible_in_tree()
 	ok(card_ok, "terrain click shows its card, end-turn stays")
 	g._on_tile(plain.x, plain.y)
 	await process_frame
-	var closed_ok: bool = g.ui.info == null and not g._card.visible and g._btn_end.is_visible_in_tree()
+	var closed_ok: bool = g.ui.info == null and not g.hud.card.visible and g.hud.btn_end.is_visible_in_tree()
 	ok(closed_ok, "same terrain tile again closes card")
 	g._on_tile(pos(hero).x, pos(hero).y)
 	await process_frame
-	var unit_ok: bool = g._card.visible and not g._btn_end.is_visible_in_tree()
+	var unit_ok: bool = g.hud.card.visible and not g.hud.btn_end.is_visible_in_tree()
 	ok(unit_ok, "unit picked: only its card, end-turn hidden")
 	g.cancel()
 	# buy at our castle (1,2)
@@ -312,7 +318,7 @@ func _run() -> void:
 	await process_frame
 	ok(g.ui.buyAt != null, "castle click opens buy panel")
 	var gold0: int = s.gold.p
-	press("", g._actions) # first enabled buy button
+	press("", g.panel.actions) # first enabled buy button
 	await process_frame
 	var gold1: int = s.gold.p
 	ok(gold1 < gold0, "bought a unit (%d -> %d)" % [gold0, s.gold.p])
@@ -325,7 +331,7 @@ func _run() -> void:
 		await process_frame
 		var shop_ok: bool = g.ui.buyAt == [1, 2] and g.ui.sel == null
 		ok(shop_ok, "acted unit on our castle: click opens buy panel")
-		ok(find_btn(g._actions, "") != null, "buy panel shows buttons")
+		ok(find_btn(g.panel.actions, "") != null, "buy panel shows buttons")
 		newu.acted = false
 		g.cancel()
 	# attack: bring an enemy soldier next to our soldier, then click it
@@ -374,11 +380,11 @@ func _run() -> void:
 	await main.shot("ux_forecast")
 	await process_frame
 	var hp1: int = foe2.hp
-	g._gear.pressed.emit()
+	g.hud.gear.pressed.emit()
 	await process_frame
-	ok(g._menu.visible, "⚙ opens the menu")
+	ok(g.hud.menu.visible, "⚙ opens the menu")
 	g._on_tile_clicked(0, 0)
-	ok(not g._menu.visible, "a map click closes the menu")
+	ok(not g.hud.menu.visible, "a map click closes the menu")
 	g._on_tile(pos(foe2).x, pos(foe2).y)
 	await idle(g)
 	var click_ok: bool = arch.acted and (foe2.hp < hp1 or Game.unit_by_id(s, id_of(foe2)) == null)
@@ -387,7 +393,7 @@ func _run() -> void:
 	# terrain info, hint, codex, speed
 	g._on_tile(6, 0)
 	await process_frame
-	ok(g._card.visible and g._card_box.get_child_count() > 0, "terrain info in the corner card")
+	ok(g.hud.card.visible and g.hud.card_box.get_child_count() > 0, "terrain info in the corner card")
 	g.cancel()
 	# ⓘ on a token: unit card with traits + how to play; next click on the board just closes it
 	var any_u: Dictionary = units_of(s).filter(
@@ -396,21 +402,21 @@ func _run() -> void:
 	)[0]
 	g._on_info_requested(id_of(any_u))
 	await process_frame
-	var peek_ok: bool = g.ui.peek == any_u.id and g._pop.visible and g._info.get_child_count() >= 4
-	ok(peek_ok, "ⓘ opens the unit card (%d rows)" % g._info.get_child_count())
+	var peek_ok: bool = g.ui.peek == any_u.id and g.panel.pop.visible and g.panel.info.get_child_count() >= 4
+	ok(peek_ok, "ⓘ opens the unit card (%d rows)" % g.panel.info.get_child_count())
 	g._on_tile_clicked(0, 0)
 	ok(g.ui.peek == null, "board click closes the unit card")
 	await process_frame
 	ok(board(g)._info_spots.is_empty(), "no ⓘ dots on the figures (details live in the corner card)")
 	# new-unit intro card (Store untouched: called directly)
-	g._intro_card(any_u, 0, 1)
+	g.cards.intro_card(any_u, 0, 1)
 	await process_frame
-	ok(g._intro_layer != null and g._intro_layer.is_inside_tree(), "intro card shows")
+	ok(g.cards.intro_layer != null and g.cards.intro_layer.is_inside_tree(), "intro card shows")
 	await main.shot("ux_intro")
-	g._intro_closed.emit()
+	g.cards.intro_closed.emit()
 	for i in 30:
 		await process_frame
-	ok(g._intro_layer == null, "intro card closes")
+	ok(g.cards.intro_layer == null, "intro card closes")
 	g._on_hint()
 	await process_frame
 	ok(g.ui.hint != null, "hint shows")
@@ -418,32 +424,32 @@ func _run() -> void:
 	await process_frame
 	ok(main.menus.is_codex_open(), "codex opens over game")
 	main.menus.close_codex()
-	g._on_speed()
+	g.hud.on_speed()
 	# end turn -> enemy turn -> back to us
 	for i in 5: # a picked unit swaps the HUD for its card: deselect to reach "Hết lượt"
 		if g.ui.sel == null:
 			break
 		g.cancel()
-	ok(g._btn_end.visible and not g._card.visible, "nothing picked -> HUD back, card gone")
+	ok(g.hud.btn_end.visible and not g.hud.card.visible, "nothing picked -> HUD back, card gone")
 	press("Hết lượt")
 	var low := 1 << 30
 	for i in 1200:
 		if s.side == "p" and not g.ui.busy:
 			break
 		if s.side == "p":
-			low = mini(low, int(g._gold_num.text))
+			low = mini(low, int(g.hud.gold_num.text))
 		await process_frame
 	var turn2_ok: bool = s.side == "p" and s.turn == 2
 	ok(turn2_ok, "enemy turn played, turn 2 (turn %d)" % s.turn)
 	# turn-start income: the total counts up (shown below the real total for a while), then lands on it
 	for i in 200:
-		low = mini(low, int(g._gold_num.text))
-		if g._gold_shown < 0 and i > 5:
+		low = mini(low, int(g.hud.gold_num.text))
+		if g.hud.gold_shown < 0 and i > 5:
 			break
 		await process_frame
 	var count_ok: bool = Game.income(s, "p") == 0 or low < s.gold.p
 	ok(count_ok, "gold counts up at turn start (lowest shown %d, total %d)" % [low, s.gold.p])
-	var total_ok: bool = int(g._gold_num.text) == s.gold.p
+	var total_ok: bool = int(g.hud.gold_num.text) == s.gold.p
 	ok(total_ok, "gold count-up ends on the real total")
 	# buy on top of a unit standing on our castle; click its own tile = keep, click outside its reach = take back (refund)
 	var cas: Vector2i = Game.castle_tiles(s, "p")[0]
@@ -511,7 +517,7 @@ func _run() -> void:
 	Store.set_v("seen_units", []) # driver profile: m03's unit cards show on every run
 	g.s.winner = "p"
 	g.s.reason = "castlesLost"
-	g.finish()
+	g.turns.finish()
 	await wait(1.5)
 	press("Màn tiếp")
 	await wait(0.4)
@@ -532,11 +538,11 @@ func _run() -> void:
 	press("Bỏ qua")
 	await wait(0.5)
 	ok(g._story == null and not is_instance_valid(ov), "skip closes the story")
-	ok(g._intro_layer != null, "new-unit intro follows the story")
+	ok(g.cards.intro_layer != null, "new-unit intro follows the story")
 	for i in 20:
 		if not g._intro_on:
 			break
-		g._intro_closed.emit()
+		g.cards.intro_closed.emit()
 		await wait(0.3)
 	var play_ok: bool = not g._intro_on and g.s.side == "p" and g.s.turn == 1 and g._story == null
 	ok(play_ok, "then the game is playable")
@@ -545,11 +551,11 @@ func _run() -> void:
 	await wait(0.5)
 	g.s.winner = "p"
 	g.s.reason = "castlesLost"
-	g.finish()
+	g.turns.finish()
 	await wait(0.1)
 	main.show_title()
 	await wait(0.8)
-	ok(Store.is_done("m03") and not g._end.visible, "win kept when leaving during the end pause")
+	ok(Store.is_done("m03") and not g.cards.end_layer.visible, "win kept when leaving during the end pause")
 	await _duel(g)
 	print("DRIVER DONE fails=%d" % fails)
 	quit(1 if fails else 0)

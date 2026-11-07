@@ -73,7 +73,7 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Báo cáo (scratchpad, local): `rules_compare.html` (56 khác biệt với AE2), `ip_review.html` (rủi ro bản quyền).
 
 ## Bố cục HUD không che bản đồ
-- `game_screen._layout()` / `_place_hud()`: bản đồ full màn, HUD nổi trên bản đồ. Không chọn gì -> lượt/vàng/mục tiêu (trên trái), ⏩ ⚙ (trên phải), Hết lượt (dưới phải). Chọn quân / ô -> ẩn hết, chỉ còn thẻ; thẻ ở góc trên trái, đổi sang trên phải (rồi dưới trái, dưới phải) nếu che ô đang chọn / ô đích (`_card_avoid`). Probe: `sim/probes/hud_shot.gd`.
+- `GameHud._layout()` / `place_hud()` (game_hud.gd): bản đồ full màn, HUD nổi trên bản đồ. Không chọn gì -> lượt/vàng/mục tiêu (trên trái), ⏩ ⚙ (trên phải), Hết lượt (dưới phải). Chọn quân / ô -> ẩn hết, chỉ còn thẻ; thẻ ở góc trên trái, đổi sang trên phải (rồi dưới trái, dưới phải) nếu che ô đang chọn / ô đích (`card_avoid`). Probe: `sim/probes/hud_shot.gd`.
 - Chỉ popup lệnh + menu ⚙ còn nổi trên bản đồ. 1280x720: ô 64–68px (trước ~71).
 - Kiểm: 1280x720 / 1500x675 (điện thoại ngang) / dọc, 2D + 3D: 0 ô HUD đè bản đồ; tests 54/54, click_driver fails=0.
 
@@ -91,4 +91,4 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - E2: công trình theo mô tả `TERRAIN` (`income`, `cap`, `heals`, `sells`, `razeTo`, `repairTo`/`repairBy`); thu nhập = tổng ô đang giữ.
 - E4: `scripts/core/objectives.gd` (registry kiểu mục tiêu).
 - Cách thêm quân / công trình / mục tiêu: `docs/content.md`. Golden y hệt sau mỗi bước.
-- Chưa làm (để sau): E1 N phe / đồng minh, E5 tách `game_screen.gd`, E6 i18n. Tầm hào quang (2) vẫn cứng ở `game.gd` + `board.gd` (AE2 cố định).
+- Chưa làm (để sau): E1 N phe / đồng minh, E6 i18n. Tầm hào quang (2) vẫn cứng ở `game.gd` + `board.gd` (AE2 cố định).

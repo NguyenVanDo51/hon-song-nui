@@ -47,6 +47,9 @@ func _turn_banner() -> String:
 func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no longer asks twice)
 	if gs.ui.busy or not gs._human_turn() or gs.s.winner != null:
 		return
+	if not gs.tutorial.allows("end_turn"):
+		gs.tutorial.refuse()
+		return
 	if gs._stuck_unit() != null: # a unit bought onto an occupied castle has not stepped off yet
 		gs._clear_sel()
 		gs._force_stack()
@@ -57,6 +60,7 @@ func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no
 	gs._clear_sel()
 	var before := gs.player.snapshot()
 	var ev := Game.end_turn(gs.s)
+	gs.hud.quests.celebrate(Quests.note(gs.s, "end_turn", null) + Quests.observe(gs.s, ev))
 	_count_from(ev)
 	gs.save()
 	if gs.s.winner != null:
@@ -140,9 +144,13 @@ func ai_turn() -> void:
 		if ev.is_empty() and _progress_sig() == sig:
 			push_warning("AI step rejected, ending enemy turn: %s" % [step])
 			break # a rejected step would repeat forever
+		var done := Quests.observe(gs.s, ev) # our counter-attacks on their turn count
+		gs.hud.quests.hold(done)
 		gs.save()
 		if not (step.kind == "act" and step.act.kind == "wait" and ev.is_empty()):
 			await gs.player.play(ev, before)
+		if gs.gen == my:
+			gs.hud.quests.celebrate(done)
 		await gs.fx.sleep(90.0)
 		if gs.gen != my:
 			return
@@ -154,6 +162,8 @@ func ai_turn() -> void:
 		return
 	var before := gs.player.snapshot()
 	var ev := Game.end_turn(gs.s)
+	var healed := Quests.observe(gs.s, ev) # heal on our turn start
+	gs.hud.quests.hold(healed)
 	_count_from(ev) # our income lands here (AI's end_turn): total counts up when coins land
 	gs.save()
 	if gs.s.winner != null:
@@ -164,6 +174,8 @@ func ai_turn() -> void:
 	ff = false
 	FX.speed = user_speed
 	await _turn_start(ev, before)
+	if gs.gen == my:
+		gs.hud.quests.celebrate(healed)
 
 ## changes whenever an AI step did anything (moved / acted / bought)
 func _progress_sig() -> String:
@@ -209,10 +221,7 @@ func finish() -> void:
 	Store.clear_game()
 	var campaign: bool = gs.ctx.kind == "campaign"
 	var star_goals: Array = Stars.check(gs.s, gs.def) if campaign else []
-	var stars := star_goals.filter(
-		func(g: Dictionary) -> bool:
-			return g.ok,
-	).size()
+	var stars := Stars.final(gs.s, gs.def) if campaign else 0
 	var best_before := Store.stars_of(str(gs.ctx.get("id", ""))) if campaign else 0
 	Store.record_result(gs.ctx, gs.s.winner, stars) # before any await: leaving during the pause must not lose the win
 	var duel: bool = gs.ctx.kind == "duel"
@@ -274,7 +283,7 @@ func finish() -> void:
 	else:
 		buttons.append(["Ván mới", gs.main.show_skirmish, true])
 		buttons.append(["Menu", gs.main.show_title, false])
-	gs.cards.show_end(win, reason_text, buttons, star_goals if win else [], best_before)
+	gs.cards.show_end(win, reason_text, buttons, star_goals if win else [], best_before, stars)
 	if gs.main.flags.has("shots"):
 		gs.get_tree().create_timer(1.5).timeout.connect(
 			func() -> void:

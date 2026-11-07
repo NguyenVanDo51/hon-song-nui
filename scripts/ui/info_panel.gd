@@ -57,6 +57,8 @@ func _act(label: String, fn: Callable, opts := { }) -> Button:
 	var hot: bool = opts.get("hot", false)
 	var go: bool = opts.get("go", false)
 	var b := Style.button(label, ("ActGoHot" if hot else "ActGo") if go else ("ActHot" if hot else "ActBtn"))
+	if opts.has("act"): # order kind: the tutorial holes the button that finishes its step
+		b.set_meta("act", opts.act)
 	b.disabled = opts.get("disabled", false)
 	b.add_theme_font_size_override("font_size", 17)
 	b.custom_minimum_size = Vector2(52, 44)
@@ -339,7 +341,7 @@ func render_pop(my_turn: bool) -> void:
 							"⚔ Đánh",
 							func() -> void:
 								gs.commit({ "kind": "attack", "target": tid }),
-							{ "hot": true, "go": true },
+							{ "act": "attack", "hot": true, "go": true },
 						)
 					)
 				else:
@@ -370,6 +372,7 @@ func render_pop(my_turn: bool) -> void:
 										best = t2
 								gs.ui.target = best.id
 								gs.refresh(),
+							{ "act": "attack" },
 						)
 					)
 				if Game.can_capture(gs.s, su, dx, dy):
@@ -378,7 +381,7 @@ func render_pop(my_turn: bool) -> void:
 							"🏯 Chiếm lâu đài" if Game.sells(gs.s.tiles[dy][dx]) else "🏠 Chiếm làng",
 							func() -> void:
 								gs.commit({ "kind": "capture" }),
-							{ "hot": hk == "capture" or hk == null, "go": true },
+							{ "act": "capture", "hot": hk == "capture" or hk == null, "go": true },
 						)
 					)
 				if Game.can_repair(gs.s, su, dx, dy):
@@ -388,7 +391,7 @@ func render_pop(my_turn: bool) -> void:
 							"🔨 Dựng lại làng",
 							func() -> void:
 								gs.commit({ "kind": "repair" }),
-							{ "hot": hk == "repair" or hk == null, "go": true },
+							{ "act": "repair", "hot": hk == "repair" or hk == null, "go": true },
 						)
 					)
 				var razes := Game.razable_from(gs.s, su, dx, dy)
@@ -401,7 +404,7 @@ func render_pop(my_turn: bool) -> void:
 							"💥 Đốt làng",
 							func() -> void:
 								gs.commit({ "kind": "raze", "target": rt }),
-							{ "hot": gs.ui.raze != null or hk == "raze", "go": true },
+							{ "act": "raze", "hot": gs.ui.raze != null or hk == "raze", "go": true },
 						)
 					)
 				var graves := Game.raisable_graves(gs.s, su, dx, dy)
@@ -412,7 +415,7 @@ func render_pop(my_turn: bool) -> void:
 							Content.text("raiseButton"),
 							func() -> void:
 								gs.commit({ "kind": "raise", "target": [g0.x, g0.y] }),
-							{ "hot": hk == "raise" },
+							{ "act": "raise", "hot": hk == "raise" },
 						)
 					)
 				if dx == u.x and dy == u.y and gs._can_buy_here(su):
@@ -434,7 +437,7 @@ func render_pop(my_turn: bool) -> void:
 							"⏳ Chờ",
 							func() -> void:
 								gs.commit({ "kind": "wait" }),
-							{ "hot": hk == "wait" },
+							{ "act": "wait", "hot": hk == "wait" },
 						)
 					)
 				actions.add_child(_act("✖ Hủy", gs.cancel))
@@ -465,6 +468,7 @@ func render_pop(my_turn: bool) -> void:
 				{ "disabled": not o.ok or not my_turn, "hot": gs.ui.hotBuy == o.type },
 			)
 			b.tooltip_text = look.blurb if o.type == "hero" else look.desc
+			b.set_meta("buy", type) # tutorial: the step's buy button gets the hole
 			b.custom_minimum_size = Vector2(POP_W, 46)
 			var row := Style.hbox(8)
 			row.mouse_filter = Control.MOUSE_FILTER_IGNORE

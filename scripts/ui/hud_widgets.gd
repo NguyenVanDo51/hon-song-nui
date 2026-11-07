@@ -204,13 +204,15 @@ class StarIcon extends Control:
 		else:
 			Draw.star(self, c, r, Style.PAPER_2, Style.INK_D, 1.2)
 
-## win card: 3 stars popping in + each goal ticked / missed with the number it was judged on (+ best, if better before)
-static func end_stars(v: VBoxContainer, goals: Array, best_before: int) -> StarRow:
-	var row := StarRow.new()
-	row.got = goals.filter(
+## win card: `got` stars popping in + each goal ticked / missed with the number it was judged on (+ best, if better before).
+## A penalty goal (quests) earns no star: ✓ when met, red "−1 ★" only when it took a star (floor 1: may take none).
+static func end_stars(v: VBoxContainer, goals: Array, best_before: int, got: int) -> StarRow:
+	var earned := goals.filter(
 		func(g: Dictionary) -> bool:
-			return g.ok,
+			return g.ok and not g.get("penalty", false),
 	).size()
+	var row := StarRow.new()
+	row.got = got
 	row.custom_minimum_size = Vector2(240, 54)
 	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(row)
@@ -228,12 +230,19 @@ static func end_stars(v: VBoxContainer, goals: Array, best_before: int) -> StarR
 			"hero":
 				note = "" if ok else " (ngã %d lần)" % have
 		var line := Style.hbox(8)
-		var icon := StarIcon.new()
-		icon.on = ok
-		icon.custom_minimum_size = Vector2(16, 16)
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		line.add_child(icon)
-		line.add_child(Style.lbl(str(g.text) + note, 15, Style.GOOD if ok else Style.MUTED))
+		var col := Style.GOOD if ok else Style.MUTED
+		if g.get("penalty", false):
+			line.add_child(QuestPanel.Mark.new("done" if ok else "miss"))
+			var cut := not ok and got < earned
+			col = Style.GOOD if ok else (Style.BAD if cut else Style.MUTED)
+			note = "  " + Content.text("star_penalty") if cut else ""
+		else:
+			var icon := StarIcon.new()
+			icon.on = ok
+			icon.custom_minimum_size = Vector2(16, 16)
+			icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			line.add_child(icon)
+		line.add_child(Style.lbl(str(g.text) + note, 15, col))
 		list.add_child(line)
 	v.add_child(list)
 	if best_before > row.got:
@@ -241,17 +250,6 @@ static func end_stars(v: VBoxContainer, goals: Array, best_before: int) -> StarR
 		best.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(best)
 	return row
-
-## soft pulsing halo behind the token on the intro card
-class IntroGlow extends Control:
-	var col := Color.WHITE
-
-	func _process(_dt: float) -> void:
-		queue_redraw()
-
-	func _draw() -> void:
-		var k := 0.5 + 0.5 * sin(Time.get_ticks_msec() / 400.0)
-		Draw.glow(self, size / 2, size.x * (0.62 + 0.06 * k), Color(col, 0.35 + 0.2 * k))
 
 ## hotseat hand-over: dims the board, names the side to move; a tap anywhere / the button / Space goes on
 class Handoff extends Control:

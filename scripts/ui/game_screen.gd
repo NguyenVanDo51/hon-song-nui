@@ -3,7 +3,7 @@ extends Control
 ## the war table: game state, board view, selection + input, hint. The rest lives in helpers that read / call it directly
 ## (review E5): hud = GameHud (map frame, floating HUD, ⚙ menu, corner card), panel = InfoPanel (orders / unit / buy popup,
 ## card text), player = EventPlayer (event playback, income / heal count-ups), turns = TurnDriver (turn flow, AI / bot loop,
-## hotseat handoff, finish), cards = GameCards (new-unit intro, end screen).
+## hotseat handoff, finish), cards = GameCards (new-unit intro, end screen), tutorial = Tutorial (step lock of t01 / t02).
 ## "me" = the side the person at the screen plays (_me); "p" / "e" literals left here mean faction colour.
 ## Port of the game half of src/ui/screens.js.
 
@@ -27,6 +27,7 @@ var panel: InfoPanel
 var player: EventPlayer
 var turns: TurnDriver
 var cards: GameCards
+var tutorial: Tutorial
 
 var _hover_at := 0
 # reach / best attack tile, memoised per board position: hovering re-asks them every mouse move
@@ -78,6 +79,8 @@ func _build() -> void:
 	hud.build_hud()
 	panel.build_pop()
 	cards.build_end()
+	tutorial = Tutorial.new()
+	add_child(tutorial) # last child: on top of the HUD for clicks
 	resized.connect(hud.place_hud)
 
 ## while the enemy moves: hold Space or a mouse button (or ⏩) to run x4
@@ -131,6 +134,11 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	hud.fit.call_deferred()
 	board.refresh_terrain()
 	ctx.erase("story") # old saves / old ctx may carry it
+	if ctx.kind == "campaign":
+		Quests.on_open(s, def)
+	hud.quests.bind(s, "")
+	var tut_steps: Array = def.get("tutorial", []) if ctx.kind == "campaign" else []
+	tutorial.bind(self, tut_steps)
 	save()
 	refresh()
 	turns.begin()
@@ -386,6 +394,9 @@ func _on_tile_clicked(x: int, y: int) -> void:
 		return
 	if s.is_empty() or ui.busy or s.winner != null:
 		return
+	if not tutorial.allows(Vector2i(x, y)):
+		tutorial.refuse()
+		return
 	if ui.peek != null: # first click anywhere just closes the unit card
 		ui.peek = null
 		refresh()
@@ -513,6 +524,8 @@ func _on_tile(x: int, y: int) -> void:
 			refresh()
 			return
 		ui.sel = clicked.id
+		if clicked.side == me:
+			hud.quests.celebrate(Quests.note(s, "select", clicked.type))
 		# standing on a village/castle to take (or a ruin to repair): orders open on the first click
 		if my_turn and clicked.side == me and not clicked.acted \
 				and (Game.can_capture(s, cd, x, y) or Game.can_repair(s, cd, x, y)):
@@ -623,6 +636,7 @@ func select_next() -> void:
 	ui.sel = mine[i].id
 	main.audio.play("select")
 	refresh()
+	hud.quests.celebrate(Quests.note(s, "select", mine[i].type))
 
 func _unhandled_input(ev: InputEvent) -> void:
 	var key := ev as InputEventKey # null for mouse / touch events
@@ -639,6 +653,10 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if not visible or s.is_empty() or cards.end_layer.visible or main.menus.is_codex_open():
 		return
 	if not (key != null and key.pressed and not key.echo):
+		return
+	if tutorial.active() and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER, KEY_TAB, KEY_E, KEY_H]:
+		tutorial.refuse()
+		get_viewport().set_input_as_handled()
 		return
 	match key.keycode:
 		KEY_SPACE, KEY_ENTER, KEY_KP_ENTER:
@@ -682,6 +700,9 @@ func _set_dest(x: int, y: int) -> void:
 	refresh()
 
 func commit(extra: Dictionary) -> void:
+	if not tutorial.allows("act:" + str(extra.kind)):
+		tutorial.refuse()
+		return
 	player.stop_heal_counts() # an action's own hp playback must not be overridden by a heal still counting
 	var my := gen
 	var u: Dictionary = _sel_unit()
@@ -692,16 +713,22 @@ func commit(extra: Dictionary) -> void:
 	refresh()
 	var before := player.snapshot()
 	var ev := Game.do_action(s, act)
+	var done := Quests.observe(s, ev) # before save: progress persists; stamp after playback
+	hud.quests.hold(done)
 	save()
 	await player.play(ev, before)
 	if gen != my:
 		return
 	ui.busy = false
 	refresh()
+	hud.quests.celebrate(done)
 	if s.winner != null:
 		turns.finish()
 
 func buy_unit(type: String) -> void:
+	if not tutorial.allows("buy:" + type):
+		tutorial.refuse()
+		return
 	var x: int = ui.buyAt[0]
 	var y: int = ui.buyAt[1]
 	var nu: Variant = Game.buy(s, x, y, type)
@@ -712,8 +739,10 @@ func buy_unit(type: String) -> void:
 	_clear_sel()
 	ui.sel = nu.id # AE2: the new unit moves / attacks right away (must step off if the castle was occupied)
 	_stack_hint()
+	var done := Quests.note(s, "buy", type)
 	save()
 	refresh()
+	hud.quests.celebrate(done)
 
 ## our unit that shares a tile (bought onto an occupied castle) and still has to step off
 func _stuck_unit() -> Variant:
@@ -765,7 +794,7 @@ func _open_work() -> int:
 
 # ---------- hint ----------
 func _on_hint() -> void:
-	if s.is_empty() or ui.busy or not _human_turn() or s.winner != null:
+	if s.is_empty() or ui.busy or not _human_turn() or s.winner != null or tutorial.active():
 		return
 	_reset_ui()
 	var step: Variant = AI.next_step(s.duplicate(true), { }) # next_step may clear guard flags: ask on a copy
@@ -804,10 +833,11 @@ func _on_hint() -> void:
 func refresh() -> void:
 	if s.is_empty():
 		return
+	tutorial.advance()
 	_build_view()
 	hud.refresh_top()
 	panel.clear_pop()
 	var my_turn: bool = _human_turn() and not ui.busy and s.winner == null
-	hud.btn_hint.disabled = not my_turn
+	hud.btn_hint.disabled = not my_turn or tutorial.active()
 	hud.refresh_end_button(my_turn)
 	panel.render_pop(my_turn)

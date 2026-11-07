@@ -32,3 +32,17 @@ const PLAY := {
 	"bird": "Bay qua sông, núi chỉ tốn 1 bước, đi 7 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch.",
 	"ghost": "Pháp sư gọi hồn dựng dậy, không mua được, không tính vào trần quân, không chiếm được làng. Dùng làm lá chắn, chặn đường hoặc đánh phụ. Sợ tu sĩ ánh sáng.",
 }
+
+## first-time quest of each unit type a level introduces (def.newUnits); Quests.for_level turns attack_with into kill_type when only the enemy fields the type. No ghost (summon), no terrain.
+const DEBUT := {
+	"soldier": { "do": "move", "what": "soldier" },
+	"hero": { "do": "move", "what": "hero" },
+	"archer": { "do": "attack_with", "what": "archer" },
+	"wolf": { "do": "attack_with", "what": "wolf" },
+	"elephant": { "do": "attack_with", "what": "elephant" },
+	"bird": { "do": "attack_with", "what": "bird" },
+	"boat": { "do": "attack_with", "what": "boat" },
+	"catapult": { "do": "attack_with", "what": "catapult" },
+	"shaman": { "do": "attack_with", "what": "shaman" },
+	"drum": { "do": "attack_with", "what": "drum" },
+}

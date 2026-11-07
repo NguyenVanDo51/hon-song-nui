@@ -1,6 +1,6 @@
 class_name GameHud
 extends RefCounted
-## GameScreen part (review E5): map frame + board mount, floating HUD (goal TL, turn / gold TC, ⏩ ⚙, Hết lượt), ⚙ pause,
+## GameScreen part (review E5): map frame + board mount, floating HUD (turn / gold TC, ⏩ ⚙ + quest slip TR, Hết lượt), ⚙ pause,
 ## corner card placement, gold count, turn banner. Reads / calls the screen (gs) directly.
 
 const HUD_M := 10.0 # HUD distance from the screen edge
@@ -23,17 +23,17 @@ var card: PanelContainer
 var card_box: VBoxContainer
 var map_wrap: Control
 var btn_end: Button
+var quests: QuestPanel
 
 var _gold_box: HBoxContainer
 var _income: Label
-var _goal: RichTextLabel
 var _btn_speed: Button
 var _btn_sound: Button
 var _btn_restart: Button
 var _btn_music: Button
+var _btn_skip: Button
 var _pause: PanelContainer
 var _ribbon: HudWidgets.Ribbon
-var _hud_tl: Control
 var _hud_tc: HBoxContainer
 var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _frame: Panel
@@ -43,7 +43,7 @@ var _end_pulse: Tween = null
 func _init(screen: GameScreen) -> void:
 	gs = screen
 
-## backdrop, map wrap (frame, board, coins, banner), top-left / top-right HUD, ⚙ menu, corner card, Hết lượt
+## backdrop, map wrap (frame, board, coins, banner), top-centre / top-right HUD, quest slip, ⚙ menu, corner card, Hết lượt
 func build_hud() -> void:
 	var bg := HudWidgets.BgPaint.new()
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -71,17 +71,6 @@ func build_hud() -> void:
 	_banner = HudWidgets.Banner.new()
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	map_wrap.add_child(_banner)
-	# top-left: goal on a paper slip
-	var tl := PanelContainer.new()
-	tl.add_theme_stylebox_override("panel", _hud_box())
-	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	tl.z_index = 40
-	gs.add_child(tl)
-	_hud_tl = tl
-	_goal = Style.rich("", 13, Style.INK)
-	_goal.fit_content = true
-	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
-	tl.add_child(_goal)
 	# top-centre: turn + gold, bare ink-outlined text (no panel: covers less of the map)
 	_hud_tc = Style.hbox(16)
 	_hud_tc.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -133,6 +122,15 @@ func build_hud() -> void:
 	gi.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	gear.add_child(gi)
 	top_r.add_child(gear)
+	# under ⏩ ⚙: quests + win line (replaces the old top-left goal slip)
+	quests = QuestPanel.new()
+	quests.sfx = func() -> void:
+		gs.main.audio.play("ui")
+	quests.minimum_size_changed.connect(
+		func() -> void:
+			place_hud.call_deferred(),
+	)
+	gs.add_child(quests)
 	_build_menu()
 	# bottom-left: what is selected
 	card = PanelContainer.new()
@@ -180,7 +178,8 @@ func make_board() -> void:
 		func(t: Variant) -> void:
 			gs.ui.hover = t
 			gs._hover_at = Time.get_ticks_msec()
-			gs._build_view(),
+			gs._build_view()
+			cover_quests(),
 	)
 	gs.board.cancel_requested.connect(gs.cancel)
 	gs.board.info_requested.connect(gs._on_info_requested)
@@ -298,6 +297,16 @@ func _build_menu() -> void:
 	)
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
 		home.add_theme_color_override(c, Style.CRIMSON_D)
+	_btn_skip = _ibtn(
+		Content.text("tutSkip"),
+		Content.text("tutSkipTip"),
+		func() -> void:
+			show_menu(false)
+			_skip_tutorial(),
+	)
+	_btn_skip.theme_type_variation = "TileBtn"
+	_btn_skip.custom_minimum_size.y = 48
+	v.add_child(_btn_skip)
 
 ## round on/off button with a small caption under it
 func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
@@ -317,12 +326,13 @@ func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
 
 func show_menu(on: bool) -> void:
 	menu.visible = on
+	_btn_skip.visible = gs.def.has("tutorial")
 	if on:
 		sound_label()
 		speed_label()
 		place_hud()
 
-## map fills the screen; HUD floats over it. Nothing picked: turn/gold (TL), ⏩ ⚙ (TR), end turn (BR).
+## map fills the screen; HUD floats over it. Nothing picked: turn/gold (TC), ⏩ ⚙ + quest slip (TR), end turn (BR).
 ## Unit picked: only its card, on the screen half away from the picked tile, first corner keeping picked tiles visible.
 ## Terrain picked: HUD stays; card prefers the free bottom-left corner, else takes a top corner from its HUD panel.
 func _side_w() -> float:
@@ -338,24 +348,27 @@ func place_hud() -> void:
 	var B := HUD_M + e.w
 	var picked := card.visible
 	var unit_card := picked and not card_terrain
-	_hud_tl.visible = not unit_card
-	_hud_tc.visible = not unit_card
-	hud_tr.visible = not unit_card
+	# visibility set once at the end: toggling mid-layout re-fires minimum_size_changed -> place_hud loop
+	var tc_on := not unit_card
+	var tr_on := not unit_card or (gs.tutorial != null and gs.tutorial.active()) # ⚙ (Bỏ qua hướng dẫn) reachable in every step
 	btn_end.visible = not unit_card
 	hud_tr.reset_size()
 	var trs := hud_tr.get_combined_minimum_size()
 	hud_tr.position = Vector2(gs.size.x - trs.x - R, T)
-	_hud_tl.custom_minimum_size.x = 0
-	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_hud_tl.reset_size()
-	_hud_tl.position = Vector2(L, T)
 	_hud_tc.reset_size()
 	var tcs := _hud_tc.get_combined_minimum_size()
-	var tc_x := maxf((gs.size.x - tcs.x) / 2.0, L + _hud_tl.get_combined_minimum_size().x + 14)
-	if tc_x + tcs.x > hud_tr.position.x - 10: # narrow screen: tuck it under the goal slip
-		_hud_tc.position = Vector2(L + 6, T + _hud_tl.get_combined_minimum_size().y + 4)
-	else:
-		_hud_tc.position = Vector2(tc_x, T + 2)
+	var tc_x := maxf((gs.size.x - tcs.x) / 2.0, L)
+	if tc_x + tcs.x > hud_tr.position.x - 10: # narrow screen: top-left is free
+		tc_x = L + 6
+	_hud_tc.position = Vector2(tc_x, T + 2)
+	# quest slip right-aligned under ⏩ ⚙; drops below turn / gold if they would touch
+	quests.reset_size()
+	var qs := quests.get_combined_minimum_size()
+	var qp := Vector2(gs.size.x - qs.x - R, T + trs.y + 6)
+	var tc_r := Rect2(_hud_tc.position, tcs).grow(6)
+	if Rect2(qp, qs).intersects(tc_r):
+		qp.y = tc_r.end.y
+	quests.position = qp
 	btn_end.custom_minimum_size = Vector2(SEAL, SEAL)
 	var eb := btn_end.get_combined_minimum_size()
 	btn_end.size = eb
@@ -377,6 +390,8 @@ func place_hud() -> void:
 			cands.assign([c_tr, c_bl, c_tl] if on_left else [c_bl, c_tl, c_tr])
 		else:
 			cands.assign([c_tr, c_br, c_tl, c_bl] if on_left else [c_tl, c_bl, c_tr, c_br])
+			if gs.tutorial != null and gs.tutorial.active(): # ⚙ (Bỏ qua hướng dẫn) stays reachable: no top-right card
+				cands.erase(c_tr)
 		card.position = cands[0]
 		var avoid: Array[Rect2] = []
 		for k: Vector2i in card_avoid:
@@ -390,11 +405,24 @@ func place_hud() -> void:
 			):
 				card.position = c
 				break
-		if card_terrain: # card took a top corner: that corner's HUD panel yields
-			_hud_tl.visible = card.position.y > T or card.position.x > L
-			hud_tr.visible = card.position.y > T or card.position.x <= L
+		if card_terrain: # card took a top corner: that corner's HUD yields
+			tr_on = card.position.y > T or card.position.x <= L
+			tc_on = not Rect2(card.position, cs).intersects(Rect2(_hud_tc.position, tcs))
+	_set_shown(_hud_tc, tc_on)
+	_set_shown(hud_tr, tr_on)
+	_set_shown(quests, tr_on and not unit_card)
 	if menu.visible:
 		_place_pause()
+	cover_quests()
+
+static func _set_shown(c: Control, on: bool) -> void:
+	if c.visible != on:
+		c.visible = on
+
+## quest slip fades while board content is under it
+func cover_quests() -> void:
+	if quests != null and gs.board != null and not gs.s.is_empty():
+		quests.update_cover(gs.board, map_wrap.position)
 
 ## pause card centred (ribbon overhangs its top edge), shrunk to fit short phone screens
 func _place_pause() -> void:
@@ -430,6 +458,13 @@ func on_speed() -> void:
 	FX.speed = 2.0 if FX.speed == 1.0 else (3.0 if FX.speed == 2.0 else 1.0)
 	Store.set_v("speed", FX.speed)
 	speed_label()
+
+## tutorial level: counts as a 1-star win (best kept), back to the level grid
+func _skip_tutorial() -> void:
+	var id := str(gs.ctx.get("id", ""))
+	Store.clear_game()
+	Store.record_result(gs.ctx, "p", 1)
+	gs.main.show_levels(LevelSelect.page_of(maxi(0, Content.level_index(id))))
 
 func _confirm_restart() -> void:
 	if gs.s.is_empty() or gs.ui.busy:
@@ -518,9 +553,9 @@ func _goal_line() -> String:
 		hero_keys = { "p": gs.s.heroKey[gs._me()], "e": gs.s.heroKey[gs._foe()] }
 		n = Game.castles(gs.s, gs._foe())
 	var obj := Content.goal_text(win, "bar", hero_keys, { "n": n, "left": maxi(0, turns - turn + 1) })
-	return "🎯 %s" % obj
+	return obj
 
-## top-centre turn / gold / income, top-left goal
+## top-centre turn / gold / income, quest slip (win line changes with the turns left)
 func refresh_top() -> void:
 	var me := gs._me()
 	turn_label.text = "Lượt %d" % gs.s.turn + ((" · " + gs._side_name(me)) if gs._hotseat() else "")
@@ -529,4 +564,5 @@ func refresh_top() -> void:
 	var allowed_me: Array = gs.s.allowed[me]
 	_gold_box.visible = allowed_me.size() > 0 or Game.castles(gs.s, me) > 0
 	_income.text = "+%d" % Game.income(gs.s, me)
-	_goal.text = Icons.bb_text(_goal_line(), 16)
+	quests.win_line = _goal_line()
+	quests.refresh()

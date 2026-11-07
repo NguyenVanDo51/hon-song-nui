@@ -40,13 +40,28 @@ static func check(s: Dictionary, def: Dictionary) -> Array:
 				ok = won and nl <= k
 				g.have = nl
 		g.ok = ok
+	var qs: Array = s.get("quests", [])
+	if not qs.is_empty():
+		var d := Quests.done_count(s)
+		var t := Quests.total(s)
+		var text := Content.text("star_quests").format({ "have": d, "need": t })
+		out.append({ "key": "quests", "penalty": true, "ok": d == t, "have": d, "need": t, "text": text })
 	return out
 
 static func count(s: Dictionary, def: Dictionary) -> int:
 	return check(s, def).filter(
 		func(g: Dictionary) -> bool:
-			return g.ok,
+			return g.ok and not g.get("penalty", false),
 	).size()
+
+## stars earned: count, minus 1 (floor 1) when won with a quest open; 0 if not won
+static func final(s: Dictionary, def: Dictionary) -> int:
+	if s.winner != "p":
+		return 0
+	var n := count(s, def)
+	if Quests.done_count(s) < Quests.total(s):
+		n = maxi(1, n - 1)
+	return n
 
 ## content error for a campaign mission ("" = ok), sim/tests.gd
 static func check_def(def: Dictionary) -> String:

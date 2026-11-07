@@ -2,7 +2,7 @@ class_name LevelSelect
 extends VBoxContainer
 ## "Thử thách" grid: one cell per level (number, tier colour, best stars, lock), PER_PAGE a page, info for the selected
 ## level (hover or first tap selects; a tap on the selected cell / "Vào trận" starts it, so phones can read the info first).
-## Gold ring = first level not yet won. Levels open up to the furthest win + 1 (Store.unlocked_index).
+## Gold ring = next level to play (first_unwon). Levels open up to the furthest win + 1 (Store.unlocked_index).
 
 signal level_picked(id: String)
 
@@ -23,13 +23,18 @@ static func page_of(index: int) -> int:
 	@warning_ignore("integer_division")
 	return index / PER_PAGE
 
-## first level below `open` not won yet (a veteran may have skipped inserted levels); `open` when all are won
+## next level to play: the first not won after the furthest win (`open`), so levels inserted in front (t01/t02) never
+## pull a veteran back; past the last level -> the first one not won; all won -> lv.size()
 static func first_unwon(lv: Array, open: int) -> int:
-	for i in mini(open, lv.size()):
+	for i in range(maxi(open, 0), lv.size()):
 		var def: Dictionary = lv[i]
 		if not Store.is_done(str(def.id)):
 			return i
-	return open
+	for i in lv.size():
+		var def: Dictionary = lv[i]
+		if not Store.is_done(str(def.id)):
+			return i
+	return lv.size()
 
 static func tier_of(def: Dictionary) -> String:
 	var t: String = def.get("tier", "mid")

@@ -2,6 +2,8 @@ extends SceneTree
 ## drives the human click path through the real UI (no bot). run with -- mission=m02 fresh nointro
 ## mission=t01 / t02 fresh: walks the tutorial steps instead (intro cards on, guide lock, ⚙ skip)
 
+const LayoutStorm := preload("res://sim/layout_storm.gd")
+
 var main: Main
 var fails := 0
 
@@ -371,6 +373,22 @@ func _run() -> void:
 	await process_frame
 	var closed_ok: bool = g.ui.info == null and not g.hud.card.visible and g.hud.btn_end.is_visible_in_tree()
 	ok(closed_ok, "same terrain tile again closes card")
+	# desktop size: a top-left tile's card takes the ⏩ ⚙ corner; hiding them must not re-fire place_hud (MQ OOM crash)
+	var old_size := root.size
+	root.size = Vector2i(1280, 720)
+	await process_frame
+	var storm := LayoutStorm.new()
+	storm.watch([g.hud.hud_tr, g.hud.quests])
+	g._on_tile(plain.x, plain.y)
+	for i in 4:
+		await process_frame
+		storm.tick()
+	storm.stop()
+	ok(not g.hud.hud_tr.visible, "terrain card took the ⏩ ⚙ corner (card at %s)" % g.hud.card.position)
+	ok(storm.peak <= 4, "⏩ ⚙ + quest slip hidden: no layout storm (peak %d minimum_size_changed/frame)" % storm.peak)
+	g._on_tile(plain.x, plain.y)
+	root.size = old_size
+	await process_frame
 	g._on_tile(pos(hero).x, pos(hero).y)
 	await process_frame
 	var unit_ok: bool = g.hud.card.visible and not g.hud.btn_end.is_visible_in_tree()

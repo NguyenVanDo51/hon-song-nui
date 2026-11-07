@@ -46,7 +46,7 @@ Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m
 ## Kiểm tra
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (macOS / Linux: `MAX_SEC=120 tools/run_guarded.sh out.log -- --headless --path . -s sim/tests.gd`) (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
 ```
-powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # 81 test: luật, 16 màn hợp lệ (kiểu thắng, đợt quân, thứ tự), tướng tới được mục tiêu, chương, lưu ván, 4 ván vàng chương 1
+powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # sim/tests.gd = runner, test theo mảng ở sim/tests/*.gd (test_base.gd = check / eq / run + helper); 93 test: luật, 16 màn hợp lệ (kiểu thắng, đợt quân, thứ tự), tướng tới được mục tiêu, chương, lưu ván, 4 ván vàng chương 1
 powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # ~55 bước bấm chuột qua UI thật (popup lệnh, ⓘ, giới thiệu quân, cảnh giao chiến 3 chế độ, thắng rồi thoát ngay vẫn giữ kết quả); dùng hồ sơ lưu riêng `driver`, không đụng ván thật
 bash tools/sim_many.sh "m09 m10 m11" 12 4                                                        # cân bằng: AI chơi cả hai phe
 python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70                           # chạy bản web trong Edge headless, in console + chụp
@@ -62,7 +62,7 @@ Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy 
 - Cố ý tắt: `return_value_discarded` (267 chỗ, >90% chủ ý: append / do_action / connect / end_turn / tween / erase; lỗi IO thì kiểm tay), `inferred_declaration` (`:=` là chuẩn).
 - `run_guarded.sh/.ps1` trả exit 1 nếu log có `SCRIPT ERROR` (test crash giữa chừng không còn tính là qua).
 - Format: [gdscript-formatter](https://github.com/GDQuest/GDScript-formatter) 0.27 (GDQuest, binary ở `~/.local/bin`); `tools/lint.sh` chạy `--check`. Sửa: `gdscript-formatter --max-line-length 150 --blank-lines-around-definitions 1 <files>`. Lỗi tool: comment cuối lambda nhiều dòng làm đối số -> mỗi lần chạy thêm 1 dấu `,` vào comment => đặt comment lên dòng trên. Không dùng `gdformat` (gdtoolkit 4.5.0 hỏng lambda nhiều dòng).
-- `gdlintrc`: dòng ≤ 150, class-definitions-order bật; còn nới `max-file-lines` 2650 (game_screen ~2610 sau format, tách = E5).
+- `gdlintrc`: dòng ≤ 150, class-definitions-order bật; `max-file-lines` 1000 (gdlint mặc định).
 
 ## Cân bằng (sim AI-vs-AI, 12 ván/màn (24 nếu ghi /24), 2026-11-06, luật AE2 + AI `fe83a5d` + nhịp ra quân mới)
 AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 60 lượt chưa phân thắng bại. Mới = loại quân ra mắt (thấy → cầm → mua, xem `docs/content.md` mục "Nhịp ra quân mới").

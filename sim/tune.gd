@@ -12,7 +12,7 @@ extends SceneTree
 ##                                                      (Texel-style fit: tools/texel_fit.py)
 ## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned file) | hard_n2 (tuned, noise 2)
 ##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard)
-##       | hard_v2_0 (hard v2 as first shipped, frozen) | file:<path> (tuned file)
+##       | hard_v2_0 (hard v2 as first shipped, frozen) | hard_v3 (hard_v2_0 + V3_TACTICS, frozen) | file:<path> (tuned file)
 ##       + optional overrides: <spec>+key:value+key:value (e.g. hard_v2+pl_cands:4)
 ## seeds: game k of salt -> 1000 + (salt * 64 + k) * 7919 (evolve salts < 9e6; held-out / presets >= 9e6)
 const FROZEN := ["noise", "cap_last"] # not tuned: noise = difficulty knob, last-castle capture = instant win
@@ -46,6 +46,22 @@ const HARD_V2_0 := {
 	"pl_ply3": 0.0,
 	"pl_buy": 0.0,
 	"pl_ms": 4000.0,
+}
+## hard v3 = hard_v2_0 + human-tactics knobs (docs/ai.md "Kinh nghiệm người chơi"), frozen like HARD_V2_0
+const V3_TACTICS := {
+	"lone_w": 0.3,
+	"lone_n": 1.0,
+	"tgt_sup": 0.5,
+	"tgt_thr": 2.0,
+	"home_val": 0.0, # tips 2 / 7 (retreat, buildings): measured neutral, left off
+	"home_rank": 0.0,
+	"home_cap": 80.0,
+	"bld_w": 0.0,
+	"trade_w": 1.0,
+	"order_w": 1.0,
+	"feed_w": 1.0,
+	"escort_w": 0.0, # tip 1: lost vs hard_v1 (docs/ai.md), off
+	"hero_cgoal": 0.0,
 }
 
 var seed_v := 1.0
@@ -104,6 +120,8 @@ func base_spec(sp: String) -> Dictionary:
 		return AI.PRESETS.hard
 	if sp == "hard_v2_0":
 		return HARD_V2_0
+	if sp == "hard_v3":
+		return HARD_V2_0.merged(V3_TACTICS)
 	if sp == "easy" or sp == "easy_gold":
 		# reckless: no death fear, no walk home, no heal stop, coarse picks; _gold = start gold factor (not an AI knob)
 		var e := { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }

@@ -11,8 +11,18 @@ const DEFAULT_WEIGHT := 1.0
 const PRESETS := {
 	"easy": { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }, # reckless
 	"normal": { },
-	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2")
-	"hard": { "hp_cap": 81.2937, "kill_hero": 552.335, "planner": 2 },
+	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2") + human tactics (v3)
+	"hard": {
+		"hp_cap": 81.2937,
+		"kill_hero": 552.335,
+		"planner": 2,
+		"lone_w": 0.3,
+		"tgt_sup": 0.5,
+		"tgt_thr": 2.0,
+		"trade_w": 1.0,
+		"order_w": 1.0,
+		"feed_w": 1.0,
+	},
 }
 
 const DEFAULT := {
@@ -62,8 +72,9 @@ const DEFAULT := {
 	"tgt_sup": 0.0, # target worth x (1 + this) for support units (shaman, wolf, drum)
 	"tgt_thr": 0.0, # target worth + this x its own hit (mid atk + rank + aura) x hp / 100 (kill what hurts most)
 	"home_val": 0.0, # non-commander walk-home hp + this x (value - 150) / 100, capped at home_cap
+	"home_rank": 0.0, # + this per rank (veterans walk home earlier)
 	"home_cap": 80.0,
-	"bld_w": 0.0, # non-commander on an own heal tile: + this x (value - 150) / 100
+	"bld_w": 0.0, # wounded non-commander on an own heal tile: + this x (value - 150) / 100
 	"trade_w": 0.0, # non-kill hit: - this x value lost beyond value dealt (counter x own vs dmg x target) / 100
 	"order_w": 0.0, # melee non-kill hit while an unacted ranged ally can hit the target: - this x counter x own value / 100
 	"feed_w": 0.0, # non-kill hit whose counter levels the target up: - this x 0.2 x target value
@@ -367,9 +378,12 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var is_hero: bool = u.type == "hero"
 	var home_hp: float = P.home_hp
 	var home_val: float = P.home_val
-	if home_val > 0.0 and not is_hero: # dearer units walk home earlier
+	var home_rank: float = P.home_rank
+	if (home_val > 0.0 or home_rank > 0.0) and not is_hero: # dearer / veteran units walk home earlier
 		var home_cap: float = P.home_cap
-		home_hp = maxf(home_hp, minf(home_hp + home_val * (val - 150.0) / 100.0, home_cap))
+		var cost: float = Game.UNITS[u.type].cost
+		var rank: int = u.rank
+		home_hp = maxf(home_hp, minf(home_hp + home_val * (cost - 150.0) / 100.0 + home_rank * rank, home_cap))
 	if u.hp < home_hp and Objectives.ai_goals(s, u) == null: # wounded: walk home over turns (reach objective first)
 		var home := _home_goals(s, u, mem)
 		if home.size():
@@ -385,9 +399,11 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var hero_goals: Array = []
 		var hcg: float = P.hero_cgoal
 		if hcg > 0.0 and is_hero and Objectives.ai_goals(s, u) == null:
-			for key: Vector2i in s.owner:
-				if s.owner[key] != u.side and Game.sells(Game.tile_at(s, key.x, key.y)):
-					hero_goals.append([key.x, key.y])
+			var owner0: Dictionary = s.owner
+			for y: int in s.h:
+				for x: int in s.w:
+					if owner0.get(Vector2i(x, y)) != u.side and Game.sells(s.tiles[y][x]):
+						hero_goals.append([x, y])
 		df = _dist_cached(s, mc, hero_goals if hero_goals.size() else goals_for(s, u, claims), mem)
 	var caution: float = P.caution_hero if u.type == "hero" else P.caution
 	var hp_cap: float = P.hp_cap
@@ -449,6 +465,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var u0y: int = u.y
 	var u0 := Vector2i(u0x, u0y)
 	var ranged_ok := { } # target id -> ranged_ready (order_w)
+	var tv_of := { } # target id -> tvalue
 	var best: Array = [null] # [ {score, act} ]
 	var consider := func(score: float, act: Dictionary) -> void:
 		score += (rng.call() - 0.5) * noise
@@ -478,7 +495,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var heals := Game.heals_at(s, side, rx, ry)
 		if heals and u.hp < heal_hp:
 			pos += (100 - u.hp) * minf(val, heal_cap) * heal_w # capped: a 60-hp commander must not glue to a village
-		if heals and bld_w > 0.0:
+		if heals and bld_w > 0.0 and u.hp < 100:
 			pos += bld_w
 		if escort_w > 0.0 and Game.dist(hero_at.x, hero_at.y, rx, ry) <= 2:
 			var near_hero: int = mem.get("hero_near", 0)
@@ -524,7 +541,9 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			var p := Game.preview(s, u, rx, ry, d)
 			if p.dmgMax <= 0:
 				continue # AE2: armour can soak the whole hit
-			var dv := tvalue(s, d, tgt_sup, tgt_thr)
+			if not tv_of.has(d.id):
+				tv_of[d.id] = tvalue(s, d, tgt_sup, tgt_thr)
+			var dv: float = tv_of[d.id]
 			var sc: float = (p.dmg / 100.0) * dv - (p.counter / 100.0) * val
 			if p.kill:
 				sc += dv * kill_w + (kill_hero if d.type == "hero" else 0.0)

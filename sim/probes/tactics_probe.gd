@@ -3,12 +3,14 @@ extends SceneTree
 ## skirmish map, both seats. Counted at each of A's turn ends / over the foe's reply.
 ## <godot> --headless --path . -s sim/probes/tactics_probe.gd -- [games=2] [salt=9200000] [base=hard] [over=k:v+k:v]
 ##     [opp=v1|v2_0|normal]
-## base=v2_0 -> tune.gd's frozen hard_v2_0 instead of AI.PRESETS.hard (the "before")
+## base=v2_0 / v3 -> tune.gd's frozen hard_v2_0 / hard_v3 instead of AI.PRESETS.hard
+## examples=N -> print N turns where hard_v2_0 from the same start leaves a lone killable unit and A does not
 const Tune := preload("res://sim/tune.gd")
 const SUPPORT := ["shaman", "wolf", "drum"]
 
 var seed_v := 1.0
 var m := { }
+var ex_left := 0 # examples=N: print N turns where hard_v2_0 (same start) leaves a lone killable unit and A does not
 
 func _init() -> void:
 	var args := { }
@@ -18,11 +20,16 @@ func _init() -> void:
 	var games := int(str(args.get("games", "2")))
 	var salt := int(str(args.get("salt", "9200000")))
 	var base: String = args.get("base", "hard")
-	var A: Dictionary = (Tune.HARD_V2_0 if base == "v2_0" else AI.PRESETS.hard).duplicate()
+	var A: Dictionary = AI.PRESETS.hard.duplicate()
+	if base == "v2_0":
+		A = Tune.HARD_V2_0.duplicate()
+	elif base == "v3":
+		A = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
 	var a_over: String = args.get("over", "")
 	for kv: String in a_over.split("+", false):
 		var p := kv.split(":", true, 1)
 		A[p[0]] = float(p[1])
+	ex_left = int(str(args.get("examples", "0")))
 	var opp: String = args.get("opp", "v1")
 	var B: Dictionary = Tune.HARD_V1
 	if opp == "v2_0":
@@ -72,6 +79,8 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 	var turn_atk := { } # target id -> kinds of attackers so far this turn ("m" melee / "r" ranged)
 	var start_support := { }
 	var steps := 0
+	var turn_start: Dictionary = s.duplicate(true)
+	var turn_steps := []
 	if s.side == me:
 		start_support = _support_in_reach(s, me)
 	while s.winner == null and s.turn <= 60 and steps < 30000:
@@ -80,8 +89,12 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 			if s.side == me:
 				watch = _turn_end(s, me, start_support)
 				turn_atk = { }
+				if ex_left > 0:
+					_example(turn_start, turn_steps, s, me)
 			Game.end_turn(s)
 			mem = { }
+			turn_start = s.duplicate(true)
+			turn_steps = []
 			if s.side == me and s.winner == null:
 				_judge(s, watch)
 				start_support = _support_in_reach(s, me)
@@ -95,6 +108,7 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 		for u: Dictionary in s.units:
 			before[u.id] = u
 		var ev := AI.apply_step(s, st)
+		turn_steps.append(st)
 		steps += 1
 		if s.side == me:
 			for e: Dictionary in ev:
@@ -214,6 +228,71 @@ func _turn_end(s: Dictionary, me: String, start_support: Dictionary) -> Dictiona
 					add("valuable_low_healing")
 		watch[u.id] = tags
 	return watch
+
+## same start, hard_v2_0's turn: it leaves a lone killable unit, A's turn does not -> print both
+func _example(start: Dictionary, steps: Array, s: Dictionary, me: String) -> void:
+	var c: Dictionary = start.duplicate(true)
+	c.aiParams[me] = Tune.HARD_V2_0
+	var mem := { }
+	var v2_steps := []
+	for i in 80:
+		var stv: Variant = AI.next_step(c, mem)
+		if stv == null:
+			break
+		var st: Dictionary = stv
+		v2_steps.append(st)
+		AI.apply_step(c, st)
+	var lone2 := _lone(c, me)
+	var lone3 := _lone(s, me)
+	if lone2.is_empty() or lone3.size() >= lone2.size():
+		return
+	ex_left -= 1
+	print("\n== %s turn %d side %s: lone killable v2_0 %d -> A %d" % [start.scenario, start.turn, me, lone2.size(), lone3.size()])
+	print(" v2_0 lone: %s" % ", ".join(lone2))
+	print(" A lone: %s" % ", ".join(lone3))
+	print(" v2_0: %s" % _fmt(start, v2_steps))
+	print(" A:    %s" % _fmt(start, steps))
+
+## own non-commander units in enemy reach, killable by focus (mid rolls), no ally within 2
+func _lone(s: Dictionary, me: String) -> Array:
+	var threat := AI.threat_map(s, me)
+	var out := []
+	for u: Dictionary in s.units:
+		if u.side != me or u.type == "hero":
+			continue
+		var ux: int = u.x
+		var uy: int = u.y
+		var hp: int = u.hp
+		var full := AI.expected_hit(s, u, ux, uy, threat.get(Vector2i(ux, uy)), 1.0)
+		if full < hp:
+			continue
+		var alone := true
+		for o: Dictionary in s.units:
+			var ox: int = o.x
+			var oy: int = o.y
+			if o.side == me and o.id != u.id and Game.dist(ox, oy, ux, uy) <= 2:
+				alone = false
+		if alone:
+			out.append("%s#%d (%d,%d) %dhp" % [u.type, u.id, ux, uy, hp])
+	return out
+
+func _fmt(start: Dictionary, steps: Array) -> String:
+	var out := []
+	for st: Dictionary in steps:
+		if st.kind == "buy":
+			out.append("buy %s" % st.type)
+			continue
+		var a: Dictionary = st.act
+		var aid: int = a.id
+		var u: Variant = Game.unit_by_id(start, aid)
+		var who: String = u.type if u != null else "new"
+		var tail := ""
+		if a.kind == "attack":
+			var tid: int = a.target
+			var tg: Variant = Game.unit_by_id(start, tid)
+			tail = " #%d %s" % [tid, tg.type if tg != null else "?"]
+		out.append("%s#%d->(%d,%d) %s%s" % [who, aid, a.to[0], a.to[1], a.kind, tail])
+	return "; ".join(out)
 
 ## after the foe's turn: which watched units died
 func _judge(s: Dictionary, watch: Dictionary) -> void:

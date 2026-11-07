@@ -8,7 +8,6 @@ const DEF := {
 	"place": "Luy Lâu · Thuận Thành, Bắc Ninh",
 	"region": "Luy Lâu",
 	"pos": [88, 45],
-	"history": "Luy Lâu (Thuận Thành, Bắc Ninh), sát phía đông Hà Nội ngày nay, là trị sở quận Giao Chỉ thời Hán.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
@@ -46,22 +45,5 @@ const DEF := {
 		["e", "drum", 13, 9],
 		["e", "soldier", 14, 9],
 		["e", "catapult", 15, 10, { "guard": true }],
-	],
-	"story": {
-		"intro": [
-			["todinh", "Luy Lâu là trị sở Giao Chỉ! Quân triều đình còn đông, các ngươi đừng mơ!"],
-			["trungtrac", "Các quận đã nổi lên theo ta. Còn mỗi Luy Lâu. Toàn quân, tiến!"],
-			["trungnhi", "Thành giữa đồng bỏ trống. Ai chiếm trước, người đó giữ được thế."],
-			["danlang", "Thợ làng đóng thêm máy bắn đá. Nay ở thành nào của ta cũng mua được."],
-		],
-		"outro": [
-			["truyenthuyet", "Tô Định bỏ thành, cắt tóc cạo râu trốn về Nam Hải. Hai Bà lấy lại 65 thành ở Lĩnh Nam."],
-			["trungtrac", "Đất này lại là của người Việt. Ta đóng đô ở Mê Linh."],
-		],
-	},
-	"tips": [
-		"Trận cuối: Tướng giặc có 2 thành. Phải chiếm cả hai [b]và[/b] hạ hắn. Chiếm thành trống giữa bản đồ để tăng thu nhập.",
-		"[b]Máy bắn đá[/b] nay mua được. Ném làng địch cho hỏng để giặc hụt vàng; lính hoặc tướng đứng trên làng hỏng bấm [b]Sửa làng[/b] để lấy lại.",
-		"Phối hợp: voi đi đầu, trống đồng ở giữa, nỏ thủ và máy bắn đá phía sau. Đền giữa đồng hồi máu cho bất kỳ ai đứng đó.",
 	],
 }

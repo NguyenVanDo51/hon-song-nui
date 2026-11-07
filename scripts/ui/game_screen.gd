@@ -33,7 +33,6 @@ var _hover_at := 0
 var _memo := { }
 var _memo_fp := 0
 var _intro_on := false
-var _story: StoryOverlay = null
 
 func _init() -> void:
 	hud = GameHud.new(self)
@@ -106,8 +105,6 @@ func _def_for(c: Dictionary) -> Dictionary:
 
 func start(state: Dictionary, c: Dictionary) -> void:
 	gen += 1
-	if _story != null:
-		_story.close()
 	if hud.gold_tw != null:
 		hud.gold_tw.kill()
 	hud.gold_shown = -1
@@ -134,14 +131,10 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	hud.show_menu(false)
 	hud.fit.call_deferred()
 	board.refresh_terrain()
-	var story_on := StoryOverlay.should_play(ctx, main.flags)
-	ctx.erase("story") # transient: a saved game (continue) never replays the story
+	ctx.erase("story") # old saves / old ctx may carry it
 	save()
 	refresh()
-	if story_on and not _hotseat() and not _is_ai(_turn_side()):
-		turns.opening()
-	else:
-		turns.begin()
+	turns.begin()
 
 # ---------- sides ----------
 ## the side the person at the screen plays: the side to move, unless the AI has it
@@ -176,8 +169,6 @@ func leave() -> void:
 		FX.speed = turns.user_speed
 	hud.btn_ff.visible = false
 	gen += 1
-	if _story != null:
-		_story.close()
 	if cards.intro_layer != null:
 		cards.intro_closed.emit()
 	if turns.handoff_layer != null:

@@ -70,8 +70,8 @@ const RANK_TITLES := ["", "lão luyện", "tinh nhuệ", "dũng mãnh"]
 
 const THEME := {
 	"title": "Công Thành Chiến",
-	"tagline": "Hai Bà Trưng · chiến thuật theo lượt",
-	"lede": "Năm 40, Hai Bà Trưng dựng cờ ở Hát Môn, đuổi quân Đông Hán khỏi Giao Chỉ. Hai năm sau, Mã Viện kéo đại quân sang. Hai chương, mười sáu trận.",
+	"tagline": "Cờ chiến thuật theo lượt",
+	"lede": "Chiếm làng, giữ thành, hạ tướng giặc. Thắng thử thách này để mở thử thách sau.",
 	"text": {
 		"enemyTurn": "Lượt quân Hán",
 		"skirmishTitle": "Đấu tự do · Đồng bằng sông Hồng",
@@ -207,7 +207,7 @@ const THEME := {
 		"e": UNITS,
 	},
 	"heroes": {
-		# exactly two commanders for every campaign: same look + stats everywhere. Story names live in "people".
+		# exactly two commanders for every campaign: same look + stats everywhere.
 		"anhhung": {
 			"side": "p",
 			"name": "Anh hùng",
@@ -222,29 +222,5 @@ const THEME := {
 			"fig": "res://assets/units/hero_e.svg",
 			"blurb": "Kẻ cầm đầu quân giặc trong mọi trận. Cùng sức với tướng ta.",
 		},
-	},
-	"people": {
-		# story voices (dialogue only); side "e" = speaks for the enemy
-		"trungtrac": { "name": "Trưng Trắc", "icon": "👑" },
-		"todinh": { "name": "Tô Định", "icon": "🎖️", "side": "e" },
-		"mavien": { "name": "Mã Viện", "icon": "🎖️", "side": "e" },
-		"trungnhi": { "name": "Trưng Nhị", "icon": "⚔️" },
-		"lechan": { "name": "Lê Chân", "icon": "⛵" },
-		"thanhthien": { "name": "Thánh Thiên", "icon": "🔥" },
-		"batnan": { "name": "Bát Nàn", "icon": "🦅" },
-		"phungthichinh": { "name": "Phùng Thị Chính", "icon": "👶" },
-		"huyenlenh": { "name": "Huyện lệnh", "icon": "🏮", "side": "e" },
-		"douy": { "name": "Đô úy", "icon": "🪖", "side": "e" },
-		"hieuuy": { "name": "Hiệu úy", "icon": "🐴", "side": "e" },
-		"luulong": { "name": "Lưu Long", "icon": "🐉", "side": "e" },
-		"doanchi": { "name": "Đoàn Chí", "icon": "⚓", "side": "e" },
-		"bamanthien": { "name": "Bà Man Thiện", "icon": "👵" },
-		"lactuong": { "name": "Lạc tướng", "icon": "🧔" },
-		"danlang": { "name": "Dân làng", "icon": "👨" },
-		"truyenthuyet": { "name": "Lời kể", "icon": "📖" },
-		"thamtu": { "name": "Thám tử", "icon": "🕵️" },
-		# mission opening (StoryOverlay): history line first, goal line last
-		"sutich": { "name": "Sử tích", "icon": "📜" },
-		"muctieu": { "name": "Mục tiêu", "icon": "🎯" },
 	},
 }

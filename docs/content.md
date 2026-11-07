@@ -15,7 +15,7 @@
 Theo lối bản đồ chiến thuật cổ điển: **đường mòn** (`r`) nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi lõi, đồi quanh, rừng mép), khoảng 30% đất; chừa vòng trống quanh thành. Mọi quân lội được sông (3 bước, thủ 0) và lên được núi (3 bước), nên sông / núi là chỗ chậm chứ không phải tường. **Đền** (`t`): 1–2 ô giữa hai phe, không đặt dưới quân / thành / làng, không có chủ (không ghi vào `owner`); quân phe nào đứng đó cũng hồi máu, thủ +15. Bản đồ đấu tự do: đền đặt thành cặp đối xứng xoay 180°. Vẽ tay xong có thể cho `sim/mapgen.gd` sắp lại địa hình (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích): chạy nó, rồi chép các dòng `MAP` vào file màn.
 
 ## Quân và chỉ huy
-Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ khác màu). Khóa lính: `soldier` Bộ binh, `archer` Nỏ thủ, `boat` Thủy binh, `shaman` Thầy mo, `drum` Trống đồng, `wolf` Sói, `elephant` Voi chiến, `catapult` Máy bắn đá, `bird` Rồng, `ghost` Âm binh (chỉ do thầy mo gọi hồn, không mua được, không đưa vào `allowed`). Trọng số AI mua = `aiWeight` trong `Rules.UNITS` (thiếu -> `AI.DEFAULT_WEIGHT` 1.0, không crash; test vẫn đòi khai báo cho quân mua được). Chỉ có 2 tướng cho mọi chiến dịch: `anhhung` (Anh hùng, phe ta) và `tuonggiac` (Tướng giặc, phe địch). Hình và chỉ số không bao giờ đổi; chỉ lời thoại mở đầu đổi theo trận (tên người trong truyện như Trưng Trắc, Tô Định, Mã Viện nằm ở `people`). Nhân vật khác nói trong thoại khai báo ở `people` (thêm `"side": "e"` nếu là người phe địch). Lối chơi từng loại quân: `content/guide.gd`.
+Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ khác màu). Khóa lính: `soldier` Bộ binh, `archer` Nỏ thủ, `boat` Thủy binh, `shaman` Thầy mo, `drum` Trống đồng, `wolf` Sói, `elephant` Voi chiến, `catapult` Máy bắn đá, `bird` Rồng, `ghost` Âm binh (chỉ do thầy mo gọi hồn, không mua được, không đưa vào `allowed`). Trọng số AI mua = `aiWeight` trong `Rules.UNITS` (thiếu -> `AI.DEFAULT_WEIGHT` 1.0, không crash; test vẫn đòi khai báo cho quân mua được). Chỉ có 2 tướng cho mọi chiến dịch: `anhhung` (Anh hùng, phe ta) và `tuonggiac` (Tướng giặc, phe địch). Hình và chỉ số không bao giờ đổi. Lối chơi từng loại quân: `content/guide.gd`.
 
 ## Thêm loại quân
 Luật + AI chỉ đọc dữ liệu (`scripts/core/rules.gd` `UNITS`), không còn danh sách tên quân trong code.
@@ -37,7 +37,7 @@ Trước: `Game` / `AI` / UI so ký tự `v` / `c` / `x` / `t` ở ~15 chỗ, th
 
 ## Thêm kiểu mục tiêu (win.type)
 1. `scripts/core/objectives.gd` `TYPES`: 1 mục, mọi khóa tùy chọn (hàm static): `loss(s, side)` -> lý do thua | null (xét trước luật AE2 chung), `on_round(s)` -> `[phe thắng, lý do]` | null (đầu mỗi vòng), `ai_goals(s, u)` (ô AI nhắm thay đích thường), `ai_tile(s, u, x, y)` (điểm cộng AI khi đứng ô đó), `marks(s)` (ô cờ vàng trên bàn 2D + 3D), `bar_n(s)` (`{n}` trên thanh mục tiêu), `check(s)` (lỗi nội dung, test tự gọi).
-2. `content/theme.gd`: `goals[type]` (`brief` dòng "Mục tiêu" cuối thoại mở màn, `bar` thanh trên), `ends[phe][lý do]`, `text.loseTip_<lý do>`.
+2. `content/theme.gd`: `goals[type]` (`brief` mô tả mục tiêu, `bar` thanh trên), `ends[phe][lý do]`, `text.loseTip_<lý do>`.
 3. Màn: `"win": { "type": "<type>", ... }`.
 
 Trước: sửa 7 chỗ (`Game.loss_reason` + `end_turn`, `AI.goals_for` + `best_for_unit`, `board.gd` + `board3d.gd` vẽ ô đích, `game_screen._goal_line`, `Content.WIN_TYPES`, validator trong `sim/tests.gd`) + theme.
@@ -52,7 +52,6 @@ const DEF := {
 	"id": "m09", "order": 9,
 	"title": "Tên màn", "place": "Địa danh",
 	"region": "Tên vùng", "pos": [x, y],   # điểm trên bản đồ chiến dịch (khung 100 x 70)
-	"history": "Một câu sử tích",         # dòng "Sử tích" đầu thoại mở màn
 	"hero": "anhhung",                    # luôn là anhhung
 	"enemyHero": "tuonggiac",             # luôn là tuonggiac; null = địch không có tướng
 	"newUnits": ["wolf"],                 # ghi chú: màn ra mắt loại lính đó (thẻ giới thiệu quân tự bật theo quân trên bản đồ, xem dưới)
@@ -66,18 +65,12 @@ const DEF := {
 	"owner": [[x, y, "p"], ...],          # làng/thành có chủ lúc đầu
 	"units": [["p", "hero", x, y], ["e", "soldier", x, y, { "guard": true, "hp": 70, "rank": 1 }], ...],
 	"waves": [{ "turn": 3, "units": [["soldier", x, y], ...] }],   # địch kéo đến đầu lượt địch
-	"story": { "intro": [["trungtrac", "thoại..."], ...], "outro": [...] },
-	"tips": ["mẹo, [b]in đậm[/b]", ...],   # hiện chưa hiện ở đâu (dải mẹo bỏ từ 3beb8aa)
 }
 ```
 
-**Thoại mở màn** (không còn màn giới thiệu): bấm màn trên bản đồ chiến dịch / "Màn tiếp" -> vào thẳng bản đồ, hiện thẻ tên màn (chương · màn, `title`, `place`), rồi thoại từng người một ở dải dưới (`scripts/ui/story_overlay.gd`):
-- Thứ tự: `["sutich", history]` (nếu có) -> `story.intro` -> `["muctieu", goal brief]`. Người nói = khóa trong `heroes` / `people` của theme (`sutich`, `muctieu` cũng nằm ở `people`); `"side": "e"` -> khung xanh, chân dung bên phải.
-- Chạm / Space / Enter: hiện hết câu, rồi câu sau · giữ chuột / Space hoặc nút **»» Tua**: tự chạy nhanh · **Bỏ qua** / Esc: vào trận. Sau đó: thẻ giới thiệu quân mới (nếu có), rồi chơi.
-- Không chiếu lại khi "Đánh tiếp ván đang dở", "Đánh lại", "Chơi lại"; chơi lại màn đã thắng từ bản đồ thì có (bỏ qua được). Cờ `bot` / `nointro` tắt; cờ `story` bật lại (`mission=m03 story`).
-- `story.outro` (+ `outro` của chương ở màn cuối chương) vẫn hiện trên thẻ kết thúc.
+Vào màn: thẳng bàn cờ, rồi thẻ giới thiệu quân mới (nếu có). Không thoại / sử tích (bỏ 2026-11-07).
 
-Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành).
+Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành), `story`, `history`, `tips` (bỏ cốt truyện 2026-11-07).
 
 ## Nhịp ra quân mới (2026-11-06)
 Theo cách AE2 gốc mở quân (m0–m7: màn không mua xen kẽ, quân mới thấy ở phe địch / kịch bản trước khi mua được):

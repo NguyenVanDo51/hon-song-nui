@@ -179,7 +179,7 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	layer.queue_free()
 	intro_layer = null
 
-func show_end(win: bool, text: String, outro: Array, buttons: Array, star_goals: Array = [], best_before := 0) -> void:
+func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], best_before := 0) -> void:
 	for c in end_layer.get_children():
 		c.queue_free()
 	var dim := ColorRect.new()
@@ -217,8 +217,6 @@ func show_end(win: bool, text: String, outro: Array, buttons: Array, star_goals:
 		var t := Style.lbl(text, 16, Style.INK, null, true)
 		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(t)
-	if outro.size():
-		v.add_child(Style.dialogue(outro, 0.5, true))
 	var st := Style.hbox(26)
 	st.alignment = BoxContainer.ALIGNMENT_CENTER
 	var rows := [[gs.s.turn, "lượt"], [gs.stats[gs._foe()], "địch bị hạ"], [gs.stats[gs._me()], "quân ta ngã"]]

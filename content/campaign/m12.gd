@@ -9,7 +9,6 @@ const DEF := {
 	"place": "Lãng Bạc · Tiên Du, Bắc Ninh (có thuyết là Hồ Tây)",
 	"region": "Lãng Bạc",
 	"pos": [56, 32],
-	"history": "Năm 42, quân Hai Bà và quân Mã Viện đánh lớn ở Lãng Bạc. Sách cũ chép trận này rất ác liệt, hai bên tổn thất nặng.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
@@ -51,21 +50,5 @@ const DEF := {
 		["e", "archer", 13, 1],
 		["e", "wolf", 14, 2],
 		["e", "soldier", 12, 1],
-	],
-	"story": {
-		"intro": [
-			["truyenthuyet", "Mã Viện men theo bờ biển tiến vào, đóng quân ở Lãng Bạc. Trưng Vương đem toàn quân ra đón đánh."],
-			["mavien", "Ta đánh trận từ thời trai trẻ. Đàn bà xứ Giao Chỉ thì biết gì binh pháp?"],
-			["trungtrac", "Binh pháp của ta là lòng dân. Hai thành bên hồ, lấy cả hai, Mã Viện sẽ phải lùi!"],
-			["phungthichinh", "Thiếp xin đi trước mở đường, dù đang mang nặng."],
-			["lactuong", "Thợ săn trên núi đã thuần được sói rừng như sói của Lưu Long. Nay ta cũng có sói."],
-		],
-		"outro": [["trungtrac", "Mã Viện đã bỏ hai đồn bên hồ. Nhưng quân Hán còn đông, viện binh vẫn đến."]],
-	},
-	"tips": [
-		"Trận lớn: mua được mọi loại quân đã gặp, kể cả [b]sói[/b]. Địch có [b]2 thành[/b], phải lấy cả hai [b]và[/b] hạ Tướng giặc.",
-		"[b]Sói[/b] ta chạy 6 bước. Cho sói cắn trước (địch −10 công, −10 thủ tới lượt sau), quân khác đánh sau.",
-		"[b]Tướng giặc[/b] đánh rất đau. Đánh lính lẻ trước, đừng lao vào giữa đội hình hắn.",
-		"Thành trống phía tây hồ: chiếm sớm để có thêm vàng và chỗ mua lính.",
 	],
 }

@@ -9,7 +9,6 @@ const DEF := {
 	"place": "Tiên Phong · Phú Thọ",
 	"region": "Phú Thọ",
 	"pos": [14, 20],
-	"history": "Bát Nàn, quê ở Tiên Phong (Phú Thọ), là nữ tướng của Hai Bà. Tương truyền bà giỏi cung nỏ, giữ các ải núi phía tây.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["wolf"],
@@ -43,20 +42,5 @@ const DEF := {
 		["e", "archer", 12, 2, { "guard": true }],
 		["e", "soldier", 9, 4],
 		["e", "wolf", 11, 4],
-	],
-	"story": {
-		"intro": [
-			["lactuong", "Lưu Long, phó tướng của Mã Viện, đem quân vòng qua núi định đánh vào lưng Mê Linh."],
-			["batnan", "Ải này hẹp, núi hai bên. Cung nỏ trên cao, giặc dưới thấp. Chiếm luôn đồn của chúng!"],
-			["lactuong", "Giữa ải có miếu sơn thần. Ai đứng được ở đó thì hồi sức, giặc cũng vậy."],
-			["luulong", "Một nữ tướng giữ ải? Quân ta trèo đèo lội suối đã quen, lại có sói săn dẫn đường. Ải nào cản nổi."],
-		],
-		"outro": [["batnan", "Đồn của Lưu Long đã cháy. Phía tây yên rồi, ta về Lãng Bạc hợp quân."]],
-	},
-	"tips": [
-		"Đặt [b]nỏ thủ[/b] trên đồi núi: thủ cao, bắn từ 2 ô thì địch cận chiến không đánh trả được.",
-		"Núi tốn 3 bước với mọi quân, kể cả voi. Đi lối giữa qua [b]đền[/b] (hồi 20 máu mỗi lượt, thủ +15) hoặc vòng hai bên.",
-		"[b]Sói[/b] giặc chạy 6 bước, cắn trúng thì quân ta −10 công, −10 thủ tới lượt sau. Đứng sát nhau, sói lao vào là cả đội cùng đánh.",
-		"Mục tiêu: [b]chiếm thành[/b] địch [b]và[/b] hạ Tướng giặc. Chỉ tướng chiếm được thành.",
 	],
 }

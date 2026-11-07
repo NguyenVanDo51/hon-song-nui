@@ -9,7 +9,6 @@ const DEF := {
 	"place": "An Biên · Hải Phòng",
 	"region": "An Biên",
 	"pos": [80, 44],
-	"history": "Nữ tướng Lê Chân lập trang An Biên, luyện thủy binh ở cửa biển. Thành phố Hải Phòng ngày nay thờ bà như người mở đất.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
@@ -43,19 +42,5 @@ const DEF := {
 		["e", "archer", 14, 7],
 		["e", "boat", 9, 5],
 		["e", "elephant", 13, 9],
-	],
-	"story": {
-		"intro": [
-			["lechan", "Thủy binh Hán của Đoàn Chí vào cửa sông, định đánh thọc lên Lãng Bạc."],
-			["doanchi", "Đàn bà luyện thủy quân? Lâu thuyền của ta sẽ nghiền nát thuyền nan của chúng!"],
-			["lechan", "Mã Viện đích thân cầm thủy binh. Đánh lui được hắn, thủy binh giặc sẽ rối loạn."],
-		],
-		"outro": [["lechan", "Mã Viện trúng thương, phải lui thuyền về Hợp Phố."]],
-	},
-	"tips": [
-		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn đứng gác gần thành địch phía đông nam.",
-		"Mọi quân lội được sông nhưng tốn 3 bước, đứng dưới nước không được thủ. [b]Thủy binh[/b] đi sông 1 bước, dưới nước +10 công, +15 thủ: "
-		+ "dùng nó giữ khúc sông.",
-		"Thuyền giặc chực sẵn dưới sông. Đừng để Anh hùng một mình đầu cầu.",
 	],
 }

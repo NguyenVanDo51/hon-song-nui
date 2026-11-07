@@ -500,7 +500,6 @@ func _run() -> void:
 	await wait(0.6)
 	var restore_ok: bool = g.visible and g.s.turn == 2 and units_of(g.s).size() == units_of(s).size()
 	ok(restore_ok, "continue restores the save")
-	ok(g._story == null, "continue does not replay the story")
 	# map node of the mission in progress: ask, never wipe it silently
 	var m02: Dictionary = Content.mission("m02")
 	main.menus.confirm_start(Game.new_game(m02), { "kind": "campaign", "id": "m02" })
@@ -511,7 +510,7 @@ func _run() -> void:
 	await wait(0.6)
 	var kept_ok: bool = g.visible and g.s.turn == 2
 	ok(kept_ok, "modal 'Đánh tiếp' keeps the saved game")
-	# win -> next mission: map + title card -> story line by line -> skip -> new-unit intro -> play
+	# win -> next mission: straight onto the board -> new-unit intro -> play (no story)
 	main.flags.erase("nointro")
 	Store.set_v("seen_units", []) # driver profile: m03's unit cards show on every run
 	g.s.winner = "p"
@@ -519,32 +518,30 @@ func _run() -> void:
 	g.turns.finish()
 	await wait(1.5)
 	press("Màn tiếp")
-	await wait(0.4)
-	var ov := g._story
-	var m03_ok: bool = g.visible and g.s.scenario == "m03" and ov != null and ov._phase == "title"
-	ok(m03_ok, "next mission starts m03 on the map with its title card")
-	var sv: Dictionary = Store.load_game()
-	var sctx: Dictionary = sv.ctx
-	ok(not sctx.has("story"), "saved ctx has no story key (continue never replays)")
-	ov._tap()
-	var talk_ok: bool = ov._phase == "talk" and ov._i == 0 and ov._band.visible and g._intro_on
-	ok(talk_ok, "tap: title -> first line, board input off")
-	ov._tap()
-	ok(ov._text.visible_characters == -1, "tap mid-line shows the whole line")
-	ov._tap()
-	ok(ov._i == 1, "tap on a full line -> next line")
-	await wait(0.3)
-	press("Bỏ qua")
-	await wait(0.5)
-	ok(g._story == null and not is_instance_valid(ov), "skip closes the story")
-	ok(g.cards.intro_layer != null, "new-unit intro follows the story")
+	await wait(0.6)
+	var m03_ok: bool = g.visible and g.s.scenario == "m03"
+	ok(m03_ok, "next mission starts m03")
+	ok(g.cards.intro_layer != null, "new-unit intro shows first")
 	for i in 20:
 		if not g._intro_on:
 			break
 		g.cards.intro_closed.emit()
 		await wait(0.3)
-	var play_ok: bool = not g._intro_on and g.s.side == "p" and g.s.turn == 1 and g._story == null
+	var play_ok: bool = not g._intro_on and g.s.side == "p" and g.s.turn == 1
 	ok(play_ok, "then the game is playable")
+	# an old ctx still carrying "story": no overlay, plays, key dropped from the save
+	var m03: Dictionary = Content.mission("m03")
+	main.start_game(Game.new_game(m03), { "kind": "campaign", "id": "m03", "story": true })
+	await wait(0.6)
+	for i in 20:
+		if not g._intro_on:
+			break
+		g.cards.intro_closed.emit()
+		await wait(0.3)
+	var sv: Dictionary = Store.load_game()
+	var sctx: Dictionary = sv.ctx
+	var old_ok: bool = not g._intro_on and g.s.side == "p" and not sctx.has("story")
+	ok(old_ok, "old ctx with story key: plays, key dropped")
 	main.flags["nointro"] = "1"
 	# win, then straight back to the menu inside the end-card pause: the win must still count
 	await wait(0.5)

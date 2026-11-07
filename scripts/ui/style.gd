@@ -363,54 +363,6 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := { }
 		outer.add_child(holder)
 	return outer
 
-## dialogue lines [[speaker, text], ...]; lines slide in one after another
-static func dialogue(lines: Array, stagger := 0.35, small := false) -> VBoxContainer:
-	var v := vbox(10)
-	var i := 0
-	for line: Array in lines:
-		var key: String = line[0]
-		var text: String = line[1]
-		var sp := Content.speaker(key)
-		var foe := Content.is_foe(key)
-		var icon: String = sp.icon
-		var sname: String = sp.name
-		var row := hbox(10)
-		var who := PanelContainer.new()
-		var ws := 34 if small else 44
-		who.custom_minimum_size = Vector2(ws, ws)
-		who.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		who.add_theme_stylebox_override("panel", box(Color("#10353a") if foe else LACQUER_3, SEA_HI if foe else BRONZE_2, 99, 0))
-		var ic := lbl(icon, 18 if small else 24)
-		ic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ic.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		who.add_child(ic)
-		row.add_child(who)
-		var bub := PanelContainer.new()
-		var bs := box(GLASS, LACQUER_3, 12, 10)
-		bs.corner_radius_top_left = 4
-		bs.content_margin_left = 12
-		bs.content_margin_right = 12
-		bub.add_theme_stylebox_override("panel", bs)
-		bub.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var bv := vbox(2)
-		bv.add_child(lbl(sname, 15, SEA_HI if foe else GOLD, display))
-		bv.add_child(lbl(text, 14 if small else 15, INK, null, true))
-		bub.add_child(bv)
-		row.add_child(bub)
-		row.modulate.a = 0.0
-		row.set_meta("delay", i * stagger)
-		v.add_child(row)
-		i += 1
-	v.ready.connect(
-		func() -> void:
-			for r: Control in v.get_children():
-				var tw := r.create_tween()
-				var delay: float = r.get_meta("delay")
-				tw.tween_interval(delay)
-				tw.tween_property(r, "modulate:a", 1.0, 0.5),
-	)
-	return v
-
 ## thin rounded progress bar (stat bars, hp)
 class Bar extends Control:
 	var frac := 0.0

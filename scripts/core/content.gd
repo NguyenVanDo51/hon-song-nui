@@ -271,27 +271,6 @@ static func heroes_of(side: String) -> Array:
 			out.append(k)
 	return out
 
-static func speaker(key: String) -> Dictionary:
-	var t := theme()
-	var heroes: Dictionary = t.heroes
-	if heroes.has(key):
-		return heroes[key]
-	var people: Dictionary = t.people
-	if people.has(key):
-		return people[key]
-	return { "name": key, "icon": "💬" }
-
-static func is_foe(key: String) -> bool:
-	var t := theme()
-	var heroes: Dictionary = t.heroes
-	if heroes.has(key):
-		return heroes[key].side == "e"
-	var people: Dictionary = t.people
-	if not people.has(key):
-		return false
-	var person: Dictionary = people[key]
-	return person.get("side", "p") == "e"
-
 static func terrain(t: String) -> Dictionary:
 	return theme().terrain[t]
 

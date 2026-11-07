@@ -1,7 +1,7 @@
 class_name Main
 extends Control
 ## app shell: theme, audio, menus (title / campaign / skirmish / 1 vs 1 / codex), the game screen, debug flags.
-## debug args (after `--`): mission=m01 (start it; + story = with its opening story) bot (AI plays our side) speed=3
+## debug args (after `--`): mission=m01 (start it) bot (AI plays our side) speed=3
 ##   fresh (ignore save) screen=title|campaign|skirmish|duel|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
 
 const BASE := Vector2(1280, 720)
@@ -96,8 +96,6 @@ func _boot() -> void:
 		var mid := str(flags.mission)
 		var md: Dictionary = Content.mission(mid)
 		var mctx := { "kind": "campaign", "id": flags.mission }
-		if flags.has("story"):
-			mctx.story = true
 		start_game(Game.new_game(md), mctx)
 		return
 	var sc: String = flags.get("screen", "title")
@@ -122,10 +120,10 @@ func show_campaign(chapter_id := "") -> void:
 	game.leave()
 	menus.show_campaign(chapter_id)
 
-## campaign mission entered fresh (map / next mission): title + story over the map first
+## campaign mission entered fresh (map / next mission)
 func play_mission(m: Dictionary) -> void:
 	var mid: String = m.id
-	menus.confirm_start(Game.new_game(m), { "kind": "campaign", "id": mid, "story": true })
+	menus.confirm_start(Game.new_game(m), { "kind": "campaign", "id": mid })
 
 func show_skirmish() -> void:
 	game.leave()

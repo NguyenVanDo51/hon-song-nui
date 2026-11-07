@@ -9,7 +9,6 @@ const DEF := {
 	"place": "Hát Môn · Phúc Thọ, Hà Nội",
 	"region": "Hát Giang",
 	"pos": [26, 34],
-	"history": "Năm 43, Hai Bà thua trận cuối ở Cấm Khê, lui về Hát Môn. Tương truyền Hai Bà gieo mình xuống sông Hát chứ không chịu để giặc bắt.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
@@ -58,23 +57,5 @@ const DEF := {
 			],
 		},
 		{ "turn": 7, "units": [["soldier", 13, 4, { "rank": 1 }], ["soldier", 0, 8], ["catapult", 13, 6], ["shaman", 11, 9], ["elephant", 0, 3]] },
-	],
-	"story": {
-		"intro": [
-			["trungnhi", "Chị ơi, quân ta chỉ còn chừng này. Giặc vây kín ba mặt, sau lưng là sông Hát."],
-			["trungtrac", "Dân làng đang xuống thuyền qua sông. Ta giữ bờ này tám lượt, cho họ đi hết."],
-			["danlang", "Hai Bà ơi, cùng đi với chúng tôi!"],
-			["trungtrac", "Nước còn thì người còn. Đi đi, mang theo tên Hai Bà mà sống."],
-		],
-		"outro": [
-			["truyenthuyet", "Dân làng đã sang sông an toàn. Đêm ấy, Hai Bà gieo mình xuống dòng Hát Giang."],
-			["truyenthuyet", "Từ đó, mỗi năm vào ngày mùng sáu tháng hai âm lịch, dân Hát Môn mở hội tưởng nhớ Hai Bà."],
-		],
-	},
-	"tips": [
-		"Trận cuối của chương: [b]giữ 8 lượt[/b] cho dân qua sông. Mất thành mà Anh hùng cũng ngã là thua.",
-		"Đêm tối, giặc đến từ cả phía đông lẫn phía tây. Giữ đội hình quanh thành, đừng đuổi theo địch.",
-		"[b]Thầy mo[/b] gọi hồn lính ngã (cả lính giặc) thành âm binh: thêm quân miễn phí giữa trận dài. [b]Thủy binh[/b] giữ mép sông sau lưng, "
-		+ "dưới nước +15 thủ.",
 	],
 }

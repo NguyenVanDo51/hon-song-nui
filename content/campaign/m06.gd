@@ -8,7 +8,6 @@ const DEF := {
 	"place": "Đồng Nhân · quận Hai Bà Trưng, Hà Nội",
 	"region": "Hai Bà Trưng",
 	"pos": [57, 54],
-	"history": "Đền Hai Bà Trưng ở Đồng Nhân nằm trong quận Hai Bà Trưng, quận mang tên Hai Bà.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
@@ -42,22 +41,5 @@ const DEF := {
 		["e", "soldier", 10, 2],
 		["e", "archer", 11, 2],
 		["e", "elephant", 13, 2],
-	],
-	"story": {
-		"intro": [
-			["todinh", "Hai người đàn bà mà dám chống triều đình? Lội qua bãi sông, giẫm nát chúng!"],
-			[
-				"trungtrac",
-				"Bãi sông này nhiều nhánh nước. Giặc lội thì chậm, đứng dưới nước lại không chỗ nấp. Ta giữ đầu cầu, đợi giặc lội sang mà đánh.",
-			],
-			["lactuong", "Giữa bãi có ngôi đền cổ. Ai đứng ở đó thì mau lành vết thương, ta hay giặc cũng vậy."],
-		],
-		"outro": [["trungtrac", "Bãi sông đã yên. Tô Định rút về Long Biên."]],
-	},
-	"tips": [
-		"Lội sông tốn 3 bước và [b]không được thủ[/b]: đánh giặc lúc chúng đang lội, đừng để quân ta đứng dưới nước.",
-		"[b]Đền[/b] giữa bãi: quân phe nào đứng đó cũng hồi 20 máu mỗi lượt, thủ +15. Không ai chiếm được.",
-		"Cầu đi nhanh hơn lội. Một con voi chặn đầu cầu là địch phải xuống nước mà vòng.",
-		"Mục tiêu: [b]hạ Tướng giặc[/b]. Hắn giữ thành bên kia sông: phá hàng lính quanh hắn trước rồi mới vây.",
 	],
 }

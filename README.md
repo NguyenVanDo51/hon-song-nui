@@ -10,7 +10,7 @@ Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`), rồi m�
 | 1 · Khởi nghĩa Hai Bà Trưng | 40 | m01–m08 | Trưng Trắc | Tô Định |
 | 2 · Chống Mã Viện | 42–43 | m09–m16 | Trưng Trắc | Mã Viện |
 
-Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); chỉ huy ta suốt game là Trưng Trắc; chỉ huy địch mỗi chương một tên nhưng cùng hình, cùng chỉ số. Các nhân vật khác (Trưng Nhị, Lê Chân, Thánh Thiên, Bát Nàn, Phùng Thị Chính, Đoàn Chí...) chỉ xuất hiện trong lời thoại.
+Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); một chỉ huy mỗi phe (Anh hùng / Tướng giặc), cùng chỉ số. Không có cốt truyện: chỉ chơi cờ.
 
 Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích** (chương 2). Chương sau mở khi thắng hết chương trước. Thêm chế độ đấu tự do (3 chiến trường), **1 đấu 1** (hai người chung máy, đổi tay mỗi lượt, hoặc đấu máy Dễ / Thường / Khó; `docs/1v1.md`) và Sách lính. Luật: `docs/spec.md`.
 
@@ -37,12 +37,12 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 - **Đánh trên bàn cờ**: mỗi đòn, máy quay sà vào hai quân, hoạt cảnh đòn đánh (rig) + đánh trả, rồi lùi ra. Theo tốc độ x1/x2/x3.
 - **Lượt địch**: giữ `Space` hoặc chuột để chạy x4; nút **⏩ Tua lượt địch** tua hết lượt đó (bỏ cận cảnh).
 - **Giữ chỗ**: chọn lính rồi `Space` = lính đứng yên, xong lượt (không đi). **Hết lượt**: bấm 1 lần là hết lượt (không hỏi lại). **Đánh lại** trên thanh trên (có hỏi lại). Bắt đầu ván mới khi đang có ván dở: game hỏi trước (chỉ có một chỗ lưu).
-- **Vào màn**: bấm màn trên bản đồ chiến dịch -> vào thẳng bàn cờ: thẻ tên màn, rồi thoại từng người ở dải dưới (sử tích -> lời nhân vật -> mục tiêu). Chạm / `Space` = hết câu / câu sau, giữ hoặc **»» Tua** = chạy nhanh, **Bỏ qua** / `Esc` = vào trận. Ván đang dở mở lại không chiếu lại thoại.
+- **Vào màn**: bấm màn -> vào thẳng bàn cờ (thẻ giới thiệu quân mới nếu có).
 - Phím: `Space`/`Enter` hành động mặc định · `Tab` lính kế chưa đi · `E` hết lượt · `H` gợi ý · `Esc`/chuột phải hủy.
 - Bấm thành trống của ta để mua lính (popup cạnh thành). Nút **Hết lượt** nằm ở góc dưới bên phải bàn cờ, sáng nhịp khi mọi quân đã ra lệnh.
 - **ⓘ** ở góc mỗi quân: thẻ thông tin (chỉ số, buff đang có, đặc tính, cách dùng). Quân đứng cạnh Trống trận / tướng hào quang có chấm ⚔ cam (+10 công), cạnh tướng che chắn có chấm 🛡 xanh (+10 thủ); rê chuột lên nguồn buff để thấy 4 ô nó phủ. Lần đầu gặp một loại quân, game dừng lại giới thiệu nó.
 
-Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn (thêm `story` = có thoại mở màn) · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|campaign[:c2]|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt.
+Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|campaign[:c2]|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt.
 
 ## Kiểm tra
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (macOS / Linux: `MAX_SEC=120 tools/run_guarded.sh out.log -- --headless --path . -s sim/tests.gd`) (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
@@ -116,7 +116,7 @@ Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục c�
 
 ## Kiến trúc
 - `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom chương + màn và trả theme đã gộp theo chương đang mở. `rules.gd` = số liệu + cờ (quân, công trình), `objectives.gd` = kiểu mục tiêu màn; `game.gd` / `ai.gd` không so tên quân / ký tự ô.
-- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, đấu tự do, Sách lính), `story_overlay.gd` (thẻ tên màn + thoại mở màn từng người trên bản đồ), `game_screen.gd` (trạng thái ván, chọn quân + click, gợi ý) + phần tách ra: `game_hud.gd` (HUD nổi, ⚙, thẻ góc, Hết lượt), `info_panel.gd` (popup lệnh / ⓘ / mua cạnh ô), `event_player.gd` (phát lại sự kiện, đếm vàng / máu), `turn_driver.gd` (lượt, lượt địch, bot, trao máy, kết thúc), `game_cards.gd` (giới thiệu quân mới, thẻ kết thúc), `board.gd` (bàn 2D: quân vẽ từ atlas, FX, đêm, nhãn dự báo) + `board_paint.gd` (vẽ địa hình bake 1 texture, nhà cửa), `fx.gd` + `fx_strikes.gd` (đòn cận chiến riêng từng loại quân), `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh dựng sẵn thành wav trong `assets/sfx`, tạo lại: `godot --headless --path . -s tools/bake_sfx.gd`; + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
+- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, đấu tự do, Sách lính), `game_screen.gd` (trạng thái ván, chọn quân + click, gợi ý) + phần tách ra: `game_hud.gd` (HUD nổi, ⚙, thẻ góc, Hết lượt), `info_panel.gd` (popup lệnh / ⓘ / mua cạnh ô), `event_player.gd` (phát lại sự kiện, đếm vàng / máu), `turn_driver.gd` (lượt, lượt địch, bot, trao máy, kết thúc), `game_cards.gd` (giới thiệu quân mới, thẻ kết thúc), `board.gd` (bàn 2D: quân vẽ từ atlas, FX, đêm, nhãn dự báo) + `board_paint.gd` (vẽ địa hình bake 1 texture, nhà cửa), `fx.gd` + `fx_strikes.gd` (đòn cận chiến riêng từng loại quân), `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh dựng sẵn thành wav trong `assets/sfx`, tạo lại: `godot --headless --path . -s tools/bake_sfx.gd`; + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
 - `shaders/`: nền menu, logo ánh kim, vignette, màn đêm.
 - Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 

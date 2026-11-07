@@ -20,6 +20,14 @@ func content_tests() -> void:
 	)
 	eq(Content.campaign().size(), 16, "campaign size")
 	run(
+		"levels carry no story keys",
+		func() -> void:
+			for m: Dictionary in Content.campaign():
+				for k: String in ["story", "history", "tips"]:
+					check(not m.has(k), "%s has %s" % [m.id, k])
+			check(not Content.theme().has("people"), "theme people gone"),
+	)
+	run(
 		"chapters: 2 chapters, every mission in one, missions of a chapter are consecutive",
 		func() -> void:
 			eq(
@@ -184,11 +192,6 @@ func content_tests() -> void:
 					var skins: Dictionary = Content.theme().units[side]
 					for t: String in s.allowed[side]:
 						check(skins.has(t), "no skin %s %s" % [side, t])
-				var story: Dictionary = def.get("story", { })
-				for line: Array in story.get("intro", []) + story.get("outro", []):
-					var who: String = line[0]
-					var named: bool = Content.speaker(who).icon != "💬"
-					check(named, "speaker " + who)
 				check(s.winner == null, "no winner at start")
 				# foot path from hero to enemy castle on castle maps
 				if s.win.type == "castles":

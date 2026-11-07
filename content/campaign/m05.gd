@@ -8,7 +8,6 @@ const DEF := {
 	"place": "Hồ Tây · Tây Hồ, Hà Nội",
 	"region": "Tây Hồ",
 	"pos": [45, 46],
-	"history": "Một thuyết cho rằng hồ Lãng Bạc, nơi Hai Bà sau này đánh quân Mã Viện năm 42, chính là Hồ Tây.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
@@ -42,18 +41,5 @@ const DEF := {
 		["e", "soldier", 9, 3],
 		["e", "drum", 12, 2],
 		["e", "archer", 11, 3],
-	],
-	"story": {
-		"intro": [
-			["lechan", "Đêm nay bãi ven hồ sẽ thành bãi chiến. Tối trời, giặc không thấy ta, ta cũng không thấy giặc."],
-			["lactuong", "Voi chiến bắt được ở Cổ Loa đã thuần, nay theo quân ta. Thợ làng còn dắt thêm voi rừng về."],
-			["hieuuy", "Đêm tối, đánh úp cho nhanh. Đừng để chúng kịp dàn quân!"],
-		],
-		"outro": [["lechan", "Trời sáng rồi. Đồn giặc bên hồ đã về tay ta, Hồ Tây lại lặng sóng."]],
-	},
-	"tips": [
-		"Trời tối: chỉ thấy rõ quanh quân ta và làng, thành của ta.",
-		"Đi chậm, đi thành khối: quân đi lẻ vào chỗ tối dễ bị đánh úp. Chiếm làng trên đường để soi rõ thêm.",
-		"[b]Voi chiến[/b] nay là của ta, mua được ở thành: thủ rất dày, đánh mạnh. Cho voi đi đầu hút đòn, [b]trống đồng[/b] đứng sau +10 công.",
 	],
 }

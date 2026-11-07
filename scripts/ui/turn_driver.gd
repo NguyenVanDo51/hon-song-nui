@@ -1,6 +1,6 @@
 class_name TurnDriver
 extends RefCounted
-## GameScreen part (review E5): turn flow: opening story, turn start, end turn, enemy AI loop (+ ⏩), `bot` loop,
+## GameScreen part (review E5): turn flow: turn start, end turn, enemy AI loop (+ ⏩), `bot` loop,
 ## hotseat handoff, finish (result + end card buttons). Async: every await re-checks gs.gen. Reads / calls the screen (gs) directly.
 
 signal handoff_closed
@@ -13,26 +13,6 @@ var handoff_layer: Control = null
 
 func _init(screen: GameScreen) -> void:
 	gs = screen
-
-## mission title + story conversation over the map, then the usual start (new-unit intro, play)
-func opening() -> void:
-	var my := gs.gen
-	var ov := StoryOverlay.new()
-	ov.audio = gs.main.audio
-	gs._story = ov
-	gs._intro_on = true # board keys off
-	gs.add_child(ov)
-	ov.start(gs.def, StoryOverlay.lines_for(gs.def))
-	for n: Control in [gs.hud.hud_tr, gs.hud.btn_end]: # dead buttons under the story: hidden
-		n.modulate.a = 0.0
-	await ov.done
-	for n: Control in [gs.hud.hud_tr, gs.hud.btn_end]:
-		n.modulate.a = 1.0
-	if gs._story == ov:
-		gs._story = null
-		gs._intro_on = false
-	if gs.gen == my:
-		begin()
 
 func begin() -> void:
 	if gs._hotseat():
@@ -254,10 +234,6 @@ func finish() -> void:
 		return
 	gs.main.audio.play("win" if win else "lose")
 	var buttons := []
-	var outro: Array = []
-	if win:
-		var story: Dictionary = gs.def.get("story", { })
-		outro = story.get("outro", [])
 	if gs.ctx.kind == "campaign":
 		var mission_id: String = gs.ctx.id
 		var i := Content.mission_index(mission_id)
@@ -266,9 +242,7 @@ func finish() -> void:
 			var c := Content.campaign()
 			var chapter_ms := Content.missions_of(cid)
 			if chapter_ms.back().id == gs.ctx.id:
-				# last mission of a chapter: the chapter's closing lines follow the mission's
 				var chap: Dictionary = Content.chapter(cid)
-				outro = outro + chap.get("outro", [])
 				reason_text += " Hết chương: %s." % chap.title
 			if i + 1 < c.size():
 				var next: Dictionary = c[i + 1]
@@ -319,7 +293,7 @@ func finish() -> void:
 	else:
 		buttons.append(["Ván mới", gs.main.show_skirmish, true])
 		buttons.append(["Menu", gs.main.show_title, false])
-	gs.cards.show_end(win, reason_text, outro, buttons, star_goals if win else [], best_before)
+	gs.cards.show_end(win, reason_text, buttons, star_goals if win else [], best_before)
 	if gs.main.flags.has("shots"):
 		gs.get_tree().create_timer(1.5).timeout.connect(
 			func() -> void:

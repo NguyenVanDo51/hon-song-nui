@@ -60,6 +60,7 @@ func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no
 	gs._clear_sel()
 	var before := gs.player.snapshot()
 	var ev := Game.end_turn(gs.s)
+	MatchRec.step(gs.s, { "kind": "end" })
 	gs.hud.quests.celebrate(Quests.note(gs.s, "end_turn", null) + Quests.observe(gs.s, ev))
 	GameLog.crumb("end turn -> turn %s side %s" % [gs.s.turn, gs.s.side])
 	_count_from(ev)
@@ -143,6 +144,7 @@ func ai_turn() -> void:
 		var before := gs.player.snapshot()
 		var sig := _progress_sig()
 		var ev := AI.apply_step(gs.s, step)
+		MatchRec.step(gs.s, step)
 		if ev.is_empty() and _progress_sig() == sig:
 			push_warning("AI step rejected, ending enemy turn: %s" % [step])
 			break # a rejected step would repeat forever
@@ -164,6 +166,7 @@ func ai_turn() -> void:
 		return
 	var before := gs.player.snapshot()
 	var ev := Game.end_turn(gs.s)
+	MatchRec.step(gs.s, { "kind": "end" })
 	var healed := Quests.observe(gs.s, ev) # heal on our turn start
 	gs.hud.quests.hold(healed)
 	GameLog.crumb("ai end turn -> turn %s side %s" % [gs.s.turn, gs.s.side])
@@ -221,6 +224,7 @@ func _bot_turn() -> void:
 		await end_player_turn(true)
 
 func finish() -> void:
+	MatchRec.finish(gs.s)
 	GameLog.crumb("game over winner=%s reason=%s turn=%s" % [gs.s.winner, gs.s.get("reason"), gs.s.turn])
 	Store.clear_game()
 	var campaign: bool = gs.ctx.kind == "campaign"

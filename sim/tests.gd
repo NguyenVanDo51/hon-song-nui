@@ -13,6 +13,7 @@ const LevelgenTests := preload("res://sim/tests/levelgen.gd")
 const AudioTests := preload("res://sim/tests/audio.gd")
 const QuestTests := preload("res://sim/tests/quests.gd")
 const GameLogTests := preload("res://sim/tests/game_log.gd")
+const ReplayTests := preload("res://sim/tests/replay.gd")
 
 var failed := 0
 var passed := 0
@@ -32,6 +33,7 @@ func _init() -> void:
 	_add(QuestTests.new(), "quest_tests")
 	_add(QuestTests.new(), "quest_content_tests")
 	_add(GameLogTests.new(), "game_log_tests")
+	_add(ReplayTests.new(), "replay_tests")
 	print("tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 

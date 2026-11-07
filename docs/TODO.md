@@ -54,6 +54,12 @@
 
 ## Nợ kỹ thuật
 Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
+- [ ] (2026-11-07) `scripts/core/game.gd:246` tầm đi dùng đủ `mv`; AE2 gốc = `mv − 1` (docs/review/ae2_research.md "So sánh đầy đủ") -> mọi quân nhanh hơn gốc 1 bước. Đổi = luật lớn (AI, UI, màn đã cân bằng, replay cũ) -> chờ user quyết; đo bằng sim trước.
+- [ ] (2026-11-07) `scripts/core/game.gd:717` hào quang `dist <= 2` gồm cả 0 (quân đứng chồng ô Wisp) -> gốc chỉ 1–2.
+- [ ] (2026-11-07) `scripts/core/game.gd:362` comment roll dẫn RM -> nay xác nhận gốc `e.class a(II)I`; `rules.gd:141` trần chiến dịch 100 dẫn RM -> gốc `i.b(I)V @pc 738–741`.
+- [ ] (2026-11-07) `scripts/core/rules.gd:108` ghost `cost: 150` không có trong gốc (−1, không mua được) -> chỉ AI value dùng.
+- [ ] (2026-11-07) `scripts/core/game.gd:419` `not siege` trong phản đòn thừa (máy bắn đá rmin 2 đã chặn).
+- [ ] (2026-11-07) `docs/spec.md` danh sách "chỉ mod": roll không chạm atkMax, độc sau phản đòn, Wisp chết vẫn cho hào quang = đã xác nhận là luật gốc -> sửa spec.
 - [ ] (2026-11-07) scripts/core/ai.gd PRESETS.army — chép tay = hard + V5_ARMY (const không merge được) -> sửa hard / V5_ARMY quên army thì lệch; test duel "ai:army" bắt (hoặc đổi PRESETS thành static var + merged).
 - [ ] (2026-11-07) scripts/ui/menus.gd `_duel_side` — 5 nút đối thủ gần chạm mép thẻ Xanh (1280x720 còn ~3px) + thẻ Xanh rộng hơn thẻ Đỏ -> thêm mức / nhãn dài là tràn (2 hàng hoặc nút nhỏ hơn).
 - [ ] (2026-11-07) `scripts/ui/game_log.gd` crash detect: tắt game bằng `kill` (SIGTERM, vd Claude mở lại game) không ghi `clean exit` -> lần mở sau báo nhầm CRASHED + giữ `crash_*.log` (gặp 21:46). Cân nhắc bắt SIGTERM / ghi "killed" nếu Godot cho phép; tạm thời: crash log có `| ... ai end turn` bình thường + không có dòng X/E = bị tắt, không phải crash.

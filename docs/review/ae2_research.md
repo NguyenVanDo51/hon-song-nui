@@ -117,3 +117,12 @@ Ngoại lệ (`c.class a(IIBB)I` = getRequiredSteps, `a(Lc;II)I` / `b(Lc;II)I` =
 3. (Tuỳ) tile 34 (+25 công/+15 thủ): không có ở ta — chỉ ghi nhận.
 
 Phần còn lại (địa hình, KN/cấp, mộ, giá + cấp tướng hồi sinh, mua đi ngay, mua nhiều lần) khớp bản gốc.
+
+---
+
+## So sánh đầy đủ bản gốc vs ta (2026-11-07, 4 agent, cùng jar sha `98f6af1d…`)
+Chi tiết + bằng chứng bytecode: `docs/review/ae2cmp/{units,economy,maps,combat}.md`.
+- **Quân**: `units.bin` (12 loại) = `rules.gd UNITS` y hệt (giá, công, thủ, đi, tầm, loại di chuyển); mọi thưởng (chống bay +15, Wisp vs Skeleton +15, nước +10/+15, độc −10/−10, hào quang +10 tầm 1–2, cấp +2/+2/+2, tối đa cấp 9, vua 200 +200/lần chết tối đa 1000) khớp. Lính rẻ mà mạnh = có từ bản gốc (công / 100 vàng 34,7 vs cung 20,8). Lệch nhỏ: ghost cost 150 (gốc −1), thiếu Crystal (chỉ chiến dịch), hào quang ta tính cả khoảng cách 0.
+- **Kinh tế**: làng 30, thành 50 (đầu lượt mình), hồi 20 trên làng / thành mình + đền mọi phe, trần quân không tính Skeleton, không có nguồn vàng khác -> khớp. **Lệch: đấu tự do gốc mặc định 500 vàng / trần 10** (chọn 500/1000/2000, 10/20/25); ta 300 / 15 (+ chế độ "dễ" nửa vàng = của ta).
+- **Bản đồ**: 1v1 ta ít làng / người hơn ~21% (gốc cho sẵn 2 làng ở s0, s5), nhiều thành hơn (2 vs 1,5 / người); gốc 32–45% nước, không đền ở đấu tự do, mỗi bên chỉ vua đứng trên thành; ta 5–11% nước, 2 đền / bản đồ, tướng + 1 lính.
+- **Chiến đấu**: công thức sát thương, phản đòn, độc (sau phản đòn), hào quang, KN / cấp, địa hình, mộ, máy bắn đá -> khớp. **Lệch lớn: tầm đi gốc = chỉ số − 1** (ô đến cần còn dư > 0 bước: `c.class a([[BIIIIBBZ)Z` lưu bước dư, lưới khởi tạo 0, ô đích kiểm `ifle` ở `i.class c()V @pc 4106`; AI gốc cũng dùng mv − 1). Ta dùng đủ mv (`game.gd` `_reach_all` `nc > mv`) -> mọi quân +1 bước (lính 5 thay vì 4: +49% ô tới được). Đã tự đọc lại bytecode xác nhận (2026-11-07); chưa thử trên máy giả lập.

@@ -32,6 +32,10 @@ func _ready() -> void:
 		Store.use_profile(str(flags.profile))
 	if flags.has("norig"): # norig: every attack uses the old FX.attack instead of the code-rigged animation
 		Rigs.enabled = false
+	if flags.has("safe"): # safe=l,t,r,b: preview a phone's hidden edges (notch / rounded corners) on desktop
+		var sp := str(flags.safe).split(",")
+		if sp.size() == 4:
+			Style.safe_override = Vector4(float(sp[0]), float(sp[1]), float(sp[2]), float(sp[3]))
 	if flags.has("figstyle"): # figstyle=<dir> art set; figstyle=off -> silhouettes + procedural terrain
 		Token.fig_style = "" if str(flags.figstyle) == "off" else str(flags.figstyle)
 	EmojiFont.attach([Style.body, Style.semi, Style.bold, Style.xbold, Style.display, Style.display_x])

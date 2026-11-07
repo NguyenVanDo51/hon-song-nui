@@ -36,6 +36,8 @@ const BAD := Color("#b3262e")
 const AMBER := Color("#a8700a")
 const P_NAME := CRIMSON
 
+const EDGE_MOBILE := 14.0 # min room kept from every screen edge on phones / tablets (rounded corners)
+static var safe_override := Vector4(-1, -1, -1, -1) # debug flag safe=l,t,r,b (canvas units)
 static var body: Font = load("res://assets/fonts/BeVietnamPro-Regular.ttf")
 static var semi: Font = load("res://assets/fonts/BeVietnamPro-SemiBold.ttf")
 static var bold: Font = load("res://assets/fonts/BeVietnamPro-Bold.ttf")
@@ -234,6 +236,27 @@ static func paper(pad := 16.0, drop := 0.0, face := PAPER) -> SkinBox:
 		face,
 		Vector4(pad + 4, pad, pad + 4, pad + 2),
 		{ "shadow": Vector2(5, 5), "frame": true, "radii": Vector4(18, 12, 20, 11), "drop": drop },
+	)
+
+## room (left, top, right, bottom) the device hides under notch / rounded corners / home bar, in canvas units.
+## Desktop / web: 0. Mobile: the OS safe area, at least EDGE_MOBILE, at most 15 % of the side (guards a bad unit guess).
+static func safe_insets(c: CanvasItem) -> Vector4:
+	if safe_override.x >= 0:
+		return safe_override
+	if not OS.has_feature("mobile"):
+		return Vector4.ZERO
+	var win := Vector2(DisplayServer.window_get_size())
+	var safe := Rect2(DisplayServer.get_display_safe_area())
+	var vp := c.get_viewport_rect().size
+	if win.x <= 0 or win.y <= 0 or safe.size.x <= 0 or safe.size.y <= 0:
+		return Vector4.ONE * EDGE_MOBILE
+	var k := vp / win
+	var cap := vp * 0.15
+	return Vector4(
+		clampf(safe.position.x * k.x, EDGE_MOBILE, cap.x),
+		clampf(safe.position.y * k.y, EDGE_MOBILE, cap.y),
+		clampf((win.x - safe.end.x) * k.x, EDGE_MOBILE, cap.x),
+		clampf((win.y - safe.end.y) * k.y, EDGE_MOBILE, cap.y),
 	)
 
 # ---------- builders ----------

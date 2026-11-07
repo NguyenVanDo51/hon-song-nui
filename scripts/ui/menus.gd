@@ -34,6 +34,15 @@ func _init() -> void:
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 	hero_choice = Content.heroes_of("p")[0]
+	resized.connect(_fit_safe)
+
+## pages stay out of the phone's notch / rounded corners (backdrop still fills the screen)
+func _fit_safe() -> void:
+	var e := Style.safe_insets(self)
+	root.offset_left = e.x
+	root.offset_top = e.y
+	root.offset_right = -e.z
+	root.offset_bottom = -e.w
 
 # ---------- helpers ----------
 func _sfx(sfx: String) -> void:

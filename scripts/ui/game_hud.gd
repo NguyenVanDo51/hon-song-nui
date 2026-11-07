@@ -331,7 +331,11 @@ func _side_w() -> float:
 func place_hud() -> void:
 	if btn_end == null:
 		return
-	var M := HUD_M
+	var e := Style.safe_insets(gs) # phone notch / rounded corners
+	var L := HUD_M + e.x
+	var T := HUD_M + e.y
+	var R := HUD_M + e.z
+	var B := HUD_M + e.w
 	var picked := card.visible
 	var unit_card := picked and not card_terrain
 	_hud_tl.visible = not unit_card
@@ -340,26 +344,26 @@ func place_hud() -> void:
 	btn_end.visible = not unit_card
 	hud_tr.reset_size()
 	var trs := hud_tr.get_combined_minimum_size()
-	hud_tr.position = Vector2(gs.size.x - trs.x - M, M)
+	hud_tr.position = Vector2(gs.size.x - trs.x - R, T)
 	_hud_tl.custom_minimum_size.x = 0
 	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_hud_tl.reset_size()
-	_hud_tl.position = Vector2(M, M)
+	_hud_tl.position = Vector2(L, T)
 	_hud_tc.reset_size()
 	var tcs := _hud_tc.get_combined_minimum_size()
-	var tc_x := maxf((gs.size.x - tcs.x) / 2.0, M + _hud_tl.get_combined_minimum_size().x + 14)
+	var tc_x := maxf((gs.size.x - tcs.x) / 2.0, L + _hud_tl.get_combined_minimum_size().x + 14)
 	if tc_x + tcs.x > hud_tr.position.x - 10: # narrow screen: tuck it under the goal slip
-		_hud_tc.position = Vector2(M + 6, M + _hud_tl.get_combined_minimum_size().y + 4)
+		_hud_tc.position = Vector2(L + 6, T + _hud_tl.get_combined_minimum_size().y + 4)
 	else:
-		_hud_tc.position = Vector2(tc_x, M + 2)
+		_hud_tc.position = Vector2(tc_x, T + 2)
 	btn_end.custom_minimum_size = Vector2(SEAL, SEAL)
 	var eb := btn_end.get_combined_minimum_size()
 	btn_end.size = eb
-	btn_end.position = gs.size - eb - Vector2(M, M)
+	btn_end.position = gs.size - eb - Vector2(R, B)
 	if picked:
 		card.reset_size()
 		var cs := card.get_combined_minimum_size()
-		var cands: Array[Vector2] = [Vector2(M, M), Vector2(gs.size.x - cs.x - M, M), Vector2(M, gs.size.y - cs.y - M), gs.size - cs - Vector2(M, M)]
+		var cands: Array[Vector2] = [Vector2(L, T), Vector2(gs.size.x - cs.x - R, T), Vector2(L, gs.size.y - cs.y - B), gs.size - cs - Vector2(R, B)]
 		if card_terrain: # bottom-right = end turn button, never covered
 			cands = [cands[2], cands[0], cands[1]]
 		card.position = cands[0]
@@ -376,8 +380,8 @@ func place_hud() -> void:
 				card.position = c
 				break
 		if card_terrain: # card took a top corner: that corner's HUD panel yields
-			_hud_tl.visible = card.position.y > M or card.position.x > M
-			hud_tr.visible = card.position.y > M or card.position.x <= M
+			_hud_tl.visible = card.position.y > T or card.position.x > L
+			hud_tr.visible = card.position.y > T or card.position.x <= L
 	if menu.visible:
 		_place_pause()
 

@@ -323,7 +323,7 @@ func show_menu(on: bool) -> void:
 		place_hud()
 
 ## map fills the screen; HUD floats over it. Nothing picked: turn/gold (TL), ⏩ ⚙ (TR), end turn (BR).
-## Unit picked: only its card, in the first corner that keeps the picked tiles visible.
+## Unit picked: only its card, on the screen half away from the picked tile, first corner keeping picked tiles visible.
 ## Terrain picked: HUD stays; card prefers the free bottom-left corner, else takes a top corner from its HUD panel.
 func _side_w() -> float:
 	return maxf(card.get_combined_minimum_size().x, 210.0)
@@ -363,9 +363,20 @@ func place_hud() -> void:
 	if picked:
 		card.reset_size()
 		var cs := card.get_combined_minimum_size()
-		var cands: Array[Vector2] = [Vector2(L, T), Vector2(gs.size.x - cs.x - R, T), Vector2(L, gs.size.y - cs.y - B), gs.size - cs - Vector2(R, B)]
+		var c_tl := Vector2(L, T)
+		var c_tr := Vector2(gs.size.x - cs.x - R, T)
+		var c_bl := Vector2(L, gs.size.y - cs.y - B)
+		var c_br := gs.size - cs - Vector2(R, B)
+		# picked tile on the left half (even by a hair) -> card on the right side, else on the left; top before bottom
+		var on_left := true
+		if not card_avoid.is_empty():
+			var pk: Vector2i = card_avoid[0]
+			on_left = map_wrap.position.x + gs.board.tile_rect(pk.x, pk.y).get_center().x < gs.size.x / 2.0
+		var cands: Array[Vector2] = []
 		if card_terrain: # bottom-right = end turn button, never covered
-			cands = [cands[2], cands[0], cands[1]]
+			cands.assign([c_tr, c_bl, c_tl] if on_left else [c_bl, c_tl, c_tr])
+		else:
+			cands.assign([c_tr, c_br, c_tl, c_bl] if on_left else [c_tl, c_bl, c_tr, c_br])
 		card.position = cands[0]
 		var avoid: Array[Rect2] = []
 		for k: Vector2i in card_avoid:

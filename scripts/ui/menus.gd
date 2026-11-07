@@ -17,6 +17,7 @@ const CREDITS := [
 	],
 	["Tưởng nhớ", "Hai Bà Trưng và các nữ tướng đã đứng lên giành lại non sông."],
 ]
+const TITLE_SIZE := Vector2(1000, 560) # title stage, scaled to fit the window
 ## 1 vs 1: who plays Blue (s.ctrl.e)
 const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Thường"], ["ai:hard", "Máy Khó"]]
 
@@ -197,31 +198,52 @@ static func goal_text(def: Dictionary) -> String:
 	return Content.goal_text(win, "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, { })
 
 # ---------- title ----------
+## title: fixed stage (no scroll) laid out at TITLE_SIZE and scaled to the window; logo on top, menu left,
+## castle + units right, round sound / music / speed / unit-book toggles under the menu
 func show_title() -> void:
+	visible = true
+	bg.visible = true
+	if page:
+		page.queue_free()
 	var th := Content.theme()
-	var v := _page(640, true)
+	var holder := Control.new()
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(holder)
+	page = holder
+	var stage := Control.new()
+	stage.size = TITLE_SIZE
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(stage)
+	var fit := func() -> void:
+		var k := clampf(minf(holder.size.x / TITLE_SIZE.x, holder.size.y / TITLE_SIZE.y), 0.5, 1.6)
+		stage.scale = Vector2(k, k)
+		stage.position = ((holder.size - TITLE_SIZE * k) / 2.0).floor()
+	holder.resized.connect(fit)
+	fit.call_deferred()
+	var art := TitleArt.new()
+	art.position = Vector2(420, 150)
+	art.size = Vector2(580, 400)
+	stage.add_child(art)
+	var top := Style.vbox(0)
+	top.position = Vector2(0, 10)
+	top.size = Vector2(TITLE_SIZE.x, 0)
+	stage.add_child(top)
 	var tagline: String = th.tagline
+	var eb := _eyebrow(tagline, 13)
+	eb.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	top.add_child(eb)
 	var title: String = th.title
-	var lede_text: String = th.lede
-	v.add_child(_eyebrow(tagline))
-	v.add_child(_logo(title))
-	var lede := Style.lbl(lede_text, 16, Style.INK, null, true)
-	lede.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
-	lede.add_theme_constant_override("shadow_offset_y", 1)
-	lede.add_theme_constant_override("line_spacing", 6)
-	lede.custom_minimum_size.x = 560
-	lede.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	v.add_child(lede)
+	var logo := _logo(title, 84)
+	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	top.add_child(logo)
 	var list := Style.vbox(10)
-	list.custom_minimum_size.x = 420
-	list.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	list.position = Vector2(60, 168)
+	list.size = Vector2(340, 0)
+	stage.add_child(list)
 	var camp := Content.levels()
-	var ui := Store.unlocked_index()
-	var prog := "Đã thắng mọi thử thách"
-	var nx := LevelSelect.first_unwon(camp, ui)
-	if nx < camp.size():
-		var cm: Dictionary = camp[nx]
-		prog = "Thử thách %d/%d: %s" % [nx + 1, camp.size(), cm.title]
+	var nx := LevelSelect.first_unwon(camp, Store.unlocked_index())
+	var prog := ("Màn %d/%d" % [nx + 1, camp.size()]) if nx < camp.size() else "Đã thắng hết"
 	var sv: Variant = Store.load_game()
 	if sv != null:
 		var svd: Dictionary = sv
@@ -239,33 +261,27 @@ func show_title() -> void:
 			)
 		)
 	list.add_child(_on(Style.menu_button("Thử thách", prog, sv == null), show_levels))
-	list.add_child(_on(Style.menu_button("Đấu tự do", Content.text("skirmishBlurb")), show_skirmish))
-	list.add_child(_on(Style.menu_button("1 đấu 1", Content.text("duelBlurb")), show_duel))
-	list.add_child(
-		_on(
-			Style.menu_button("Sách lính", "Xem tính chất từng loại quân"),
-			func() -> void:
-				open_codex(),
-		)
-	)
-	v.add_child(list)
-	var tg := Style.hbox(8)
-	var snd := Style.button("", "ChipBtn")
-	var mus := Style.button("", "ChipBtn")
-	var spd := Style.button("", "ChipBtn")
+	list.add_child(_on(Style.menu_button("Đấu tự do"), show_skirmish))
+	list.add_child(_on(Style.menu_button("1 đấu 1"), show_duel))
+	var tg := Style.hbox(18)
+	tg.position = Vector2(60, 462)
+	stage.add_child(tg)
+	var snd := _round(tg, "Âm thanh")
+	var mus := _round(tg, "Nhạc")
+	var spd := _round(tg, "Tốc độ")
+	var book := _round(tg, "Sách lính")
+	book.icon = Icons.tex("book")
 	spd.tooltip_text = "Tốc độ hoạt cảnh x1 / x2 / x3"
 	var sync := func() -> void:
-		var a: Audio = null
-		if main:
-			a = main.audio
-		var snd_on := a == null or not a.muted
-		var mus_on := a == null or a.music_on
-		snd.text = "Âm thanh: " + ("Bật" if snd_on else "Tắt")
-		mus.text = "Nhạc nền: " + ("Bật" if mus_on else "Tắt")
-		spd.text = "Tốc độ x%d" % int(FX.speed)
-		snd.theme_type_variation = "ChipOn" if snd_on else "ChipBtn"
-		mus.theme_type_variation = "ChipOn" if mus_on else "ChipBtn"
-		spd.theme_type_variation = "ChipOn"
+		var snd_on := main == null or not main.audio.muted
+		var mus_on := main == null or main.audio.music_on
+		snd.icon = Icons.tex("sound" if snd_on else "mute")
+		mus.icon = Icons.tex("music" if mus_on else "music_off")
+		snd.theme_type_variation = "RoundOn" if snd_on else "RoundOff"
+		mus.theme_type_variation = "RoundOn" if mus_on else "RoundOff"
+		snd.tooltip_text = "Âm thanh: %s" % ("bật" if snd_on else "tắt")
+		mus.tooltip_text = "Nhạc: %s" % ("bật" if mus_on else "tắt")
+		spd.text = "x%d" % int(FX.speed)
 	_on(
 		spd,
 		func() -> void:
@@ -287,12 +303,39 @@ func show_title() -> void:
 				main.audio.set_music(not main.audio.music_on)
 			sync.call(),
 	)
+	_on(
+		book,
+		func() -> void:
+			open_codex(),
+	)
 	sync.call()
-	tg.add_child(snd)
-	tg.add_child(mus)
-	tg.add_child(spd)
-	tg.add_child(_on(Style.button("Ghi công ›", "LinkBtn"), _open_credits))
-	v.add_child(tg)
+	var credits := _on(Style.button("Ghi công ›", "LinkBtn"), _open_credits)
+	credits.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	tg.add_child(credits)
+	# enter: fade + slide up 14px
+	holder.modulate.a = 0.0
+	holder.offset_top = 14
+	holder.offset_bottom = 14
+	var tw := holder.create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(holder, "modulate:a", 1.0, 0.45)
+	tw.tween_property(holder, "offset_top", 0.0, 0.45)
+	tw.tween_property(holder, "offset_bottom", 0.0, 0.45)
+
+## round toggle (RoundOn face) with a small caption under it
+func _round(parent: Control, caption: String) -> Button:
+	var col := Style.vbox(4)
+	parent.add_child(col)
+	var b := Style.button("", "RoundOn")
+	b.tooltip_text = caption
+	b.custom_minimum_size = Vector2(56, 56)
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", 28)
+	col.add_child(b)
+	var l := Style.lbl(caption, 14, Style.INK, Style.bold)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(l)
+	return b
 
 func _open_credits() -> void:
 	var ov := Control.new()
@@ -335,10 +378,9 @@ func _open_credits() -> void:
 	add_child(ov)
 
 ## gold-leaf logo: shimmer shader label over a dark offset copy (CSS drop-shadow 0 3px 0 #4a2c0e)
-func _logo(text: String) -> Control:
+func _logo(text: String, fs := 104) -> Control:
 	var holder := Control.new()
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var fs := 104
 	var shadow := Style.lbl(text, fs, Color("#4a2c0e"), Style.display_x)
 	var glow := Style.lbl(text, fs, Color(Style.GOLD, 0.0), Style.display_x)
 	glow.add_theme_color_override("font_shadow_color", Color(Style.GOLD, 0.16))

@@ -141,3 +141,33 @@ func duel_tests() -> void:
 			Store.set_v("campaign_done", [])
 			Store.set_v("campaign_stars", { }),
 	)
+	run(
+		"level ai: hard preset saved in state, normal = built-in",
+		func() -> void:
+			var m02: Dictionary = Content.mission("m02")
+			var d := m02.duplicate(true)
+			d.ai = "hard"
+			var s := Game.new_game(d)
+			var aip: Dictionary = s.aiParams
+			eq(aip.e, AI.PRESETS.hard)
+			eq(Content.ctrl_of(s, "e"), "ai:hard")
+			eq(Content.ctrl_of(s, "p"), "human")
+			d.ai = "normal"
+			check(not Game.new_game(d).has("aiParams"), "normal adds no params"),
+	)
+	run(
+		"unlock: furthest win opens everything before it",
+		func() -> void:
+			Store.use_profile("unit_tests")
+			var ids: Array = Content.campaign().map(
+				func(m: Dictionary) -> String:
+					return m.id,
+			)
+			Store.set_v("campaign_done", [])
+			eq(Store.unlocked_index(), 0)
+			Store.set_v("campaign_done", [ids[3]])
+			eq(Store.unlocked_index(), 4)
+			Store.set_v("campaign_done", ids)
+			eq(Store.unlocked_index(), ids.size())
+			Store.set_v("campaign_done", []),
+	)

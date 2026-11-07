@@ -13,6 +13,8 @@ const DEF := {
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "catapult"], "e": ["soldier", "archer", "drum", "elephant", "catapult"] },
 	"gold": { "p": 900, "e": 350 },
+	"tier": "mid",
+	"ai": "normal",
 	"win": { "type": "castles" },
 	"stars": { "turns": 25 }, # AI win median 30: AI-vs-AI drags here, a player should be faster
 	"map": {

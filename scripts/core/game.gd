@@ -82,8 +82,9 @@ static func new_game(def: Dictionary, opts := { }) -> Dictionary:
 		"hadCastle": { },
 		"unitCap": _or(def, "unitCap", RULES.unitCap),
 	}
-	if def.has("ctrl"): # 1 vs 1 only: no key = p human, e AI (Content.ctrl_of)
-		var ctrl: Dictionary = def.ctrl
+	var lv_ai: String = def.get("ai", "normal") # level enemy preset; "normal" = no ctrl key (state as before levels)
+	var ctrl: Dictionary = def.get("ctrl", { "p": "human", "e": "ai:" + lv_ai } if lv_ai != "normal" else { })
+	if not ctrl.is_empty(): # 1 vs 1 sets ctrl, a level may set ai; neither = p human, e AI normal (Content.ctrl_of)
 		s.ctrl = ctrl.duplicate()
 		var aip := { }
 		for side: String in ["p", "e"]:
@@ -267,8 +268,7 @@ static func reachable(s: Dictionary, u: Dictionary) -> Dictionary:
 		best.erase(Vector2i(ux, uy))
 	return best
 
-## UI only: every tile u could hit next turn if nothing else moved: in range from any tile of `reach` (its stop
-## tiles, from reachable()), or only from where it stands for siege units (no shot after moving). { Vector2i: true }
+## UI only: tiles u could hit next turn (in range of any `reach` stop tile; siege: only from its own tile). { Vector2i: true }
 static func threat_tiles(s: Dictionary, u: Dictionary, reach: Dictionary) -> Dictionary:
 	var st := stat(s, u)
 	var rmin: int = st.rmin

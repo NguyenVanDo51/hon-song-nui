@@ -57,6 +57,8 @@ const DEF := {
 	"newUnits": ["wolf"],                 # ghi chú: màn ra mắt loại lính đó (thẻ giới thiệu quân tự bật theo quân trên bản đồ, xem dưới)
 	"allowed": { "p": [...], "e": [...] },  # lính được mua mỗi phe (soldier archer boat shaman drum wolf elephant catapult bird)
 	"gold": { "p": 300, "e": 400 },       # vàng đầu trận (độ khó). Thu nhập: làng 30, thành 50 mỗi lượt
+	"tier": "mid",                        # nhãn độ khó: easy (Dễ) | mid (Trung bình) | hard (Khó). m01–m16: tạm (m01–m04 easy, m14 hard, còn lại mid), đo lại bằng sim sau khi bot V2-hard xong
+	"ai": "normal",                       # bot phe địch: normal | hard (không dùng easy). normal = không ghi ctrl vào state
 	"win": { "type": "castles" },         # Objectives.TYPES: castles (chiếm hết thành + hạ tướng địch) | rout | hero | survive (+ "turns") | reach (+ "at": [[x, y]], tùy chọn "turns")
 	"stars": { "turns": 12 },             # sao thứ 3: thắng trong ≤ N lượt; màn survive dùng { "lost": K } (mất ≤ K lính). Bắt buộc (test)
 	"unitCap": 15,                        # trần quân mỗi phe (mặc định Rules.RULES.unitCap; âm binh không tính)

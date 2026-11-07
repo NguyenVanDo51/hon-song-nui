@@ -150,6 +150,8 @@ func content_tests() -> void:
 			func() -> void:
 				if Content.mission(str(def.id)) != null: # campaign only
 					eq(Stars.check_def(def), "", "stars bar")
+					check(Content.TIERS.has(def.get("tier")), "tier")
+					check(Content.LEVEL_AI.has(def.get("ai", "normal")), "ai")
 				var rows: Array = def.map.rows
 				for r: String in rows:
 					var row0: String = rows[0]

@@ -60,16 +60,15 @@ static func stars_of(id: String) -> int:
 	var n: int = all.get(id, 0)
 	return n
 
-## index of the first mission not yet won
+## levels open = every level up to the furthest one won, + the next (a level inserted before it never locks the rest)
 static func unlocked_index() -> int:
 	var c := Content.campaign()
-	var i := 0
-	while i < c.size():
+	var open := 0
+	for i in c.size():
 		var mid: String = c[i].id
-		if not is_done(mid):
-			break
-		i += 1
-	return i
+		if is_done(mid):
+			open = i + 1
+	return open
 
 # ---------- running game ----------
 static func save_game(s: Dictionary, ctx: Dictionary, title: String) -> void:

@@ -13,6 +13,8 @@ const DEF := {
 	"newUnits": ["hero", "soldier"],
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },
+	"tier": "easy",
+	"ai": "normal",
 	"win": { "type": "rout" },
 	"stars": { "turns": 6 },
 	"map": { "rows": ["......fff~~", ".rv...fhf.~", ".rrrrrrv..~", ".rfhf..r.~~", ".r.f...rh~~", "fv.....rf.~", "hf.....vf.~", ".......fh~~"] },

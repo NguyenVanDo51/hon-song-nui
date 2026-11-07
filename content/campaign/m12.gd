@@ -17,6 +17,8 @@ const DEF := {
 		"e": ["soldier", "archer", "boat", "drum", "wolf", "elephant", "catapult"],
 	},
 	"gold": { "p": 900, "e": 300 },
+	"tier": "mid",
+	"ai": "normal",
 	"win": { "type": "castles" },
 	"stars": { "turns": 20 },
 	"map": {

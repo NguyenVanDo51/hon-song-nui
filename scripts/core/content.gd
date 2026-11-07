@@ -7,6 +7,9 @@ extends RefCounted
 const THEME_SCRIPT := preload("res://content/theme.gd")
 const SKIRMISH := preload("res://content/skirmish_maps.gd")
 const CAMPAIGN_DIR := "res://content/campaign"
+## level difficulty label (def.tier) and the enemy bot preset a level may ask for (def.ai; never "easy": too weak to be fun)
+const TIERS := ["easy", "mid", "hard"]
+const LEVEL_AI := ["normal", "hard"]
 const CHAPTER_DIR := "res://content/chapters"
 const GUIDE := preload("res://content/guide.gd")
 const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when the saved state shape changes

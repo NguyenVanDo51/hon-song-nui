@@ -14,6 +14,8 @@ const DEF := {
 	"newUnits": ["boat"],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": [] },
 	"gold": { "p": 500, "e": 0 },
+	"tier": "mid",
+	"ai": "normal",
 	"win": { "type": "survive", "turns": 9 },
 	"stars": { "lost": 0 },
 	"map": {

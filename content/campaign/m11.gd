@@ -14,6 +14,8 @@ const DEF := {
 	"newUnits": ["wolf"],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "wolf", "elephant"] },
 	"gold": { "p": 550, "e": 250 },
+	"tier": "mid",
+	"ai": "normal",
 	"win": { "type": "castles" },
 	"stars": { "turns": 10 },
 	"map": {

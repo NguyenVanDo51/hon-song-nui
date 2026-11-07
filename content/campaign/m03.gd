@@ -15,6 +15,8 @@ const DEF := {
 	"newUnits": ["drum"],
 	"allowed": { "p": ["soldier", "archer"], "e": [] },
 	"gold": { "p": 500, "e": 0 },
+	"tier": "easy",
+	"ai": "normal",
 	"win": { "type": "survive", "turns": 10 },
 	"stars": { "lost": 0 },
 	"map": {

@@ -113,7 +113,7 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Đã làm: bỏ thoại / sử tích / nhân vật / chương / bản đồ chiến dịch; lưới "Thử thách" (`scripts/ui/level_select.gd`: chạm 1 lần = xem, chạm lại / "Vào trận" = chơi); `content/levels/` (m01–m16 giữ id, order ×10; g01–g20 vẽ bằng `sim/levelgen.gd`); `tier` + `ai` (normal / hard) mỗi level; mở khóa = level xa nhất đã thắng + 1; skill `.claude/skills/level-maker`.
 - Không sửa logic bot (user đang đo bot).
 - Cân bằng (bot phe ta vs bot level, 12 ván / level, 4 lượt): Dễ ≥ 10/12 · TB 7–9 · Khó 4–6. Kết quả 36 level: 24 Dễ, 8 TB, 4 Khó (g03, g11, g17, g20). Chỉnh bằng vàng: m02 / m12 (màn ra mắt đo ra Khó) + m08 (27 lượt, 3 ván hòa) dễ lại; g01–g20 theo nhãn định đặt. Mốc sao = trung vị lượt thắng / lính mất. Bảng đầy đủ: `docs/content.md` § "Nhịp ra mắt".
-- Bot Khó v3 (merge 3ef121a) mạnh hơn v2: đo lại g11 / g17 / g20 (bot hard) -> g11 2/12, g20 3/12 -> tăng vàng phe ta (g11 950, g20 1500) -> 5/12, 6/12; g17 4/12 giữ nguyên. Vàng phe địch gần như không đổi kết quả với v3.
+- Bot Khó v3 (merge 3ef121a) mạnh hơn v2: đo lại g11 / g17 / g20 (bot hard) -> g11 2/12, g20 3/12 -> tăng vàng phe ta (g11 950, g20 1500) -> 5/12, 6/12; g17 4/12 giữ nguyên. Vàng phe địch gần như không đổi kết quả với v3. 2026-11-08: `hard` += `AI.HERO_FIX` (sửa lỗi tướng) -> đo lại g11 / g17 / g20, số ở `docs/TODO.md`.
 - Lưu ý: bot phe ta được lợi thế vàng vốn cho người -> màn tay hầu hết ra "Dễ"; nhãn thật cần user chơi thử.
 - Việc sau: `docs/TODO.md` § "Thử thách".
 

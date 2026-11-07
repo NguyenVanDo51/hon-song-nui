@@ -403,6 +403,22 @@ Dev (salt 4000–4006, `games=4`, 7 tiến trình, 168 ván): `hard_v3b` vs `har
 
 **Seed giữ riêng (ghi trước khi xem kết quả)**: `hard_v3b` vs `hard_v3` salt 9900000–003 `games=32` (768 ván); `hard_v5b` vs `hard_v5` salt 9900100–103 `games=32` (768 ván); vs Thường: `hard_v3b` / `hard_v3` salt 9900200–207 `games=9` (432 ván), `hard_v5b` / `hard_v5` salt 9900300–307 `games=9` (432 ván). Luật ship (từng preset): (bản sửa vs bản cũ) ≥ 0,50 **và** test thế cờ qua **và** thời gian trong ngân sách (`tune.gd -- time`, lượt TB ≤ ~0,3 s, tệ nhất ≤ 1,5 s; đo cùng lúc bản cũ vì máy tải). Vs Thường: chỉ báo (so cặp cùng seed).
 
+**Kết quả seed giữ riêng** (`tools/match_par.sh`, chạy từ bản chụp `7f072cd`; cùng seed cho 2 hàng mỗi cột; ± SE nhị thức; không lần nào chạm `pl_ms`):
+
+| A | vs bản cũ (768) | vs Thường (432) |
+|---|---|---|
+| `hard_v3b` | **0,535 ± 0,018** (vs `hard_v3`, salt 9900000–003) | 0,928 ± 0,012 (salt 9900200–207) |
+| `hard_v3` | 0,500 | 0,912 ± 0,014 |
+| `hard_v5b` | **0,516 ± 0,018** (vs `hard_v5`, salt 9900100–103) | 0,909 ± 0,014 (salt 9900300–307) |
+| `hard_v5` | 0,500 | 0,896 ± 0,015 |
+
+- Theo map (`hard_v3b` ghế p / e, / 128): cửa biển 93 / 103,5; đồng bằng 61,5 / 22,5; núi rừng 23,5 / 106,5. `hard_v5b`: cửa biển 99,5 / 75; đồng bằng 66 / 22; núi rừng 35 / 99.
+- Thời gian (`tune.gd -- time a=<spec> b=hard_v1 games=4 salt=9100000`, 4 spec chạy cùng lúc, tải ~4–5, 2 lần đo): lượt TB `hard_v3` 271 / 357 ms -> `hard_v3b` 332 / 400 ms (+12–23%); `hard_v5` 312 / 382 -> `hard_v5b` 331 / 402 (+5–6%). Tệ nhất: v3 1,12 / 1,12 s, **v3b 1,60 / 2,40 s**; v5 1,30 / 1,59 s, v5b 1,33 / 1,95 s. Đo riêng (`hard_v3b`, 12 ván): `hero_kill_prefix` 968 lần, 1,3 ms / lần, giết được 6,7%; lời đáp thêm 0,74 s / 21,4 s tổng lời đáp -> chi phí knob ~10 ms / lượt. Lượt chậm (> 1 s, đo từng lượt, lần đo tải nặng TB 530 ms): 17 / 27 lượt chậm nằm trong 1 ván (đồng bằng k1, ghế e, lượt 23–39: tàn cuộc dài nhiều quân), lượt tệ nhất 2,9 s (lượt 38: 2 lần lập, `hero_kill_prefix` 37 ms, 0 lời đáp giết tướng); ở mọi lượt chậm phần knob (tìm + lời đáp giết tướng) ≤ ~0,3 s -> tệ nhất do thế cờ (ván dài hơn), không do knob. Đã thêm 2 cách tăng tốc không đổi nước (`_hit_cap`: tổng đòn tối đa < máu tướng -> bỏ qua tìm; `_buy_hits`: gộp loại quân cùng dáng đi, bỏ thành ngoài tầm) — kiểm: cùng ván với bản chụp (salt 4001 / 4002 / 4003, 6 ván mỗi cái). Lượt TB trên máy tải này vượt 0,3 s cả ở bản cũ -> cần đo trên điện thoại thật.
+- **Ship cả 2** (quyết sau khi đo từng lượt chậm ở trên): `AI.PRESETS.hard` = v3 + `HERO_FIX` (Siêu khó), `AI.PRESETS.army` = v5 + `HERO_FIX` (Khó). Spec cố định `hard_v3b` / `hard_v5b`; `hard_v3` / `hard_v5` giữ nguyên để so. Lệch luật: tệ nhất của `hard_v3b` 1,6–2,4 s > 1,5 s trên Mac đang tải (bản cũ 1,1 s cùng lúc) — ghi `docs/TODO.md`, đo điện thoại.
+- Kiểm (sau ship): trace 168 dòng: chỉ 12 dòng g11 / g17 / g20 (màn bot `hard`) đổi, cùng bên thắng cả 12; m / t / g khác / đấu tự do / naive y nguyên. Màn (bot phe ta vs bot hard, 24 ván, phe ta thắng): g11 9 -> 13, g17 11 -> 8, g20 11 -> 5 (ghi `docs/TODO.md` cho phiên nội dung).
+- Hành vi (ít ván, chỉ để thấy hướng; `tactics_probe.gd base=<spec> opp=v1 games=2 salt=9200000`, 12 ván / dòng; ván v5b dài hơn: 19 vs 12 lượt nên số "/ ván" không so được): tướng chết được kể cả quân mua (roll 0,75) cuối lượt 3,65% -> **1,83%** số lượt-tướng; thành trung lập chiếm / ván 0,58 -> **1,42**; tướng đầy máu đứng yên 2,7% -> 3,0% lượt đi của tướng; tướng chết 2 -> 4 lần / 12 ván. Mua / ván (`army_probe.gd a=<spec> b=hard_v3 games=1 salt=9200000`, 6 ván): v5 lính 9,5 cung 3,0 thuyền 0,8 thầy mo 1,0 trống 0,2 (tổng 14,7); v5b lính 11,5 cung 3,8 thuyền 1,5 thầy mo 1,2 trống 0,5 voi 0,2 chim 0,2 (tổng 19, vàng lúc mua TB 273 -> 362: còn tướng -> kinh tế không sập).
+- t22 / "về thành hồi máu": không thêm knob (mọi ô chết; thành hồi máu sau lượt địch). t13 (`kill2` hơn chiếm thành, rồi tướng bị dồn 96 -> 25) và t21 (đổi máu tướng lấy thuyền) không đổi: 2 ply tính máu tướng rẻ (`pl_hp_cap`); ghi `docs/TODO.md`.
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

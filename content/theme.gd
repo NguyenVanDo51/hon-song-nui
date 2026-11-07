@@ -103,7 +103,6 @@ const THEME := {
 		"introUnitE": "QUÂN ĐỊCH MỚI",
 		"introReplay": "🔄 Xem lại",
 		"introOk": "Đã hiểu",
-		"introNext": "Tiếp ›",
 		"hint_attack": "đánh mục tiêu viền vàng",
 		"hint_capture": "chiếm",
 		"hint_repair": "dựng lại",

@@ -47,3 +47,4 @@
 - [ ] scripts/ui/fx.gd:10 — `FX.speed` static chung mọi FX -> popup giới thiệu quân (IntroStage có FX riêng) cũng chạy x2/x3 theo tốc độ ván (2026-11-07) (speed theo instance, hoặc IntroStage bỏ qua).
 - [ ] scripts/ui/intro_stage.gd:80 — mỗi thẻ giới thiệu dựng 1 `Board` đầy đủ (bake địa hình + atlas token SubViewport ~T 92) -> thêm RAM / thời gian mở thẻ, nhất là máy yếu (2026-11-07) (dùng lại 1 stage cho cả chuỗi thẻ, hoặc atlas nhỏ).
 - [ ] sim/probes/intro_shot.gd:58 — ảnh chụp đợi `frame_post_draw`: cửa sổ bị che / màn tắt -> khung hình trễ (cả 3 ảnh = cảnh cuối) hoặc treo tới guard (2026-11-07) (kiểm số khung theo phase + timeout từng ảnh).
+- [ ] scripts/ui/intro_stage.gd:287 — nhánh không rig (`figstyle=off`) gọi `FX.attack` ngủ bằng timer, không kiểm gen; `stop()` chỉ đợi 30 khung -> đóng thẻ giữa đòn có thể resume trên FX đã free (2026-11-07) (đợi `_live` không giới hạn khung, hoặc FX.attack kiểm `_gen`).

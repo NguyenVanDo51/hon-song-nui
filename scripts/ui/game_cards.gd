@@ -116,7 +116,7 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	again.custom_minimum_size = Vector2(0, 48)
 	again.pressed.connect(stage.play)
 	br.add_child(again)
-	var ok := Style.button(Content.text("introNext" if i < n - 1 else "introOk"), "PrimaryBtn")
+	var ok := Style.button(Content.text("introOk"), "PrimaryBtn")
 	ok.custom_minimum_size = Vector2(150, 48)
 	ok.pressed.connect(
 		func() -> void:

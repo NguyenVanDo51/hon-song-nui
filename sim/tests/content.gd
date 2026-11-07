@@ -10,13 +10,33 @@ func content_tests() -> void:
 		all.append(Content.skirmish_def(mid, hero_p, false))
 		all.append(Content.duel_def(mid, hero_p, hero_e1, "human"))
 	run(
-		"skirmish: new maps are 180° rotations (fair start)",
+		"skirmish: maps are 180° rotations (fair start)",
 		func() -> void:
-			for mid: String in ["cua_bien", "nui_rung"]:
+			for mid: String in Content.SKIRMISH.MAPS:
 				var rows: Array = Content.SKIRMISH.MAPS[mid].rows
 				for y in rows.size():
 					var mirror: String = rows[rows.size() - 1 - y]
 					eq(rows[y], mirror.reverse(), "%s row %d" % [mid, y]),
+	)
+	run(
+		"skirmish: AE2 start = each commander alone on its own castle; owners mirror p <-> e",
+		func() -> void:
+			for mid: String in Content.SKIRMISH.MAPS:
+				var s := Game.new_game(Content.skirmish_def(mid, hero_p, false))
+				var units: Array = s.units
+				var owner: Dictionary = s.owner
+				var w: int = s.w
+				var h: int = s.h
+				eq(units.size(), 2, mid + " units")
+				for u: Dictionary in units:
+					var at := pos(u)
+					eq(u.type, "hero", mid)
+					eq(Game.tile_at(s, at.x, at.y), "c", "%s %s on a castle" % [mid, u.side])
+					eq(owner.get(at), u.side, "%s %s castle owned" % [mid, u.side])
+					check(Game.reachable(s, u).size() > 0, "%s %s can step off" % [mid, u.side])
+				for k: Vector2i in owner:
+					var m := Vector2i(w - 1 - k.x, h - 1 - k.y)
+					eq(owner.get(m), "e" if owner[k] == "p" else "p", "%s owner %s mirrored" % [mid, k]),
 	)
 	run(
 		"levels: content/levels, orders strictly increasing",

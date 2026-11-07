@@ -1,5 +1,7 @@
 # Maps: original AE2 (s0–s11, m0–m7) vs ours (skirmish_maps.gd, levels/*.gd)
 
+> 2026-11-08: "ours skirmish" numbers below = old maps. Branch `maps/ae2-ratios` redrew all 3 to the orig 2p ratios (own layouts) + AE2 start (commander alone on castle); new stats in `docs/content.md` / that commit.
+
 ## Summary (5 lines)
 1. Format decoded from loader `i.class b(I)V`: `int w, int h`, w×h tile bytes **column-major**, `int N` + N×4 bytes **skipped** by loader, `int n` units × (byte faction·12+type, short x px, short y px; /24 = tile). Terrain via `tiles0.prop`; owner = (tile−37)/2 (0 = neutral). No gold / player count in map file.
 2. 1v1 (ours 3 skirmish vs orig 5 two-player): villages/player 3.3 vs 4.2 = **ours ~21% fewer**, all from pre-owned villages (orig s0/s5 give 2 each; ours 0); neutral villages/player 3.3 vs 3.4 = match. Villages/100 tiles 4.3 vs 4.9 = ours ~12% fewer (with ruins 4.8 vs 5.0 ≈ match). `dong_bang` (2.6/100) < every orig 2p map (min 3.6).

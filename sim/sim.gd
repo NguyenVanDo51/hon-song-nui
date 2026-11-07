@@ -1,7 +1,7 @@
 extends SceneTree
 ## headless balance sim (line starts as the old JS scripts/sim.cjs; + win turns / lost / stars columns for mission stars)
 ## <godot> --headless --path . -s sim/sim.gd -- mission <id|all> [games]   -> AI plays both sides of a level (Content.levels)
-## <godot> --headless --path . -s sim/sim.gd -- skirmish [games] [easy]    -> AI vs AI on the free-play map, heroes rotate
+## <godot> --headless --path . -s sim/sim.gd -- skirmish [games] [easy|normal] [map]  -> AI vs AI on a free-play map, heroes rotate
 ## <godot> --headless --path . -s sim/sim.gd -- naive [games]              -> random bot (p) vs AI (e) on skirmish map
 ## <godot> --headless --path . -s sim/sim.gd -- rng                        -> first 10 rng values (parity check)
 
@@ -13,6 +13,7 @@ func _init() -> void:
 	var mode: String = args[0] if args.size() > 0 else "mission"
 	var a1: String = args[1] if args.size() > 1 else ""
 	var a2: String = args[2] if args.size() > 2 else ""
+	var a3: String = args[3] if args.size() > 3 else "dong_bang"
 	AI.rng = lib.rng
 	var t0 := Time.get_ticks_msec()
 	if mode == "rng":
@@ -39,11 +40,11 @@ func _init() -> void:
 	elif mode == "skirmish":
 		var heroes := Content.heroes_of("p")
 		report(
-			"skirmish" + (" easy" if a2 == "easy" else ""),
+			"skirmish " + a3 + (" easy" if a2 == "easy" else ""),
 			int(a1) if a1 != "" else 12,
 			func(g: int) -> Dictionary:
 				var hero: String = heroes[g % heroes.size()]
-				return play(Content.skirmish_def("dong_bang", hero, a2 == "easy"), { }, false),
+				return play(Content.skirmish_def(a3, hero, a2 == "easy"), { }, false),
 		)
 	elif mode == "naive":
 		report(

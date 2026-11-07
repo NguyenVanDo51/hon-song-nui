@@ -1,6 +1,7 @@
 extends "res://sim/probes/probe_base.gd"
 ## "Thử thách" page at several window sizes -> <shots>/levels_<WxH>.png (viewport grab, windowed):
-##   MAX_SEC=200 tools/run_guarded.sh /tmp/l.log -- --path . -s sim/probes/levels_shot.gd -- screen=levels fresh profile=test shots=<dir> [sizes=844x390,1280x720] [tag=x] [pg=0]
+##   MAX_SEC=200 tools/run_guarded.sh /tmp/l.log -- --path . -s sim/probes/levels_shot.gd --
+##     screen=levels fresh profile=test shots=<dir> [sizes=844x390,1280x720] [tag=x] [pg=0]
 ## Prints the page's scroll range per size: max 0 = fits without scrolling.
 
 func _boot() -> void:

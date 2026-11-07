@@ -374,6 +374,10 @@ Tiếp (nếu muốn đội hình đa dạng mà không yếu):
 - Ship riêng `role_w` (không mua thêm) như "chơi đúng việc" cho màn có sẵn quân hỗ trợ / đấu với người hay mua trống, sói, thầy mo: cần held-out riêng (≥ 768 ván) + test màn.
 - Tò mò: Khó v3 chỉ mua lính + cung thắng Khó v3 đủ loại 0,586 -> bỏ thuyền / thầy mo khỏi danh sách mua của Khó có thể **mạnh hơn** (ngược mục tiêu đa dạng; chỉ ghi lại).
 
+#### Kiểm thêm sau v5: chỉ "dùng đúng vai" (không đổi mua), 2026-11-07
+- `hard_v3+role_w:1+pl_chain:1` vs `hard_v3`, seed mới salt 9800000–007, 768 ván (`tools/match_par.sh ... 16 9800000 8`): **0,479 ± 0,018**. Luật đặt trước: ≥ 0,50 -> **không ship**. Theo map (A ghế p / e): cửa biển 60,5 / 54 trên 128, đồng bằng 69,5 / 56,5, núi rừng 21,5 / 105,5 (ghế lệch mạnh).
+- Kết luận chuỗi v3 -> v5: **Khó v3 mạnh + khôn nhất**. v4 (mẹo trên mạng) = hòa v3; v5 (đội hình) = thua (để dành vàng mất nhịp); vai trò quân hỗ trợ = hơi thua. Lính + cung là đội hình mạnh nhất với bảng giá / chỉ số hiện tại -> muốn bot (và người) dùng quân hỗ trợ thì phải cân bằng lại nội dung (giá / chỉ số), rồi đo lại `hard_v5` + bản không để dành.
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

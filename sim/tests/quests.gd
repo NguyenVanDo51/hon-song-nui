@@ -241,7 +241,9 @@ func quest_tests() -> void:
 			s3.side = "e"
 			check(not Quests.fresh(s3, def), "enemy's turn 1: not fresh")
 			Quests.on_open(s0, def)
-			eq(Quests.total(s0), Quests.for_level(def).size(), "a save with quests keeps them"),
+			eq(Quests.total(s0), Quests.for_level(def).size(), "a save with quests keeps them")
+			for d: Dictionary in Content.levels(): # a level spawning extra units at start would lose its quests
+				check(Quests.fresh(Game.new_game(d), d), "%s: new game is fresh" % d.id),
 	)
 	run(
 		"quests: win card shows -1 star only when the open quest took one",

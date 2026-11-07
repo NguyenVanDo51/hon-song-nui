@@ -11,7 +11,7 @@ const DEFAULT_WEIGHT := 1.0
 const PRESETS := {
 	"easy": { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }, # reckless
 	"normal": { },
-	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2") + human tactics (v3)
+	# v1 knobs (sim/tuned_params.txt) + whole-turn planner (AIPlan, docs/ai.md "Khó v2") + human tactics (v3) + HERO_FIX
 	"hard": {
 		"hp_cap": 81.2937,
 		"kill_hero": 552.335,
@@ -22,6 +22,9 @@ const PRESETS := {
 		"trade_w": 1.0,
 		"order_w": 1.0,
 		"feed_w": 1.0,
+		"hero_bt": 1.0, # HERO_FIX (literal: const can't merge)
+		"hero_ncast": 2.0,
+		"pl_hero_kill": 0.75,
 	},
 	# 1 vs 1 "Khó" = hard + V5_ARMY (varied army; tune.gd hard_v5). Literal: const can't merge; test = hard.merged(V5_ARMY)
 	"army": {
@@ -39,6 +42,9 @@ const PRESETS := {
 		"pl_chain": 1.0,
 		"mix_save": 0.1,
 		"sham_save": 1.0,
+		"hero_bt": 1.0,
+		"hero_ncast": 2.0,
+		"pl_hero_kill": 0.75,
 	},
 }
 
@@ -49,6 +55,13 @@ const V5_ARMY := {
 	"pl_chain": 1.0, # drum / wolf first in kill chains (added in v4, kept)
 	"mix_save": 0.1, # lead >= 10%: save one income for a called-for unit >= 500
 	"sham_save": 1.0, # ... or a shaman with graves in reach
+}
+
+## commander fixes from a human match (docs/ai.md "Sửa lỗi tướng từ trận người chơi"); tune.gd HERO_FIX = frozen copy
+const HERO_FIX := {
+	"hero_bt": 1.0, # commander's threat counts the foe's fresh buys
+	"hero_ncast": 2.0, # healthy commander heads for an unowned castle within 2 moves
+	"pl_hero_kill": 0.75, # planner: opponent reply = buy + focus-kill our commander at roll 0.75
 }
 
 const DEFAULT := {
@@ -111,6 +124,9 @@ const DEFAULT := {
 	"mix_w": 0.0, # situational buys, affordable now only (AIBuy._mix_bonus)
 	"mix_save": 0.0, # > 0: material lead >= 1 + this -> save one turn of income for a called-for unit costing >= 500
 	"sham_save": 0.0, # 1 = mix_save also saves for a shaman when graves are within its reach from the castle
+	# commander fixes from a human match (docs/ai.md "Sửa lỗi tướng từ trận người chơi"), 0 = off
+	"hero_bt": 0.0, # commander's threat + x the units the foe can buy at its castles next turn (they act at once)
+	"hero_ncast": 0.0, # healthy commander, unowned castle within this many moves: goal = it, + cap_castle / 2 one move off
 }
 const SUPPORT := ["shaman", "wolf", "drum"]
 
@@ -404,6 +420,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var reach := _reach_cached(s, u, mem)
 	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
 	var df := { }
+	var near_cast := { } # hero_ncast: distance to the free castles it heads for
 	var homeless := false
 	var val := value(s, u)
 	var is_hero: bool = u.type == "hero"
@@ -435,7 +452,19 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 				for x: int in s.w:
 					if owner0.get(Vector2i(x, y)) != u.side and Game.sells(s.tiles[y][x]):
 						hero_goals.append([x, y])
-		df = _dist_cached(s, mc, hero_goals if hero_goals.size() else goals_for(s, u, claims), mem)
+		var ncast: float = P.hero_ncast
+		if ncast > 0.0 and is_hero and hero_goals.is_empty() and Objectives.ai_goals(s, u) == null:
+			var free := _free_castles(s, u_side)
+			if free.size():
+				var cdf := _dist_cached(s, mc, free, mem)
+				var hx: int = u.x
+				var hy: int = u.y
+				var hmv: int = st.mv
+				if cdf.get(Vector2i(hx, hy), INF) <= ncast * hmv: # near a free castle: +income +buy point beats idling
+					df = cdf
+					near_cast = cdf
+		if df.is_empty():
+			df = _dist_cached(s, mc, hero_goals if hero_goals.size() else goals_for(s, u, claims), mem)
 	var caution: float = P.caution_hero if u.type == "hero" else P.caution
 	var hp_cap: float = P.hp_cap
 	var hp_w: float = P.hp_w
@@ -497,6 +526,9 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var fresh: Array = _fresh_graves(s) if role_w > 0.0 and st.get("raise", "") != "" else []
 	var sup: Dictionary = mem.get("sup", { }) if lone_w > 0.0 else { }
 	var hero_at: Vector2i = mem.get("hero_at", Vector2i(-99, -99))
+	var hbt_w: float = P.hero_bt
+	var hbt: Dictionary = mem.get("hbt", { }) if is_hero and hbt_w > 0.0 else { }
+	var hbt_budget: int = mem.get("hbt_gold", 0)
 	var u0x: int = u.x
 	var u0y: int = u.y
 	var u0 := Vector2i(u0x, u0y)
@@ -521,6 +553,9 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var pos := -gd * goal_w + tdef * def_w
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key), reach_w)
 		var uhp: int = u.hp
+		if hbt.has(key):
+			var on_key: Array = hbt[key]
+			hurt = minf(uhp, hurt + _buy_hurt(s, u, rx, ry, on_key, hbt_budget) * hbt_w * reach_w)
 		pos -= _risk(hurt, uhp, hp_val, die_val)
 		var lone_full := 0.0 # alone in reach: every attacker can pick this unit (lone_w)
 		if lone_w > 0.0 and not is_hero and threat.has(key):
@@ -532,6 +567,10 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 				pos -= lone_w * val * clampf((lone_full / uhp - 0.6) / 0.4, 0.0, 1.0)
 		var own: Variant = owner.get(key)
 		var heals := Game.heals_at(s, side, rx, ry)
+		if not near_cast.is_empty():
+			var cd: float = near_cast.get(key, INF)
+			if cd > 0.0 and cd <= st.mv: # takes it next turn: worth more than a village now
+				pos += cap_castle * 0.5
 		if heals and u.hp < heal_hp:
 			pos += (100 - u.hp) * minf(val, heal_cap) * heal_w # capped: a 60-hp commander must not glue to a village
 		if heals and bld_w > 0.0 and u.hp < 100:
@@ -701,6 +740,12 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		var escort_w: float = P.escort_w
 		if escort_w > 0.0:
 			_hero_near(s, side, mem)
+		mem.erase("hbt")
+		var hero_bt: float = P.hero_bt
+		if hero_bt > 0.0:
+			for o: Dictionary in mine:
+				if o.type == "hero":
+					_buy_hits(s, side, mem, o)
 		var best: Variant = null
 		var claims: Dictionary = mem.claims
 		var role_w: float = P.role_w
@@ -786,6 +831,103 @@ static func _hero_near(s: Dictionary, side: String, mem: Dictionary) -> void:
 				n += 1
 		mem.hero_near = n
 		return
+
+## hero_bt: tile -> [[castle, virtual unit, cost]] the foe could buy next turn and hit that tile with (mem.hbt), + its
+## gold then (mem.hbt_gold); only castles within reach of what hero can reach
+static func _buy_hits(s: Dictionary, side: String, mem: Dictionary, hero: Dictionary) -> void:
+	var out := { }
+	var foe := Game.other(side)
+	var g: int = s.gold[foe]
+	mem.hbt_gold = g + Game.income(s, foe)
+	var hx: int = hero.x
+	var hy: int = hero.y
+	var hmv: int = Game.stat(s, hero).mv
+	var tiles_of := { } # [castle, move, mv, rmin, rmax] -> tiles hit: same reach for every type of that shape
+	for b: Array in AIBuy.buy_reach(s, side):
+		var vu: Dictionary = b[1]
+		var st := Game.stat(s, vu)
+		var rmin: int = st.rmin
+		var rmax: int = st.rmax
+		var vmv: int = st.mv
+		var vx: int = vu.x
+		var vy: int = vu.y
+		if Game.dist(vx, vy, hx, hy) > hmv + vmv + rmax:
+			continue # cannot touch any tile the commander can reach
+		var gk := [b[0], st.move, vmv, rmin, rmax]
+		if not tiles_of.has(gk):
+			var units: Array = s.units
+			units.append(vu) # reachable reads occupancy: the new unit must step off a castle someone stands on
+			var reach := _reach_cached(s, vu, mem)
+			units.pop_back()
+			var seen := { }
+			var hit := []
+			for r: Dictionary in reach.values():
+				var fx: int = r.x
+				var fy: int = r.y
+				for y in range(fy - rmax, fy + rmax + 1):
+					for x in range(fx - rmax, fx + rmax + 1):
+						var dd := absi(x - fx) + absi(y - fy)
+						var k := Vector2i(x, y)
+						if dd < rmin or dd > rmax or seen.has(k) or Game.tile_at(s, x, y) == null:
+							continue
+						seen[k] = true
+						hit.append(k)
+			tiles_of[gk] = hit
+		var hits: Array = tiles_of[gk]
+		for k: Vector2i in hits:
+			if not out.has(k):
+				out[k] = []
+			var on_k: Array = out[k]
+			on_k.append(b)
+	mem.hbt = out
+
+## hero_bt: damage the foe's fresh buys could add on u at (x, y): best type per castle, castles by damage while gold lasts
+static func _buy_hurt(s: Dictionary, u: Dictionary, x: int, y: int, buys: Array, gold: int) -> float:
+	var ox: int = u.x
+	var oy: int = u.y
+	u.x = x
+	u.y = y
+	var best := { } # castle -> [dmg, cost]
+	for b: Array in buys:
+		var ci: int = b[0]
+		var vu: Dictionary = b[1]
+		var cost: int = b[2]
+		var vx: int = vu.x
+		var vy: int = vu.y
+		var d := Game.damage(s, vu, vx, vy, 100, u)
+		var cur: Array = best.get(ci, [-1, 0])
+		var cd: int = cur[0]
+		if d > cd:
+			best[ci] = [d, cost]
+	u.x = ox
+	u.y = oy
+	var by := best.values()
+	by.sort_custom(
+		func(a: Array, b: Array) -> bool:
+			return a[0] > b[0],
+	)
+	var sum := 0.0
+	var left := gold
+	for e: Array in by:
+		var c: int = e[1]
+		if c <= left:
+			var dmg: int = e[0]
+			sum += dmg
+			left -= c
+	return sum
+
+## unowned castle tiles no foe of side stands on (hero_ncast goals)
+static func _free_castles(s: Dictionary, side: String) -> Array:
+	var out := []
+	var owner: Dictionary = s.owner
+	for y: int in s.h:
+		for x: int in s.w:
+			if owner.get(Vector2i(x, y)) != null or not Game.sells(s.tiles[y][x]):
+				continue
+			var o: Variant = Game.unit_at(s, x, y)
+			if o == null or o.side == side:
+				out.append([x, y])
+	return out
 
 ## v1's buy (AIBuy.buy_step)
 static func buy_step(s: Dictionary, mem: Dictionary) -> Variant:

@@ -13,7 +13,7 @@ extends SceneTree
 ## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned file) | hard_n2 (tuned, noise 2)
 ##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard)
 ##       | hard_v2_0 (hard v2 as first shipped, frozen) | hard_v3 (hard_v2_0 + V3_TACTICS, frozen)
-##       | hard_v5 (hard_v3 + V5_ARMY, frozen) | file:<path> (tuned file)
+##       | hard_v5 (hard_v3 + V5_ARMY, frozen) | hard_v3b / hard_v5b (+ HERO_FIX, frozen) | file:<path> (tuned file)
 ##       (hard_v4 = v3 + internet tactics: code removed, results in docs/ai.md; rerun at 5aac2ee)
 ##       + optional overrides: <spec>+key:value+key:value (e.g. hard_v2+pl_cands:4); +_spam:1 = that side buys only
 ##       soldier / archer (spam test)
@@ -68,6 +68,8 @@ const V3_TACTICS := {
 }
 ## hard v5 = hard_v3 + flexible army (docs/ai.md "Đội hình linh hoạt = Khó v5"), frozen; knobs live in AI.V5_ARMY (= 1 vs 1 Khó)
 const V5_ARMY := AI.V5_ARMY
+## commander fixes from a human match (docs/ai.md "Sửa lỗi tướng từ trận người chơi"), frozen copy of AI.HERO_FIX
+const HERO_FIX := { "hero_bt": 1.0, "hero_ncast": 2.0, "pl_hero_kill": 0.75 }
 
 var seed_v := 1.0
 var args := { }
@@ -130,6 +132,10 @@ static func frozen(sp: String) -> Dictionary:
 		return HARD_V2_0.merged(V3_TACTICS)
 	if sp == "hard_v5":
 		return HARD_V2_0.merged(V3_TACTICS).merged(V5_ARMY)
+	if sp == "hard_v3b":
+		return HARD_V2_0.merged(V3_TACTICS).merged(HERO_FIX)
+	if sp == "hard_v5b":
+		return HARD_V2_0.merged(V3_TACTICS).merged(V5_ARMY).merged(HERO_FIX)
 	return { }
 
 ## frozen spec name + overrides (static twin of spec(); no tuned files)

@@ -1,0 +1,224 @@
+{
+"actual": 0.0,
+"expected": 0.0,
+"format": 1,
+"kind": "hero_fix",
+"note": "commander fix scenario (docs/ai.md)",
+"replay": "2026-11-07_22-19-09_duel_dong_bang",
+"side": "e",
+"state": {
+&"aiParams": {
+"e": {
+"feed_w": 1.0,
+"hp_cap": 81.2937,
+"kill_hero": 552.335,
+"lone_w": 0.3,
+"mix_save": 0.1,
+"mix_w": 1.0,
+"order_w": 1.0,
+"pl_chain": 1.0,
+"planner": 2,
+"role_w": 1.0,
+"sham_save": 1.0,
+"tgt_sup": 0.5,
+"tgt_thr": 2.0,
+"trade_w": 1.0
+}
+},
+"allowed": {
+"e": ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird"],
+"p": ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird"]
+},
+&"ctrl": {
+"e": "ai:army",
+"p": "human"
+},
+"gold": {
+"e": 250,
+"p": 180
+},
+"graves": [{
+"ttl": 1,
+"x": 5,
+"y": 6
+}, {
+"ttl": 2,
+"x": 6,
+"y": 4
+}],
+"h": 11,
+"hadCastle": {
+"e": true,
+"p": true
+},
+"heroDead": {
+"e": false,
+"p": false
+},
+"heroDeaths": {
+"e": 1,
+"p": 0
+},
+"heroKey": {
+"e": "tuonggiac",
+"p": "anhhung"
+},
+"heroSaved": {
+"e": {
+"rank": 1,
+"xp": 2767
+},
+"p": {}
+},
+"lost": {
+"e": 3,
+"p": 6
+},
+"nextId": 19,
+"night": false,
+"owner": {
+Vector2i(1, 8): "e",
+Vector2i(1, 9): "p",
+Vector2i(2, 2): "p",
+Vector2i(2, 6): "p",
+Vector2i(6, 7): "p",
+Vector2i(7, 3): "e",
+Vector2i(11, 4): "e",
+Vector2i(12, 1): "e",
+Vector2i(12, 2): "e"
+},
+"reason": null,
+&"rng": 1901085348,
+"scenario": "duel:dong_bang",
+"seed": 2732130126,
+"side": "e",
+"tiles": [[".", ".", ".", ".", ".", ".", "h", "f", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", "f", "f", "m", "h", ".", ".", ".", ".", "c", "."], [".", ".", "c", ".", "h", "f", "h", "f", ".", ".", ".", "r", "v", "."], [".", ".", "r", ".", "h", "m", "r", "v", "r", "r", "r", "r", "r", "h"], [".", ".", "r", "r", "h", "f", "r", "r", "r", "r", "r", "v", "r", "f"], [".", "~", "~", "=", "~", "~", "t", "t", "~", "~", "=", "~", "~", "."], ["f", "r", "v", "r", "r", "r", "r", "r", "f", "h", "r", "r", ".", "."], ["h", "r", "r", "r", "r", "r", "v", "r", "m", "h", ".", "r", ".", "."], [".", "v", "r", ".", ".", ".", "f", "h", "f", "h", ".", "c", ".", "."], [".", "c", ".", ".", ".", ".", "h", "m", "f", "f", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", "f", "h", ".", ".", ".", ".", ".", "."]],
+"turn": 9,
+"unitCap": 15,
+"units": [{
+"acted": true,
+&"guard": false,
+"hp": 92,
+"id": 1,
+"rank": 1,
+"side": "p",
+"type": "hero",
+"x": 6,
+"xp": 9039,
+"y": 5
+}, {
+"acted": false,
+&"guard": false,
+"hp": 40,
+"id": 7,
+&"paid": {
+"cost": 250,
+"turn": 1
+},
+"rank": 2,
+"side": "e",
+"type": "archer",
+"x": 5,
+"xp": 942,
+"y": 4
+}, {
+"acted": false,
+&"guard": false,
+"hp": 25,
+"id": 10,
+&"paid": {
+"cost": 150,
+"turn": 3
+},
+"rank": 1,
+"side": "e",
+"type": "soldier",
+"x": 6,
+"xp": 5477,
+"y": 6
+}, {
+"acted": false,
+&"guard": false,
+"hp": 87,
+"id": 14,
+&"paid": {
+"cost": 150,
+"turn": 5
+},
+"rank": 1,
+"side": "e",
+"type": "soldier",
+"x": 5,
+"xp": 1059,
+"y": 5
+}, {
+"acted": true,
+&"guard": false,
+"hp": 100,
+"id": 15,
+&"paid": {
+"cost": 150,
+"turn": 6
+},
+"rank": 1,
+"side": "p",
+"type": "soldier",
+"x": 4,
+"xp": 1005,
+"y": 7
+}, {
+"acted": true,
+&"guard": false,
+"hp": 91,
+"id": 16,
+&"paid": {
+"cost": 150,
+"turn": 7
+},
+"rank": 0,
+"side": "p",
+"type": "soldier",
+"x": 6,
+"xp": 5568,
+"y": 7
+}, {
+"acted": true,
+&"guard": false,
+"hp": 100,
+"id": 17,
+&"paid": {
+"cost": 150,
+"turn": 8
+},
+"rank": 0,
+"side": "p",
+"type": "soldier",
+"x": 3,
+"xp": 2668,
+"y": 6
+}, {
+"acted": false,
+&"guard": false,
+"hp": 100,
+"id": 18,
+&"paid": {
+"cost": 400,
+"turn": 8
+},
+"rank": 1,
+"side": "e",
+"type": "hero",
+"x": 8,
+"xp": 2767,
+"y": 2
+}],
+"v": 4,
+"w": 14,
+"waves": [],
+"win": {
+"type": "castles"
+},
+"winner": null
+},
+"turn": 9
+}

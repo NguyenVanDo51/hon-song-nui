@@ -75,6 +75,41 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {
 			best = { "type": type, "sc": sc }
 	return best.type if best != null else null
 
+## hero_bt: [castle index, virtual unit, cost] for every type the foe of side could buy at each castle on its next turn
+## (gold + income, cap, <= 1 unit on the castle). Siege left out: it cannot move and hit the turn it is bought
+static func buy_reach(s: Dictionary, side: String) -> Array:
+	var foe := Game.other(side)
+	var out := []
+	if Game.cap_count(s, foe) >= s.unitCap:
+		return out
+	var g: int = s.gold[foe]
+	var budget: int = g + Game.income(s, foe)
+	var allowed: Array = s.allowed[foe]
+	var types: Array = allowed.duplicate()
+	if s.heroDead[foe] and s.heroKey[foe] != null:
+		types.append("hero")
+	var ci := 0
+	for key: Vector2i in Game.castle_tiles(s, foe):
+		ci += 1
+		var on := 0
+		for o: Dictionary in s.units:
+			var ox: int = o.x
+			var oy: int = o.y
+			if ox == key.x and oy == key.y:
+				on += 1
+		if on > 1:
+			continue
+		var ti := 0
+		for t: String in types:
+			ti += 1
+			var st: Dictionary = Game.UNITS[t]
+			var c: int = Game.hero_cost(s, foe) if t == "hero" else st.cost
+			if c > budget or st.get("siege", false):
+				continue
+			var vu := { "id": -1000 - ci * 32 - ti, "side": foe, "type": t, "x": key.x, "y": key.y, "hp": 100, "xp": 0, "rank": 0, "acted": false }
+			out.append([ci, vu, c])
+	return out
+
 ## v1's buy: the next unit to buy (commander first, else choose_buy per castle) or null (none / saving for the commander)
 static func buy_step(s: Dictionary, mem: Dictionary) -> Variant:
 	var side: String = s.side

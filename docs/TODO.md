@@ -1,5 +1,17 @@
 # TODO
 
+## Đang dở (dừng 2026-11-07, user ngắt mạng)
+- Chờ user chọn hướng giao diện: `docs/review/ui_direction.html` (A Trống Đồng / **B Sơn Mài = đề xuất** / C Đông Hồ). E5 tách game_screen đã xong -> chọn xong làm ngay (P1 nút + P2 khung/thẻ/popup mua ~3 ngày).
+- Chờ user duyệt: cài kinh nghiệm chơi của user vào Khó v2, mỗi điểm = 1 knob bật/tắt, đo ≥ 400 ván seed mới vs `hard_v2_0` + user chơi thử. Thứ tự đề xuất:
+  1. tập kết, không sang lẻ (không vào vùng địch đánh tới trừ khi đủ quân cùng vào / cùng đánh lượt đó; đứng ngoài tầm rồi ập vào)
+  2. giá trị mục tiêu cao cho quân hỗ trợ phiền (thầy mo, sói, trống) + ưu tiên giết theo sát thương nó gây lượt sau (hiện chỉ tướng có `aiValue`, quân khác = giá tiền)
+  3. ngưỡng rút về hồi máu theo cấp + giá (hiện `home_hp` 50 cho mọi quân); cẩn thận theo từng quân, không cả đội (bản "tướng về chỗ an toàn" từng làm bot rụt rè, thua)
+  4. tướng đi chiếm thành có hộ vệ
+  5. cung đánh trước cả khi không nhằm giết; phạt đòn đổi máu lỗ 1:1; giữ điểm hẹp (đầu cầu); không nuôi quân địch lên cấp; đua làng sớm
+- Câu hỏi chờ user: mẹo màn (`def.tips`) hiện ở đâu (màn chuẩn bị đã bỏ)? Đoạn kết màn có đổi sang hội thoại như mở màn không?
+- File lạ chưa track, không phải của Claude, để nguyên: `docs/review/genre_hooks.html` (sửa), `docs/review/ui_direction_fantasy.html`, `docs/superpowers/`.
+- Dọn: worktree `.claude/worktrees/agent-a01405bac89f6de8f` bị khóa (agent cũ) -> `git worktree remove -f -f` + `git branch -d worktree-agent-a01405bac89f6de8f` (đã merge).
+
 ## Cân bằng / nhịp chơi
 - [x] **m14 Rút Về Cấm Khê quá khó**: đã hết (sim AI-vs-AI ta thắng 12/12 ở AI `fe83a5d`, 10/12 ngay trước; bảng `31a006e` từng là 3/12, phần lớn `timeUp`). Người thật chơi thử để chắc.
 - [ ] **Chơi thử nhịp ra quân mới** (`docs/content.md` mục "Nhịp ra quân mới"): người thật chơi m03–m05 + m09–m13, xem có kịp quen quân cũ trước khi gặp quân mới không. Sim AI không đo được việc học quân.

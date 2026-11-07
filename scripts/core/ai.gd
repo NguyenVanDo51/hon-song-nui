@@ -80,11 +80,6 @@ const DEFAULT := {
 	"feed_w": 0.0, # non-kill hit whose counter levels the target up: - this x 0.2 x target value
 	"escort_w": 0.0, # non-commander ending within 2 of own commander while it has < 3 such allies
 	"hero_cgoal": 0.0, # 1 = commander heads for castles only (villages left to the others)
-	# internet tactics (docs/ai.md "Mẹo người chơi trên mạng"), 0 = off
-	"buy_threat": 0.0, # > 0: foe castles threaten like the unit it can buy next turn (acts at once), at this x 100 hp
-	"promo_w": 0.0, # hit that levels our attacker up: + this x the rank's worth (0.2 x base value); also in AIPlan.focus
-	"ret_terr": 0.0, # non-commander walk-home hp x lerp(1, clamp((40 - unit def - rank - tile def) / 20, 0.5, 1.5), this)
-	"buy_sup": 0.0, # n > 0: army >= n without a drum / wolf -> save up for one (_support_want)
 	# flexible army (docs/ai.md "Đội hình linh hoạt = Khó v5"), 0 = off
 	"role_w": 0.0, # unit jobs: shaman acts last + waits by fresh graves, drum acts first, boats count waterDef as cover
 	"mix_w": 0.0, # situational buys, affordable now only (AIBuy._mix_bonus)
@@ -132,14 +127,6 @@ static func tvalue(s: Dictionary, d: Dictionary, sup_w: float, thr_w: float) -> 
 		var hp: int = d.hp
 		v += thr_w * ((lo + hi) * 0.5 + Game.aura_atk(d)) * hp / 100.0
 	return v
-
-## AE2 xp = dmg x victim quality on every hit, +1 rank = +2 atk / +2 def: worth 0.2 x base value if this hit levels u up
-static func promo_gain(s: Dictionary, u: Dictionary, dmg: int, d: Dictionary) -> float:
-	var rank: int = u.rank
-	var uxp: int = u.xp
-	if rank >= Game.RULES.maxRank or uxp + dmg * Game.quality(s, d) < Game.xp_need(s, u):
-		return 0.0
-	return value(s, u) / (1.0 + 0.2 * rank) * 0.2
 
 ## own units per tile within 2 (lone_w): built once per greedy step
 static func support_map(s: Dictionary, side: String) -> Dictionary:
@@ -203,14 +190,10 @@ static func dist_field(s: Dictionary, move_class: String, sources: Array) -> Dic
 				open.append([nc, nx, ny])
 	return d
 
-## tile -> list of enemy attackers that could hit it next turn; mem (one turn) keeps each enemy's reach + hits across steps.
-## buy_hp > 0: + the foe's next-turn buys (buy_threats) as attackers at that hp
-static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { }, buy_hp := 0.0) -> Dictionary:
+## tile -> list of enemy attackers that could hit it next turn; mem (one turn) keeps each enemy's reach + hits across steps
+static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { }) -> Dictionary:
 	var m := { }
-	var foes: Array = s.units
-	if buy_hp > 0.0:
-		foes = foes + buy_threats(s, side, buy_hp)
-	for e: Dictionary in foes:
+	for e: Dictionary in s.units:
 		if e.side == side:
 			continue
 		var st := Game.stat(s, e)
@@ -251,10 +234,6 @@ static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { },
 			var on_key: Array = m[key]
 			on_key.append(e)
 	return m
-
-## foe castles' next-turn buys as virtual attackers (AIBuy.buy_threats)
-static func buy_threats(s: Dictionary, side: String, buy_hp: float) -> Array:
-	return AIBuy.buy_threats(s, side, buy_hp)
 
 ## everything Game.reachable(s, u) reads: u, the terrain, and the units within its move range (costs are >= 1)
 static func _local_key(s: Dictionary, u: Dictionary, mem: Dictionary) -> Array:
@@ -405,12 +384,6 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var home_hp: float = P.home_hp
 	var home_val: float = P.home_val
 	var home_rank: float = P.home_rank
-	var ret_terr: float = P.ret_terr
-	if ret_terr > 0.0 and not is_hero: # thin armour on open ground walks home earlier, tanks / cover later
-		var ux0: int = u.x
-		var uy0: int = u.y
-		var udef: int = st.def + Game.RULES.rankBonus * u.rank + Game.terrain_def(s, u, ux0, uy0)
-		home_hp *= lerpf(1.0, clampf((40.0 - udef) / 20.0, 0.5, 1.5), ret_terr)
 	if (home_val > 0.0 or home_rank > 0.0) and not is_hero: # dearer / veteran units walk home earlier
 		var home_cap: float = P.home_cap
 		var cost: float = Game.UNITS[u.type].cost
@@ -490,7 +463,6 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var trade_w: float = P.trade_w
 	var order_w: float = P.order_w
 	var feed_w: float = P.feed_w
-	var promo_w: float = P.promo_w
 	var escort_w: float = 0.0 if is_hero else P.escort_w
 	var role_w: float = P.role_w
 	var wdef: int = st.get("waterDef", 0)
@@ -598,9 +570,6 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 				sc -= val * die_w
 			elif p.mayDie:
 				sc -= val * maydie_w
-			elif promo_w > 0.0:
-				var pd: int = p.dmg
-				sc += promo_w * promo_gain(s, u, pd, d)
 			# after counter, remaining exposure scales with remaining hp
 			var counter: int = p.counter
 			var left := maxi(0, uhp - counter)
@@ -698,8 +667,7 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		mem.erase("heal") # captures change heal tile owners mid-turn
 		var reach_of := { }
 		var P := params(s, side, mem)
-		var buy_hp: float = P.buy_threat
-		var threat := threat_map(s, side, reach_of, mem, buy_hp)
+		var threat := threat_map(s, side, reach_of, mem)
 		var danger := endangered_castles(s, side, reach_of)
 		var lone_w: float = P.lone_w
 		if lone_w > 0.0:

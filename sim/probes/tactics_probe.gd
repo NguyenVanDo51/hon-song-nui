@@ -2,10 +2,10 @@ extends SceneTree
 ## human-tactics metrics of a hard AI (docs/ai.md "Kinh nghiệm người chơi"): A (AI.PRESETS.hard + over) vs B, every
 ## skirmish map, both seats. Counted at each of A's turn ends / over the foe's reply.
 ## <godot> --headless --path . -s sim/probes/tactics_probe.gd -- [games=2] [salt=9200000] [base=hard] [over=k:v+k:v]
-##     [opp=v1|v2_0|v3|v4|normal]
-## base=v2_0 / v3 / v4 -> tune.gd's frozen hard_v2_0 / hard_v3 / hard_v4 instead of AI.PRESETS.hard
+##     [opp=v1|v2_0|v3|normal]
+## base=v2_0 / v3 -> tune.gd's frozen hard_v2_0 / hard_v3 instead of AI.PRESETS.hard
 ## examples=N -> print N turns where ref (hard_v2_0, ref=v3: hard_v3) from the same start leaves a lone killable unit and A
-##     does not (exk=buy: a unit killable only once the foe's next-turn buys count, AI.buy_threats)
+##     does not
 const Tune := preload("res://sim/tune.gd")
 const SUPPORT := ["shaman", "wolf", "drum"]
 
@@ -13,7 +13,6 @@ var seed_v := 1.0
 var m := { }
 var ex_left := 0 # examples=N: print N turns where ref (same start) leaves a lone killable unit and A does not
 var ref: Dictionary = Tune.HARD_V2_0
-var exk := "lone"
 
 func _init() -> void:
 	var args := { }
@@ -28,8 +27,6 @@ func _init() -> void:
 		A = Tune.HARD_V2_0.duplicate()
 	elif base == "v3":
 		A = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
-	elif base == "v4":
-		A = Tune.HARD_V2_0.merged(Tune.V3_TACTICS).merged(Tune.V4_TACTICS)
 	var a_over: String = args.get("over", "")
 	for kv: String in a_over.split("+", false):
 		var p := kv.split(":", true, 1)
@@ -37,15 +34,12 @@ func _init() -> void:
 	ex_left = int(str(args.get("examples", "0")))
 	if args.get("ref", "") == "v3":
 		ref = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
-	exk = args.get("exk", "lone")
 	var opp: String = args.get("opp", "v1")
 	var B: Dictionary = Tune.HARD_V1
 	if opp == "v2_0":
 		B = Tune.HARD_V2_0
 	elif opp == "v3":
 		B = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
-	elif opp == "v4":
-		B = Tune.HARD_V2_0.merged(Tune.V3_TACTICS).merged(Tune.V4_TACTICS)
 	elif opp == "normal":
 		B = { }
 	var sum_of: String = args.get("sum", "")
@@ -65,9 +59,6 @@ func _init() -> void:
 		for a_side: String in ["p", "e"]:
 			for k in games:
 				_play(map_id, a_side, A, B, salt, k)
-	for tk: String in AIPlan.tally:
-		var tv: float = AIPlan.tally[tk]
-		add("pl_" + tk, tv)
 	_report(args)
 	quit()
 
@@ -221,7 +212,6 @@ func _turn_end(s: Dictionary, me: String, start_support: Dictionary) -> Dictiona
 		if Game.unit_by_id(s, id) == null:
 			add("support_killed_same_turn")
 	var threat := AI.threat_map(s, me)
-	var with_buys := AI.threat_map(s, me, { }, { }, 1.0)
 	var watch := { }
 	if not Game.hero_alive(s, Game.other(me)):
 		add("foe_no_hero_turns")
@@ -231,12 +221,6 @@ func _turn_end(s: Dictionary, me: String, start_support: Dictionary) -> Dictiona
 		var ux: int = u.x
 		var uy: int = u.y
 		var hp: int = u.hp
-		var hitters: Array = with_buys.get(Vector2i(ux, uy), [])
-		if hitters.any(
-			func(a: Dictionary) -> bool:
-				return a.id < 0,
-		):
-			add("in_buy_reach") # a unit the foe can buy next turn reaches this tile
 		var full := AI.expected_hit(s, u, ux, uy, threat.get(Vector2i(ux, uy)), 1.0)
 		var allies := 0
 		for o: Dictionary in s.units:
@@ -287,22 +271,20 @@ func _example(start: Dictionary, steps: Array, s: Dictionary, me: String) -> voi
 		var st: Dictionary = stv
 		v2_steps.append(st)
 		AI.apply_step(c, st)
-	var lone2 := _lone(c, me, exk == "buy")
-	var lone3 := _lone(s, me, exk == "buy")
+	var lone2 := _lone(c, me)
+	var lone3 := _lone(s, me)
 	if lone2.is_empty() or lone3.size() >= lone2.size():
 		return
 	ex_left -= 1
-	print("\n== %s turn %d side %s: %s killable ref %d -> A %d" % [start.scenario, start.turn, me, exk, lone2.size(), lone3.size()])
-	print(" ref %s: %s" % [exk, ", ".join(lone2)])
-	print(" A %s: %s" % [exk, ", ".join(lone3)])
+	print("\n== %s turn %d side %s: lone killable ref %d -> A %d" % [start.scenario, start.turn, me, lone2.size(), lone3.size()])
+	print(" ref lone: %s" % ", ".join(lone2))
+	print(" A lone: %s" % ", ".join(lone3))
 	print(" ref: %s" % _fmt(start, v2_steps))
 	print(" A:    %s" % _fmt(start, steps))
 
-## own non-commander units in enemy reach, killable by focus (mid rolls), no ally within 2.
-## buys: any own unit killable only once the foe's next-turn buys (AI.buy_threats) join
-func _lone(s: Dictionary, me: String, buys := false) -> Array:
-	var threat := AI.threat_map(s, me, { }, { }, 1.0 if buys else 0.0)
-	var plain := AI.threat_map(s, me) if buys else threat
+## own non-commander units in enemy reach, killable by focus (mid rolls), no ally within 2
+func _lone(s: Dictionary, me: String) -> Array:
+	var threat := AI.threat_map(s, me)
 	var out := []
 	for u: Dictionary in s.units:
 		if u.side != me or u.type == "hero":
@@ -312,10 +294,6 @@ func _lone(s: Dictionary, me: String, buys := false) -> Array:
 		var hp: int = u.hp
 		var full := AI.expected_hit(s, u, ux, uy, threat.get(Vector2i(ux, uy)), 1.0)
 		if full < hp:
-			continue
-		if buys:
-			if AI.expected_hit(s, u, ux, uy, plain.get(Vector2i(ux, uy)), 1.0) < hp:
-				out.append("%s#%d (%d,%d) %dhp" % [u.type, u.id, ux, uy, hp])
 			continue
 		var alone := true
 		for o: Dictionary in s.units:
@@ -388,22 +366,12 @@ func _report(args: Dictionary) -> void:
 		["ranged after melee on same target / 100 attacks", gm("ranged_after_melee") * 100.0 / maxf(1.0, gm("attacks"))],
 		["foe rank-ups fed / game", gm("fed_rankups") / maxf(1.0, g)],
 		["own rank-ups on our turn / game", gm("own_rankups") / maxf(1.0, g)],
-		["in foe buy reach / 100 unit-turns (any unit)", gm("in_buy_reach") * 100.0 / maxf(1.0, gm("unit_turns") + gm("hero_turns"))],
 		["hits by fresh foe buys / game", gm("fresh_hits") / maxf(1.0, g)],
 		["  dmg by fresh foe buys / game", gm("fresh_dmg") / maxf(1.0, g)],
 		["  own deaths to fresh foe buys / game", gm("fresh_kills") / maxf(1.0, g)],
 		["foe without commander at our turn end %", gm("foe_no_hero_turns") * 100.0 / t],
 		["own buys / game", gm("buys") / maxf(1.0, g)],
 		["  support buys / game", gm("buys_support") / maxf(1.0, g)],
-		["pl_dp plans / game", gm("pl_plans") / maxf(1.0, g)],
-		[
-			"  decision point (snipe / kill / both) %",
-			(gm("pl_dp_snipe") + gm("pl_dp_kill") + gm("pl_dp_snipe+kill")) * 100.0 / maxf(1.0, gm("pl_plans")),
-		],
-		["  snipe points / game", gm("pl_dp_snipe") / maxf(1.0, g)],
-		["  kill points / game", gm("pl_dp_kill") / maxf(1.0, g)],
-		["  snipe+kill points / game", gm("pl_dp_snipe+kill") / maxf(1.0, g)],
-		["  snipe candidate picked / game", gm("pl_snipe_pick") / maxf(1.0, g)],
 	]
 	for l: Array in lines:
 		print("  %-46s %.2f" % [l[0], l[1]])

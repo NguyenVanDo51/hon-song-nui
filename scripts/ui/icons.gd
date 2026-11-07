@@ -34,6 +34,8 @@ const EMOJI := {
 	"🚪": "home",
 	"▶": "play",
 	"♪": "music",
+	"👣": "foot",
+	"🚫": "ban",
 }
 
 static var _cache := { }

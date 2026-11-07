@@ -41,3 +41,9 @@
 - [x] Code review 2026-11-06 backlog: hiệu năng P1–P8 (trừ P9), mở rộng E2/E3/E4/E7, tái sử dụng R1–R5 — merged e5a3520.
 - [ ] Còn lại từ review (`docs/review/code_review_2026-11-06.md`): E1 nhiều phe / đồng minh, E6 i18n (E5 tách `game_screen.gd` xong 2026-11-07); P9 vẽ lại khi idle; spike ~18 ms khi rig đánh lần đầu (raster phần rig); test UI phá/sửa làng/gọi hồn qua click, phím tắt, save giữa ván; đo hiệu năng trên điện thoại thật (web/iOS).
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
+
+## Nợ kỹ thuật
+- [ ] sim/probes/ui_kit_shot.gd:55 — free `intro_layer` thẳng, không emit `intro_closed` -> coroutine `GameCards.intro_card` treo mãi, IntroStage không `stop()` (2026-11-07) (emit `intro_closed` thay vì queue_free).
+- [ ] scripts/ui/fx.gd:10 — `FX.speed` static chung mọi FX -> popup giới thiệu quân (IntroStage có FX riêng) cũng chạy x2/x3 theo tốc độ ván (2026-11-07) (speed theo instance, hoặc IntroStage bỏ qua).
+- [ ] scripts/ui/intro_stage.gd:80 — mỗi thẻ giới thiệu dựng 1 `Board` đầy đủ (bake địa hình + atlas token SubViewport ~T 92) -> thêm RAM / thời gian mở thẻ, nhất là máy yếu (2026-11-07) (dùng lại 1 stage cho cả chuỗi thẻ, hoặc atlas nhỏ).
+- [ ] sim/probes/intro_shot.gd:58 — ảnh chụp đợi `frame_post_draw`: cửa sổ bị che / màn tắt -> khung hình trễ (cả 3 ảnh = cảnh cuối) hoặc treo tới guard (2026-11-07) (kiểm số khung theo phase + timeout từng ảnh).

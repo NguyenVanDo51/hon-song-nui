@@ -104,3 +104,11 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Xoá: `board3d.gd`, `kit.gd`, `pieces.gd`, `kk.gd`, `shaders/water3d` + `team_tint`, `assets/kaykit/` (~19 MB, chỉ 3D dùng), nút "Bàn cờ 2D/3D" (menu chính + ⚙), cờ debug `3d=`, `Store.board_3d`, `FX.aim`, dòng ghi công KayKit.
 - `BoardBase` giữ (gộp vào `board.gd` sẽ vượt trần 1000 dòng); chỉ còn `Board` kế thừa. Khoá cài đặt `board3d` cũ trong `user://hsn.cfg` bị bỏ qua.
 - Lấy lại: git history.
+
+## 2026-11-07 — Thử thách (nhánh `feat/levels`, chưa merge)
+- Yêu cầu user: bỏ cốt truyện + chương, game cờ chơi theo level (MVP 30–50), Claude làm hết, user chỉ chơi thử. Thiết kế `docs/superpowers/specs/2026-11-07-levels-design.md`, kế hoạch `docs/superpowers/plans/2026-11-07-levels.md`.
+- Đã làm: bỏ thoại / sử tích / nhân vật / chương / bản đồ chiến dịch; lưới "Thử thách" (`scripts/ui/level_select.gd`: chạm 1 lần = xem, chạm lại / "Vào trận" = chơi); `content/levels/` (m01–m16 giữ id, order ×10; g01–g20 vẽ bằng `sim/levelgen.gd`); `tier` + `ai` (normal / hard) mỗi level; mở khóa = level xa nhất đã thắng + 1; skill `.claude/skills/level-maker`.
+- Không sửa logic bot (user đang đo bot).
+- Cân bằng (bot phe ta vs bot level, 12 ván / level, 4 lượt): Dễ ≥ 10/12 · TB 7–9 · Khó 4–6. Kết quả 36 level: 24 Dễ, 8 TB, 4 Khó (g03, g11, g17, g20). Chỉnh bằng vàng: m02 / m12 (màn ra mắt đo ra Khó) + m08 (27 lượt, 3 ván hòa) dễ lại; g01–g20 theo nhãn định đặt. Mốc sao = trung vị lượt thắng / lính mất. Bảng đầy đủ: `docs/content.md` § "Nhịp ra mắt".
+- Lưu ý: bot phe ta được lợi thế vàng vốn cho người -> màn tay hầu hết ra "Dễ"; nhãn thật cần user chơi thử.
+- Việc sau: `docs/TODO.md` § "Thử thách".

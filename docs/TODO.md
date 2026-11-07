@@ -1,5 +1,13 @@
 # TODO
 
+## Thử thách (nhánh `feat/levels`, 2026-11-07)
+- [ ] P3 (cần sửa bot, chờ user cho phép): phe thủ chặn ô đích (`reach`); kiểu thắng "chiếm N làng" + hook bot 2 phía; đo lại m13 / m14.
+- [ ] Nhãn độ khó đo bằng bot phe ta (12 ván): bot không phải người -> chờ user chơi thử, chỉnh `tier` / vàng.
+- [ ] Thẻ kết thúc: "quân ta ngã" (đếm phiên này, gồm tướng + âm binh) có thể khác "(mất N)" của sao (`s.lost`, cả ván) sau khi "Đánh tiếp".
+- [ ] `LevelGen.problems()` chưa kiểm chủ ô trên công trình / skin quân như validator trong tests; `install=` ghi đè không hỏi.
+- [ ] Sót chữ: `menus.gd` "Màn này đang đánh dở"; `tools/web_smoke.*` còn `?screen=campaign`; `draw.gd` chú thích `text_c` nằm trên `star()`.
+- Câu hỏi "mẹo màn `def.tips` hiện ở đâu" (mục dưới) hết hiệu lực: nhánh này bỏ `tips` / truyện.
+
 ## Đang dở (dừng 2026-11-07, user ngắt mạng)
 - Giao diện: phiên khác của user có spec `docs/superpowers/specs/2026-11-07-fantasy-reskin-design.md` (F1 Truyện Kỵ Sĩ, bỏ bối cảnh lịch sử; chờ duyệt, chưa track) -> không làm hướng B; hỏi user ai làm reskin.
 - Kinh nghiệm chơi của user -> **Khó v3** (2026-11-07, docs/ai.md "Kinh nghiệm người chơi"): mỗi mẹo = 1 knob `AI.DEFAULT` (tắt mặc định). Ship vào `AI.PRESETS.hard`: không sang lẻ (`lone_w`), giết quân hỗ trợ / quân nguy hiểm trước (`tgt_*`), không đổi lỗ (`trade_w`), cung trước (`order_w`), không nuôi địch lên cấp (`feed_w`). Seed giữ riêng: 0,744 vs Khó v2 (768 ván), 0,949 vs Khó v1, 0,925 vs Thường. Để tắt: tướng có hộ tống / chỉ nhắm thành (`escort_w`, `hero_cgoal`: thua Khó v1 ở núi rừng; `hero_cgoal` có lỗi bỏ qua thành trung lập, đã sửa, chưa đo lại), về hồi máu theo cấp / giá (`home_*`, `bld_w`: không đổi sức, hành vi đổi ít). Chưa làm: giữ điểm hẹp (đầu cầu), đua làng sớm. Chờ: **user chơi thử Khó v3**.

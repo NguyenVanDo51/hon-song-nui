@@ -10,10 +10,10 @@ const DEF := {
 	"newUnits": ["bird"],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "wolf", "elephant"], "e": [] },
 	"gold": { "p": 1000, "e": 0 },
-	"tier": "mid",
+	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "survive", "turns": 10 },
-	"stars": { "lost": 10 },
+	"stars": { "lost": 12 },
 	"map": {
 		"rows": [
 			".f............",

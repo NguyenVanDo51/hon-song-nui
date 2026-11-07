@@ -14,9 +14,9 @@ const DEF := {
 		"p": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"],
 		"e": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"],
 	},
-	"gold": { "p": 900, "e": 700 },
+	"gold": { "p": 1100, "e": 280 },
 	"win": { "type": "castles" },
-	"stars": { "turns": 18 },
+	"stars": { "turns": 22 },
 	"unitCap": 15,
 	"night": false,
 	"map": {

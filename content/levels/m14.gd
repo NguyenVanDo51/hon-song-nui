@@ -10,7 +10,7 @@ const DEF := {
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "boat", "drum", "shaman"], "e": [] },
 	"gold": { "p": 400, "e": 0 },
-	"tier": "hard",
+	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "reach", "at": [[1, 2]], "turns": 13 },
 	"stars": { "turns": 8 },

@@ -12,7 +12,7 @@ const DEF := {
 	"newUnits": ["shaman"],
 	"allowed": { "p": [], "e": [] },
 	"gold": { "p": 0, "e": 0 },
-	"tier": "mid",
+	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "reach", "at": [[12, 1]], "turns": 16 },
 	"stars": { "turns": 6 },

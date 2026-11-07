@@ -10,10 +10,10 @@ const DEF := {
 	"newUnits": ["wolf"],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant"], "e": ["soldier", "archer", "drum", "wolf", "elephant"] },
 	"gold": { "p": 550, "e": 250 },
-	"tier": "mid",
+	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "castles" },
-	"stars": { "turns": 10 },
+	"stars": { "turns": 11 },
 	"map": {
 		"rows": [
 			"...hmmmmf.....",

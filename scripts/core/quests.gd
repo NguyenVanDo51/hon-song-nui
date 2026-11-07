@@ -5,6 +5,9 @@ extends RefCounted
 ## VERBS entry keys: "ev" = func(s, e, ctx) -> bool (one Game event counts once), absent = UI-only (Quests.note);
 ## "ok" = func(def, q) -> String ("" = can be done). Wording: content/theme.gd text.quest_<verb>[_any] + star_quests.
 
+## verbs whose `what` is an enemy type (wording names the enemy commander, not ours)
+const FOE_VERBS := ["hit_type", "kill_type"]
+
 ## kill credit needs the earlier hit of the same ev array; target types need the dying unit
 static var VERBS := {
 	"select": { "ok": _ok_any },
@@ -50,6 +53,23 @@ static func for_level(def: Dictionary) -> Array:
 static func init_state(s: Dictionary, def: Dictionary) -> void:
 	s.quests = for_level(def)
 
+## campaign game opened on the screen: a save from before quests gets none (mid-level they may be undoable now)
+static func on_open(s: Dictionary, def: Dictionary) -> void:
+	if not s.has("quests"):
+		s.quests = for_level(def) if fresh(s, def) else []
+
+## nothing played yet: round 1, our side, no unit acted, bought or raised
+static func fresh(s: Dictionary, def: Dictionary) -> bool:
+	var turn: int = s.turn
+	var next_id: int = s.nextId
+	var start: Array = def.get("units", [])
+	var units: Array = s.units
+	var acted := units.any(
+		func(u: Dictionary) -> bool:
+			return u.acted,
+	)
+	return turn == 1 and s.side == "p" and next_id == start.size() + 1 and not acted
+
 ## indexes of quests newly done by the events of side "p"
 static func observe(s: Dictionary, ev: Array) -> Array:
 	var newly := []
@@ -90,7 +110,7 @@ static func text(q: Dictionary) -> String:
 	var vars := { "unit": "", "tile": "" }
 	if q.what != null:
 		var w: String = q.what
-		vars.unit = _unit_name(w)
+		vars.unit = _unit_name(w, FOE_VERBS.has(q.do))
 		var terr: Dictionary = Content.theme().terrain
 		var tl: Dictionary = terr.get(w, { "name": w })
 		vars.tile = str(tl.name)
@@ -129,9 +149,9 @@ static func _bump(q: Dictionary) -> bool:
 	q.done = have >= n
 	return q.done
 
-static func _unit_name(type: String) -> String:
+static func _unit_name(type: String, foe: bool) -> String:
 	if type == "hero":
-		return "Tướng"
+		return Content.text("questHeroE" if foe else "questHero")
 	var units: Dictionary = Content.theme().units.p
 	var look: Dictionary = units.get(type, { "name": type })
 	return str(look.name)

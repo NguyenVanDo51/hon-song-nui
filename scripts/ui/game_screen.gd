@@ -134,8 +134,8 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	hud.fit.call_deferred()
 	board.refresh_terrain()
 	ctx.erase("story") # old saves / old ctx may carry it
-	if ctx.kind == "campaign" and not s.has("quests"): # new game, or a save from before quests
-		Quests.init_state(s, def)
+	if ctx.kind == "campaign":
+		Quests.on_open(s, def)
 	hud.quests.bind(s, "")
 	var tut_steps: Array = def.get("tutorial", []) if ctx.kind == "campaign" else []
 	tutorial.bind(self, tut_steps)

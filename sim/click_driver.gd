@@ -807,6 +807,12 @@ func _tut_t01(g: GameScreen) -> void:
 	await _tap(g, cap_c)
 	await idle(g)
 	okv(s.quests[1].done and tut.step == 2, "t01 step 2 done: village taken -> step 3")
+	var pops: Array = g.hud.coins.pops
+	var kinds := pops.map(
+		func(p: Dictionary) -> String:
+			return "%s %s" % [p.kind, p.text],
+	)
+	ok(kinds.has("coin 30") and kinds.has("heal +20"), "t01 step 2: capture pops gold/turn + heal %s" % [kinds])
 	# step 3: end turn only
 	await process_frame
 	ok(_near(tut.target_rect(), Rect2(g.hud.btn_end.position, g.hud.btn_end.size)), "t01 step 3: hole on Hết lượt")
@@ -815,11 +821,21 @@ func _tut_t01(g: GameScreen) -> void:
 	press("Hết lượt")
 	var back: bool = await turn_of(g, "p")
 	okv(back and s.turn == 2 and tut.step == 3, "t01 step 3 done: enemy turn played, turn 2 -> step 4")
-	# step 4: forest
+	# step 4: forest; the picked hero's own tile is no target (no wait in place)
 	g._on_tile_clicked(pos(hero).x, pos(hero).y)
+	await process_frame
+	okv(g.ui.sel == hid and not tut.allows(pos(hero)) and tut.allows(Vector2i(4, 2)), "t01 step 4: picked -> own tile closed")
+	g._on_tile_clicked(pos(hero).x, pos(hero).y)
+	okv(g.ui.sel == hid and not hero.acted and pos(hero) == Vector2i(1, 1), "t01 step 4: own tile click swallowed")
 	g._on_tile_clicked(4, 2)
+	okv(tut.allows("act:wait"), "t01 step 4: ⏳ Chờ confirms the forest")
 	g._on_tile_clicked(4, 2)
 	await idle(g)
+	var cover: bool = g.fx.floats.any(
+		func(f: Dictionary) -> bool:
+			return str(f.text).begins_with("🛡"),
+	)
+	ok(cover, "t01 step 4: 🛡 + floats over the hero in the forest")
 	okv(s.quests[3].done and tut.step == 4 and pos(hero) == Vector2i(4, 2), "t01 step 4 done: hero in the forest -> step 5")
 	# step 5 needs the enemy turn first: hero spent -> the guide points at Hết lượt
 	await process_frame
@@ -904,6 +920,7 @@ func _tut_t02(g: GameScreen) -> void:
 	g._on_tile_clicked(2, 1)
 	okv(g.ui.sel == null and g.ui.info == null, "t02 step 2: village needs the soldier first")
 	g._on_tile_clicked(3, 2)
+	okv(not tut.allows(Vector2i(3, 2)) and tut.allows(Vector2i(2, 1)), "t02 step 2: picked -> own tile closed")
 	g._on_tile_clicked(2, 1)
 	g._on_tile_clicked(2, 1)
 	await idle(g)

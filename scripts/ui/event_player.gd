@@ -44,6 +44,33 @@ func income_fx() -> void:
 			gs.hud.bump_gold(),
 	)
 
+## tutorial levels show what a tile gives the moment ours gets it (spec §7: learn by doing + seeing)
+func _teach(side: Variant) -> bool:
+	return gs.def.has("tutorial") and side == gs._me()
+
+## a building just taken: its gold per turn (coin pop) + the heal it gives a unit standing on it
+func _show_gains(x: int, y: int, tile: String) -> void:
+	var gold := Game.income_of(tile)
+	if gold <= 0:
+		return
+	gs.hud.coins.board = gs.board
+	gs.hud.coins.play([{ "x": x, "y": y, "amount": gold }])
+	if Game.ter(tile).has("heals"):
+		var heal: int = Game.RULES.heal
+		gs.hud.coins.play([{ "x": x, "y": y, "amount": heal }], "heal", 0.3)
+	gs.main.audio.play("coin")
+
+## our unit stopped on cover (forest, hill…): "🛡 +def" over it
+func _show_cover(at: Array) -> void:
+	var x: int = at[0]
+	var y: int = at[1]
+	var t: Variant = Game.tile_at(gs.s, x, y)
+	var d: int = Game.ter(t).get("def", 0)
+	var base: int = Game.ter(".").get("def", 0)
+	if d <= base or Game.ter(t).has("building"):
+		return
+	gs.fx.float_text(x, y - 0.3, Content.text("fxCover").format({ "n": d }), "#bfe3ff", 1300.0)
+
 ## heal = same pop as income (green +N over the unit, after the coins) + the hp bar counting up
 func heal_fx(e: Dictionary) -> void:
 	var id: int = e.id
@@ -183,6 +210,9 @@ func play(events: Array, before: Dictionary) -> void:
 					ds.u.x = last[0]
 					ds.u.y = last[1]
 					ds.hidden = false
+				if _teach(src_u.side) and path.size() > 1:
+					var end: Array = path[path.size() - 1]
+					_show_cover(end)
 			"hit":
 				var kill := events.any(
 					func(o: Dictionary) -> bool:
@@ -228,6 +258,8 @@ func play(events: Array, before: Dictionary) -> void:
 				var castle := Game.sells(e.tile)
 				var cap_txt := Content.text("captureCastle") if castle else Content.text("captureVillage")
 				gs.fx.float_text(ex, ey - 0.3, cap_txt, "#ffe08a", 1300.0, castle)
+				if _teach(eside):
+					_show_gains(ex, ey, str(e.tile))
 				await gs.fx.sleep(700.0 if castle else 450.0)
 			"raze":
 				await gs.fx.raze({ "x": e.fx, "y": e.fy, "id": e.from }, ex, ey)

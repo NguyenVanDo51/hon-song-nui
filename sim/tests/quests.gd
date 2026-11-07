@@ -7,6 +7,26 @@ func _def(quests: Array) -> Dictionary:
 func _q(verb: String, what: Variant = null) -> Dictionary:
 	return { "do": verb, "what": what }
 
+## the win card's goal rows hold `text`
+func _card_has(s: Dictionary, def: Dictionary, text: String) -> bool:
+	var v := VBoxContainer.new()
+	HudWidgets.end_stars(v, Stars.check(s, def), 0, Stars.final(s, def))
+	var found := _labels(v).any(
+		func(t: String) -> bool:
+			return t.contains(text),
+	)
+	v.free()
+	return found
+
+func _labels(n: Node) -> Array[String]:
+	var out: Array[String] = []
+	var lb := n as Label
+	if lb != null:
+		out.append(lb.text)
+	for c: Node in n.get_children():
+		out.append_array(_labels(c))
+	return out
+
 func quest_tests() -> void:
 	run(
 		"quests: for_level adds the DEBUT of newUnits",
@@ -124,7 +144,11 @@ func quest_tests() -> void:
 			eq(Quests.text(_q("attack_with", "archer")), "Đánh bằng Cung thủ", "attack_with")
 			eq(Quests.text(_q("buy")), "Mua 1 quân", "buy any")
 			eq(Quests.text(_q("capture", "v")), "Chiếm 1 Làng", "capture")
-			eq(Quests.text({ "do": "move", "what": null, "text": "X" }), "X", "override"),
+			eq(Quests.text({ "do": "move", "what": null, "text": "X" }), "X", "override")
+			eq(Quests.text(_q("move", "hero")), "Đi Tướng", "our commander")
+			eq(Quests.text(_q("hit_type", "hero")), "Đánh tướng địch", "hit_type hero = theirs")
+			eq(Quests.text(_q("kill_type", "hero")), "Hạ 1 tướng địch", "kill_type hero = theirs")
+			eq(Quests.text(_q("kill_type", "soldier")), "Hạ 1 Vệ binh", "kill_type troop"),
 	)
 	run(
 		"quests: feasible",
@@ -181,6 +205,59 @@ func quest_tests() -> void:
 			eq(Quests.total(s), 0, "total 0")
 			eq(Quests.observe(s, [{ "t": "hit" }]), [], "observe no-op")
 			eq(Quests.note(s, "buy", "archer"), [], "note no-op"),
+	)
+	run(
+		"quests: a save from before quests resumed mid-level gets none (no surprise -1 star)",
+		func() -> void:
+			var def := mission("m01")
+			var s0 := Game.new_game(def)
+			check(Quests.fresh(s0, def), "new game is fresh")
+			Quests.on_open(s0, def)
+			eq(Quests.total(s0), Quests.for_level(def).size(), "new game: the level's quests")
+			var s := Game.new_game(def)
+			var own: Dictionary = s.owner
+			var rows: Array = s.tiles
+			for y in rows.size():
+				var row: Array = rows[y]
+				for x in row.size():
+					if row[x] == "v":
+						own[Vector2i(x, y)] = "p"
+			s.turn = 3
+			s.erase("quests")
+			Quests.on_open(s, def)
+			eq(Quests.total(s), 0, "mid-level old save: no quests")
+			s.winner = "p"
+			eq(Stars.count(s, def), 3, "base 3")
+			eq(Stars.final(s, def), Stars.count(s, def), "no penalty")
+			Quests.init_state(s, def) # what the old path did: capture v can no longer happen
+			eq(Stars.final(s, def), 2, "old path: -1 star")
+			var s1 := Game.new_game(def)
+			unit(s1, 0).acted = true
+			check(not Quests.fresh(s1, def), "turn 1, a unit acted: not fresh")
+			var s2 := Game.new_game(def)
+			s2.nextId += 1
+			check(not Quests.fresh(s2, def), "turn 1, a unit bought: not fresh")
+			var s3 := Game.new_game(def)
+			s3.side = "e"
+			check(not Quests.fresh(s3, def), "enemy's turn 1: not fresh")
+			Quests.on_open(s0, def)
+			eq(Quests.total(s0), Quests.for_level(def).size(), "a save with quests keeps them"),
+	)
+	run(
+		"quests: win card shows -1 star only when the open quest took one",
+		func() -> void:
+			var s := blank([])
+			s.winner = "p"
+			s.turn = 99
+			s.heroDeaths = { "p": 1 }
+			s.lost = { "p": 0 }
+			s.quests = [{ "do": "move", "what": null, "n": 1, "have": 0, "done": false }]
+			var def := { "stars": { "turns": 5 } }
+			var pen := Content.text("star_penalty")
+			check(not _card_has(s, def, pen), "base 1 + open quest: floor, no -1 star line")
+			s.turn = 3
+			s.heroDeaths = { "p": 0 }
+			check(_card_has(s, def, pen), "base 3 + open quest: -1 star line"),
 	)
 
 ## hand quests + tutorial levels t01 / t02 (spec §6.4, §7)

@@ -205,8 +205,12 @@ class StarIcon extends Control:
 			Draw.star(self, c, r, Style.PAPER_2, Style.INK_D, 1.2)
 
 ## win card: `got` stars popping in + each goal ticked / missed with the number it was judged on (+ best, if better before).
-## A penalty goal (quests) earns no star: ✓ when met, red "−1 ★" when not.
+## A penalty goal (quests) earns no star: ✓ when met, red "−1 ★" only when it took a star (floor 1: may take none).
 static func end_stars(v: VBoxContainer, goals: Array, best_before: int, got: int) -> StarRow:
+	var earned := goals.filter(
+		func(g: Dictionary) -> bool:
+			return g.ok and not g.get("penalty", false),
+	).size()
 	var row := StarRow.new()
 	row.got = got
 	row.custom_minimum_size = Vector2(240, 54)
@@ -229,8 +233,9 @@ static func end_stars(v: VBoxContainer, goals: Array, best_before: int, got: int
 		var col := Style.GOOD if ok else Style.MUTED
 		if g.get("penalty", false):
 			line.add_child(QuestPanel.Mark.new("done" if ok else "miss"))
-			col = Style.GOOD if ok else Style.BAD
-			note = "" if ok else "  −1 ★"
+			var cut := not ok and got < earned
+			col = Style.GOOD if ok else (Style.BAD if cut else Style.MUTED)
+			note = "  " + Content.text("star_penalty") if cut else ""
 		else:
 			var icon := StarIcon.new()
 			icon.on = ok

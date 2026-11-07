@@ -21,6 +21,8 @@ const ACTS := {
 	"raze": ["raze"],
 	"raise": ["raise"],
 }
+## quests done by walking somewhere: staying put never counts
+const MOVES := ["stand_on", "move"]
 ## attack quests: the pointed enemy may not come (AI noise) -> aim at one in reach, or wait turns for one
 const ATTACKS := ["attack_with", "hit_type", "kill_with", "kill_type"]
 const SHOW_DELAY := 0.9 # s after entering: the turn banner goes first
@@ -250,10 +252,11 @@ func _allowed() -> Array:
 	var picked := _picked(st)
 	var out: Array = []
 	var allow: Array = st.get("allow", [])
+	var own := _own_tile(st) if picked else Vector2i(-1, -1)
 	for a: Variant in allow:
 		if a is Array:
 			var v := _xy(a)
-			if picked or units.is_empty() or units.has(v): # pick the unit first, then where it goes
+			if v != own and (picked or units.is_empty() or units.has(v)): # pick the unit first, then where it goes
 				out.append(v)
 		else:
 			out.append(a)
@@ -261,6 +264,15 @@ func _allowed() -> Array:
 	for k: String in acts:
 		out.append("act:" + k)
 	return out
+
+## a move step's picked unit: its own tile is no destination (unless pointed); (-1,-1) = keep every tile
+func _own_tile(st: Dictionary) -> Vector2i:
+	if not MOVES.has(_quest(st).do):
+		return Vector2i(-1, -1)
+	var su: Dictionary = gs._sel_unit()
+	var at := _at(su)
+	var p: Variant = st.get("point")
+	return Vector2i(-1, -1) if p is Array and _xy(p) == at else at
 
 # ---------- view ----------
 func _process(dt: float) -> void:

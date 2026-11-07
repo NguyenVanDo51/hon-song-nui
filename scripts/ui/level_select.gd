@@ -8,7 +8,7 @@ signal level_picked(id: String)
 
 const PER_PAGE := 20
 const COLS := 5
-const TIER_COL := { "easy": Color("#6fbf5a"), "mid": Color("#e0a93e"), "hard": Color("#d65040") }
+const TIER_COL := { "easy": Color("#3f7a2e"), "mid": Color("#c98a1e"), "hard": Color("#b3262e") }
 const TIER_NAME := { "easy": "Dễ", "mid": "Trung bình", "hard": "Khó" }
 
 var levels: Array = []
@@ -190,17 +190,25 @@ class Cell extends Control:
 	func _draw() -> void:
 		var hot := (selected or get_global_rect().has_point(get_global_mouse_position())) and not locked
 		var col: Color = LevelSelect.TIER_COL[tier]
-		var bg := Style.LACQUER_2 if not locked else Color(0.08, 0.05, 0.035, 0.85)
-		var border := Style.GOLD if (next or hot) else Color(col, 0.55 if not locked else 0.2)
-		draw_style_box(Style.box(bg, border, 12, 0, 2 if (next or hot) else 1), Rect2(Vector2.ZERO, size))
-		draw_rect(Rect2(6, size.y - 9, size.x - 12, 4), Color(col, 0.85 if not locked else 0.3))
-		var c := Vector2(size.x / 2, size.y * 0.42)
+		# F1 paper tile: ink edge + hard shadow; next / hovered = gold face, crimson inner line; locked = faded paper
+		var box := SkinBox.make(Style.PAPER_HI, Vector4.ZERO, { "shadow": Vector2(3, 3), "radii": Vector4(10, 7, 12, 6), "edge_w": 2.5 })
 		if locked:
-			Draw.text_c(self, Style.body, c, "🔒", 22, Style.MUTED)
+			box.face = Color("#e6d3a8")
+			box.edge = Style.FADED
+			box.shadow_col = Style.FADED
+		elif next or hot:
+			box.face = Color("#f6dc8e")
+			box.inner = Style.CRIMSON
+		draw_style_box(box, Rect2(Vector2.ZERO, size - Vector2(3, 3)))
+		draw_rect(Rect2(7, size.y - 13, size.x - 17, 4), Color(col, 0.9 if not locked else 0.35))
+		var c := Vector2((size.x - 3) / 2, size.y * 0.42)
+		if locked:
+			var lk := 22.0
+			draw_texture_rect(Icons.tex("lock"), Rect2(c - Vector2(lk, lk) / 2, Vector2(lk, lk)), false, Color(1, 1, 1, 0.55))
 		else:
-			Draw.text_c(self, Style.display, c, str(index + 1), 28, Style.GOLD if done or next else Style.INK)
+			Draw.text_c(self, Style.display, c, str(index + 1), 28, Style.CRIMSON_D if done or next else Style.INK)
 		if not locked:
 			for k in 3:
-				var sc := Vector2(size.x / 2 + (k - 1) * 17, size.y - 22)
+				var sc := Vector2((size.x - 3) / 2 + (k - 1) * 17, size.y - 24)
 				var on := k < stars
-				Draw.star(self, sc, 7.0, Color("#ffd96a") if on else Color(0.2, 0.13, 0.08), Color(0.94, 0.79, 0.42, 0.6), 1.0)
+				Draw.star(self, sc, 7.0, Style.LEAF if on else Style.PAPER_2, Style.INK_D, 1.0)

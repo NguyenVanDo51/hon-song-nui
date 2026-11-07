@@ -36,9 +36,9 @@ kbd{background:#3a312b;border-radius:4px;padding:0 5px;font-size:12px;color:var(
 </div>
 <div class="row">
   <div class="mini">Cỡ thật trên bàn cờ (ô 64px)<canvas id="mini"></canvas></div>
-  <div class="notes"><p><b>Nỏ thủ · Nỏ thần liên châu</b> — nỏ đồng Âu Lạc (lẫy đồng Cổ Loa), tầm 1–2, demo bắn tầm 2.</p>
-<p>Trụ chân + nâng nỏ ngắm (lóe sáng) → 3 mũi tên liên tiếp 100ms, bay thẳng nhanh qua 2 ô: 2 phát nhỏ (HIT_SMALL) + phát cuối HIT chung.</p>
-<p>Mỗi phát giật nỏ lùi, phát cuối giật mạnh nhất; sau đó chúc nỏ xuống kéo dây lên lẫy, tên mới vào rãnh.</p>
+  <div class="notes"><p><b>Cung Thủ · Phát tên cung dài</b> — áo choàng trùm đầu màu phe, cung dài cao hơn người, ống tên sau lưng. Tầm 1–2, demo bắn tầm 2.</p>
+<p>Trụ chân → kéo dây cung tới cằm (dây cung gập theo tay) → giữ, mũi tên lóe sáng → buông: 1 mũi tên bay tới = HIT chung.</p>
+<p>Dây cung bật rung, tay kéo văng ra sau, cung giật lên; sau đó hạ cung, lắp tên mới.</p>
     <div>Phím: <kbd>1</kbd>… chọn đòn · <kbd>Space</kbd> đánh lại</div>
   </div>
 </div>
@@ -656,25 +656,29 @@ function boot(S) {
 }
 </script>
 <script>
-const __SVG = {"full": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\n<g stroke=\"#2b2220\" stroke-width=\"7\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<path d=\"M52 120 L40 84\" stroke-width=\"5\"/>\n<path d=\"M64 116 L58 78\" stroke-width=\"5\"/>\n<path d=\"M76 112 L76 76\" stroke-width=\"5\"/>\n<path d=\"M40 84 L30 72 L46 76 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M58 78 L52 64 L66 70 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M76 76 L72 62 L84 68 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M40 128 L80 112 L108 182 L80 198 Z\" fill=\"#5a4a3c\"/>\n<path d=\"M46 142 L84 126\" stroke=\"#e2c36e\" stroke-width=\"5\"/>\n<circle cx=\"80\" cy=\"162\" r=\"8\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<rect x=\"104\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"98\" y=\"228\" width=\"30\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<rect x=\"134\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"130\" y=\"228\" width=\"32\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<path d=\"M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z\" fill=\"#c9503f\"/>\n<path d=\"M94 196 Q128 206 163 196\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"5\"/>\n<path d=\"M150 130 L100 194\" stroke=\"#3a2e28\" stroke-width=\"8\"/>\n<path d=\"M95 182 L161 182\" stroke=\"#5a4a3c\" stroke-width=\"10\"/>\n<circle cx=\"140\" cy=\"182\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<path d=\"M84 96 Q60 104 50 128 L62 132 Q68 114 88 104 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M84 102 Q70 118 70 140 L80 140 Q80 120 90 108 Z\" fill=\"#93362b\" stroke-width=\"5\"/>\n<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#f3cfa6\"/>\n<path d=\"M76 92 A54 54 0 0 1 184 84 Q132 70 80 104 Z\" fill=\"#c9503f\"/>\n<path d=\"M88 84 Q132 60 176 72\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"5\"/>\n<circle cx=\"84\" cy=\"98\" r=\"9\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M152 144 Q174 158 194 166\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M152 144 Q174 158 194 166\" fill=\"none\" stroke=\"#c9503f\" stroke-width=\"12\"/>\n<path d=\"M206 116 Q230 152 206 190\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"16\"/>\n<path d=\"M206 116 Q230 152 206 190\" fill=\"none\" stroke=\"#a87a4c\" stroke-width=\"8\"/>\n<circle cx=\"206\" cy=\"116\" r=\"5\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<circle cx=\"206\" cy=\"190\" r=\"5\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<path d=\"M112 148 L228 148 L228 162 L152 164 Q138 180 114 170 Z\" fill=\"#a87a4c\"/>\n<path d=\"M122 156 L222 156\" stroke=\"#5a4a3c\" stroke-width=\"3\"/>\n<rect x=\"150\" y=\"160\" width=\"22\" height=\"14\" rx=\"3\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M162 174 L158 188\" stroke-width=\"5\"/>\n<path d=\"M206 116 L164 148 L206 190\" fill=\"none\" stroke-width=\"4\"/>\n<path d=\"M168 140 L230 140\" stroke-width=\"9\"/>\n<path d=\"M168 140 L230 140\" stroke=\"#e2c36e\" stroke-width=\"3\"/>\n<path d=\"M230 133 L246 140 L230 147 Z\" fill=\"#cdd4da\" stroke-width=\"4\"/>\n<path d=\"M176 140 L163 131 L167 140 L163 149 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<circle cx=\"198\" cy=\"168\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>\n<circle cx=\"138\" cy=\"172\" r=\"11\" fill=\"#f3cfa6\" stroke-width=\"5\"/>\n</g>\n<path d=\"M141 100 L154 104 M164 104 L177 100\" stroke=\"#2b2220\" stroke-width=\"4\" stroke-linecap=\"round\"/>\n<circle cx=\"148\" cy=\"112\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"170\" cy=\"112\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"150\" cy=\"110\" r=\"2\" fill=\"#fff\"/>\n<circle cx=\"172\" cy=\"110\" r=\"2\" fill=\"#fff\"/>\n<ellipse cx=\"179\" cy=\"124\" rx=\"6\" ry=\"4\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M150 130 Q156 134 162 131\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n</svg>", "target": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\n<g stroke=\"#2b2220\" stroke-width=\"7\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<circle cx=\"84\" cy=\"166\" r=\"40\" fill=\"#4f74c9\"/>\n<circle cx=\"84\" cy=\"166\" r=\"27\" fill=\"none\" stroke=\"#32508f\" stroke-width=\"5\"/>\n<path d=\"M84 145 L84 187 M63 166 L105 166\" stroke=\"#32508f\" stroke-width=\"4\"/>\n<circle cx=\"84\" cy=\"166\" r=\"10\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<rect x=\"104\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"98\" y=\"228\" width=\"30\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<rect x=\"134\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"130\" y=\"228\" width=\"32\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<path d=\"M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z\" fill=\"#4f74c9\"/>\n<path d=\"M93 191 Q128 200 163 191\" fill=\"none\" stroke=\"#32508f\" stroke-width=\"6\"/>\n<path d=\"M95 172 L161 172\" stroke=\"#5a4a3c\" stroke-width=\"10\"/>\n<circle cx=\"128\" cy=\"172\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<line x1=\"198\" y1=\"50\" x2=\"198\" y2=\"240\" stroke=\"#2b2220\" stroke-width=\"15\"/>\n<line x1=\"198\" y1=\"50\" x2=\"198\" y2=\"240\" stroke=\"#a87a4c\" stroke-width=\"7\"/>\n<path d=\"M198 58 Q186 70 188 90 Q194 84 198 92 Q202 84 208 90 Q210 70 198 58 Z\" fill=\"#4f74c9\" stroke-width=\"5\"/>\n<path d=\"M198 6 Q213 28 205 48 L191 48 Q183 28 198 6 Z\" fill=\"#cdd4da\" stroke-width=\"5\"/>\n<path d=\"M198 16 L198 42\" stroke=\"#aab3bd\" stroke-width=\"4\"/>\n<rect x=\"190\" y=\"46\" width=\"16\" height=\"12\" rx=\"3\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M138 38 C144 16 128 2 102 6 C114 12 116 24 116 38 Z\" fill=\"#4f74c9\" stroke-width=\"5\"/>\n<path d=\"M131 30 C131 18 122 11 110 10\" fill=\"none\" stroke=\"#32508f\" stroke-width=\"4\"/>\n<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#f3cfa6\"/>\n<path d=\"M76 86 A54 54 0 0 1 184 86 L192 96 L68 96 Z\" fill=\"#aab3bd\"/>\n<path d=\"M88 70 Q94 52 110 42\" fill=\"none\" stroke=\"#cdd4da\" stroke-width=\"5\"/>\n<path d=\"M72 90 L188 90\" stroke=\"#7e8790\" stroke-width=\"5\"/>\n<rect x=\"119\" y=\"28\" width=\"20\" height=\"10\" rx=\"4\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M152 140 Q176 150 198 158\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M152 140 Q176 150 198 158\" fill=\"none\" stroke=\"#4f74c9\" stroke-width=\"12\"/>\n<circle cx=\"198\" cy=\"160\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>\n</g>\n<path d=\"M141 104 L154 107 M164 107 L177 104\" stroke=\"#2b2220\" stroke-width=\"4\" stroke-linecap=\"round\"/>\n<circle cx=\"148\" cy=\"115\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"170\" cy=\"115\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"150\" cy=\"113\" r=\"2\" fill=\"#fff\"/>\n<circle cx=\"172\" cy=\"113\" r=\"2\" fill=\"#fff\"/>\n<ellipse cx=\"179\" cy=\"127\" rx=\"6\" ry=\"4\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M151 132 Q158 137 165 132\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n</svg>", "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\n<rect x=\"0\" y=\"0\" width=\"256\" height=\"256\" fill=\"#9cbf68\"/>\n<path d=\"M30 46 Q90 38 150 44 T226 42\" fill=\"none\" stroke=\"#86ab57\" stroke-width=\"7\" stroke-linecap=\"round\" opacity=\"0.45\"/>\n<path d=\"M30 74 Q90 66 150 72 T226 70\" fill=\"none\" stroke=\"#86ab57\" stroke-width=\"7\" stroke-linecap=\"round\" opacity=\"0.45\"/>\n<path d=\"M30 102 Q90 94 150 100 T226 98\" fill=\"none\" stroke=\"#86ab57\" stroke-width=\"7\" stroke-linecap=\"round\" opacity=\"0.45\"/>\n<ellipse cx=\"78\" cy=\"182\" rx=\"40\" ry=\"22\" fill=\"#86ab57\" opacity=\"0.7\"/>\n<ellipse cx=\"190\" cy=\"214\" rx=\"28\" ry=\"15\" fill=\"#86ab57\" opacity=\"0.6\"/>\n<g fill=\"none\" stroke-width=\"4\" stroke-linecap=\"round\">\n<path d=\"M150 160 q-3 -9 -9 -13 M150 160 q0 -11 2 -16 M150 160 q4 -8 10 -10\" stroke=\"#82a653\"/>\n<path d=\"M40 136 q-3 -8 -8 -11 M40 136 q0 -10 2 -14 M40 136 q4 -7 9 -9\" stroke=\"#b3d17c\"/>\n<path d=\"M212 140 q-3 -8 -8 -11 M212 140 q0 -10 2 -14 M212 140 q4 -7 9 -9\" stroke=\"#82a653\"/>\n<path d=\"M112 228 q-3 -8 -8 -11 M112 228 q0 -10 2 -14 M112 228 q4 -7 9 -9\" stroke=\"#b3d17c\"/>\n</g>\n<circle cx=\"182\" cy=\"168\" r=\"3.5\" fill=\"#f4f1ea\"/>\n<circle cx=\"190\" cy=\"174\" r=\"3\" fill=\"#e2c36e\"/>\n<circle cx=\"56\" cy=\"222\" r=\"3.5\" fill=\"#f4f1ea\"/>\n<circle cx=\"230\" cy=\"236\" r=\"3\" fill=\"#e2c36e\"/>\n</svg>"};
-// Nỏ thủ (archer_p.svg) · "Nỏ thần liên châu": aim -> 3-bolt volley -> recoil -> reload hint. range 2.
+const __SVG = {"full": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\n<g stroke=\"#2b2220\" stroke-width=\"7\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<path d=\"M106 124 Q72 158 62 224 Q88 216 112 222 Q114 172 130 128 Z\" fill=\"#93362b\"/>\n<path d=\"M52 120 L40 84\" stroke-width=\"5\"/>\n<path d=\"M64 116 L58 78\" stroke-width=\"5\"/>\n<path d=\"M76 112 L76 76\" stroke-width=\"5\"/>\n<path d=\"M40 84 L30 72 L46 76 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M58 78 L52 64 L66 70 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M76 76 L72 62 L84 68 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<path d=\"M40 128 L80 112 L108 182 L80 198 Z\" fill=\"#a87a4c\"/>\n<path d=\"M46 142 L84 126\" stroke=\"#5a4a3c\" stroke-width=\"6\"/>\n<path d=\"M66 186 L100 172\" stroke=\"#5a4a3c\" stroke-width=\"6\"/>\n<rect x=\"104\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"98\" y=\"228\" width=\"30\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<rect x=\"134\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"130\" y=\"228\" width=\"32\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<path d=\"M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z\" fill=\"#5a4a3c\"/>\n<path d=\"M128 150 L128 182\" stroke=\"#3a2e28\" stroke-width=\"4\"/>\n<path d=\"M152 132 L104 196\" stroke-width=\"13\"/>\n<path d=\"M152 132 L104 196\" stroke=\"#a87a4c\" stroke-width=\"6\"/>\n<path d=\"M95 186 L161 186\" stroke=\"#3a2e28\" stroke-width=\"10\"/>\n<circle cx=\"142\" cy=\"187\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<path d=\"M94 132 Q128 112 162 132 L168 152 Q148 160 128 156 Q108 160 88 152 Z\" fill=\"#c9503f\"/>\n<path d=\"M92 149 Q110 156 128 153 Q146 156 165 149\" fill=\"none\" stroke=\"#e2c36e\" stroke-width=\"3.5\"/>\n<path d=\"M92 50 Q60 36 34 54 Q62 58 82 76 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M86 54 Q66 48 50 54\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"4\"/>\n<path d=\"M72 114 Q56 44 112 24 Q150 14 172 32 Q190 52 186 94 Z\" fill=\"#93362b\"/>\n<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#f3cfa6\"/>\n<path d=\"M76 100 Q70 38 130 28 Q186 34 186 96 Q168 66 132 64 Q98 66 76 100 Z\" fill=\"#c9503f\"/>\n<path d=\"M82 92 Q102 70 132 68 Q162 68 180 88\" fill=\"none\" stroke=\"#e2c36e\" stroke-width=\"3.5\"/>\n<path d=\"M152 142 Q184 146 214 134\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M152 142 Q184 146 214 134\" fill=\"none\" stroke=\"#c9503f\" stroke-width=\"12\"/>\n<path d=\"M196 18 C228 58 228 200 196 240\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"15\"/>\n<path d=\"M196 18 C228 58 228 200 196 240\" fill=\"none\" stroke=\"#a87a4c\" stroke-width=\"7\"/>\n<circle cx=\"196\" cy=\"18\" r=\"5\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<circle cx=\"196\" cy=\"240\" r=\"5\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<path d=\"M196 18 L196 129\" fill=\"none\" stroke-width=\"3.5\"/>\n<path d=\"M196 240 L196 129\" fill=\"none\" stroke-width=\"3.5\"/>\n<circle cx=\"220\" cy=\"132\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>\n<path d=\"M194 129 L240 129\" stroke-width=\"8\"/>\n<path d=\"M194 129 L240 129\" stroke=\"#a87a4c\" stroke-width=\"3\"/>\n<path d=\"M238 122 L253 129 L238 136 Z\" fill=\"#cdd4da\" stroke-width=\"4\"/>\n<path d=\"M214 129 L203 121 L206 129 L203 137 Z\" fill=\"#c9503f\" stroke-width=\"4\"/>\n<circle cx=\"192\" cy=\"133\" r=\"11\" fill=\"#f3cfa6\" stroke-width=\"5\"/>\n</g>\n<path d=\"M140 101 L155 106 M163 106 L178 101\" stroke=\"#2b2220\" stroke-width=\"4.5\" stroke-linecap=\"round\"/>\n<circle cx=\"148\" cy=\"114\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"170\" cy=\"114\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"150\" cy=\"112\" r=\"2\" fill=\"#fff\"/>\n<circle cx=\"172\" cy=\"112\" r=\"2\" fill=\"#fff\"/>\n<ellipse cx=\"179\" cy=\"126\" rx=\"6\" ry=\"4\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M151 132 Q157 135 163 132\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n</svg>", "target": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\n<g stroke=\"#2b2220\" stroke-width=\"7\" stroke-linejoin=\"round\" stroke-linecap=\"round\">\n<circle cx=\"84\" cy=\"166\" r=\"40\" fill=\"#4f74c9\"/>\n<circle cx=\"84\" cy=\"166\" r=\"27\" fill=\"none\" stroke=\"#32508f\" stroke-width=\"5\"/>\n<path d=\"M84 145 L84 187 M63 166 L105 166\" stroke=\"#32508f\" stroke-width=\"4\"/>\n<circle cx=\"84\" cy=\"166\" r=\"10\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<rect x=\"104\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"98\" y=\"228\" width=\"30\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<rect x=\"134\" y=\"196\" width=\"20\" height=\"40\" rx=\"4\" fill=\"#5a4a3c\"/>\n<rect x=\"130\" y=\"228\" width=\"32\" height=\"18\" rx=\"8\" fill=\"#3a2e28\"/>\n<path d=\"M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z\" fill=\"#4f74c9\"/>\n<path d=\"M93 191 Q128 200 163 191\" fill=\"none\" stroke=\"#32508f\" stroke-width=\"6\"/>\n<path d=\"M95 172 L161 172\" stroke=\"#5a4a3c\" stroke-width=\"10\"/>\n<circle cx=\"128\" cy=\"172\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"4\"/>\n<line x1=\"198\" y1=\"50\" x2=\"198\" y2=\"240\" stroke=\"#2b2220\" stroke-width=\"15\"/>\n<line x1=\"198\" y1=\"50\" x2=\"198\" y2=\"240\" stroke=\"#a87a4c\" stroke-width=\"7\"/>\n<path d=\"M198 58 Q186 70 188 90 Q194 84 198 92 Q202 84 208 90 Q210 70 198 58 Z\" fill=\"#4f74c9\" stroke-width=\"5\"/>\n<path d=\"M198 6 Q213 28 205 48 L191 48 Q183 28 198 6 Z\" fill=\"#cdd4da\" stroke-width=\"5\"/>\n<path d=\"M198 16 L198 42\" stroke=\"#aab3bd\" stroke-width=\"4\"/>\n<rect x=\"190\" y=\"46\" width=\"16\" height=\"12\" rx=\"3\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M138 38 C144 16 128 2 102 6 C114 12 116 24 116 38 Z\" fill=\"#4f74c9\" stroke-width=\"5\"/>\n<path d=\"M131 30 C131 18 122 11 110 10\" fill=\"none\" stroke=\"#32508f\" stroke-width=\"4\"/>\n<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#f3cfa6\"/>\n<path d=\"M76 86 A54 54 0 0 1 184 86 L192 96 L68 96 Z\" fill=\"#aab3bd\"/>\n<path d=\"M88 70 Q94 52 110 42\" fill=\"none\" stroke=\"#cdd4da\" stroke-width=\"5\"/>\n<path d=\"M72 90 L188 90\" stroke=\"#7e8790\" stroke-width=\"5\"/>\n<rect x=\"119\" y=\"28\" width=\"20\" height=\"10\" rx=\"4\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M152 140 Q176 150 198 158\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M152 140 Q176 150 198 158\" fill=\"none\" stroke=\"#4f74c9\" stroke-width=\"12\"/>\n<circle cx=\"198\" cy=\"160\" r=\"12\" fill=\"#f3cfa6\" stroke-width=\"5\"/>\n</g>\n<path d=\"M141 104 L154 107 M164 107 L177 104\" stroke=\"#2b2220\" stroke-width=\"4\" stroke-linecap=\"round\"/>\n<circle cx=\"148\" cy=\"115\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"170\" cy=\"115\" r=\"6\" fill=\"#2b2220\"/>\n<circle cx=\"150\" cy=\"113\" r=\"2\" fill=\"#fff\"/>\n<circle cx=\"172\" cy=\"113\" r=\"2\" fill=\"#fff\"/>\n<ellipse cx=\"179\" cy=\"127\" rx=\"6\" ry=\"4\" fill=\"#f09a88\" opacity=\"0.6\"/>\n<path d=\"M151 132 Q158 137 165 132\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n</svg>", "tile": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 256 256\" width=\"256\" height=\"256\">\n<rect x=\"0\" y=\"0\" width=\"256\" height=\"256\" fill=\"#9cbf68\"/>\n<path d=\"M30 46 Q90 38 150 44 T226 42\" fill=\"none\" stroke=\"#86ab57\" stroke-width=\"7\" stroke-linecap=\"round\" opacity=\"0.45\"/>\n<path d=\"M30 74 Q90 66 150 72 T226 70\" fill=\"none\" stroke=\"#86ab57\" stroke-width=\"7\" stroke-linecap=\"round\" opacity=\"0.45\"/>\n<path d=\"M30 102 Q90 94 150 100 T226 98\" fill=\"none\" stroke=\"#86ab57\" stroke-width=\"7\" stroke-linecap=\"round\" opacity=\"0.45\"/>\n<ellipse cx=\"78\" cy=\"182\" rx=\"40\" ry=\"22\" fill=\"#86ab57\" opacity=\"0.7\"/>\n<ellipse cx=\"190\" cy=\"214\" rx=\"28\" ry=\"15\" fill=\"#86ab57\" opacity=\"0.6\"/>\n<g fill=\"none\" stroke-width=\"4\" stroke-linecap=\"round\">\n<path d=\"M150 160 q-3 -9 -9 -13 M150 160 q0 -11 2 -16 M150 160 q4 -8 10 -10\" stroke=\"#82a653\"/>\n<path d=\"M40 136 q-3 -8 -8 -11 M40 136 q0 -10 2 -14 M40 136 q4 -7 9 -9\" stroke=\"#b3d17c\"/>\n<path d=\"M212 140 q-3 -8 -8 -11 M212 140 q0 -10 2 -14 M212 140 q4 -7 9 -9\" stroke=\"#82a653\"/>\n<path d=\"M112 228 q-3 -8 -8 -11 M112 228 q0 -10 2 -14 M112 228 q4 -7 9 -9\" stroke=\"#b3d17c\"/>\n</g>\n<circle cx=\"182\" cy=\"168\" r=\"3.5\" fill=\"#f4f1ea\"/>\n<circle cx=\"190\" cy=\"174\" r=\"3\" fill=\"#e2c36e\"/>\n<circle cx=\"56\" cy=\"222\" r=\"3.5\" fill=\"#f4f1ea\"/>\n<circle cx=\"230\" cy=\"236\" r=\"3\" fill=\"#e2c36e\"/>\n</svg>"};
+// Cung Thủ (archer_p.svg) · "Phát tên cung dài": brace -> draw longbow to the chin -> hold -> loose -> recoil. range 1-2.
 
 // shared impact: same for all units (game-wide hit feel)
 const HIT = { stop: 90, amp: 9, kx: 420, debris: 'spark', n: 8, sparkColor: '#ffe08a', cut: true, cutAng: -24 };
 const HIT_SMALL = { small: true, stop: 45, amp: 4, kx: 0, debris: 'spark', n: 3, sparkColor: '#ffe08a', cut: false };
 
-const SHOTS = [300, 400, 500];                 // volley release times (ms)
-// string cocked + bolt seated (1) vs string snapped forward, no bolt (0); nỏ thần re-seats between shots
-const COCK = [[0, 1], [300, 1], [301, 0, 'lin'], [350, 0], [351, 1, 'lin'], [400, 1], [401, 0, 'lin'], [450, 0], [451, 1, 'lin'],
-              [500, 1], [501, 0, 'lin'], [1040, 0], [1041, 1, 'lin']];
+const LOOSE = 580;                 // release time (ms)
+const STR_L = 111;                 // half string length: tip (196,18|240) -> nock (196,129)
+// nock offset along the bow frame x (string pulled back = negative); string snaps forward + quivers after the loose
+const STR = track([[0, 0], [140, 0], [420, -40, 'io'], [LOOSE, -42, 'lin'], [LOOSE + 12, 5, 'outExpo'], [LOOSE + 45, -3, 'out'],
+                   [LOOSE + 85, 1.5, 'io'], [LOOSE + 140, 0, 'io']]);
+// string half = bone at its bow tip, rotated + stretched so its end sits on the nock
+const strAng = p => Math.atan(-p / STR_L) * 180 / Math.PI;
+const strSc = p => Math.hypot(p, STR_L) / STR_L - 1;
 
-// bowstring "twang": short white speed lines flaring off the muzzle
+// bowstring "twang": short white speed lines flaring off the bow grip
 const twang = api => {
   const fx = { age: 0, life: 110,
     upd(s, ms) { this.age += ms; return this.age < this.life; },
     draw(ctx, cam, layer) {
       if (layer !== 'front') return;
-      const m = api.point('muzzle'), u = this.age / this.life, r0 = 10 + 26 * E.out(u), r1 = r0 + 22 * (1 - u);
+      const m = api.point('grip'), u = this.age / this.life, r0 = 10 + 26 * E.out(u), r1 = r0 + 22 * (1 - u);
       ctx.setTransform(cam.translate(m.x, m.y)); ctx.lineCap = 'round'; ctx.globalAlpha = 1 - u * u;
       for (const a of [-.75, 0, .75]) {
         ctx.beginPath(); ctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1);
@@ -684,127 +688,123 @@ const twang = api => {
     } };
   api.add(fx);
 };
-const bolt = (api, i) => {
-  const tg = api.target(), last = i === SHOTS.length - 1;
-  api.projectile({ point: 'muzzle', to: { x: tg.x - 8, y: tg.y + [-16, 6, -4][i] }, kind: 'arrow', size: .95, arc: 14, speed: 2500,
-    color: '#c9503f', trail: '#fff6d6',
-    hit: last ? Object.assign({}, HIT, { dmg: 36 }) : Object.assign({}, HIT_SMALL, { dmg: 8 }) });
+const loose = api => {
+  const tg = api.target();
+  api.projectile({ point: 'atip', to: { x: tg.x - 8, y: tg.y - 6 }, kind: 'arrow', size: 1, arc: 18, speed: 2300,
+    color: '#c9503f', trail: '#fff6d6', hit: Object.assign({}, HIT, { dmg: 40 }) });
   twang(api);
 };
 
 const SPEC = {
-  title: 'Nỏ thủ · Nỏ thần liên châu',
-  subtitle: 'aim → 3-bolt volley → recoil → reload (range 2)',
+  title: 'Cung Thủ · Phát tên cung dài',
+  subtitle: 'trụ chân → kéo cung dài tới cằm → giữ → buông tên → giật lùi (tầm 1–2)',
   feet: 244, cx: 128, range: 2,
   parts: {
+    cape: `<path d="M106 124 Q72 158 62 224 Q88 216 112 222 Q114 172 130 128 Z" fill="#93362b"/>`,
     quiver: `<path d="M52 120 L40 84" stroke-width="5"/>
 <path d="M64 116 L58 78" stroke-width="5"/>
 <path d="M76 112 L76 76" stroke-width="5"/>
 <path d="M40 84 L30 72 L46 76 Z" fill="#c9503f" stroke-width="4"/>
 <path d="M58 78 L52 64 L66 70 Z" fill="#c9503f" stroke-width="4"/>
 <path d="M76 76 L72 62 L84 68 Z" fill="#c9503f" stroke-width="4"/>
-<path d="M40 128 L80 112 L108 182 L80 198 Z" fill="#5a4a3c"/>
-<path d="M46 142 L84 126" stroke="#e2c36e" stroke-width="5"/>
-<circle cx="80" cy="162" r="8" fill="#e2c36e" stroke-width="4"/>`,
+<path d="M40 128 L80 112 L108 182 L80 198 Z" fill="#a87a4c"/>
+<path d="M46 142 L84 126" stroke="#5a4a3c" stroke-width="6"/>
+<path d="M66 186 L100 172" stroke="#5a4a3c" stroke-width="6"/>`,
     legB: `<rect x="104" y="196" width="20" height="40" rx="4" fill="#5a4a3c"/>
 <rect x="98" y="228" width="30" height="18" rx="8" fill="#3a2e28"/>`,
     legF: `<rect x="134" y="196" width="20" height="40" rx="4" fill="#5a4a3c"/>
 <rect x="130" y="228" width="32" height="18" rx="8" fill="#3a2e28"/>`,
-    torso: `<path d="M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z" fill="#c9503f"/>
-<path d="M94 196 Q128 206 163 196" fill="none" stroke="#93362b" stroke-width="5"/>
-<path d="M150 130 L100 194" stroke="#3a2e28" stroke-width="8"/>
-<path d="M95 182 L161 182" stroke="#5a4a3c" stroke-width="10"/>
-<circle cx="140" cy="182" r="6" fill="#e2c36e" stroke-width="4"/>`,
-    tails: `<path d="M84 96 Q60 104 50 128 L62 132 Q68 114 88 104 Z" fill="#c9503f" stroke-width="5"/>
-<path d="M84 102 Q70 118 70 140 L80 140 Q80 120 90 108 Z" fill="#93362b" stroke-width="5"/>`,
-    head: `<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
-<path d="M76 92 A54 54 0 0 1 184 84 Q132 70 80 104 Z" fill="#c9503f"/>
-<path d="M88 84 Q132 60 176 72" fill="none" stroke="#93362b" stroke-width="5"/>
-<circle cx="84" cy="98" r="9" fill="#c9503f" stroke-width="5"/>`,
-    arm: `<path d="M152 144 Q174 158 194 166" fill="none" stroke="#2b2220" stroke-width="24"/>
-<path d="M152 144 Q174 158 194 166" fill="none" stroke="#c9503f" stroke-width="12"/>`,
-    bow: `<path d="M206 116 Q230 152 206 190" fill="none" stroke="#2b2220" stroke-width="16"/>
-<path d="M206 116 Q230 152 206 190" fill="none" stroke="#a87a4c" stroke-width="8"/>
-<circle cx="206" cy="116" r="5" fill="#e2c36e" stroke-width="4"/>
-<circle cx="206" cy="190" r="5" fill="#e2c36e" stroke-width="4"/>`,
-    stock: `<path d="M112 148 L228 148 L228 162 L152 164 Q138 180 114 170 Z" fill="#a87a4c"/>
-<path d="M122 156 L222 156" stroke="#5a4a3c" stroke-width="3"/>
-<rect x="150" y="160" width="22" height="14" rx="3" fill="#e2c36e" stroke-width="5"/>
-<path d="M162 174 L158 188" stroke-width="5"/>`,
-    stringC: `<path d="M206 116 L164 148 L206 190" fill="none" stroke-width="4"/>`,
-    stringR: `<path d="M206 116 Q209 153 206 190" fill="none" stroke-width="4"/>`,
-    bolt: `<path d="M168 140 L230 140" stroke-width="9"/>
-<path d="M168 140 L230 140" stroke="#e2c36e" stroke-width="3"/>
-<path d="M230 133 L246 140 L230 147 Z" fill="#cdd4da" stroke-width="4"/>
-<path d="M176 140 L163 131 L167 140 L163 149 Z" fill="#c9503f" stroke-width="4"/>`,
-    handF: `<circle cx="198" cy="168" r="12" fill="#f3cfa6" stroke-width="5"/>`,
-    handB: `<circle cx="138" cy="172" r="11" fill="#f3cfa6" stroke-width="5"/>`,
-    face: `<path d="M141 100 L154 104 M164 104 L177 100" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>
-<circle cx="148" cy="112" r="6" fill="#2b2220"/>
-<circle cx="170" cy="112" r="6" fill="#2b2220"/>
-<circle cx="150" cy="110" r="2" fill="#fff"/>
-<circle cx="172" cy="110" r="2" fill="#fff"/>
-<ellipse cx="179" cy="124" rx="6" ry="4" fill="#f09a88" opacity="0.6"/>
-<path d="M150 130 Q156 134 162 131" fill="none" stroke="#2b2220" stroke-width="3" stroke-linecap="round"/>`,
+    torso: `<path d="M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z" fill="#5a4a3c"/>
+<path d="M128 150 L128 182" stroke="#3a2e28" stroke-width="4"/>
+<path d="M152 132 L104 196" stroke-width="13"/>
+<path d="M152 132 L104 196" stroke="#a87a4c" stroke-width="6"/>
+<path d="M95 186 L161 186" stroke="#3a2e28" stroke-width="10"/>
+<circle cx="142" cy="187" r="6" fill="#e2c36e" stroke-width="4"/>`,
+    mantle: `<path d="M94 132 Q128 112 162 132 L168 152 Q148 160 128 156 Q108 160 88 152 Z" fill="#c9503f"/>
+<path d="M92 149 Q110 156 128 153 Q146 156 165 149" fill="none" stroke="#e2c36e" stroke-width="3.5"/>`,
+    tails: `<path d="M92 50 Q60 36 34 54 Q62 58 82 76 Z" fill="#c9503f" stroke-width="5"/>
+<path d="M86 54 Q66 48 50 54" fill="none" stroke="#93362b" stroke-width="4"/>`,
+    head: `<path d="M72 114 Q56 44 112 24 Q150 14 172 32 Q190 52 186 94 Z" fill="#93362b"/>
+<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
+<path d="M76 100 Q70 38 130 28 Q186 34 186 96 Q168 66 132 64 Q98 66 76 100 Z" fill="#c9503f"/>
+<path d="M82 92 Q102 70 132 68 Q162 68 180 88" fill="none" stroke="#e2c36e" stroke-width="3.5"/>`,
+    arm: `<path d="M152 142 Q184 146 214 134" fill="none" stroke="#2b2220" stroke-width="24"/>
+<path d="M152 142 Q184 146 214 134" fill="none" stroke="#c9503f" stroke-width="12"/>`,
+    bow: `<path d="M196 18 C228 58 228 200 196 240" fill="none" stroke="#2b2220" stroke-width="15"/>
+<path d="M196 18 C228 58 228 200 196 240" fill="none" stroke="#a87a4c" stroke-width="7"/>
+<circle cx="196" cy="18" r="5" fill="#e2c36e" stroke-width="4"/>
+<circle cx="196" cy="240" r="5" fill="#e2c36e" stroke-width="4"/>`,
+    strT: `<path d="M196 18 L196 129" fill="none" stroke-width="3.5"/>`,
+    strB: `<path d="M196 240 L196 129" fill="none" stroke-width="3.5"/>`,
+    handF: `<circle cx="220" cy="132" r="12" fill="#f3cfa6" stroke-width="5"/>`,
+    arrow: `<path d="M194 129 L240 129" stroke-width="8"/>
+<path d="M194 129 L240 129" stroke="#a87a4c" stroke-width="3"/>
+<path d="M238 122 L253 129 L238 136 Z" fill="#cdd4da" stroke-width="4"/>
+<path d="M214 129 L203 121 L206 129 L203 137 Z" fill="#c9503f" stroke-width="4"/>`,
+    handB: `<circle cx="192" cy="133" r="11" fill="#f3cfa6" stroke-width="5"/>`,
+    face: `<path d="M140 101 L155 106 M163 106 L178 101" stroke="#2b2220" stroke-width="4.5" stroke-linecap="round"/>
+<circle cx="148" cy="114" r="6" fill="#2b2220"/>
+<circle cx="170" cy="114" r="6" fill="#2b2220"/>
+<circle cx="150" cy="112" r="2" fill="#fff"/>
+<circle cx="172" cy="112" r="2" fill="#fff"/>
+<ellipse cx="179" cy="126" rx="6" ry="4" fill="#f09a88" opacity="0.6"/>
+<path d="M151 132 Q157 135 163 132" fill="none" stroke="#2b2220" stroke-width="3" stroke-linecap="round"/>`,
   },
   raw: ['face'],
   bones: [
     { name: 'body', pivot: [128, 200], ch: 'lean' },
+    { name: 'cape', parent: 'body', pivot: [112, 128], ch: 'cape' },
     { name: 'head', parent: 'body', pivot: [130, 140], ch: 'head' },
-    { name: 'tails', parent: 'head', pivot: [86, 100], ch: 'tails' },
+    { name: 'tails', parent: 'head', pivot: [86, 62], ch: 'tails' },
     { name: 'quiver', parent: 'body', pivot: [84, 122], ch: 'quiv' },
-    // crossbow: own bone at the shoulder/cheek; arm + hands ride on it. kick = recoil slide, raise = lift to the eye
-    { name: 'xbow', parent: 'body', pivot: [150, 146], ch: 'aim', tx: 'kick', ty: 'raise' },
-    { name: 'handB', parent: 'xbow', pivot: [138, 172], tx: 'pull' },
+    // longbow arm: bow + string + both hands ride on it (aim = tilt up at the shoulder)
+    { name: 'bow', parent: 'body', pivot: [152, 142], ch: 'aim' },
+    { name: 'strT', parent: 'bow', pivot: [196, 18], ch: 'sT', sc: 'sS' },
+    { name: 'strB', parent: 'bow', pivot: [196, 240], ch: 'sB', sc: 'sS' },
+    // string hand + nocked arrow slide back along the bow frame; after the loose the hand keeps flying back
+    { name: 'handB', parent: 'bow', pivot: [196, 129], tx: 'hand' },
     { name: 'legB', pivot: [114, 198], ch: 'legB' },
     { name: 'legF', pivot: [144, 198], ch: 'legF' },
   ],
-  // source order; face drawn last as in the SVG
-  draw: [['quiver', 'quiver'], ['legB', 'legB'], ['legF', 'legF'], ['torso', 'body'], ['tails', 'tails'], ['head', 'head'],
-         ['arm', 'xbow'], ['bow', 'xbow'], ['stock', 'xbow'], ['stringC', 'xbow', 'cock'], ['stringR', 'xbow', 'rel'],
-         ['bolt', 'xbow', 'cock'], ['handF', 'xbow'], ['handB', 'handB'], ['face', 'head']],
-  // stock raised to the cheek -> crossbow + arm in front of the face
+  draw: [['cape', 'cape'], ['quiver', 'quiver'], ['legB', 'legB'], ['legF', 'legF'], ['torso', 'body'], ['mantle', 'body'],
+         ['tails', 'tails'], ['head', 'head'], ['arm', 'bow'], ['bow', 'bow'], ['strT', 'strT'], ['strB', 'strB'],
+         ['handF', 'bow'], ['arrow', 'handB', 'nock'], ['handB', 'handB'], ['face', 'head']],
+  // string hand at the chin: string, hand + arrow over the face
   order(p, list) {
-    if (p.raise >= -1) return list;
+    if (p.hand >= -18) return list;
     const f = list.find(([n]) => n === 'face'), rest = list.filter(([n]) => n !== 'face'), i = rest.findIndex(([n]) => n === 'head');
     return [...rest.slice(0, i + 1), f, ...rest.slice(i + 1)];
   },
-  points: { muzzle: ['xbow', 246, 140], nut: ['xbow', 166, 146], mid: ['xbow', 206, 140] },
+  points: { atip: ['handB', 253, 129], nock: ['handB', 196, 129], grip: ['bow', 230, 129] },
   springs: {
-    tails: { k: 190, c: 9, drive: (p, vx, c) => clamp(vx * .03, -14, 30) + p.lean * .6 + p.head * .5 + (p.kick || 0) * -1.2 + (c.idle ? 3 * Math.sin(c.clock / 650) : 0) },
-    quiv: { k: 260, c: 10, drive: (p, vx, c) => clamp(vx * .02, -8, 12) + p.lean * .4 + (p.kick || 0) * -.5 + (c.idle ? .8 * Math.sin(c.clock / 800) : 0) },
+    tails: { k: 190, c: 9, drive: (p, vx, c) => clamp(vx * .03, -14, 30) + p.lean * .6 + p.head * .5 + (c.idle ? 3 * Math.sin(c.clock / 650) : 0) },
+    cape: { k: 160, c: 9, drive: (p, vx, c) => clamp(vx * .04, -10, 24) + p.lean * .5 + (c.idle ? 1.5 * Math.sin(c.clock / 720) : 0) },
+    quiv: { k: 260, c: 10, drive: (p, vx, c) => clamp(vx * .02, -8, 12) + p.lean * .4 + (c.idle ? .8 * Math.sin(c.clock / 800) : 0) },
   },
-  idle(p, b) { p.sy = 1 + .014 * b; p.head = 1.5 * b; p.aim = -1.2 * b; p.raise = -.8 * b; },
+  idle(p, b) { p.sy = 1 + .014 * b; p.head = 1.5 * b; p.aim = -1.2 * b; },
   attacks: [
     {
-      id: 'volley', label: '🏹 Nỏ thần liên châu', dur: 1450,
+      id: 'loose', label: '🏹 Phát tên cung dài', dur: 1400,
       tr: {
-        // 0-170 brace + raise · 170-300 aim hold (gleam) · 300/400/500 bolts · 500-760 recoil hold · 860-1060 reload · -1400 recover
-        x: track([[0, 0], [170, -4, 'out'], [300, -4], [310, -8, 'outExpo'], [400, -8], [410, -12, 'outExpo'], [500, -12],
-                  [516, -22, 'outExpo'], [760, -18, 'out'], [1400, 0, 'io']]),
-        sy: track([[0, 1], [160, .9, 'out'], [260, .94], [300, .94], [310, 1.03, 'outExpo'], [370, .96], [410, 1.03, 'outExpo'], [470, .96],
-                   [516, 1.07, 'outExpo'], [620, .95, 'out'], [760, 1, 'out'], [960, .97, 'io'], [1060, 1, 'io']]),
-        lean: track([[0, 0], [170, -7, 'out'], [300, -5], [516, -12, 'outExpo'], [760, -9, 'out'], [920, 4, 'io'], [1100, 4], [1400, 0, 'io']]),
-        head: track([[0, 0], [170, 6, 'out'], [300, 6], [516, -5, 'outExpo'], [760, -2], [920, 10, 'io'], [1100, 10], [1400, 0, 'io']]),
-        aim: track([[0, 0], [170, -14, 'outBack'], [260, -6, 'io'], [300, -6], [312, -12, 'outExpo'], [385, -6, 'out'], [400, -6],
-                    [412, -12, 'outExpo'], [485, -6, 'out'], [500, -6], [516, -16, 'outExpo'], [700, -11, 'out'],
-                    [900, 18, 'io'], [1100, 18], [1180, 12, 'outBack'], [1400, 0, 'io']]),
-        raise: track([[0, 0], [170, -10, 'outBack'], [260, -7], [500, -7], [516, -3, 'outExpo'], [700, -5], [900, 4, 'io'], [1100, 4], [1400, 0, 'io']]),
-        kick: track([[0, 0], [300, 0], [312, -9, 'outExpo'], [385, 0, 'out'], [400, 0], [412, -9, 'outExpo'], [485, 0, 'out'], [500, 0],
-                     [516, -16, 'outExpo'], [700, -7, 'out'], [1000, 0, 'io']]),
-        pull: track([[0, 0], [880, 0], [980, -18, 'io'], [1040, -18], [1060, 0, 'outExpo']]),
-        cock: track(COCK),
-        rel: track(COCK.map(([t, v, e]) => (e ? [t, 1 - v, e] : [t, 1 - v]))),
-        legF: track([[0, 0], [170, -9, 'out'], [760, -9], [1400, 0, 'io']]),
-        legB: track([[0, 0], [170, 6, 'out'], [760, 6], [1400, 0, 'io']]),
+        // 0-140 brace · 140-420 draw to the chin · 420-580 hold (gleam) · 580 loose · 580-820 recoil · 820-1300 recover + re-nock
+        x: track([[0, 0], [140, 2, 'out'], [420, -4, 'io'], [LOOSE, -4], [LOOSE + 20, -14, 'outExpo'], [850, -10, 'out'], [1300, 0, 'io']]),
+        sy: track([[0, 1], [140, .93, 'out'], [420, .97, 'io'], [LOOSE, .97], [LOOSE + 20, 1.05, 'outExpo'], [720, .97, 'out'], [880, 1, 'io']]),
+        lean: track([[0, 0], [140, 3, 'out'], [420, -4, 'io'], [LOOSE, -4], [LOOSE + 20, -10, 'outExpo'], [840, -6, 'out'], [1300, 0, 'io']]),
+        head: track([[0, 0], [140, 2, 'out'], [420, -4, 'io'], [LOOSE, -4], [LOOSE + 20, -8, 'outExpo'], [900, -3, 'out'], [1300, 0, 'io']]),
+        aim: track([[0, 0], [140, -3, 'out'], [420, -8, 'io'], [LOOSE, -8], [LOOSE + 20, -16, 'outExpo'], [800, -11, 'out'], [1300, 0, 'io']]),
+        str: STR,
+        sT: t => strAng(STR(t)),
+        sB: t => -strAng(STR(t)),
+        sS: t => strSc(STR(t)),
+        hand: track([[0, 0], [140, 0], [420, -40, 'io'], [LOOSE, -42, 'lin'], [LOOSE + 20, -60, 'outExpo'], [840, -54, 'out'], [1180, 0, 'io']]),
+        nock: track([[0, 1], [LOOSE, 1], [LOOSE + 1, 0, 'lin'], [1120, 0], [1121, 1, 'lin']]),
+        legF: track([[0, 0], [140, -9, 'out'], [840, -9], [1300, 0, 'io']]),
+        legB: track([[0, 0], [140, 6, 'out'], [840, 6], [1300, 0, 'io']]),
       },
       ev: [
-        [150, a => a.dust(96, 244, 4, -1)],
-        [210, a => a.gleam('muzzle', 160)],
-        [SHOTS[0], a => bolt(a, 0)],
-        [SHOTS[1], a => bolt(a, 1)],
-        [SHOTS[2], a => { bolt(a, 2); a.dust(100, 244, 6, -1); a.shake(3, 120); }],
-        [1042, a => a.gleam('nut', 120)],
+        [120, a => a.dust(96, 244, 4, -1)],
+        [470, a => a.gleam('atip', 150)],
+        [LOOSE, a => { loose(a); a.dust(100, 244, 6, -1); a.shake(3, 120); }],
       ],
     },
   ],

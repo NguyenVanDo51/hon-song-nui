@@ -5,6 +5,7 @@ extends RefCounted
 
 const HUD_M := 10.0 # HUD distance from the screen edge
 
+const SEAL := 128.0 # Hết lượt wax seal diameter
 var gs: GameScreen
 var turn_label: Label
 var gold_num: Label
@@ -49,14 +50,14 @@ func build_hud() -> void:
 	map_wrap.resized.connect(fit)
 	gs.add_child(map_wrap)
 	_frame = Panel.new()
-	var fs := Style.box(Color.TRANSPARENT, Style.BRONZE_2, 6, 0, 2)
-	fs.shadow_color = Color(0, 0, 0, 0.7)
-	fs.shadow_size = 18
-	fs.shadow_offset = Vector2(0, 8)
-	fs.expand_margin_left = 2
-	fs.expand_margin_right = 2
-	fs.expand_margin_top = 2
-	fs.expand_margin_bottom = 2
+	var fs := Style.box(Color.TRANSPARENT, Style.INK_D, 6, 0, 3)
+	fs.shadow_color = Color(0.2, 0.12, 0.05, 0.45)
+	fs.shadow_size = 14
+	fs.shadow_offset = Vector2(5, 7)
+	fs.expand_margin_left = 3
+	fs.expand_margin_right = 3
+	fs.expand_margin_top = 3
+	fs.expand_margin_bottom = 3
 	_frame.add_theme_stylebox_override("panel", fs)
 	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	map_wrap.add_child(_frame)
@@ -137,7 +138,18 @@ func build_hud() -> void:
 	var end_sub: Label = btn_end.get_meta("sub")
 	end_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	end_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	btn_end.custom_minimum_size.x = 190
+	# wax seal: round button, crown stamped on top, text below it
+	btn_end.theme_type_variation = "SealBtn"
+	btn_end.custom_minimum_size = Vector2(SEAL, SEAL)
+	end_title.add_theme_font_size_override("font_size", 20)
+	end_sub.add_theme_font_size_override("font_size", 10)
+	end_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var end_box: VBoxContainer = end_title.get_parent()
+	end_box.offset_top = 40
+	end_box.offset_bottom = -18
+	end_box.offset_left = 10
+	end_box.offset_right = -10
+	end_box.alignment = BoxContainer.ALIGNMENT_BEGIN
 	btn_end.tooltip_text = "Kết thúc lượt (phím E)"
 	btn_end.z_index = 40 # over the board, under the orders popup
 	btn_end.pressed.connect(
@@ -163,13 +175,11 @@ func make_board() -> void:
 	gs.board.info_requested.connect(gs._on_info_requested)
 	map_wrap.add_child(gs.board)
 
-func _hud_box() -> StyleBoxFlat:
-	var b := Style.box(Color(0.075, 0.045, 0.03, 0.86), Color(Style.BRONZE_2, 0.7), 10, 10)
-	b.content_margin_top = 7
-	b.content_margin_bottom = 7
-	b.shadow_color = Color(0, 0, 0, 0.45)
-	b.shadow_size = 10
-	b.shadow_offset = Vector2(0, 4)
+func _hud_box() -> StyleBox:
+	var b := Style.paper(9.0, 6.0)
+	b.frame = false
+	b.content_margin_top = 8
+	b.content_margin_bottom = 10
 	return b
 
 ## ⚙ dropdown: hint, unit book, speed, sound, 2D/3D, restart, leave
@@ -248,7 +258,7 @@ func place_hud() -> void:
 	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_hud_tl.reset_size()
 	_hud_tl.position = Vector2(M, M)
-	btn_end.custom_minimum_size.x = 190
+	btn_end.custom_minimum_size = Vector2(SEAL, SEAL)
 	var eb := btn_end.get_combined_minimum_size()
 	btn_end.size = eb
 	btn_end.position = gs.size - eb - Vector2(M, M)
@@ -312,7 +322,7 @@ func _confirm_restart() -> void:
 	)
 
 func sound_label() -> void:
-	_btn_sound.text = "🔇 Âm thanh: Tắt" if gs.main.audio.muted else "🔊 Âm thanh: Bật"
+	Style.set_btn_text(_btn_sound, "🔇 Âm thanh: Tắt" if gs.main.audio.muted else "🔊 Âm thanh: Bật")
 
 func fit() -> void:
 	if gs.s.is_empty():
@@ -345,13 +355,18 @@ func refresh_end_button(my_turn: bool) -> void:
 	# everyone has moved: the button breathes so the next step is obvious
 	var hot := my_turn and left == 0
 	if hot and _end_pulse == null:
-		_end_pulse = btn_end.create_tween().set_loops()
-		_end_pulse.tween_property(btn_end, "modulate", Color(1.22, 1.12, 0.95), 0.6)
-		_end_pulse.tween_property(btn_end, "modulate", Color.WHITE, 0.6)
+		# seal wobbles (C · Đông Hồ "lắc") so the next step is obvious
+		btn_end.pivot_offset = btn_end.size / 2
+		_end_pulse = btn_end.create_tween().set_loops().set_trans(Tween.TRANS_SINE)
+		_end_pulse.tween_property(btn_end, "rotation_degrees", 4.0, 0.3)
+		_end_pulse.parallel().tween_property(btn_end, "scale", Vector2(1.05, 1.05), 0.3)
+		_end_pulse.tween_property(btn_end, "rotation_degrees", -5.0, 0.3)
+		_end_pulse.parallel().tween_property(btn_end, "scale", Vector2.ONE, 0.3)
 	elif not hot and _end_pulse != null:
 		_end_pulse.kill()
 		_end_pulse = null
-		btn_end.modulate = Color.WHITE
+		btn_end.rotation_degrees = 0.0
+		btn_end.scale = Vector2.ONE
 	place_hud()
 
 func bump_gold() -> void:
@@ -375,7 +390,7 @@ func _goal_line() -> String:
 		hero_keys = { "p": gs.s.heroKey[gs._me()], "e": gs.s.heroKey[gs._foe()] }
 		n = Game.castles(gs.s, gs._foe())
 	var obj := Content.goal_text(win, "bar", hero_keys, { "n": n, "left": maxi(0, turns - turn + 1) })
-	return "[color=#%s]🎯[/color] %s" % [Style.GOLD.to_html(false), obj]
+	return "🎯 %s" % obj
 
 ## top-left HUD: turn, gold, income, goal
 func refresh_top() -> void:
@@ -386,4 +401,4 @@ func refresh_top() -> void:
 	var allowed_me: Array = gs.s.allowed[me]
 	_gold_box.visible = allowed_me.size() > 0 or Game.castles(gs.s, me) > 0
 	_income.text = "+%d" % Game.income(gs.s, me)
-	_goal.text = _goal_line()
+	_goal.text = Icons.bb_text(_goal_line(), 16)

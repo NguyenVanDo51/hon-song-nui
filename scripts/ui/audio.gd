@@ -1,6 +1,6 @@
 class_name Audio
 extends Node
-## synthesized SFX + pentatonic ambient music (port of src/ui/audio.js).
+## synthesized SFX + medieval ambient music (D Dorian lute, drone, war drum; port of src/ui/audio.js).
 ## Every WebAudio recipe (oscillators with exp pitch ramps + vibrato, filtered noise, gain envelopes) is rendered
 ## offline by tools/bake_sfx.gd into assets/sfx/*.wav; at runtime each sound is loaded on its first play and kept.
 ## (Rendering at boot took 1.7 s, and the single-threaded web build ran it on the main thread = blank screen.)
@@ -12,10 +12,13 @@ const MASTER := 0.8
 const SFX_GAIN := 0.7
 const MUSIC_GAIN := 0.16
 const POOL := 8
-## ambient: Vietnamese pentatonic (do re fa sol la) from G3, monochord-like glides
-const SCALE := [0, 2, 5, 7, 9]
-const BASE := 196.0
+const MUSIC_POOL := 12 # drone rings 4 beats; 8 players would cut it mid-note
+## ambient: D Dorian from D3, plucked lute + octave shimmer, root/fifth drone, war drum
+const SCALE := [0, 2, 3, 5, 7, 9, 10]
+const BASE := 146.83
 const BEAT := 0.62
+const DEGREES := 11 # melody range 0..10 = D3..G4 (1.5 octaves)
+const RESOLVE := [0, 4, 7] # phrase ends on root / fifth / octave
 
 ## recipe = list of ["tone"|"noise", params] (params as in audio.js: f f2 type dur vol at attack vib / dur vol at freq q type f2)
 const SFX := {
@@ -35,10 +38,11 @@ const SFX := {
 		["tone", { "f": 330, "f2": 110, "type": "sawtooth", "dur": 0.4, "vol": 0.06 }],
 	],
 	"capture": [
-		["tone", { "f": 196, "dur": 1.6, "vol": 0.18, "vib": 2 }],
-		["tone", { "f": 294, "dur": 1.6, "vol": 0.18, "at": 0.02, "vib": 2 }],
-		["tone", { "f": 392, "dur": 1.6, "vol": 0.18, "at": 0.04, "vib": 2 }],
-		["tone", { "f": 784, "type": "triangle", "dur": 0.9, "vol": 0.05 }],
+		# short horn call D4 -> A4
+		["tone", { "f": 293.7, "type": "sawtooth", "dur": 0.28, "vol": 0.08, "attack": 0.025 }],
+		["tone", { "f": 293.7, "type": "triangle", "dur": 0.28, "vol": 0.2, "attack": 0.025 }],
+		["tone", { "f": 440, "type": "sawtooth", "dur": 0.8, "vol": 0.08, "at": 0.22, "attack": 0.03, "vib": 2 }],
+		["tone", { "f": 440, "type": "triangle", "dur": 0.8, "vol": 0.2, "at": 0.22, "attack": 0.03, "vib": 2 }],
 	],
 	"coin": [
 		["tone", { "f": 988, "type": "square", "dur": 0.08, "vol": 0.07 }],
@@ -56,25 +60,46 @@ const SFX := {
 	],
 	"heal": [["tone", { "f": 660, "f2": 990, "type": "sine", "dur": 0.3, "vol": 0.08 }]],
 	"drum": [
-		["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.6 }],
-		["noise", { "dur": 0.12, "vol": 0.2, "freq": 400 }],
-		["tone", { "f": 110, "f2": 55, "dur": 0.5, "vol": 0.45, "at": 0.28 }],
+		# Cleric of Light aura: holy chime A5 + E6 fifth, faint bell partial
+		["tone", { "f": 880, "dur": 1.5, "vol": 0.16 }],
+		["tone", { "f": 2429, "dur": 0.4, "vol": 0.025 }],
+		["tone", { "f": 1318.5, "dur": 1.4, "vol": 0.1, "at": 0.09 }],
+		["tone", { "f": 1760, "dur": 1.1, "vol": 0.04, "at": 0.18 }],
 	],
 	"spawn": [["noise", { "dur": 0.7, "vol": 0.2, "freq": 300, "f2": 1200, "type": "bandpass", "q": 1 }]],
 	"win": [
-		["tone", { "f": 392, "type": "triangle", "dur": 0.7, "vol": 0.14, "vib": 3 }],
-		["tone", { "f": 440, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.14, "vib": 3 }],
-		["tone", { "f": 523, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.28, "vib": 3 }],
-		["tone", { "f": 587, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.42, "vib": 3 }],
-		["tone", { "f": 784, "type": "triangle", "dur": 0.7, "vol": 0.14, "at": 0.56, "vib": 3 }],
+		# horn fanfare D major: D4 F#4 A4 -> D5 held over A4
+		["tone", { "f": 293.7, "type": "sawtooth", "dur": 0.3, "vol": 0.06, "attack": 0.02 }],
+		["tone", { "f": 293.7, "type": "triangle", "dur": 0.3, "vol": 0.14, "attack": 0.02 }],
+		["tone", { "f": 370, "type": "sawtooth", "dur": 0.3, "vol": 0.06, "at": 0.15, "attack": 0.02 }],
+		["tone", { "f": 370, "type": "triangle", "dur": 0.3, "vol": 0.14, "at": 0.15, "attack": 0.02 }],
+		["tone", { "f": 440, "type": "sawtooth", "dur": 0.3, "vol": 0.06, "at": 0.3, "attack": 0.02 }],
+		["tone", { "f": 440, "type": "triangle", "dur": 0.3, "vol": 0.14, "at": 0.3, "attack": 0.02 }],
+		["tone", { "f": 587.3, "type": "sawtooth", "dur": 1.3, "vol": 0.06, "at": 0.45, "attack": 0.03, "vib": 3 }],
+		["tone", { "f": 587.3, "type": "triangle", "dur": 1.3, "vol": 0.16, "at": 0.45, "attack": 0.03, "vib": 3 }],
+		["tone", { "f": 440, "type": "triangle", "dur": 1.3, "vol": 0.08, "at": 0.45, "attack": 0.03 }],
 	],
 	"lose": [
-		["tone", { "f": 392, "dur": 0.9, "vol": 0.14, "vib": 4 }],
-		["tone", { "f": 349, "dur": 0.9, "vol": 0.14, "at": 0.22, "vib": 4 }],
-		["tone", { "f": 294, "dur": 0.9, "vol": 0.14, "at": 0.44, "vib": 4 }],
-		["tone", { "f": 262, "dur": 0.9, "vol": 0.14, "at": 0.66, "vib": 4 }],
+		# low horn falling A3 G3 F3 -> D3
+		["tone", { "f": 220, "type": "sawtooth", "dur": 0.55, "vol": 0.06, "attack": 0.05 }],
+		["tone", { "f": 220, "type": "triangle", "dur": 0.55, "vol": 0.16, "attack": 0.05 }],
+		["tone", { "f": 196, "type": "sawtooth", "dur": 0.55, "vol": 0.06, "at": 0.35, "attack": 0.05 }],
+		["tone", { "f": 196, "type": "triangle", "dur": 0.55, "vol": 0.16, "at": 0.35, "attack": 0.05 }],
+		["tone", { "f": 174.6, "type": "sawtooth", "dur": 0.55, "vol": 0.06, "at": 0.7, "attack": 0.05 }],
+		["tone", { "f": 174.6, "type": "triangle", "dur": 0.55, "vol": 0.16, "at": 0.7, "attack": 0.05 }],
+		["tone", { "f": 146.8, "f2": 142, "type": "sawtooth", "dur": 1.4, "vol": 0.06, "at": 1.05, "attack": 0.06, "vib": 2 }],
+		["tone", { "f": 146.8, "f2": 142, "type": "triangle", "dur": 1.4, "vol": 0.18, "at": 1.05, "attack": 0.06, "vib": 2 }],
 	],
-	"ui": [["tone", { "f": 660, "type": "triangle", "dur": 0.05, "vol": 0.07 }]],
+	"ui": [
+		# wax-seal press: low thud + paper rustle
+		["tone", { "f": 170, "f2": 70, "dur": 0.1, "vol": 0.07 }],
+		["noise", { "dur": 0.05, "vol": 0.025, "freq": 2500, "f2": 900 }],
+	],
+	"page": [
+		# paper flip: band-passed noise sweeping up, soft settle
+		["noise", { "dur": 0.16, "vol": 0.25, "freq": 1200, "f2": 5000, "type": "bandpass", "q": 1.2 }],
+		["noise", { "dur": 0.1, "vol": 0.06, "freq": 3000, "f2": 1200, "at": 0.12 }],
+	],
 }
 
 const DIR := "res://assets/sfx"
@@ -84,6 +109,7 @@ var music_on: bool
 var _streams := { } # "s:<sfx>" / "m:<note>" -> AudioStreamWAV, filled on first use
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _music_players: Array[AudioStreamPlayer] = []
+var _rng := RandomNumberGenerator.new()
 var _next_sfx := 0
 var _next_music := 0
 var _clock := 0.0
@@ -94,10 +120,12 @@ var _phrase := []
 func _ready() -> void:
 	muted = Store.get_v("mute", false)
 	music_on = Store.get_v("music", true)
+	_rng.randomize()
 	for i in POOL:
 		var p := AudioStreamPlayer.new()
 		add_child(p)
 		_sfx_players.append(p)
+	for i in MUSIC_POOL:
 		var m := AudioStreamPlayer.new()
 		add_child(m)
 		_music_players.append(m)
@@ -149,29 +177,51 @@ func _process(dt: float) -> void:
 		_next_beat += BEAT
 
 func _new_phrase() -> void:
-	var d := 2 + randi() % 4
-	_phrase = []
-	for i in 8:
-		d += [-2, -1, 1, 2, 0][randi() % 5]
-		d = clampi(d, 0, 9)
-		if randf() < 0.25:
-			_phrase.append(null)
+	_phrase = phrase(_rng)
+
+## 8 steps (degree or null = rest): mostly stepwise from root/3rd/5th, step 6 resolves to the nearest RESOLVE, step 7 breathes
+static func phrase(rng: RandomNumberGenerator) -> Array:
+	var d: int = [0, 2, 4][rng.randi() % 3]
+	var out := []
+	for i in 6:
+		d += [-1, -1, 1, 1, -2, 2, 0][rng.randi() % 7]
+		d = clampi(d, 0, DEGREES - 1)
+		if i > 0 and rng.randf() < 0.25:
+			out.append(null)
 		else:
-			_phrase.append(d)
+			out.append(d)
+	var best: int = RESOLVE[0]
+	for r: int in RESOLVE:
+		if absi(r - d) < absi(best - d):
+			best = r
+	out.append(best)
+	out.append(null)
+	return out
 
 func _music_step() -> void:
 	if _step % 8 == 0:
 		_new_phrase()
-	var deg: Variant = _phrase[_step % 8]
-	if deg != null:
-		# glide from the neighbour note like a monochord pitch bend
-		_play_note(("g%d" if randf() < 0.4 else "n%d") % deg)
-		_play_note("o%d" % deg)
-	if _step % 4 == 0:
-		_play_note("bass")
-	if _step % 8 == 6:
-		_play_note("thump")
+	for key: String in step_keys(_step, _phrase, _rng):
+		_play_note(key)
 	_step += 1
+
+## music notes for one beat: lute n<deg> + shimmer o<deg>, drone root (beat 0) / fifth (beat 4), drum on 0 and 6, rare roll on 7
+static func step_keys(step: int, phr: Array, rng: RandomNumberGenerator) -> Array[String]:
+	var s := step % 8
+	var out: Array[String] = []
+	var deg: Variant = phr[s]
+	if deg != null:
+		out.append("n%d" % deg)
+		out.append("o%d" % deg)
+	if s == 0:
+		out.append("bass")
+	elif s == 4:
+		out.append("fifth")
+	if s == 0 or s == 6:
+		out.append("thump")
+	elif s == 7 and rng.randf() < 0.3:
+		out.append("roll")
+	return out
 
 func _play_note(key: String) -> void:
 	if muted:
@@ -180,13 +230,14 @@ func _play_note(key: String) -> void:
 	if st == null:
 		return
 	var p := _music_players[_next_music]
-	_next_music = (_next_music + 1) % POOL
+	_next_music = (_next_music + 1) % MUSIC_POOL
 	p.stream = st
 	p.play()
 
 static func note(deg: int) -> float:
-	var semi: int = SCALE[((deg % 5) + 5) % 5]
-	return BASE * pow(2.0, (semi + 12 * floori(deg / 5.0)) / 12.0)
+	var n := SCALE.size()
+	var semi: int = SCALE[((deg % n) + n) % n]
+	return BASE * pow(2.0, (semi + 12 * floori(float(deg) / n)) / 12.0)
 
 # ---------- baked streams ----------
 static func file_of(key: String) -> String:
@@ -224,17 +275,23 @@ static func recipes() -> Dictionary:
 	for sfx: String in SFX:
 		out["s:" + sfx] = [SFX[sfx], SFX_GAIN * MASTER]
 	var g := MUSIC_GAIN * MASTER
-	for d in 10:
+	for d in DEGREES:
 		var f := note(d)
-		var main := { "f": f, "type": "sine", "dur": BEAT * 1.8, "vol": 0.5, "attack": 0.04, "vib": 3 }
-		out["m:n%d" % d] = [[["tone", main]], g]
-		var gl := main.duplicate()
-		gl.f = f * 0.94
-		gl.f2 = f
-		out["m:g%d" % d] = [[["tone", gl]], g]
-		out["m:o%d" % d] = [[["tone", { "f": f * 2, "type": "sine", "dur": BEAT * 1.2, "vol": 0.08, "attack": 0.04 }]], g]
-	out["m:bass"] = [[["tone", { "f": BASE / 2, "f2": BASE / 2.2, "type": "sine", "dur": 0.6, "vol": 0.4 }]], g]
-	out["m:thump"] = [[["tone", { "f": 70, "f2": 45, "type": "sine", "dur": 0.4, "vol": 0.5 }]], g]
+		# pluck: triangle body + short 2nd-harmonic twang, no glide, no vibrato
+		var pluck := [
+			["tone", { "f": f, "type": "triangle", "dur": BEAT * 1.6, "vol": 0.45, "attack": 0.004 }],
+			["tone", { "f": f * 2, "type": "sine", "dur": 0.25, "vol": 0.12, "attack": 0.002 }],
+		]
+		out["m:n%d" % d] = [pluck, g]
+		out["m:o%d" % d] = [[["tone", { "f": f * 2, "type": "sine", "dur": BEAT * 1.2, "vol": 0.05, "attack": 0.08 }]], g]
+	var drone := { "type": "triangle", "dur": BEAT * 3.8, "vol": 0.22, "attack": 0.25 }
+	out["m:bass"] = [[["tone", drone.merged({ "f": BASE / 2 })]], g]
+	out["m:fifth"] = [[["tone", drone.merged({ "f": BASE * 0.75 })]], g]
+	out["m:thump"] = [[["tone", { "f": 95, "f2": 48, "dur": 0.4, "vol": 0.55 }], ["noise", { "dur": 0.06, "vol": 0.12, "freq": 300 }]], g]
+	var roll := []
+	for i in 4:
+		roll.append(["tone", { "f": 90, "f2": 55, "dur": 0.16, "vol": 0.12 + 0.05 * i, "at": BEAT / 4.0 * i }])
+	out["m:roll"] = [roll, g]
 	return out
 
 ## mix every part of a recipe into one buffer, scaled by the bus gain; returns 16-bit PCM bytes

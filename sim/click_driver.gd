@@ -190,7 +190,7 @@ func _duel(g: GameScreen) -> void:
 	okv(g.ui.mode == "target", "P2 aims at a Red unit")
 	await main.shot("duel_p2_aim")
 	var hp0: int = foe.hp
-	press("⚔ Đánh")
+	press("Đánh")
 	await idle(g)
 	var hit_ok: bool = foe.hp < hp0 or Game.unit_by_id(s, id_of(foe)) == null
 	ok(hit_ok, "P2 attack resolved")
@@ -269,7 +269,7 @@ func _run() -> void:
 	ok(board(g).view.path != null, "hover draws path")
 	g._on_tile(pos(dest).x, pos(dest).y)
 	await process_frame
-	press("✖ Hủy")
+	press("Hủy")
 	await process_frame
 	g._on_tile(pos(hero).x, pos(hero).y)
 	g._on_tile(pos(dest).x, pos(dest).y)
@@ -353,7 +353,7 @@ func _run() -> void:
 	var target_ok: bool = g.ui.mode == "target"
 	ok(target_ok, "click enemy -> target mode with preview")
 	var hp0: int = foe.hp
-	press("⚔ Đánh")
+	press("Đánh")
 	await idle(g)
 	var hit_ok: bool = foe.hp < hp0 or Game.unit_by_id(s, id_of(foe)) == null
 	ok(hit_ok, "attack resolved")

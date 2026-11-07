@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kết quả reskin fantasy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f2e3c0;--paper2:#e6d0a0;--ink:#231a15;--mut:#6d5643;--red:#b3262e;--redd:#7d1720;--gold:#e3b345;--blue:#27477a;--good:#3f7a2e}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#f6e9c9,#e6d0a0 70%,#d4b886);color:var(--ink);font:15px/1.6 "Be Vietnam Pro",system-ui,sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 16px 80px}
+h1{font:400 clamp(28px,4.5vw,46px)/1.1 "Paytone One";color:var(--gold);-webkit-text-stroke:2px var(--ink);paint-order:stroke fill;text-shadow:3px 3px 0 var(--ink);margin:0 0 8px}
+h2{font:400 26px/1.2 "Paytone One";color:var(--redd);margin:44px 0 12px;border-bottom:2px solid var(--ink);padding-bottom:6px}
+h3{font:800 17px "Be Vietnam Pro";margin:20px 0 8px}
+p{margin:6px 0}
+.card{background:#fbf3df;border:3px solid var(--ink);border-radius:14px 9px 16px 8px;box-shadow:5px 5px 0 var(--ink);padding:14px 18px;margin:12px 0}
+.card.hi{background:#f6dc8e}
+ul{margin:6px 0;padding-left:22px} li{margin:3px 0}
+code{font:13px ui-monospace,Menlo,monospace;background:#efe0bd;border:1px solid #c9ab72;border-radius:4px;padding:0 4px;word-break:break-word}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,360px),1fr));gap:14px}
+.gal.wide{grid-template-columns:1fr}
+figure{margin:0;background:#fbf3df;border:3px solid var(--ink);border-radius:10px;box-shadow:4px 4px 0 var(--ink);overflow:hidden}
+figure img{display:block;width:100%;height:auto}
+figcaption{padding:6px 10px;font-size:13px;color:var(--mut);border-top:2px solid var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:14px;background:#fbf3df;border:3px solid var(--ink)}
+th,td{border-bottom:1px solid #c9ab72;padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--paper2);font-weight:800}
+.ok{color:var(--good);font-weight:800}.warn{color:#a8700a;font-weight:800}
+audio{width:100%;margin-top:6px}
+@media (max-width:640px){table,tbody,tr,td{display:block;width:100%}thead{display:none}tr{border-bottom:2px solid var(--ink)}td::before{content:attr(data-l);display:block;font-weight:800;font-size:12px;color:var(--redd)}}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Công Thành Chiến · Reskin fantasy</h1>
+<p>Kết quả đợt A (tài sản) + B (giao diện + chữ). Nhánh <code>feat/fantasy-reskin</code> (từ <code>1a73512</code> của <code>feat/levels</code>), worktree <code>.claude/worktrees/fantasy-reskin</code>, commit local, chưa push. Spec: <code>docs/superpowers/specs/2026-11-07-fantasy-reskin-design.md</code> · kế hoạch: <code>docs/superpowers/plans/2026-11-07-fantasy-reskin.md</code>.</p>
+
+<div class="card hi">
+<b>Đã làm</b>
+<ul>
+<li><b>Da UI F1 · Truyện Kỵ Sĩ + font C (Paytone One)</b>: giấy da, viền mực 3 px, bóng cứng lệch, nút nhấn lún đúng chỗ bóng, panel khung đôi + hình thoi vàng, <b>Hết lượt = dấu sáp đỏ</b> in vương miện (lắc khi đã ra lệnh hết), băng rôn lượt đỏ (ta) / lam (địch), nền menu = trang giấy da có đồi khắc gỗ.</li>
+<li><b>22 hình quân mới + 12 rig đòn đánh</b> (11 loại × 2 phe). Hình token sinh từ chính parts của rig (<code>node tools/rig_export.mjs --svg</code>) → token luôn khớp khung 0 của đòn đánh; phe địch tự đổi màu (đỏ→lam, vàng→bạc).</li>
+<li><b>Chỉ huy tư thế B · cắm kiếm</b>, đòn "Kiếm Giáng": nhổ kiếm → chém chéo → cắm lại. <b>Golem Đá</b> rig mới (song quyền giáng đất). Cung thủ (kéo cung), Tu sĩ ánh sáng (giơ đèn → nện chùy) sửa đòn; các quân khác giữ nhịp, đổi hình.</li>
+<li><b>Công trình</b>: lâu đài 2 tháp, làng mái rơm + cối xay, làng cháy, giếng thần, cầu gỗ.</li>
+<li><b>Icon tự vẽ</b> (25 SVG) thay emoji trên nút, HUD, dòng mục tiêu, ô dự báo đánh.</li>
+<li><b>Chữ</b>: tên quân / tướng / phe (Quân Khởi Nghĩa · Đế Quốc) / ô / chữ UI (lâu đài, làng cháy, giếng thần, tu sĩ ban phước…). Tên màn / chương / địa danh / tagline / credits / thoại giữ nguyên (theo anh chốt).</li>
+<li><b>Âm thanh</b>: nhạc nền D Dorian kiểu đàn lute + trống trận (thay ngũ cung đàn bầu); tiếng nút = dấu sáp, thắng = kèn, thua = kèn trầm, hào quang tu sĩ = chuông thánh, thêm tiếng lật giấy.</li>
+</ul>
+</div>
+
+<h2>Kiểm tra</h2>
+<table>
+<thead><tr><th>Cổng</th><th>Kết quả</th></tr></thead>
+<tbody>
+<tr><td data-l="Cổng">Tests (<code>sim/tests.gd</code>)</td><td data-l="Kết quả"><span class="ok">102 passed, 0 failed</span> (98 cũ + 4 test âm thanh mới)</td></tr>
+<tr><td data-l="Cổng">Lint (<code>tools/lint.sh</code>)</td><td data-l="Kết quả"><span class="ok">lint: ok</span></td></tr>
+<tr><td data-l="Cổng">Rig smoke (mọi rig × 2 phe × 6 hướng)</td><td data-l="Kết quả"><span class="ok">RIG SMOKE DONE attacks=132 fails=0</span>, 0 SCRIPT ERROR</td></tr>
+<tr><td data-l="Cổng">Click driver (m02)</td><td data-l="Kết quả"><span class="ok">DRIVER DONE fails=0</span> (đã sửa driver tìm "Đánh" / "Hủy" thay "⚔ Đánh" / "✖ Hủy")</td></tr>
+<tr><td data-l="Cổng">Parity rig (JS demo vs Godot)</td><td data-l="Kết quả"><span class="ok">PARITY_OK</span> cả 12 spec (agent từng quân chạy)</td></tr>
+<tr><td data-l="Cổng">Luật / AI không đổi</td><td data-l="Kết quả"><span class="ok">diff 1a73512..HEAD</span>: <code>rules.gd</code>, <code>ai*.gd</code>, màn chơi không đổi; <code>scripts/core</code> chỉ đổi 3 dòng chữ trong <code>content.gd</code> → kết quả sim giữ nguyên</td></tr>
+</tbody>
+</table>
+
+<h2>Màn hình (1280×720)</h2>
+<div class="gal">
+<figure><img src="fantasy_result/title.jpg" alt=""><figcaption>Tiêu đề: nền giấy da, nút Paytone viền mực</figcaption></figure>
+<figure><img src="fantasy_result/board_m12.jpg" alt=""><figcaption>Bàn cờ m12: quân + công trình mới, HUD giấy, dấu sáp Hết lượt</figcaption></figure>
+<figure><img src="fantasy_result/pick.jpg" alt=""><figcaption>Chọn quân: thẻ quân giấy da</figcaption></figure>
+<figure><img src="fantasy_result/shop.jpg" alt=""><figcaption>Mộ quân</figcaption></figure>
+<figure><img src="fantasy_result/intro.jpg" alt=""><figcaption>Thẻ giới thiệu quân (chụp lúc đang hiện dần)</figcaption></figure>
+<figure><img src="fantasy_result/win.jpg" alt=""><figcaption>Đại thắng</figcaption></figure>
+<figure><img src="fantasy_result/lose.jpg" alt=""><figcaption>Thất thủ</figcaption></figure>
+<figure><img src="fantasy_result/night_m05.jpg" alt=""><figcaption>Màn đêm m05</figcaption></figure>
+<figure><img src="fantasy_result/duel.jpg" alt=""><figcaption>1 đấu 1</figcaption></figure>
+<figure><img src="fantasy_result/codex.jpg" alt=""><figcaption>Sách lính</figcaption></figure>
+<figure><img src="fantasy_result/skirmish.jpg" alt=""><figcaption>Đấu tự do</figcaption></figure>
+<figure><img src="fantasy_result/campaign.jpg" alt=""><figcaption>Bản đồ chiến dịch (chỉ đổi màu cho đọc được - nhánh levels sẽ thay bằng màn chọn level)</figcaption></figure>
+</div>
+<h3>Điện thoại 844×390</h3>
+<div class="gal">
+<figure><img src="fantasy_result/phone_title.jpg" alt=""><figcaption>Tiêu đề</figcaption></figure>
+<figure><img src="fantasy_result/phone_game.jpg" alt=""><figcaption>Trong trận</figcaption></figure>
+<figure><img src="fantasy_result/phone_shop.jpg" alt=""><figcaption>Mộ quân</figcaption></figure>
+</div>
+
+<h2>Quân</h2>
+<div class="gal wide"><figure><img src="fantasy_result/roster.jpg" alt=""><figcaption>Đủ 11 loại: hàng trên phe ta (Quân Khởi Nghĩa), hàng giữa phe địch (Đế Quốc), hàng dưới cỡ 64 px như trên bàn cờ. Thứ tự: Hiệp Sĩ Chỉ Huy / Hắc Hiệp Sĩ · Vệ binh · Cung thủ · Hải tặc · Pháp sư gọi hồn · Tu sĩ ánh sáng · Sói bóng đêm · Golem đá · Máy bắn đá · Rồng · Bộ xương</figcaption></figure></div>
+<h3>Đòn đánh trên bàn cờ thật (khung "token" = hình đứng, phải giống khung 0 ms)</h3>
+<div class="gal">
+<figure><img src="fantasy_result/rig_hero_p.jpg" alt=""><figcaption>Hiệp Sĩ Chỉ Huy · Kiếm Giáng</figcaption></figure>
+<figure><img src="fantasy_result/rig_hero_e.jpg" alt=""><figcaption>Hắc Hiệp Sĩ</figcaption></figure>
+<figure><img src="fantasy_result/rig_golem.jpg" alt=""><figcaption>Golem Đá · Song quyền giáng đất</figcaption></figure>
+<figure><img src="fantasy_result/rig_archer.jpg" alt=""><figcaption>Cung thủ</figcaption></figure>
+<figure><img src="fantasy_result/rig_cleric.jpg" alt=""><figcaption>Tu sĩ ánh sáng</figcaption></figure>
+<figure><img src="fantasy_result/rig_soldier.jpg" alt=""><figcaption>Vệ binh</figcaption></figure>
+<figure><img src="fantasy_result/rig_shaman.jpg" alt=""><figcaption>Pháp sư gọi hồn</figcaption></figure>
+<figure><img src="fantasy_result/rig_skeleton.jpg" alt=""><figcaption>Bộ xương</figcaption></figure>
+<figure><img src="fantasy_result/rig_corsair.jpg" alt=""><figcaption>Hải tặc</figcaption></figure>
+<figure><img src="fantasy_result/rig_wolf.jpg" alt=""><figcaption>Sói bóng đêm</figcaption></figure>
+<figure><img src="fantasy_result/rig_catapult.jpg" alt=""><figcaption>Máy bắn đá</figcaption></figure>
+<figure><img src="fantasy_result/rig_dragon.jpg" alt=""><figcaption>Rồng</figcaption></figure>
+</div>
+<p>Xem đòn đánh chạy thật: mở <code>docs/anim_demo/&lt;quân&gt;.html</code> trong trình duyệt (vd <code>hero_p.html</code>, <code>elephant.html</code>), hoặc chơi trong game.</p>
+
+<h2>Công trình</h2>
+<div class="gal">
+<figure><img src="fantasy_result/buildings_m08.jpg" alt=""><figcaption>m08: lâu đài 3 phe, cầu gỗ, giếng thần, làng</figcaption></figure>
+<figure><img src="fantasy_result/sheet_castle.jpg" alt=""><figcaption>Lâu đài (trung lập / ta / địch)</figcaption></figure>
+<figure><img src="fantasy_result/sheet_village.jpg" alt=""><figcaption>Làng + làng cháy</figcaption></figure>
+</div>
+
+<h2>Âm thanh</h2>
+<div class="card">
+<p><b>Nhạc nền 30 s</b> (đã chuẩn hóa to hơn trong game để dễ nghe):</p>
+<audio controls src="fantasy_result/music_preview.wav"></audio>
+<p><b>SFX</b> theo thứ tự: nút ×2, lật giấy, chiếm, hào quang tu sĩ, thắng, thua. Bản này còn tiếng nút cũ to hơn; trong game đã giảm ~60%.</p>
+<audio controls src="fantasy_result/sfx_preview.wav"></audio>
+</div>
+
+<h2>Cần anh xem / còn lại</h2>
+<div class="card">
+<ul>
+<li><span class="warn">Chơi thử</span>: cảm giác đòn đánh (hit-stop, rung) mới kiểm qua ảnh chụp + smoke, chưa ai xem chạy thật; âm lượng nhạc / tiếng nút chưa ai nghe bằng tai.</li>
+<li><span class="warn">Gộp với levels</span>: nhánh này tách từ <code>1a73512</code>. Khi <code>feat/levels</code> xong, rebase / merge: xung đột dự kiến ở <code>content/theme.gd</code>, <code>scripts/ui/menus.gd</code>, <code>game_screen.gd</code>, <code>main.gd</code> (levels sửa cùng file); màn chọn level mới (<code>level_select.gd</code>) sẽ cần dùng <code>Style.paper()</code> / theme để cùng da. Tài sản (quân, rig, công trình, âm thanh) không đụng file của levels.</li>
+<li>Thoại cốt truyện, tên màn / chương / địa danh, tagline, credits vẫn bối cảnh cũ (đúng phạm vi đã chốt); <code>people</code> còn emoji (levels sẽ xóa).</li>
+<li>Khi tắt rig (<code>norig</code>), hiệu ứng dự phòng của tu sĩ vẫn là vòng sóng trống cũ (<code>fx_strikes.gd</code>) - chỉ thấy khi tắt rig.</li>
+<li>Golem nhỏ hơn voi cũ một chút trên ô; Tu sĩ / Bộ xương dùng hiệu ứng vàng / tím chung cho 2 phe.</li>
+</ul>
+</div>
+<p style="margin-top:40px;color:var(--mut);font-size:13px">docs/review/fantasy_result.html · ảnh trong docs/review/fantasy_result/ (có .gdignore để Godot không import).</p>
+</div></body></html>

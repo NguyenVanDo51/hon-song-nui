@@ -3,31 +3,46 @@ extends RefCounted
 ## the look shared by every screen: lacquer + bronze palette, fonts, the Godot Theme, and widget builders
 ## (menu button, action button, card, unit card, stat bars, dialogue). Port of src/ui/style.css.
 
-const LACQUER := Color("#140b08")
-const LACQUER_2 := Color("#22130d")
-const LACQUER_3 := Color("#34201a")
-const GLASS := Color(0.11, 0.059, 0.039, 0.78)
-const BRONZE := Color("#b8924f")
-const BRONZE_2 := Color("#8a6a35")
-const GOLD := Color("#f0c96c")
-const GOLD_HI := Color("#fff0c2")
-const INK := Color("#f4e8cf")
-const MUTED := Color("#bba78a")
-const CINNABAR := Color("#c8432f")
-const CINNABAR_HI := Color("#e8634a")
-const SEA := Color("#2c8c8a")
-const SEA_HI := Color("#6fd6cf")
-const GOOD := Color("#8fd16a")
-const BAD := Color("#ff6b57")
-const AMBER := Color("#ffd166")
-const P_NAME := Color("#ffb38a")
+# ---------- F1 "Truyện Kỵ Sĩ" palette (fantasy reskin 2026-11-07) ----------
+const PAPER := Color("#f2e3c0")
+const PAPER_2 := Color("#dcc596")
+const PAPER_HI := Color("#fbf3df")
+const INK_D := Color("#231a15") # woodblock ink: every edge, hard shadow, text on paper
+const CRIMSON := Color("#b3262e")
+const CRIMSON_D := Color("#7d1720")
+const LEAF := Color("#e3b345") # gold leaf
+const ROYAL := Color("#27477a")
+const ROYAL_D := Color("#1b3359")
+const LIGHT := Color("#fbf3df") # text over the board / dark table
+const FADED := Color("#8d7c63") # disabled ink
+
+# legacy names, remapped to the parchment look (call sites keep their meaning: text / accent / panel / enemy...)
+const LACQUER := Color("#2a1d14") # dark wood table around the board / menus
+const LACQUER_2 := Color("#3a2a1e")
+const LACQUER_3 := INK_D
+const GLASS := PAPER
+const BRONZE := LEAF
+const BRONZE_2 := Color("#a8802c")
+const GOLD := CRIMSON_D # headings / accent text on paper
+const GOLD_HI := CRIMSON
+const INK := INK_D # body text on paper
+const MUTED := Color("#6d5643")
+const CINNABAR := CRIMSON
+const CINNABAR_HI := Color("#d2444a")
+const SEA := ROYAL
+const SEA_HI := ROYAL
+const GOOD := Color("#3f7a2e")
+const BAD := Color("#b3262e")
+const AMBER := Color("#a8700a")
+const P_NAME := CRIMSON
 
 static var body: Font = load("res://assets/fonts/BeVietnamPro-Regular.ttf")
 static var semi: Font = load("res://assets/fonts/BeVietnamPro-SemiBold.ttf")
 static var bold: Font = load("res://assets/fonts/BeVietnamPro-Bold.ttf")
 static var xbold: Font = load("res://assets/fonts/BeVietnamPro-ExtraBold.ttf")
-static var display: Font = load("res://assets/fonts/AlegreyaSC-Bold.ttf")
-static var display_x: Font = load("res://assets/fonts/AlegreyaSC-ExtraBold.ttf")
+## display = Paytone One (C · Đông Hồ font kept by the user): titles, buttons, numbers
+static var display: Font = load("res://assets/fonts/PaytoneOne-Regular.ttf")
+static var display_x: Font = display
 
 static func box(bg: Color, border := Color.TRANSPARENT, radius := 12, pad := 14.0, bw := 1) -> StyleBoxFlat:
 	var b := StyleBoxFlat.new()
@@ -43,19 +58,37 @@ static func _btn(
 	t: Theme,
 	type: String,
 	base: String,
-	normal: StyleBoxFlat,
-	hover: StyleBoxFlat,
+	normal: StyleBox,
+	hover: StyleBox,
 	fg: Color,
 	fg_hover := Color.TRANSPARENT,
 	font: Font = null,
 	size := 0,
 ) -> void:
 	t.set_type_variation(type, base)
-	var pressed: StyleBoxFlat = hover.duplicate()
-	pressed.bg_color = pressed.bg_color.darkened(0.15)
-	var disabled: StyleBoxFlat = normal.duplicate()
-	disabled.bg_color.a *= 0.45
-	disabled.border_color.a *= 0.45
+	var pressed: StyleBox
+	var disabled: StyleBox
+	if normal is SkinBox:
+		var sk: SkinBox = normal
+		pressed = sk.pressed()
+		var dis: SkinBox = sk.duplicate()
+		dis.face = Color("#e6d3a8")
+		dis.edge = FADED
+		dis.shadow_col = FADED
+		dis.shadow = Vector2(3, 3)
+		dis.inner = Color(0, 0, 0, 0)
+		dis.shine = 0.0
+		disabled = dis
+	else:
+		var hf: StyleBoxFlat = hover
+		var pf: StyleBoxFlat = hf.duplicate()
+		pf.bg_color = pf.bg_color.darkened(0.15)
+		pressed = pf
+		var nf: StyleBoxFlat = normal
+		var df: StyleBoxFlat = nf.duplicate()
+		df.bg_color.a *= 0.45
+		df.border_color.a *= 0.45
+		disabled = df
 	t.set_stylebox("normal", type, normal)
 	t.set_stylebox("hover", type, hover)
 	t.set_stylebox("pressed", type, pressed)
@@ -66,11 +99,28 @@ static func _btn(
 	t.set_color("font_hover_color", type, fg_hover if fg_hover.a > 0 else fg)
 	t.set_color("font_pressed_color", type, fg_hover if fg_hover.a > 0 else fg)
 	t.set_color("font_hover_pressed_color", type, fg_hover if fg_hover.a > 0 else fg)
-	t.set_color("font_disabled_color", type, Color(fg, 0.4))
+	t.set_color("font_disabled_color", type, FADED if normal is SkinBox else Color(fg, 0.4))
+	t.set_color("icon_normal_color", type, Color.WHITE)
+	t.set_color("icon_disabled_color", type, Color(1, 1, 1, 0.45))
 	if font:
 		t.set_font("font", type, font)
 	if size:
 		t.set_font_size("font_size", type, size)
+
+## F1 button face: ink edge, hard shadow, thin inner line; hover = lifted 1 px + longer shadow
+static func skin_btn(face: Color, pad: Vector4, shadow := 4.0, inner := Color(1, 1, 1, 0), radii := Vector4(13, 9, 15, 8)) -> Array[SkinBox]:
+	var n := SkinBox.make(face, pad, { "shadow": Vector2(shadow, shadow), "inner": inner, "radii": radii })
+	var h: SkinBox = n.duplicate()
+	h.face = face.lightened(0.07)
+	h.shift = Vector2(-1, -1)
+	h.shadow = Vector2(shadow + 2, shadow + 2)
+	var out: Array[SkinBox] = [n, h]
+	return out
+
+## ink outline on light button text (Paytone over crimson / blue faces)
+static func _outline(t: Theme, type: String, size := 4) -> void:
+	t.set_color("font_outline_color", type, INK_D)
+	t.set_constant("outline_size", type, size)
 
 static func make_theme() -> Theme:
 	var t := Theme.new()
@@ -83,13 +133,16 @@ static func make_theme() -> Theme:
 	t.set_font_size("normal_font_size", "RichTextLabel", 15)
 	t.set_font_size("bold_font_size", "RichTextLabel", 15)
 	t.set_constant("line_separation", "RichTextLabel", 3)
-	t.set_stylebox("panel", "PanelContainer", box(GLASS, LACQUER_3))
-	t.set_stylebox("panel", "TooltipPanel", box(LACQUER_2, BRONZE_2, 8, 8))
+	t.set_stylebox("panel", "PanelContainer", paper(16.0))
+	t.set_constant("icon_max_width", "Button", 18)
+	t.set_constant("h_separation", "Button", 6)
+	var tip := SkinBox.make(PAPER_HI, Vector4(9, 6, 9, 7), { "shadow": Vector2(3, 3), "edge_w": 2.0, "radii": Vector4(7, 5, 8, 5) })
+	t.set_stylebox("panel", "TooltipPanel", tip)
 	t.set_color("font_color", "TooltipLabel", INK)
-	# scrollbars: thin bronze
-	var grab := box(BRONZE_2, Color.TRANSPARENT, 4, 0)
-	var grab_hi := box(BRONZE, Color.TRANSPARENT, 4, 0)
-	var track := box(Color(0, 0, 0, 0.25), Color.TRANSPARENT, 4, 0)
+	# scrollbars: ink grabber on a paper groove
+	var grab := box(BRONZE_2, INK_D, 4, 0, 1)
+	var grab_hi := box(LEAF, INK_D, 4, 0, 1)
+	var track := box(Color(0.14, 0.10, 0.08, 0.18), Color.TRANSPARENT, 4, 0)
 	track.content_margin_left = 4
 	track.content_margin_right = 4
 	for sb: String in ["VScrollBar", "HScrollBar"]:
@@ -97,112 +150,80 @@ static func make_theme() -> Theme:
 		t.set_stylebox("grabber", sb, grab)
 		t.set_stylebox("grabber_highlight", sb, grab_hi)
 		t.set_stylebox("grabber_pressed", sb, grab_hi)
-	# buttons
-	var mb := box(Color(0.17, 0.10, 0.08, 0.94), BRONZE_2, 12, 0)
-	mb.content_margin_left = 18
-	mb.content_margin_right = 18
-	mb.content_margin_top = 12
-	mb.content_margin_bottom = 12
-	mb.shadow_color = Color(0, 0, 0, 0.4)
-	mb.shadow_size = 8
-	mb.shadow_offset = Vector2(0, 4)
-	var mbh: StyleBoxFlat = mb.duplicate()
-	mbh.border_color = GOLD
-	mbh.bg_color = Color(0.22, 0.13, 0.10, 0.96)
-	_btn(t, "MenuBtn", "Button", mb, mbh, GOLD, Color.TRANSPARENT, display, 21)
-	var pb: StyleBoxFlat = mb.duplicate()
-	pb.bg_color = Color("#b1412d")
-	pb.border_color = Color("#f08a63")
-	var pbh: StyleBoxFlat = pb.duplicate()
-	pbh.bg_color = Color("#c84a33")
-	pbh.border_color = GOLD_HI
-	_btn(t, "PrimaryBtn", "Button", pb, pbh, Color("#fff6e3"), Color.TRANSPARENT, display, 21)
-	var act := box(Color("#301d16"), BRONZE_2, 10, 0)
-	act.content_margin_left = 12
-	act.content_margin_right = 12
-	act.content_margin_top = 8
-	act.content_margin_bottom = 8
-	var acth: StyleBoxFlat = act.duplicate()
-	acth.border_color = GOLD
-	_btn(t, "ActBtn", "Button", act, acth, INK, Color.TRANSPARENT, bold, 14)
-	var hot: StyleBoxFlat = act.duplicate()
-	hot.border_color = GOLD
-	hot.set_border_width_all(2)
-	hot.shadow_color = Color(GOLD, 0.35)
-	hot.shadow_size = 10
-	_btn(t, "ActHot", "Button", hot, hot, INK, Color.TRANSPARENT, bold, 14)
-	var go: StyleBoxFlat = act.duplicate()
-	go.bg_color = Color("#b1412d")
-	go.border_color = Color("#f08a63")
-	var goh: StyleBoxFlat = go.duplicate()
-	goh.border_color = GOLD_HI
-	goh.bg_color = Color("#c84a33")
-	_btn(t, "ActGo", "Button", go, goh, Color("#fff6e3"), Color.TRANSPARENT, bold, 14)
-	var gohot: StyleBoxFlat = go.duplicate()
-	gohot.border_color = GOLD
-	gohot.set_border_width_all(2)
-	gohot.shadow_color = Color(GOLD, 0.4)
-	gohot.shadow_size = 10
-	_btn(t, "ActGoHot", "Button", gohot, gohot, Color("#fff6e3"), Color.TRANSPARENT, bold, 14)
-	var ib := box(Color(0, 0, 0, 0.4), LACQUER_3, 8, 0)
-	ib.content_margin_left = 10
-	ib.content_margin_right = 10
-	ib.content_margin_top = 6
-	ib.content_margin_bottom = 6
-	var ibh: StyleBoxFlat = ib.duplicate()
-	ibh.border_color = BRONZE
-	ibh.bg_color = LACQUER_3
-	_btn(t, "IconBtn", "Button", ib, ibh, INK, Color.TRANSPARENT, semi, 14)
-	var chip := box(Color(0.13, 0.075, 0.05, 0.8), LACQUER_3, 99, 0)
-	chip.content_margin_left = 12
-	chip.content_margin_right = 12
-	chip.content_margin_top = 6
-	chip.content_margin_bottom = 6
-	var chiph: StyleBoxFlat = chip.duplicate()
-	chiph.border_color = BRONZE_2
-	_btn(t, "ChipBtn", "Button", chip, chiph, MUTED, GOLD, body, 13)
-	var chip_on: StyleBoxFlat = chip.duplicate()
-	chip_on.border_color = BRONZE_2
-	_btn(t, "ChipOn", "Button", chip_on, chip_on, GOLD, GOLD, body, 13)
-	var back := box(Color.TRANSPARENT, LACQUER_3, 99, 0)
-	back.content_margin_left = 12
-	back.content_margin_right = 12
-	back.content_margin_top = 6
-	back.content_margin_bottom = 6
-	var backh: StyleBoxFlat = back.duplicate()
-	backh.border_color = BRONZE_2
-	_btn(t, "BackBtn", "Button", back, backh, MUTED, GOLD, body, 14)
-	var seg := box(Color(0.08, 0.043, 0.03, 0.8), LACQUER_3, 99, 0)
-	seg.content_margin_left = 16
-	seg.content_margin_right = 16
-	seg.content_margin_top = 8
-	seg.content_margin_bottom = 8
-	var segh: StyleBoxFlat = seg.duplicate()
-	segh.border_color = BRONZE_2
-	_btn(t, "SegBtn", "Button", seg, segh, MUTED, INK, body, 14)
-	var seg_on: StyleBoxFlat = seg.duplicate()
-	seg_on.bg_color = LACQUER_3
-	seg_on.border_color = BRONZE_2
-	_btn(t, "SegOn", "Button", seg_on, seg_on, GOLD, GOLD, semi, 14)
+	# buttons (F1: paper / crimson / royal faces, ink edge, hard shadow, pressed = lands on the shadow)
+	var paper_line := Color(INK_D, 0.45)
+	var light_line := Color(PAPER, 0.7)
+	var mb := skin_btn(PAPER, Vector4(18, 11, 18, 13), 4.0, paper_line)
+	_btn(t, "MenuBtn", "Button", mb[0], mb[1], GOLD, Color.TRANSPARENT, display, 21)
+	var pb := skin_btn(CRIMSON, Vector4(18, 11, 18, 13), 4.0, light_line)
+	_btn(t, "PrimaryBtn", "Button", pb[0], pb[1], PAPER_HI, Color.TRANSPARENT, display, 21)
+	_outline(t, "PrimaryBtn")
+	var act := skin_btn(PAPER_HI, Vector4(12, 7, 12, 9), 3.0, paper_line, Vector4(9, 6, 10, 6))
+	_btn(t, "ActBtn", "Button", act[0], act[1], INK, Color.TRANSPARENT, bold, 14)
+	var hot := skin_btn(Color("#f6dc8e"), Vector4(12, 7, 12, 9), 3.0, Color(CRIMSON, 0.9), Vector4(9, 6, 10, 6))
+	_btn(t, "ActHot", "Button", hot[0], hot[1], INK, Color.TRANSPARENT, bold, 14)
+	var go := skin_btn(CRIMSON, Vector4(12, 7, 12, 9), 3.0, light_line, Vector4(9, 6, 10, 6))
+	_btn(t, "ActGo", "Button", go[0], go[1], PAPER_HI, Color.TRANSPARENT, bold, 14)
+	_outline(t, "ActGo", 3)
+	var gohot := skin_btn(CRIMSON, Vector4(12, 7, 12, 9), 3.0, LEAF, Vector4(9, 6, 10, 6))
+	_btn(t, "ActGoHot", "Button", gohot[0], gohot[1], PAPER_HI, Color.TRANSPARENT, bold, 14)
+	_outline(t, "ActGoHot", 3)
+	var ib := skin_btn(ROYAL, Vector4(10, 6, 10, 7), 3.0, light_line, Vector4(8, 6, 9, 5))
+	_btn(t, "IconBtn", "Button", ib[0], ib[1], PAPER_HI, Color.TRANSPARENT, semi, 14)
+	_outline(t, "IconBtn", 3)
+	var chip := skin_btn(PAPER_HI, Vector4(12, 5, 12, 7), 2.0, Color(0, 0, 0, 0), Vector4(8, 5, 9, 5))
+	for c: SkinBox in chip:
+		c.edge_w = 2.5
+	_btn(t, "ChipBtn", "Button", chip[0], chip[1], INK, CRIMSON_D, body, 13)
+	var chip_on := skin_btn(LEAF, Vector4(12, 5, 12, 7), 2.0, Color(0, 0, 0, 0), Vector4(8, 5, 9, 5))
+	for c: SkinBox in chip_on:
+		c.edge_w = 2.5
+	_btn(t, "ChipOn", "Button", chip_on[0], chip_on[1], INK, INK, semi, 13)
+	var back := skin_btn(PAPER, Vector4(12, 5, 12, 7), 2.0, Color(0, 0, 0, 0), Vector4(8, 5, 9, 5))
+	_btn(t, "BackBtn", "Button", back[0], back[1], INK, CRIMSON_D, semi, 14)
+	var seg := skin_btn(PAPER_HI, Vector4(16, 7, 16, 9), 3.0, Color(0, 0, 0, 0), Vector4(9, 6, 10, 6))
+	_btn(t, "SegBtn", "Button", seg[0], seg[1], MUTED, INK, body, 14)
+	var seg_on := skin_btn(CRIMSON, Vector4(16, 7, 16, 9), 3.0, light_line, Vector4(9, 6, 10, 6))
+	_btn(t, "SegOn", "Button", seg_on[0], seg_on[1], PAPER_HI, PAPER_HI, semi, 14)
+	_outline(t, "SegOn", 3)
 	var link := StyleBoxEmpty.new()
 	link.set_content_margin_all(4)
 	t.set_type_variation("LinkBtn", "Button")
 	for st: String in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
 		t.set_stylebox(st, "LinkBtn", link)
-	t.set_color("font_color", "LinkBtn", GOLD)
-	t.set_color("font_hover_color", "LinkBtn", GOLD_HI)
+	t.set_color("font_color", "LinkBtn", CRIMSON_D)
+	t.set_color("font_hover_color", "LinkBtn", CRIMSON)
 	t.set_font("font", "LinkBtn", semi)
 	t.set_font_size("font_size", "LinkBtn", 14)
 	# card-ish buttons (mission, hero pick): text lives in child labels
-	var cb := box(GLASS, LACQUER_3, 12, 14)
-	var cbh: StyleBoxFlat = cb.duplicate()
-	cbh.border_color = GOLD
-	_btn(t, "CardBtn", "Button", cb, cbh, INK)
-	var cbon := box(Color(0.25, 0.18, 0.09, 0.9), GOLD, 12, 14)
-	cbon.shadow_color = Color(GOLD, 0.18)
-	cbon.shadow_size = 14
-	_btn(t, "CardOn", "Button", cbon, cbon, INK)
+	var cb := skin_btn(PAPER, Vector4(14, 14, 14, 14), 4.0, paper_line, Vector4(14, 10, 16, 9))
+	_btn(t, "CardBtn", "Button", cb[0], cb[1], INK)
+	var cbon := skin_btn(Color("#f6dc8e"), Vector4(14, 14, 14, 14), 4.0, Color(CRIMSON, 0.9), Vector4(14, 10, 16, 9))
+	_btn(t, "CardOn", "Button", cbon[0], cbon[1], INK)
+	# Hết lượt: wax seal (round; text sits in child labels)
+	var seal := WaxBox.new()
+	var seal_h: WaxBox = seal.duplicate()
+	seal_h.wax = Color("#d23a40")
+	var seal_off: WaxBox = seal.duplicate()
+	seal_off.wax = Color("#9a7f72")
+	seal_off.rim = Color("#7a645a")
+	seal_off.crown = false
+	t.set_type_variation("SealBtn", "Button")
+	t.set_stylebox("normal", "SealBtn", seal)
+	t.set_stylebox("hover", "SealBtn", seal_h)
+	t.set_stylebox("pressed", "SealBtn", seal.pressed())
+	t.set_stylebox("hover_pressed", "SealBtn", seal.pressed())
+	t.set_stylebox("disabled", "SealBtn", seal_off)
+	t.set_stylebox("focus", "SealBtn", StyleBoxEmpty.new())
 	return t
+
+## parchment panel: ink edge, double frame, gold diamond corners; `drop` = soft shade under panels floating on the board
+static func paper(pad := 16.0, drop := 0.0, face := PAPER) -> SkinBox:
+	return SkinBox.make(
+		face,
+		Vector4(pad + 4, pad, pad + 4, pad + 2),
+		{ "shadow": Vector2(5, 5), "frame": true, "radii": Vector4(18, 12, 20, 11), "drop": drop },
+	)
 
 # ---------- builders ----------
 static func lbl(text: String, size := 15, color := INK, font: Font = null, autowrap := false) -> Label:
@@ -228,7 +249,7 @@ static func rich(bb: String, size := 15, color := INK, bold_color := INK) -> Ric
 	r.add_theme_font_size_override("bold_font_size", size)
 	r.add_theme_color_override("default_color", color)
 	r.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	r.text = bold_in(bb, bold_color)
+	r.text = Icons.bb_text(bold_in(bb, bold_color), size + 3)
 	r.custom_minimum_size.x = 40
 	return r
 
@@ -248,16 +269,25 @@ static func hbox(sep := 8) -> HBoxContainer:
 
 static func card(bg := GLASS, border := LACQUER_3, radius := 12, pad := 14.0) -> PanelContainer:
 	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", box(bg, border, radius, pad))
+	if bg == GLASS and border == LACQUER_3:
+		p.add_theme_stylebox_override("panel", paper(pad))
+	else:
+		p.add_theme_stylebox_override("panel", box(bg, border, radius, pad))
 	return p
 
 static func button(text: String, variation := "ActBtn") -> Button:
 	var b := Button.new()
-	b.text = text
+	set_btn_text(b, text)
 	b.theme_type_variation = variation
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	return b
+
+## button label; a leading emoji ("⚔ Đánh") becomes the drawn icon + plain text
+static func set_btn_text(b: Button, text: String) -> void:
+	var parts := Icons.split(text)
+	b.icon = Icons.tex(parts[0]) if parts[0] != "" else null
+	b.text = parts[1]
 
 ## two-line menu button: display-font title + small muted line (sub may be updated later via get_meta("sub"))
 static func menu_button(title: String, sub := "", primary := false) -> Button:
@@ -270,8 +300,11 @@ static func menu_button(title: String, sub := "", primary := false) -> Button:
 	v.offset_top = 10
 	v.offset_bottom = -10
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	var t := lbl(title, 21, Color("#fff6e3") if primary else GOLD, display)
-	var s := lbl(sub, 13, Color("#ffd9c4") if primary else MUTED)
+	var t := lbl(title, 21, PAPER_HI if primary else GOLD, display)
+	var s := lbl(sub, 13, Color("#ffe3cf") if primary else MUTED, semi if primary else null)
+	if primary:
+		ink_outline(t, 5)
+		ink_outline(s, 3)
 	s.visible = sub != ""
 	v.add_child(t)
 	v.add_child(s)
@@ -281,11 +314,17 @@ static func menu_button(title: String, sub := "", primary := false) -> Button:
 	b.custom_minimum_size = Vector2(display.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 21).x + 44, 66 if sub != "" else 50)
 	return b
 
+## ink outline around a label (light text on crimson / board)
+static func ink_outline(l: Label, size := 4) -> void:
+	l.add_theme_color_override("font_outline_color", INK_D)
+	l.add_theme_constant_override("outline_size", size)
+
 static func set_sub(b: Button, sub: String) -> void:
 	var s: Label = b.get_meta("sub")
 	s.text = sub
 	s.visible = sub != ""
-	b.custom_minimum_size.y = 66 if sub != "" else 50
+	if b.theme_type_variation != "SealBtn":
+		b.custom_minimum_size.y = 66 if sub != "" else 50
 
 ## hp bar colour: green > 60, amber > 30, else red
 static func hp_color(hp: int) -> Color:
@@ -327,8 +366,7 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := { }
 		var hd: Dictionary = Rules.HEROES[hero_key]
 		st.merge(hd, true)
 	var look := Content.unit_type_look(side, type, hero_key)
-	var c := card(GLASS, BRONZE_2, 12, 14)
-	c.add_theme_stylebox_override("panel", box(Color(0.16, 0.10, 0.06, 0.88), BRONZE_2, 12, 14))
+	var c := card()
 	var v := vbox(8)
 	var head := hbox(14)
 	head.add_child(Token.make(side, type, hero_key, 64))
@@ -336,7 +374,7 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := { }
 	txt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var lname: String = look.name
 	txt.add_child(lbl(lname, 20, GOLD, display))
-	var desc: String = (look.blurb + " Tướng chiếm được cả làng và thành.") if type == "hero" else look.desc
+	var desc: String = (look.blurb + " Tướng chiếm được cả làng và lâu đài.") if type == "hero" else look.desc
 	txt.add_child(lbl(desc, 14, INK, null, true))
 	head.add_child(txt)
 	v.add_child(head)
@@ -353,11 +391,11 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := { }
 		var holder := Control.new()
 		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var tag := PanelContainer.new()
-		var ts := box(CINNABAR, Color.TRANSPARENT, 99, 2)
+		var ts := box(ROYAL, INK_D, 3, 2, 2)
 		ts.content_margin_left = 8
 		ts.content_margin_right = 8
 		tag.add_theme_stylebox_override("panel", ts)
-		tag.add_child(lbl(str(opts.tag).to_upper(), 11, Color("#fff6e3"), xbold))
+		tag.add_child(lbl(str(opts.tag).to_upper(), 11, PAPER_HI, xbold))
 		tag.position = Vector2(12, -10)
 		holder.add_child(tag)
 		outer.add_child(holder)
@@ -366,12 +404,12 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := { }
 ## thin rounded progress bar (stat bars, hp)
 class Bar extends Control:
 	var frac := 0.0
-	var col_a := BRONZE
-	var col_b := GOLD
+	var col_a := Color("#c98a1e")
+	var col_b := LEAF
 	var h := 6.0
 	var shown := 0.0
 
-	static func make(f: float, height := 6.0, a := BRONZE, b := GOLD) -> Bar:
+	static func make(f: float, height := 8.0, a := Color("#c98a1e"), b := LEAF) -> Bar:
 		var bar := Bar.new()
 		bar.frac = f
 		bar.h = height
@@ -396,12 +434,9 @@ class Bar extends Control:
 		queue_redraw()
 
 	func _draw() -> void:
-		var r := h / 2.0
-		draw_style_box(Style.box(Color(0, 0, 0, 0.5), Color.TRANSPARENT, int(r), 0), Rect2(0, (size.y - h) / 2, size.x, h))
+		var r := Rect2(0, (size.y - h) / 2, size.x, h)
+		draw_style_box(Style.box(Style.PAPER_2, Style.INK_D, 3, 0, 2), r.grow(1))
 		if shown > 0.001:
 			var w := maxf(h, size.x * shown)
-			var sb := StyleBoxFlat.new()
-			sb.set_corner_radius_all(int(r))
-			sb.bg_color = col_a.lerp(col_b, 0.6)
-			sb.anti_aliasing = true
-			draw_style_box(sb, Rect2(0, (size.y - h) / 2, w, h))
+			draw_rect(Rect2(r.position, Vector2(w, h)), col_a.lerp(col_b, 0.6))
+			draw_line(Vector2(w, r.position.y), Vector2(w, r.end.y), Style.INK_D, 2.0)

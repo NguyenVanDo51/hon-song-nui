@@ -2,6 +2,9 @@
 
 Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, rồi **tự thiết kế + làm thêm cho đủ chương, đủ game**, và khi họ quay lại (vài tiếng) game phải **sẵn sàng release bản web**. Không hỏi lại, tự quyết.
 
+
+> 2026-11-07 · Reskin fantasy (kỵ sĩ & pháp sư, bỏ bối cảnh lịch sử Việt ở UI / quân / ô / âm thanh): nhánh `feat/fantasy-reskin` (từ `1a73512` của `feat/levels`), chưa merge. Spec + plan `docs/superpowers/{specs,plans}/2026-11-07-fantasy-reskin*`, kết quả `docs/review/fantasy_result.html`. Hình quân sinh từ `docs/anim_demo/*.spec.js` bằng `node tools/rig_export.mjs --svg`.
+
 ## Kế hoạch
 1. [x] Kiểm tra đường bấm chuột người chơi (driver giả lập click: chọn lính, Chờ/Hủy/Đánh/Mua, gợi ý, hết lượt, đánh tiếp, màn tiếp). Driver ở scratchpad `click_driver.gd`; sửa lỗi tìm được.
 2. [x] Font cho web: web không có font hệ thống -> bundle font emoji + ký hiệu (subset Noto Color Emoji / Noto Sans Symbols 2 chỉ các glyph game dùng) làm fallback cho mọi font.

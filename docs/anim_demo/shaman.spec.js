@@ -1,6 +1,6 @@
-// Thầy mo (shaman_p.svg, 256 viewBox, outline group stroke #2b2220 w7).
+// Pháp Sư Gọi Hồn (necromancer; 256 viewBox, outline group stroke #2b2220 w7): hood, skull staff, green wisp.
 // Melee 1 -> "Gọi hồn": short incantation (staff raised, spirit glyph ring at feet) -> staff thrust -> 3 green soul-flames spiral into target.
-// Parts = inner markup copied verbatim from the source SVG; `face` sits outside the outline <g> (raw).
+// Parts = the art (token SVG is generated from them); `face` sits outside the outline <g> (raw).
 
 // shared impact: same for all units (game-wide hit feel)
 const HIT = { stop: 90, amp: 9, kx: 420, debris: 'spark', n: 8, sparkColor: '#ffe08a', cut: true, cutAng: -24 };
@@ -78,7 +78,7 @@ function arcHalf(ctx, cx, cy, rx, ry, front) {
   ctx.beginPath();
   if (front) ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI); else ctx.ellipse(cx, cy, rx, ry, 0, Math.PI, Math.PI * 2);
 }
-function glyph(ctx, k, s) {                                 // Đông Sơn-ish marks: concentric circle, S-spiral, chevron
+function glyph(ctx, k, s) {                                 // rune marks: concentric circle, S-spiral, chevron
   ctx.beginPath();
   if (k === 0) { ctx.arc(0, 0, s, 0, Math.PI * 2); ctx.fillStyle = SPIRIT_PALE; ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 0, s * .4, 0, Math.PI * 2); ctx.fillStyle = INK; ctx.fill(); return; }
   if (k === 1) { ctx.arc(-s * .5, 0, s * .5, Math.PI, 0); ctx.arc(s * .5, 0, s * .5, Math.PI, 0, true); }
@@ -87,88 +87,65 @@ function glyph(ctx, k, s) {                                 // Đông Sơn-ish m
 }
 
 const SPEC = {
-  title: 'Thầy mo · Gọi hồn',
-  subtitle: 'Niệm chú (gậy giơ cao, vòng phù dưới chân) → chỉ gậy → 3 đốm hồn xanh xoáy vào địch',
+  title: 'Pháp Sư Gọi Hồn · Gọi hồn',
+  subtitle: 'Niệm chú (gậy đầu lâu giơ cao, vòng phù dưới chân) → chỉ gậy → 3 đốm hồn xanh xoáy vào địch',
   feet: 244, cx: 128, range: 1,
   parts: {
     armB: `<path d="M108 140 Q102 164 100 188" fill="none" stroke="#2b2220" stroke-width="26"/>
 <path d="M108 140 Q102 164 100 188" fill="none" stroke="#93362b" stroke-width="14"/>
 <circle cx="100" cy="192" r="11" fill="#f3cfa6" stroke-width="5"/>`,
+    // small green wisp spirit floating beside the necromancer
+    wisp: `<path d="M60 152 Q42 138 52 118 Q58 132 66 130 Q60 116 74 104 Q74 126 84 136 Q82 154 60 152 Z" fill="#8be37a" stroke-width="5"/>
+<circle cx="64" cy="138" r="2.6" fill="#2b2220" stroke="none"/>
+<circle cx="73" cy="137" r="2.6" fill="#2b2220" stroke="none"/>`,
     feet: `<rect x="98" y="226" width="30" height="20" rx="8" fill="#3a2e28"/>
 <rect x="132" y="226" width="32" height="20" rx="8" fill="#3a2e28"/>`,
-    body: `<path d="M100 128 Q128 118 156 128 L176 230 Q128 242 80 230 Z" fill="#c9503f"/>
-<path d="M84 212 Q128 223 172 212" fill="none" stroke="#93362b" stroke-width="10"/>
-<path d="M88 218 L94 228 M108 222 L112 232 M128 224 L130 234 M148 222 L146 232 M166 218 L162 228" fill="none" stroke="#e2c36e" stroke-width="3"/>
-<path d="M132 178 L138 226" fill="none" stroke="#93362b" stroke-width="5"/>
-<path d="M114 128 L132 176 L148 130" fill="none" stroke="#93362b" stroke-width="6"/>
-<path d="M91 176 Q128 186 165 176" fill="none" stroke="#2b2220" stroke-width="17"/>
-<path d="M91 176 Q128 186 165 176" fill="none" stroke="#5a4a3c" stroke-width="9"/>
-<path d="M96 180 L92 190" fill="none" stroke="#5a4a3c" stroke-width="5"/>
-<circle cx="90" cy="194" r="8" fill="#a87a4c" stroke-width="5"/>
-<circle cx="88" cy="214" r="15" fill="#a87a4c" stroke-width="5"/>
-<path d="M78 218 Q84 226 94 226" fill="none" stroke="#5a4a3c" stroke-width="3"/>
-<rect x="86" y="182" width="8" height="7" rx="2" fill="#5a4a3c" stroke-width="3"/>
-<path d="M106 134 Q126 162 150 136" fill="none" stroke="#3a2e28" stroke-width="4"/>
-<path d="M110 142 L106 152 L116 148 Z M140 148 L146 156 L148 144 Z" fill="#ece6da" stroke-width="3"/>
-<circle cx="128" cy="160" r="11" fill="#e2c36e" stroke-width="5"/>
-<circle cx="128" cy="160" r="4" fill="#93362b" stroke-width="3"/>`,
-    plume: `<path d="M120 54 Q86 42 66 8 Q102 18 124 48 Z" fill="#ece6da" stroke-width="5"/>
-<path d="M118 50 Q94 34 74 14" fill="none" stroke="#d8d2c6" stroke-width="3"/>
-<path d="M126 50 Q104 30 102 2 Q126 18 134 48 Z" fill="#c9503f" stroke-width="5"/>
-<path d="M130 46 Q114 28 106 8" fill="none" stroke="#93362b" stroke-width="3"/>
-<path d="M134 50 Q134 24 150 4 Q160 30 146 54 Z" fill="#ece6da" stroke-width="5"/>
-<path d="M142 50 Q144 28 152 10" fill="none" stroke="#d8d2c6" stroke-width="3"/>`,
-    head: `<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
-<path d="M80 96 Q78 126 102 140 Q96 116 106 96 Z" fill="#ece6da" stroke-width="5"/>
-<path d="M78 76 A54 54 0 0 1 183 72 Z" fill="#5a4a3c"/>
-<path d="M96 44 Q112 54 112 72" fill="none" stroke="#3a2e28" stroke-width="5"/>
-<path d="M76 70 Q130 48 184 68 L184 84 Q130 64 76 86 Z" fill="#e2c36e" stroke-width="5"/>
-<circle cx="102" cy="74" r="3.5" fill="#5a4a3c" stroke="none"/>
-<circle cx="130" cy="66" r="3.5" fill="#5a4a3c" stroke="none"/>
-<circle cx="158" cy="68" r="3.5" fill="#5a4a3c" stroke="none"/>
-<path d="M140 124 Q160 134 180 120 Q182 152 160 180 Q148 158 140 124 Z" fill="#ece6da" stroke-width="5"/>
-<path d="M156 140 Q160 156 158 168" fill="none" stroke="#d8d2c6" stroke-width="3"/>`,
-    staff: `<path d="M195 70 Q178 86 182 108 L190 106 Q188 88 200 76 Z" fill="#c9503f" stroke-width="4"/>
-<line x1="200" y1="56" x2="200" y2="244" stroke="#2b2220" stroke-width="15"/>
-<line x1="200" y1="56" x2="200" y2="244" stroke="#a87a4c" stroke-width="7"/>
-<rect x="193" y="96" width="14" height="8" rx="3" fill="#e2c36e" stroke-width="4"/>
-<rect x="193" y="200" width="14" height="8" rx="3" fill="#e2c36e" stroke-width="4"/>
-<path d="M189 46 L211 46 L218 70 L182 70 Z" fill="#e2c36e" stroke-width="5"/>
-<path d="M186 60 L214 60" fill="none" stroke="#5a4a3c" stroke-width="3"/>
-<circle cx="200" cy="76" r="4" fill="#5a4a3c" stroke-width="3"/>
-<path d="M190 32 L172 22 L176 38 Z" fill="#e2c36e" stroke-width="4"/>
-<ellipse cx="198" cy="35" rx="14" ry="9" fill="#e2c36e" stroke-width="5"/>
-<path d="M206 32 Q211 24 214 16" fill="none" stroke="#2b2220" stroke-width="11"/>
-<path d="M206 32 Q211 24 214 16" fill="none" stroke="#e2c36e" stroke-width="5"/>
-<path d="M212 10 L204 2" fill="none" stroke="#2b2220" stroke-width="4"/>
-<circle cx="215" cy="15" r="6" fill="#e2c36e" stroke-width="4"/>
-<path d="M219 12 L238 18 L219 19 Z" fill="#e2c36e" stroke-width="4"/>`,
-    armF: `<path d="M152 140 Q176 150 196 158" fill="none" stroke="#2b2220" stroke-width="28"/>
-<path d="M152 140 Q176 150 196 158" fill="none" stroke="#c9503f" stroke-width="16"/>
-<path d="M178 146 L172 174 L192 172 Z" fill="#93362b" stroke-width="5"/>
-<path d="M186 148 L182 166" fill="none" stroke="#e2c36e" stroke-width="5"/>
-<circle cx="200" cy="160" r="12" fill="#f3cfa6" stroke-width="5"/>`,
-    face: `<path d="M140 100 Q148 93 157 99 M163 99 Q172 93 180 100" fill="none" stroke="#2b2220" stroke-width="8" stroke-linecap="round"/>
-<path d="M140 100 Q148 93 157 99 M163 99 Q172 93 180 100" fill="none" stroke="#ece6da" stroke-width="4" stroke-linecap="round"/>
-<circle cx="149" cy="110" r="5.5" fill="#2b2220"/>
-<circle cx="171" cy="110" r="5.5" fill="#2b2220"/>
-<circle cx="151" cy="108" r="2" fill="#fff"/>
-<circle cx="173" cy="108" r="2" fill="#fff"/>
-<path d="M146 121 Q154 112 161 118 Q168 112 176 120 Q168 126 161 122 Q154 126 146 121 Z" fill="#ece6da" stroke="#2b2220" stroke-width="3" stroke-linejoin="round"/>`,
+    // dark team robe + team trim, rope belt, skull pendant
+    body: `<path d="M100 128 Q128 118 156 128 L176 230 Q128 242 80 230 Z" fill="#93362b"/>
+<path d="M84 222 Q128 233 172 222" fill="none" stroke="#c9503f" stroke-width="8"/>
+<path d="M128 132 L131 226" stroke="#c9503f" stroke-width="6"/>
+<path d="M92 176 Q128 186 164 176" fill="none" stroke="#2b2220" stroke-width="15"/>
+<path d="M92 176 Q128 186 164 176" fill="none" stroke="#a87a4c" stroke-width="7"/>
+<path d="M120 146 Q120 136 128 136 Q136 136 136 146 Q136 151 132 152 L132 156 L124 156 L124 152 Q120 151 120 146 Z" fill="#ece6da" stroke-width="4"/>`,
+    // skull-topped staff with green ghost fire
+    staff: `<line x1="200" y1="60" x2="200" y2="244" stroke="#2b2220" stroke-width="15"/>
+<line x1="200" y1="60" x2="200" y2="244" stroke="#5a4a3c" stroke-width="7"/>
+<path d="M200 4 Q214 16 210 28 Q206 34 200 30 Q193 34 190 26 Q190 14 200 4 Z" fill="#8be37a" stroke-width="4"/>
+<path d="M182 48 Q182 24 200 24 Q218 24 218 48 Q218 58 210 60 L210 68 L190 68 L190 60 Q182 58 182 48 Z" fill="#ece6da" stroke-width="5"/>
+<circle cx="193" cy="46" r="4.5" fill="#2b2220" stroke="none"/>
+<circle cx="207" cy="46" r="4.5" fill="#2b2220" stroke="none"/>
+<path d="M196 62 L196 68 M200 62 L200 68 M204 62 L204 68" stroke="#2b2220" stroke-width="2.5"/>`,
+    armF: `<path d="M152 140 Q176 150 196 160" fill="none" stroke="#2b2220" stroke-width="28"/>
+<path d="M152 140 Q176 150 196 160" fill="none" stroke="#93362b" stroke-width="16"/>
+<circle cx="200" cy="162" r="12" fill="#f3cfa6" stroke-width="5"/>`,
+    // hood tail (flops back)
+    plume: `<path d="M86 46 Q54 30 36 48 Q60 54 76 68 Z" fill="#93362b"/>`,
+    head: `<path d="M72 112 Q56 42 112 24 Q152 14 178 36 Q198 56 192 104 Z" fill="#93362b"/>
+<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
+<path d="M76 98 Q72 40 130 30 Q188 36 188 96 Q168 66 132 64 Q98 66 76 98 Z" fill="#93362b"/>
+<path d="M82 92 Q102 70 132 68 Q164 68 182 88" fill="none" stroke="#c9503f" stroke-width="5"/>`,
+    // brows, glowing green eye glints, tired eye bags
+    face: `<path d="M140 103 L155 109 M163 109 L178 103" stroke="#2b2220" stroke-width="5" stroke-linecap="round"/>
+<circle cx="148" cy="116" r="6" fill="#2b2220"/>
+<circle cx="170" cy="116" r="6" fill="#2b2220"/>
+<circle cx="150" cy="114" r="2" fill="#8be37a"/>
+<circle cx="172" cy="114" r="2" fill="#8be37a"/>
+<path d="M141 124 Q148 128 155 124 M163 124 Q170 128 177 124" fill="none" stroke="#9b86b8" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M151 134 Q160 136 168 129" fill="none" stroke="#2b2220" stroke-width="3.5" stroke-linecap="round"/>`,
   },
   raw: ['face'],
   bones: [
     { name: 'body', pivot: [128, 236], ch: 'lean' },
     { name: 'armB', parent: 'body', pivot: [108, 140], ch: 'armB' },
     { name: 'head', parent: 'body', pivot: [130, 136], ch: 'head' },
-    { name: 'plume', parent: 'head', pivot: [130, 50], ch: 'plume' },
+    { name: 'plume', parent: 'head', pivot: [82, 56], ch: 'plume' },   // hood tail root
     { name: 'armF', parent: 'body', pivot: [152, 140], ch: 'arm' },
     { name: 'staff', parent: 'armF', pivot: [200, 160], ch: 'wrist' },   // pivot = hand centre
   ],
-  // source order; face moved up to right after head (no overlap with staff/arm at rest) so a raised hand covers it, not vice versa
-  draw: [['armB', 'armB'], ['feet', 'root'], ['body', 'body'], ['plume', 'plume'], ['head', 'head'], ['face', 'head'],
-         ['staff', 'staff'], ['armF', 'armF']],
-  points: { tip: ['staff', 236, 17], top: ['staff', 198, 35], bell: ['staff', 200, 58], mid: ['staff', 200, 104] },
+  // sample order (head + hood over the shoulder); wisp after armB so a raised back hand sits behind the spirit
+  draw: [['armB', 'armB'], ['wisp', 'body'], ['feet', 'root'], ['body', 'body'], ['staff', 'staff'], ['armF', 'armF'],
+         ['plume', 'plume'], ['head', 'head'], ['face', 'head']],
+  points: { tip: ['staff', 200, 8], top: ['staff', 200, 36], bell: ['staff', 200, 66], mid: ['staff', 200, 104] },
   springs: {
     plume: { k: 200, c: 9, drive: (p, vx, c) => clamp(-vx * .035, -26, 14) - p.lean * .5 - p.head * .4 + (c.idle ? 2 * Math.sin(c.clock / 700) : 0) },
   },
@@ -224,7 +201,7 @@ const SPEC = {
           if ((z >= 0) !== front) continue;
           drawFlame(ctx, cam, RING.x + Math.cos(a) * 82, RING.y + z * 20 - u * 150, -90, 9 * (1 - u * .6), .3 * Math.sin(t / 40 + k), (1 - u) * fade, false);
         }
-        // spirit gathering on the bronze bird while chanting (becomes the burst)
+        // spirit gathering on the skull flame while chanting (becomes the burst)
         if (front && t > 240 && t < T_THRUST) {
           const q = api.point('top'), u = clamp((t - 240) / 260, 0, 1);
           drawFlame(ctx, cam, q.x + 2, q.y - 20 - 6 * u, -90, 5 + 8 * E.out(u) + 1.2 * Math.sin(t / 35), .3 * Math.sin(t / 40), fade, false);

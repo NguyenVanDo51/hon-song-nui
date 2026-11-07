@@ -1,56 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
 <g stroke="#2b2220" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
-<!-- part:tail (bushy wolf brush, dark tip) -->
-<path d="M72 156 Q52 132 24 136 L30 145 L12 146 L22 156 L4 162 L20 168 L8 180 L30 178 L24 190 L44 180 Q60 176 72 168 Z" fill="#8d94a0"/>
-<path d="M24 136 L30 145 L12 146 L22 156 L4 162 L20 168 L8 180 L30 178 L24 190 L34 184 Q26 160 36 140 Z" fill="#4a4f5a" stroke="none"/>
-<path d="M50 150 L44 144 M56 166 L48 170" fill="none" stroke="#5d6370" stroke-width="4"/>
-<!-- part:legHB (far hind leg) -->
-<path d="M92 190 L114 190 L110 226 Q114 240 106 244 L88 244 Q84 238 92 232 Z" fill="#5d6370"/>
-<!-- part:legFB (far front leg) -->
-<path d="M180 186 L200 186 L198 236 Q200 244 190 244 L176 244 Q172 238 180 234 Z" fill="#5d6370"/>
-<!-- part:body (lean body, dark saddle, pale belly) -->
-<path d="M58 176 Q58 142 102 138 Q148 132 176 148 Q198 166 186 196 Q164 214 120 210 Q80 212 64 198 Q56 188 58 176 Z" fill="#8d94a0"/>
-<path d="M88 202 Q122 212 170 198 Q166 190 154 194 Q124 204 94 196 Z" fill="#dfe2e6" stroke="none"/>
-<path d="M76 146 Q118 132 164 144 Q124 150 84 160 Z" fill="#5d6370" stroke="none"/>
-<!-- part:legHF (near hind leg: thigh + hock + paw) -->
-<ellipse cx="78" cy="184" rx="27" ry="30" fill="#8d94a0"/>
-<path d="M64 196 L90 200 L82 226 Q90 238 84 244 L62 244 Q58 238 66 232 Z" fill="#8d94a0"/>
-<path d="M68 238 L68 244 M76 238 L76 244" stroke="#5d6370" stroke-width="4"/>
-<!-- part:legFF (near front leg + paw) -->
-<path d="M152 186 L178 186 L174 236 Q178 244 168 244 L152 244 Q146 240 152 234 Z" fill="#8d94a0"/>
-<path d="M158 238 L158 244 M166 238 L166 244" stroke="#5d6370" stroke-width="4"/>
-<!-- part:cloth (team war cloth) -->
-<path d="M70 148 Q118 136 166 148 L170 194 Q118 208 64 196 Z" fill="#4f74c9"/>
-<path d="M76 155 Q118 145 160 155" fill="none" stroke="#32508f" stroke-width="5"/>
-<path d="M88 176 L96 167 L104 176 M132 176 L140 167 L148 176" fill="none" stroke="#32508f" stroke-width="4"/>
-<path d="M66 192 Q118 206 168 192" fill="none" stroke="#e2c36e" stroke-width="9"/>
-<circle cx="118" cy="172" r="12" fill="#e2c36e" stroke-width="5"/>
-<circle cx="118" cy="172" r="5" fill="none" stroke="#32508f" stroke-width="3"/>
-<!-- part:earB -->
-<path d="M150 100 L144 44 L180 80 Z" fill="#5d6370"/>
-<!-- part:earF -->
-<path d="M180 84 L200 28 L220 86 Z" fill="#8d94a0"/>
-<path d="M190 80 L200 46 L210 82 Z" fill="#e4c6bd" stroke="none"/>
-<!-- part:mouth (inside, shows when the jaw opens) -->
+<path d="M72 156 Q52 132 24 136 L30 145 L12 146 L22 156 L4 162 L20 168 L8 180 L30 178 L24 190 L44 180 Q60 176 72 168 Z" fill="#3a3540"/>
+<path d="M24 136 L30 145 L12 146 L22 156 L4 162 L20 168 L8 180 L30 178 L24 190 L34 184 Q26 160 36 140 Z" fill="#26222b" stroke="none"/>
+<path d="M50 150 L44 144 M56 166 L48 170" fill="none" stroke="#5a5462" stroke-width="4"/>
+<path d="M14 150 Q2 140 8 128 Q12 138 20 138 Q16 126 26 118 Q28 132 34 136 Z" fill="#8a6bd1" opacity="0.45" stroke="none"/>
+<path d="M92 190 L114 190 L110 226 Q114 240 106 244 L88 244 Q84 238 92 232 Z" fill="#26222b"/>
+<path d="M78 246 Q72 234 82 230 Q84 238 90 238 Q86 226 98 222 Q96 234 106 236 Q108 226 118 228 Q112 238 120 246 Z" fill="#8a6bd1" opacity="0.35" stroke="none"/>
+<path d="M86 246 Q84 238 92 236 Q94 242 100 240 Q102 232 110 234 Q106 242 112 246 Z" fill="#8a6bd1" opacity="0.55" stroke="none"/>
+<path d="M180 186 L200 186 L198 236 Q200 244 190 244 L176 244 Q172 238 180 234 Z" fill="#26222b"/>
+<path d="M168 246 Q162 234 172 230 Q174 238 180 238 Q176 226 188 222 Q186 234 196 236 Q198 226 208 228 Q202 238 210 246 Z" fill="#8a6bd1" opacity="0.35" stroke="none"/>
+<path d="M176 246 Q174 238 182 236 Q184 242 190 240 Q192 232 200 234 Q196 242 202 246 Z" fill="#8a6bd1" opacity="0.55" stroke="none"/>
+<path d="M58 176 Q58 142 102 138 Q148 132 176 148 Q198 166 186 196 Q164 214 120 210 Q80 212 64 198 Q56 188 58 176 Z" fill="#3a3540"/>
+<path d="M88 202 Q122 212 170 198 Q166 190 154 194 Q124 204 94 196 Z" fill="#5a5462" stroke="none"/>
+<path d="M76 146 Q118 132 164 144 Q124 150 84 160 Z" fill="#26222b" stroke="none"/>
+<path d="M92 176 Q100 170 108 176 M120 184 Q128 178 136 184" fill="none" stroke="#5a5462" stroke-width="4"/>
+<ellipse cx="78" cy="184" rx="27" ry="30" fill="#3a3540"/>
+<path d="M64 196 L90 200 L82 226 Q90 238 84 244 L62 244 Q58 238 66 232 Z" fill="#3a3540"/>
+<path d="M68 238 L68 244 M76 238 L76 244" stroke="#5a5462" stroke-width="4"/>
+<path d="M52 246 Q46 234 56 230 Q58 238 64 238 Q60 226 72 222 Q70 234 80 236 Q82 226 92 228 Q86 238 94 246 Z" fill="#8a6bd1" opacity="0.35" stroke="none"/>
+<path d="M60 246 Q58 238 66 236 Q68 242 74 240 Q76 232 84 234 Q80 242 86 246 Z" fill="#8a6bd1" opacity="0.55" stroke="none"/>
+<path d="M152 186 L178 186 L174 236 Q178 244 168 244 L152 244 Q146 240 152 234 Z" fill="#3a3540"/>
+<path d="M158 238 L158 244 M166 238 L166 244" stroke="#5a5462" stroke-width="4"/>
+<path d="M142 246 Q136 234 146 230 Q148 238 154 238 Q150 226 162 222 Q160 234 170 236 Q172 226 182 228 Q176 238 184 246 Z" fill="#8a6bd1" opacity="0.35" stroke="none"/>
+<path d="M150 246 Q148 238 156 236 Q158 242 164 240 Q166 232 174 234 Q170 242 176 246 Z" fill="#8a6bd1" opacity="0.55" stroke="none"/>
+<path d="M70 152 L76 132 L88 146 L96 124 L110 142 L120 120 L132 140 L144 122 L150 144 Q110 154 70 152 Z" fill="#26222b"/>
+<path d="M100 136 Q96 118 106 108 Q106 122 114 124 Q112 112 122 104 Q124 120 128 126 Z" fill="#8a6bd1" opacity="0.4" stroke="none"/>
+<path d="M150 100 L144 44 L180 80 Z" fill="#26222b"/>
+<path d="M180 84 L200 28 L220 86 Z" fill="#3a3540"/>
+<path d="M190 80 L200 46 L210 82 Z" fill="#5a5462" stroke="none"/>
 <path d="M196 142 L244 136 Q242 172 216 178 Q198 170 196 142 Z" fill="#5a2420"/>
-<!-- part:jaw (lower jaw, fangs) -->
-<path d="M198 162 Q222 170 244 154 L242 166 Q228 186 198 176 Z" fill="#dfe2e6" stroke-width="5"/>
+<path d="M198 162 Q222 170 244 154 L242 166 Q228 186 198 176 Z" fill="#5a5462" stroke-width="5"/>
 <path d="M210 171 Q222 166 234 162" fill="none" stroke="#d9706a" stroke-width="4"/>
 <path d="M214 170 L218 156 L223 168 Z M230 165 L235 152 L239 162 Z" fill="#f5ecd8" stroke-width="4"/>
-<!-- part:head (long wolf snout, dark brow mask, pale muzzle) -->
-<path d="M140 118 Q140 82 176 78 Q204 76 214 100 L244 112 Q254 120 246 132 L216 146 Q196 160 170 158 Q142 152 140 118 Z" fill="#8d94a0"/>
-<path d="M194 128 Q214 118 246 116 Q252 124 246 130 L216 144 Q198 146 194 128 Z" fill="#dfe2e6" stroke="none"/>
-<path d="M160 92 Q182 82 206 98 L200 106 Q184 94 166 100 Z" fill="#5d6370" stroke="none"/>
-<path d="M150 136 Q164 150 186 150 Q172 140 166 128 Z" fill="#dfe2e6" stroke="none"/>
+<path d="M140 118 Q140 82 176 78 Q204 76 214 100 L244 112 Q254 120 246 132 L216 146 Q196 160 170 158 Q142 152 140 118 Z" fill="#3a3540"/>
+<path d="M194 128 Q214 118 246 116 Q252 124 246 130 L216 144 Q198 146 194 128 Z" fill="#5a5462" stroke="none"/>
+<path d="M160 92 Q182 82 206 98 L200 106 Q184 94 166 100 Z" fill="#26222b" stroke="none"/>
+<path d="M150 136 Q164 150 186 150 Q172 140 166 128 Z" fill="#5a5462" stroke="none"/>
 <ellipse cx="246" cy="117" rx="8" ry="6" fill="#2b2220" stroke-width="4"/>
 <path d="M206 142 L210 156 L215 142 Z M228 138 L232 152 L237 137 Z" fill="#f5ecd8" stroke-width="4"/>
-<!-- part:collar (shaggy neck ruff) -->
-<path d="M150 92 L132 100 L144 110 L124 118 L142 128 L122 140 L144 146 L130 160 L152 160 L146 176 L166 168 L172 182 Q148 158 150 92 Z" fill="#b6bcc6"/>
-<path d="M140 120 L150 122 M138 144 L150 144 M150 160 L158 158" fill="none" stroke="#5d6370" stroke-width="4"/>
+<path d="M134 100 L158 90 Q168 128 198 152 L180 178 Q144 148 134 100 Z" fill="#4f74c9"/>
+<path d="M148 104 Q156 136 184 162" fill="none" stroke="#32508f" stroke-width="5"/>
+<circle cx="144" cy="104" r="5" fill="#d9dee3" stroke-width="3"/>
+<circle cx="150" cy="124" r="5" fill="#d9dee3" stroke-width="3"/>
+<circle cx="161" cy="142" r="5" fill="#d9dee3" stroke-width="3"/>
+<circle cx="177" cy="158" r="5" fill="#d9dee3" stroke-width="3"/>
+<circle cx="188" cy="182" r="11" fill="#d9dee3" stroke-width="5"/>
+<circle cx="188" cy="182" r="5" fill="#4f74c9" stroke-width="3"/>
 </g>
-<!-- part:face (raw: fierce amber eye + brow) -->
+<ellipse cx="192" cy="114" rx="20" ry="13" fill="#ffd36b" opacity="0.35"/>
 <path d="M172 100 L202 108" stroke="#2b2220" stroke-width="7" stroke-linecap="round"/>
-<path d="M180 116 Q192 106 204 114 Q192 124 180 116 Z" fill="#ffc83d" stroke="#2b2220" stroke-width="3.5" stroke-linejoin="round"/>
-<ellipse cx="193" cy="115" rx="2.6" ry="5" fill="#2b2220"/>
-<circle cx="190" cy="112" r="1.6" fill="#fff"/>
+<path d="M179 116 Q192 105 205 114 Q192 125 179 116 Z" fill="#ffe9a8" stroke="#2b2220" stroke-width="3.5" stroke-linejoin="round"/>
+<ellipse cx="193" cy="115" rx="5.5" ry="4" fill="#ffb347"/>
+<ellipse cx="193" cy="115" rx="2.4" ry="3.6" fill="#fffbea"/>
 </svg>

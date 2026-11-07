@@ -7,7 +7,7 @@ class GearIcon extends Control:
 	func _draw() -> void:
 		var c := size / 2.0
 		var r := minf(size.x, size.y) * 0.24
-		var col := Style.INK
+		var col := Style.PAPER_HI
 		var pts := PackedVector2Array()
 		for i in 48:
 			var a := TAU * i / 48.0
@@ -15,7 +15,7 @@ class GearIcon extends Control:
 			var tooth := 1.0 if (i / 3) % 2 == 0 else 0.0
 			pts.append(c + Vector2(cos(a), sin(a)) * r * (1.0 + 0.32 * tooth))
 		draw_colored_polygon(pts, col)
-		draw_circle(c, r * 0.45, Color("#3a2416"))
+		draw_circle(c, r * 0.45, Style.ROYAL)
 
 ## gold coin icon in the top bar
 class Coin extends Control:
@@ -25,9 +25,9 @@ class Coin extends Control:
 
 	func _draw() -> void:
 		var c := Vector2(10, 10)
-		Draw.radial(self, c, 9.5, [[0.0, Color("#fff0b3")], [0.6, Color("#e0a43a")], [1.0, Color("#9a6a1e")]], 24, Vector2.ONE, Vector2(-2.5, -3))
-		draw_arc(c, 8.5, 0, TAU, 24, Color("#b8873a"), 2.0, true)
-		draw_rect(Rect2(c - Vector2(3, 3), Vector2(6, 6)), Color("#8a5a16"), false, 1.5)
+		draw_circle(c, 9.0, Style.LEAF, true, -1.0, true)
+		draw_arc(c, 9.0, 0, TAU, 28, Style.INK_D, 2.0, true)
+		Draw.star(self, c, 4.6, Color("#c98a1e"), Color(0, 0, 0, 0), 0.0)
 
 ## warm radial backdrop behind the table
 class BgPaint extends Control:
@@ -35,12 +35,12 @@ class BgPaint extends Control:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	func _draw() -> void:
-		draw_rect(Rect2(Vector2.ZERO, size), Style.LACQUER)
+		draw_rect(Rect2(Vector2.ZERO, size), Color("#c9a66b"))
 		Draw.radial(
 			self,
-			size * Vector2(0.5, 0.4),
-			size.length() * 0.45,
-			[[0.0, Color("#2a1810")], [1.0, Style.LACQUER]],
+			size * Vector2(0.5, 0.42),
+			size.length() * 0.55,
+			[[0.0, Color("#f2e3c0")], [0.6, Color("#e2cb98")], [1.0, Color("#c9a66b")]],
 			40,
 			Vector2(1.0, size.y / size.x * 1.4),
 		)
@@ -57,21 +57,20 @@ class Banner extends Control:
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_label = Style.lbl("", 44, Style.GOLD, Style.display_x)
+		_label = Style.lbl("", 44, Style.PAPER_HI, Style.display_x)
 		_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		_label.add_theme_constant_override("outline_size", 0)
-		_label.add_theme_color_override("font_shadow_color", Color("#4a2c0e"))
-		_label.add_theme_constant_override("shadow_offset_x", 0)
-		_label.add_theme_constant_override("shadow_offset_y", 2)
+		Style.ink_outline(_label, 8)
+		_label.add_theme_color_override("font_shadow_color", Style.INK_D)
+		_label.add_theme_constant_override("shadow_offset_x", 3)
+		_label.add_theme_constant_override("shadow_offset_y", 4)
 		add_child(_label)
 		visible = false
 
 	func show_text(text: String, foe: bool) -> void:
 		_label.text = text
 		_foe = foe
-		_label.add_theme_color_override("font_color", Style.SEA_HI if foe else Style.GOLD)
-		_label.add_theme_color_override("font_shadow_color", Color("#0b2a2e") if foe else Color("#4a2c0e"))
+		_label.add_theme_color_override("font_color", Style.PAPER_HI)
 		_t = 0.0
 		visible = true
 
@@ -94,10 +93,33 @@ class Banner extends Control:
 		var a := 1.0 if _t < 0.78 else maxf(0.0, 1.0 - (_t - 0.78) / 0.22)
 		var up := 0.0 if _t < 0.78 else (_t - 0.78) / 0.22 * 10.0
 		var h := 84.0
-		var w := size.x * open
+		var w := minf(size.x * 0.86, 760.0) * open
 		var r := Rect2((size.x - w) / 2, size.y / 2 - h / 2 - up, w, h)
-		var band := Color(0.08, 0.043, 0.03, 0.85 * a)
-		Draw.gradient_rect(self, r, [[0.0, Color(band, 0.0)], [0.2, band], [0.8, band], [1.0, Color(band, 0.0)]], false)
+		# swallow-tail ribbon: ink edge + hard shadow, crimson for us, royal blue for the foe
+		var col := Color(Style.ROYAL if _foe else Style.CRIMSON, a)
+		var ink := Color(Style.INK_D, a)
+		var cut := 26.0 * open
+		var rib := PackedVector2Array(
+			[
+				r.position,
+				Vector2(r.end.x, r.position.y),
+				Vector2(r.end.x - cut, r.get_center().y),
+				r.end,
+				Vector2(r.position.x, r.end.y),
+				Vector2(r.position.x + cut, r.get_center().y),
+			]
+		)
+		var sh := PackedVector2Array()
+		for q in rib:
+			sh.append(q + Vector2(5, 6))
+		draw_colored_polygon(sh, ink)
+		draw_colored_polygon(rib, col)
+		var loop := rib.duplicate()
+		loop.append(rib[0])
+		draw_polyline(loop, ink, 3.0, true)
+		var inner := Rect2(r.position + Vector2(cut + 6, 7), r.size - Vector2(2 * cut + 12, 14))
+		if inner.size.x > 0:
+			draw_rect(inner, Color(Style.PAPER, 0.55 * a), false, 1.5)
 
 ## slow spinning victory rays behind the end card
 class Rays extends Control:
@@ -114,7 +136,7 @@ class Rays extends Control:
 			var a1 := a0 + TAU / 36.0
 			draw_colored_polygon(
 				PackedVector2Array([c, c + Vector2(cos(a0), sin(a0)) * R, c + Vector2(cos(a1), sin(a1)) * R]),
-				Color(0.94, 0.79, 0.42, 0.08),
+				Color(0.89, 0.70, 0.27, 0.16),
 			)
 
 ## mission stars on the end card: `got` of Stars.MAX, popping in one by one (k: 0 -> MAX, tweened by the owner)
@@ -131,13 +153,13 @@ class StarRow extends Control:
 		var x0 := size.x / 2 - gap * (Stars.MAX - 1) / 2.0
 		for i in Stars.MAX:
 			var c := Vector2(x0 + gap * i, size.y / 2)
-			Draw.star(self, c, r, Color(0.12, 0.07, 0.04, 0.9), Color(0.94, 0.79, 0.42, 0.35), 2.0)
+			Draw.star(self, c, r, Style.PAPER_2, Style.INK_D, 2.0)
 			if i < got:
 				var t := clampf(k - i, 0.0, 1.0)
 				if t > 0.0:
 					var pop := 1.0 + sin(t * PI) * 0.35 # overshoots then settles
 					Draw.glow(self, c, r * 1.6 * t, Color(1.0, 0.85, 0.4, 0.35 * t))
-					Draw.star(self, c, r * pop * t, Color("#ffd96a"), Color("#7a4a12"), 2.0)
+					Draw.star(self, c, r * pop * t, Style.LEAF, Style.INK_D, 2.0)
 
 ## one goal's mark on the win card: gold star = met, dark = missed (the fonts have no check-mark glyph)
 class StarIcon extends Control:
@@ -147,9 +169,9 @@ class StarIcon extends Control:
 		var c := size / 2
 		var r := minf(size.x, size.y) * 0.5
 		if on:
-			Draw.star(self, c, r, Color("#ffd96a"), Color("#7a4a12"), 1.2)
+			Draw.star(self, c, r, Style.LEAF, Style.INK_D, 1.2)
 		else:
-			Draw.star(self, c, r, Color(0.16, 0.1, 0.06), Color(0.94, 0.79, 0.42, 0.45), 1.2)
+			Draw.star(self, c, r, Style.PAPER_2, Style.INK_D, 1.2)
 
 ## win card: 3 stars popping in + each goal ticked / missed with the number it was judged on (+ best, if better before)
 static func end_stars(v: VBoxContainer, goals: Array, best_before: int) -> StarRow:
@@ -209,7 +231,7 @@ class Handoff extends Control:
 		h.z_index = 70 # over the end card (60), under the codex
 		var dim := ColorRect.new()
 		dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		dim.color = Color(0.02, 0.01, 0.0, 0.82)
+		dim.color = Color(0.16, 0.10, 0.05, 0.78)
 		dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		h.add_child(dim)
 		var center := CenterContainer.new()
@@ -217,9 +239,7 @@ class Handoff extends Control:
 		center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		h.add_child(center)
 		var card := PanelContainer.new()
-		var cs := Style.box(Color(0.10, 0.06, 0.04, 0.98), Color(col, 0.8), 16, 26, 2)
-		cs.shadow_color = Color(0, 0, 0, 0.6)
-		cs.shadow_size = 30
+		var cs := Style.paper(26.0, 10.0)
 		card.add_theme_stylebox_override("panel", cs)
 		card.custom_minimum_size.x = 460
 		card.mouse_filter = Control.MOUSE_FILTER_IGNORE

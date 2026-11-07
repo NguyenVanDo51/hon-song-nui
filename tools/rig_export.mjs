@@ -3,6 +3,9 @@
 //   node tools/rig_export.mjs hero_p [hero_e ...]        -> assets/units/rig/<name>.json
 //   node tools/rig_export.mjs --all                      -> every docs/anim_demo/*.spec.js except hero_slash
 //   node tools/rig_export.mjs --sample hero_p gale 0,160,290   -> print every track channel at those ms (parity check)
+//   node tools/rig_export.mjs --svg soldier [hero_p ...] | --svg --all  -> token art assets/units/styles/chibi/<unit>_p|e.svg
+//     built from the spec parts in draw order (rest pose), so token == rig frame 0 by construction.
+//     unit spec -> <unit>_p.svg + <unit>_e.svg (TEAM_SWAP); hero_p / hero_e -> that one file.
 // Functions (ev callbacks, springs.drive, idle, order, attack.draw) are NOT exported: they are hand-ported per unit
 // in scripts/ui/rig/specs/<unit>.gd. Their presence is flagged in the JSON so the port can be cross-checked.
 import fs from 'node:fs';
@@ -125,8 +128,50 @@ function exportSpec(name) {
   console.log(path.relative(ROOT, file), `${Object.keys(out.parts).length} parts, ${out.bones.length} bones, ${out.attacks.map(a => a.id + ' ' + a.dur + 'ms').join(', ')}`);
 }
 
+// same pairs as RigData.TEAM_SWAP (scripts/ui/rig/rig_data.gd): enemy = player art with these colours swapped
+const TEAM_SWAP = [['#c9503f', '#4f74c9'], ['#93362b', '#32508f'], ['#e2c36e', '#d9dee3']];
+const STYLE = path.join(ROOT, 'assets/units/styles/chibi');
+
+// rest value of a draw-entry alpha channel, as RigData.base: bone/spring channels 0, else first attack track at t=0
+function restAlpha(S, ch) {
+  if (S.bones.some(b => ['ch', 'tx', 'ty', 'sc'].some(k => b[k] === ch)) || (S.springs && ch in S.springs)) return 0;
+  const a = S.attacks.find(q => q.tr[ch]);
+  return a ? a.tr[ch](0) : 1;
+}
+
+function tokenSvg(S) {
+  const raw = new Set(S.raw || []);
+  const head = `<g stroke="#2b2220" stroke-width="${S.outline ?? 7}" stroke-linejoin="round" stroke-linecap="round">`;
+  let body = '', open = false;
+  for (const [part, , al] of S.draw) {
+    if (al && restAlpha(S, al) <= 0) continue;   // hidden at rest (e.g. ghost spectral blade): not in the token
+    const r = raw.has(part);
+    if (!r && !open) { body += head + '\n'; open = true; }
+    if (r && open) { body += '</g>\n'; open = false; }
+    body += S.parts[part].trim() + '\n';
+  }
+  if (open) body += '</g>\n';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">\n${body}</svg>\n`;
+}
+
+function exportSvg(name) {
+  const { S } = load(name);
+  const svg = tokenSvg(S);
+  const outs = /_(p|e)$/.test(name) ? [[name, svg]] : [[name + '_p', svg], [name + '_e', TEAM_SWAP.reduce((s, [a, b]) => s.replaceAll(a, b), svg)]];
+  for (const [n, txt] of outs) {
+    const file = path.join(STYLE, n + '.svg');
+    fs.writeFileSync(file, txt);
+    console.log(path.relative(ROOT, file));
+  }
+}
+
 const args = process.argv.slice(2);
-if (args[0] === '--sample') {
+if (args[0] === '--svg') {
+  const names = args[1] === '--all' || args.length < 2
+    ? fs.readdirSync(SRC).filter(f => f.endsWith('.spec.js')).map(f => f.replace('.spec.js', '')).filter(n => n !== 'hero_slash')
+    : args.slice(1);
+  for (const n of names) exportSvg(n);
+} else if (args[0] === '--sample') {
   const [, name, id, times] = args;
   const { S } = load(name);
   const A = S.attacks.find(a => a.id === id) || S.attacks[0];

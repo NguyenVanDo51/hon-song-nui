@@ -21,10 +21,7 @@ func _init(screen: GameScreen) -> void:
 ## orders popup pinned next to the selected tile
 func build_pop() -> void:
 	pop = PanelContainer.new()
-	var ps := Style.box(Color(0.075, 0.045, 0.03, 0.96), Style.BRONZE_2, 12, 12)
-	ps.shadow_color = Color(0, 0, 0, 0.55)
-	ps.shadow_size = 14
-	ps.shadow_offset = Vector2(0, 6)
+	var ps := Style.paper(11.0, 6.0)
 	_pop_box = ps
 	pop.add_theme_stylebox_override("panel", ps)
 	pop.z_index = 50 # above board tokens / FX and the HUD
@@ -237,7 +234,7 @@ func _def_txt(u: Dictionary, st: Dictionary, b: Dictionary) -> String:
 func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
 	var out := []
 	if b.atk_from == "aura":
-		out.append("[color=#%s]⚔ +%d công[/color] nhờ trống đồng, tới lượt sau của phe mình." % [Board.BUFF_UP.to_html(false), b.aura])
+		out.append("[color=#%s]⚔ +%d công[/color] nhờ tu sĩ ban phước, tới lượt sau của phe mình." % [Board.BUFF_UP.to_html(false), b.aura])
 	if b.def_from == "water":
 		out.append(
 			"[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông."
@@ -259,7 +256,7 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	parts.append("công " + Style.range_txt(lo, hi))
 	if bu.atk:
 		parts.append(
-			"[color=#%s]+%d công[/color] (%s)" % [Board.BUFF_UP.to_html(false), bu.atk, "trống đồng" if bu.atk_from == "aura" else "dưới sông"]
+			"[color=#%s]+%d công[/color] (%s)" % [Board.BUFF_UP.to_html(false), bu.atk, "tu sĩ ban phước" if bu.atk_from == "aura" else "dưới sông"]
 		)
 	if bu.poison:
 		parts.append("[color=#%s]−%d công[/color] (bị cắn)" % [Style.BAD.to_html(false), bu.poison])
@@ -378,17 +375,17 @@ func render_pop(my_turn: bool) -> void:
 				if Game.can_capture(gs.s, su, dx, dy):
 					actions.add_child(
 						_act(
-							"🏯 Chiếm thành" if Game.sells(gs.s.tiles[dy][dx]) else "🏠 Chiếm làng",
+							"🏯 Chiếm lâu đài" if Game.sells(gs.s.tiles[dy][dx]) else "🏠 Chiếm làng",
 							func() -> void:
 								gs.commit({ "kind": "capture" }),
 							{ "hot": hk == "capture" or hk == null, "go": true },
 						)
 					)
 				if Game.can_repair(gs.s, su, dx, dy):
-					info.add_child(_note("Làng hỏng: sửa xong thành làng chưa ai chiếm, lượt sau mới chiếm được."))
+					info.add_child(_note("Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được."))
 					actions.add_child(
 						_act(
-							"🔨 Sửa làng",
+							"🔨 Dựng lại làng",
 							func() -> void:
 								gs.commit({ "kind": "repair" }),
 							{ "hot": hk == "repair" or hk == null, "go": true },
@@ -398,10 +395,10 @@ func render_pop(my_turn: bool) -> void:
 				if razes.size():
 					var rt: Array = gs.ui.raze if gs.ui.raze != null and razes.has(gs.ui.raze) else gs._best_raze(razes)
 					if gs.ui.raze != null:
-						info.add_child(_note("Phá làng viền vàng: thành [b]làng hỏng[/b], ai muốn chiếm phải cho lính sửa trước."))
+						info.add_child(_note("Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước."))
 					actions.add_child(
 						_act(
-							"💥 Phá làng",
+							"💥 Đốt làng",
 							func() -> void:
 								gs.commit({ "kind": "raze", "target": rt }),
 							{ "hot": gs.ui.raze != null or hk == "raze", "go": true },

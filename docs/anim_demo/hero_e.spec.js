@@ -1,63 +1,62 @@
-// Tướng giặc (Eastern Han general: lamellar, spiked helmet + tassel, ring-pommel dao)
-// Attack = "Kiếm gió lốc": identical for both commanders (hero_p.spec.js / hero_e.spec.js differ only in CHAR).
-// Parts = verbatim markup from assets/units/styles/chibi/hero_e.svg; same skeleton (pivots, sword hand, blade length) in both.
+// Hắc Hiệp Sĩ (enemy commander): black steel + silver trim, horned helm w/ centre spike, red eye glints, greatsword planted.
+// Attack "Kiếm Giáng": shared by hero_p.spec.js / hero_e.spec.js (they differ only in CHAR).
+// Art source = SVG.hero2('e', 2) in docs/review/ui_direction_fantasy.html (pose B, planted sword); same skeleton both sides.
 
 const CHAR = {
- title: 'Tướng giặc · Kiếm gió lốc',
- plumePivot: [128, 30],
+ title: 'Hắc Hiệp Sĩ · Kiếm Giáng',
  parts: {
-  cape: `<path d="M106 128 Q56 148 40 238 L60 228 L76 244 L92 230 L108 242 L120 232 Q116 182 134 132 Z" fill="#4f74c9"/>
-<path d="M100 142 Q76 168 66 222 M112 150 Q98 190 96 228" fill="none" stroke="#32508f" stroke-width="5"/>`,
-  legB: `<rect x="104" y="196" width="20" height="40" rx="4" fill="#3a2e28"/>
-<rect x="96" y="226" width="32" height="20" rx="8" fill="#3a2e28"/>
-<path d="M100 230 L124 230" stroke="#aab3bd" stroke-width="4"/>`,
-  legF: `<rect x="134" y="196" width="20" height="40" rx="4" fill="#3a2e28"/>
-<rect x="130" y="226" width="34" height="20" rx="8" fill="#3a2e28"/>
-<path d="M134 230 L160 230" stroke="#aab3bd" stroke-width="4"/>`,
-  skirt: `<path d="M92 178 L164 178 L172 222 Q128 232 84 222 Z" fill="#4f74c9"/>
-<path d="M104 190 L98 220 M128 192 L128 226 M152 190 L158 220" fill="none" stroke="#32508f" stroke-width="4"/>
-<path d="M94 176 L162 176 L166 198 Q128 206 90 198 Z" fill="#aab3bd" stroke-width="5"/>
-<path d="M108 178 L106 200 M122 180 L121 203 M136 180 L136 203 M150 178 L151 201" fill="none" stroke="#7e8790" stroke-width="3"/>`,
-  torso: `<path d="M98 128 Q128 116 158 128 L164 182 Q128 192 92 182 Z" fill="#aab3bd"/>
-<path d="M98 142 L160 142 M97 156 L161 156 M96 170 L162 170" fill="none" stroke="#7e8790" stroke-width="4"/>
-<path d="M110 130 L108 180 M122 128 L121 184 M136 128 L136 184 M150 130 L151 182" fill="none" stroke="#7e8790" stroke-width="3"/>
-<path d="M106 126 L128 152 L150 124 L142 120 L128 138 L114 120 Z" fill="#4f74c9" stroke-width="5"/>
-<path d="M94 180 Q128 190 162 180" fill="none" stroke="#2b2220" stroke-width="15"/>
-<path d="M94 180 Q128 190 162 180" fill="none" stroke="#5a4a3c" stroke-width="7"/>
-<rect x="120" y="178" width="16" height="12" rx="3" fill="#e2c36e" stroke-width="4"/>`,
-  pad: `<path d="M136 136 Q154 126 174 138 L170 162 Q152 168 138 158 Z" fill="#aab3bd" stroke-width="5"/>
-<path d="M140 146 Q154 140 171 148 M139 154 Q153 150 170 156" fill="none" stroke="#7e8790" stroke-width="3"/>`,
-  plume: `<path d="M130 26 C108 16 80 24 58 46 C74 42 86 44 94 50 C80 56 70 68 64 84 C84 68 104 58 126 44 Z" fill="#4f74c9" stroke-width="6"/>
-<path d="M120 30 C104 26 88 32 76 42 M118 40 C102 44 90 52 80 64" fill="none" stroke="#32508f" stroke-width="4"/>`,
-  head: `<path d="M78 92 L68 138 Q84 146 104 138 L106 96 Z" fill="#aab3bd" stroke-width="5"/>
-<path d="M74 110 L104 112 M72 124 L104 126" fill="none" stroke="#7e8790" stroke-width="3"/>
-<circle cx="130" cy="92" r="52" fill="#f3cfa6"/>
-<path d="M76 96 Q76 42 130 36 Q184 42 184 96 Z" fill="#aab3bd"/>
-<path d="M104 44 L100 94 M130 36 L130 94 M156 44 L160 94" fill="none" stroke="#7e8790" stroke-width="4"/>
-<path d="M120 40 L130 12 L140 40 Z" fill="#cdd4da" stroke-width="5"/>
-<circle cx="130" cy="14" r="6" fill="#e2c36e" stroke-width="4"/>
-<path d="M70 88 L190 88 L192 102 L68 102 Z" fill="#4f74c9" stroke-width="5"/>
-<path d="M162 126 Q148 126 138 146 Q150 136 162 134 Q174 136 186 146 Q178 126 162 126 Z" fill="#3a2e28" stroke-width="4"/>`,
-  face: `<path d="M138 106 L158 116 M166 116 L184 106" stroke="#2b2220" stroke-width="8" stroke-linecap="round"/>
-<path d="M142 120 Q150 115 158 120 Q150 124 142 120 Z" fill="#2b2220" stroke="#2b2220" stroke-width="3" stroke-linejoin="round"/>
-<path d="M166 120 Q174 115 182 120 Q174 124 166 120 Z" fill="#2b2220" stroke="#2b2220" stroke-width="3" stroke-linejoin="round"/>
-<circle cx="153" cy="119" r="1.6" fill="#fff"/>
-<circle cx="177" cy="119" r="1.6" fill="#fff"/>
-<path d="M118 104 L128 124 M120 112 L126 110 M123 118 L129 116" stroke="#c0605a" stroke-width="3" stroke-linecap="round"/>`,
-  sword: `<g transform="rotate(6 212 128)">
-<path d="M205 112 L205 30 L220 12 L220 112 Z" fill="#cdd4da" stroke-width="5"/>
-<path d="M209 34 L209 108" stroke="#aab3bd" stroke-width="4"/>
-<rect x="198" y="108" width="28" height="11" rx="5" fill="#5a4a3c" stroke-width="5"/>
-<rect x="207" y="118" width="10" height="20" rx="3" fill="#3a2e28" stroke-width="5"/>
-<circle cx="212" cy="146" r="9" fill="none" stroke="#2b2220" stroke-width="11"/>
-<circle cx="212" cy="146" r="9" fill="none" stroke="#e2c36e" stroke-width="4"/>
-</g>`,
-  arm: `<path d="M152 152 Q182 150 210 130" fill="none" stroke="#2b2220" stroke-width="26"/>
-<path d="M152 152 Q182 150 210 130" fill="none" stroke="#4f74c9" stroke-width="14"/>
-<path d="M190 144 L203 136" fill="none" stroke="#2b2220" stroke-width="26"/>
-<path d="M190 144 L203 136" fill="none" stroke="#aab3bd" stroke-width="13"/>
-<circle cx="212" cy="128" r="12" fill="#f3cfa6" stroke-width="5"/>`,
+  cape: `<path d="M100 122 Q44 150 24 244 Q60 232 92 244 Q128 236 162 246 Q198 232 230 244 Q212 166 156 122 Z" fill="#4f74c9"/>
+<path d="M98 142 Q64 180 54 232 Q76 226 96 232 Z" fill="#32508f" stroke="none"/>
+<path d="M158 142 Q192 180 202 232 Q180 226 160 232 Z" fill="#32508f" stroke="none"/>
+<path d="M28 239 Q60 228 92 239 Q128 231 162 241 Q198 228 226 239" fill="none" stroke="#d9dee3" stroke-width="5"/>`,
+  legB: `<rect x="96" y="194" width="24" height="40" rx="5" fill="#474c5b"/>
+<rect x="86" y="226" width="38" height="20" rx="8" fill="#30343f"/>
+<circle cx="108" cy="206" r="8" fill="#d9dee3" stroke-width="5"/>`,
+  legF: `<rect x="138" y="194" width="24" height="40" rx="5" fill="#474c5b"/>
+<rect x="134" y="226" width="40" height="20" rx="8" fill="#30343f"/>
+<circle cx="150" cy="206" r="8" fill="#d9dee3" stroke-width="5"/>`,
+  torso: `<path d="M98 126 Q128 114 158 126 L168 202 Q128 214 88 202 Z" fill="#646a7a"/>
+<path d="M110 136 Q107 162 112 190" fill="none" stroke="#8d93a3" stroke-width="5"/>
+<path d="M104 130 Q128 143 152 130" fill="none" stroke="#d9dee3" stroke-width="6"/>
+<path d="M90 192 Q128 204 166 192 L172 214 Q128 228 84 214 Z" fill="#4f74c9"/>
+<path d="M87 210 Q128 224 169 210" fill="none" stroke="#d9dee3" stroke-width="5"/>
+<path d="M92 190 Q128 200 164 190" fill="none" stroke="#5a4a3c" stroke-width="9"/>
+<circle cx="128" cy="196" r="7" fill="#d9dee3" stroke-width="4"/>`,
+  sword: `<path d="M119 170 L119 236 L128 252 L137 236 L137 170 Z" fill="#eef2f5"/>
+<path d="M128 174 L128 236" stroke="#474c5b" stroke-width="3"/>
+<rect x="122" y="128" width="12" height="34" rx="3" fill="#5a4a3c"/>
+<circle cx="128" cy="124" r="9" fill="#d9dee3" stroke-width="5"/>
+<path d="M96 162 Q128 150 160 162 L158 174 Q128 164 98 174 Z" fill="#d9dee3"/>
+<circle cx="128" cy="166" r="5" fill="#d23a3a" stroke-width="3"/>`,
+  arms: `<path d="M104 140 Q98 158 118 150" fill="none" stroke="#2b2220" stroke-width="26"/>
+<path d="M104 140 Q98 158 118 150" fill="none" stroke="#646a7a" stroke-width="14"/>
+<path d="M152 140 Q158 158 138 150" fill="none" stroke="#2b2220" stroke-width="26"/>
+<path d="M152 140 Q158 158 138 150" fill="none" stroke="#646a7a" stroke-width="14"/>
+<circle cx="121" cy="148" r="12" fill="#474c5b" stroke-width="5"/>
+<circle cx="135" cy="148" r="12" fill="#474c5b" stroke-width="5"/>`,
+  pauld: `<path d="M112 132 Q82 124 70 150 Q90 144 106 158 Z" fill="#474c5b"/>
+<path d="M118 124 Q84 110 68 138 Q88 133 104 148 Z" fill="#646a7a"/>
+<path d="M110 125 Q84 118 74 135" fill="none" stroke="#d9dee3" stroke-width="5"/>
+<path d="M144 132 Q174 124 186 150 Q166 144 150 158 Z" fill="#474c5b"/>
+<path d="M138 124 Q172 110 188 138 Q168 133 152 148 Z" fill="#646a7a"/>
+<path d="M146 125 Q172 118 182 135" fill="none" stroke="#d9dee3" stroke-width="5"/>
+<path d="M65 123 Q73 115 79 124 L84 113 L89 124 Q95 115 103 123 Q95 130 89 130 L84 141 L79 130 Q73 130 65 123 Z" fill="#d9dee3" stroke-width="4"/>`,
+  crest: `<path d="M86 72 Q50 66 42 24 Q62 50 96 56 Z" fill="#e8dcc0"/>
+<path d="M174 72 Q210 66 218 24 Q198 50 164 56 Z" fill="#e8dcc0"/>`,
+  head: `<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
+<path d="M74 88 A56 56 0 0 1 186 88 L192 98 L68 98 Z" fill="#646a7a"/>
+<path d="M90 68 Q98 50 114 42" fill="none" stroke="#8d93a3" stroke-width="5"/>
+<path d="M122 74 L130 22 L138 74 Z" fill="#474c5b" stroke-width="5"/>
+<path d="M70 86 Q130 72 190 86 L192 98 Q130 84 68 98 Z" fill="#d9dee3" stroke-width="5"/>`,
+  face: `<circle cx="149" cy="117" r="6.5" fill="#2b2220"/>
+<circle cx="170" cy="117" r="6.5" fill="#2b2220"/>
+<circle cx="151" cy="115" r="2" fill="#ff5a4a"/>
+<circle cx="172" cy="115" r="2" fill="#ff5a4a"/>
+<path d="M137 104 L157 111 M161 111 L181 104" stroke="#2b2220" stroke-width="7.5" stroke-linecap="round"/>
+<path d="M152 133 Q160 130 168 132" fill="none" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>`,
  },
+ // horns are rigid: no crest spring (hero_p feather wings sway)
+ springs: {},
 };
 
 // shared impact: same for all units (game-wide hit feel)
@@ -67,73 +66,70 @@ const HIT_SMALL = { small: true, stop: 45, amp: 4, kx: 0, debris: 'spark', n: 3,
 // multi-tick: Object.assign({}, HIT_SMALL, { dmg: 6 }) for the small ticks before the final HIT
 
 // ---------- shared below: same rig + attack for both commanders ----------
-const TIP = bake(6, 212, 128, 212, 14);   // sword group has rotate(6 212 128) in the source
-const MID = bake(6, 212, 128, 212, 70);
-// damage split ~ hero atk 55–65: blade 5 + 3 ticks × 5 + drop 40 = 60
-const DMG = { blade: 5, tick: 5, drop: 40 };
-// timeline (ms): wind-up 0–160, hold –220, slash –290, blade lands ~342 -> tornado; lift ~432, 3 ticks, release ~1152 (hero cuts down), drop hit ~1547
-const T_WAVE = 262, WAVE_X = 236, WAVE_VX = 1300;
-const T_TWISTER = T_WAVE + Math.round((256 + 84 - WAVE_X) / WAVE_VX * 1000);   // wave reaches target front (~342)
-const TW_TRAVEL = 90, TW_HOLD = 720, T_DROP = T_TWISTER + TW_TRAVEL + TW_HOLD;   // twister releases target (~1152); lands ~T_DROP+395
+const DMG = 60;   // demo only; game shows the real amount
+// timeline (ms): wrench 0–110 · raise 110–300 · hold –330 · cleave 330–400 (contact T_HIT) · follow –640 · re-plant –1080
+const T_SLASH = 330, T_HIT = 362, T_PLANT = 1080;
+// sword in front of head/wings while raised (rest order = behind arms + head)
+const FRONT_ON = 280, FRONT_OFF = 640;
 
 const SPEC = {
   title: CHAR.title,
-  subtitle: 'Chém kiếm phóng lưỡi gió -> hoá lốc xoáy cuốn địch, quật xuống',
+  subtitle: 'Giật kiếm khỏi đất → vung qua đầu → chém chéo xuống địch → cắm kiếm trở lại',
   feet: 244, cx: 128, range: 1,
   parts: CHAR.parts,
   raw: ['face'],
   bones: [
     { name: 'body', pivot: [128, 200], ch: 'lean' },
-    { name: 'head', parent: 'body', pivot: [130, 140], ch: 'head' },
-    { name: 'arm', parent: 'body', pivot: [152, 152], ch: 'arm' },
-    { name: 'sword', parent: 'arm', pivot: [212, 128], ch: 'wrist' },
-    { name: 'cape', parent: 'body', pivot: [122, 130], ch: 'cape', stretch: true },
-    { name: 'plume', parent: 'head', pivot: CHAR.plumePivot, ch: 'plume' },
-    { name: 'legB', pivot: [114, 198], ch: 'legB' },
-    { name: 'legF', pivot: [144, 198], ch: 'legF' },
+    { name: 'cape', parent: 'body', pivot: [128, 124], ch: 'cape', stretch: true },
+    { name: 'head', parent: 'body', pivot: [130, 138], ch: 'head' },
+    { name: 'crest', parent: 'head', pivot: [130, 64], ch: 'crest' },
+    { name: 'arms', parent: 'body', pivot: [128, 148], ch: 'arm', tx: 'armX', ty: 'armY' },
+    { name: 'sword', parent: 'arms', pivot: [128, 148], ch: 'wrist' },   // pivot = both gauntlets on the grip
+    { name: 'legB', pivot: [108, 196], ch: 'legB' },
+    { name: 'legF', pivot: [150, 196], ch: 'legF' },
   ],
-  draw: [['cape', 'cape'], ['legB', 'legB'], ['legF', 'legF'], ['skirt', 'body'], ['torso', 'body'], ['pad', 'body'],
-         ['plume', 'plume'], ['head', 'head'], ['face', 'head'], ['sword', 'sword'], ['arm', 'arm']],
-  points: { tip: ['sword', TIP[0], TIP[1]], mid: ['sword', MID[0], MID[1]] },
-  springs: {
-    cape: { k: 170, c: 11, drive: (p, vx, c) => clamp(vx * .03, -12, 34) + p.lean * .5 + (c.idle ? 3 * Math.sin(c.clock / 700) : 0) },
-    plume: { k: 230, c: 9, drive: (p, vx, c) => clamp(vx * .035, -14, 30) + p.lean * .7 + p.head * .6 + (c.idle ? 1.8 * Math.sin(c.clock / 700) : 0) },
+  draw: [['cape', 'cape'], ['legB', 'legB'], ['legF', 'legF'], ['torso', 'body'], ['sword', 'sword'], ['arms', 'arms'],
+         ['pauld', 'body'], ['crest', 'crest'], ['head', 'head'], ['face', 'head']],
+  order(p, list) {
+    if (p.swordUp > .5) {
+      const s = list.find(([n]) => n === 'sword'), rest = list.filter(([n]) => n !== 'sword');
+      rest.splice(rest.findIndex(([n]) => n === 'face') + 1, 0, s); return rest;
+    }
+    return list;
   },
-  idle(p, b) { p.sy = 1 + .014 * b; p.head = 1.5 * b; p.arm = 2 * b; p.wrist = -1.5 * b; },
+  points: { tip: ['sword', 128, 246], mid: ['sword', 128, 196], plant: ['sword', 128, 244] },
+  springs: Object.assign({
+    cape: { k: 170, c: 11, drive: (p, vx, c) => clamp(vx * .03, -12, 30) + p.lean * .5 + (c.idle ? 2 * Math.sin(c.clock / 700) : 0) },
+  }, CHAR.springs),
+  idle(p, b) { p.sy = 1 + .014 * b; p.head = 1.5 * b; },
   attacks: [
     {
-      id: 'gale', label: '🌪 Kiếm gió lốc', dur: 1820,
+      id: 'cleave', label: '⚔ Kiếm Giáng', dur: 1200,
       tr: {
-        // wind-up -> slash -> follow-through -> recover -> raise sword (lifting the twister) -> cut down = drop
-        x: track([[0, 0], [160, -12, 'out'], [220, -14], [290, 26, 'outExpo'], [620, 28, 'out'], [1000, 0, 'io']]),
-        y: track([[0, 0], [160, 6, 'out'], [220, 6], [270, -10, 'out'], [350, 0, 'in']]),
-        sy: track([[0, 1], [160, .88, 'out'], [220, .87], [265, 1.1, 'outExpo'], [350, .95, 'out'], [450, 1, 'out'],
-                   [T_DROP - 80, 1.04, 'io'], [T_DROP, .92, 'outExpo'], [T_DROP + 150, 1, 'out']]),
-        lean: track([[0, 0], [160, -12, 'out'], [220, -13], [290, 16, 'outExpo'], [620, 12, 'out'], [1000, 0, 'io'],
-                     [T_DROP - 80, -6, 'io'], [T_DROP, 8, 'outExpo'], [T_DROP + 90, 6], [T_DROP + 390, 0, 'io']]),
-        head: track([[0, 0], [160, -8, 'out'], [220, -8], [290, 8, 'outExpo'], [620, 4], [1000, 0, 'io'],
-                     [T_DROP - 80, -6, 'io'], [T_DROP, 4, 'outExpo'], [T_DROP + 390, 0, 'io']]),
-        arm: track([[0, 0], [160, -38, 'outBack'], [220, -40], [285, 78, 'outExpo'], [620, 70, 'out'], [1000, 0, 'io'],
-                    [T_DROP - 80, -48, 'io'], [T_DROP, 56, 'outExpo'], [T_DROP + 110, 50], [T_DROP + 430, 0, 'io']]),
-        wrist: track([[0, 0], [160, 14, 'outBack'], [220, 16], [285, 42, 'outExpo'], [620, 36, 'out'], [1000, 0, 'io'],
-                      [T_DROP - 80, 12, 'io'], [T_DROP, 30, 'outExpo'], [T_DROP + 110, 26], [T_DROP + 430, 0, 'io']]),
-        legF: track([[0, 0], [160, 8], [220, 8], [290, -28, 'outExpo'], [620, -24], [1000, 0, 'io']]),
-        legB: track([[0, 0], [160, -4], [220, -4], [290, 22, 'outExpo'], [620, 18], [1000, 0, 'io']]),
+        // wrist: clockwise backswing (+140 = blade up-back over the helm) -> cleave to +300 (down-forward) -> +360 = planted again
+        wrist: track([[0, 0], [110, -6, 'out'], [300, 140, 'out'], [T_SLASH, 143], [400, 300, 'outExpo'], [640, 306, 'out'], [T_PLANT, 360, 'io']]),
+        // hands: up out of the ground, out to the right, then high; cleave brings them forward-low
+        armX: track([[0, 0], [110, 2, 'out'], [230, 50, 'out'], [T_SLASH, 52], [400, 54, 'outExpo'], [640, 50], [T_PLANT - 60, 0, 'io']]),
+        armY: track([[0, 0], [110, -16, 'out'], [300, -98, 'in'], [T_SLASH, -100], [400, 0, 'outExpo'], [640, -4], [T_PLANT - 60, -14, 'io'], [T_PLANT, 0, 'in']]),
+        arm: track([[0, 0], [T_SLASH, 0], [400, 10, 'outExpo'], [640, 8], [T_PLANT - 60, 0, 'io']]),
+        x: track([[0, 0], [110, -4, 'out'], [300, -12, 'out'], [T_SLASH, -12], [400, 34, 'outExpo'], [640, 30, 'out'], [T_PLANT, 0, 'io']]),
+        y: track([[0, 0], [300, 0], [350, -8, 'out'], [420, 0, 'in']]),
+        sy: track([[0, 1], [110, .92, 'out'], [300, 1.04, 'out'], [T_SLASH, 1.04], [380, 1.1, 'outExpo'], [460, .94, 'out'], [560, 1, 'out'],
+                   [T_PLANT - 40, 1.02, 'io'], [T_PLANT, .96, 'in'], [T_PLANT + 90, 1, 'out']]),
+        lean: track([[0, 0], [110, -3, 'out'], [300, -10, 'out'], [T_SLASH, -11], [400, 14, 'outExpo'], [640, 12, 'out'], [T_PLANT, 0, 'io']]),
+        head: track([[0, 0], [110, 3], [300, -6, 'out'], [T_SLASH, -6], [400, 8, 'outExpo'], [640, 5], [T_PLANT, 0, 'io']]),
+        legF: track([[0, 0], [300, 6, 'out'], [T_SLASH, 6], [400, -24, 'outExpo'], [640, -20], [T_PLANT, 0, 'io']]),
+        legB: track([[0, 0], [300, -4, 'out'], [T_SLASH, -4], [400, 18, 'outExpo'], [640, 15], [T_PLANT, 0, 'io']]),
+        swordUp: track([[0, 0], [FRONT_ON, 0], [FRONT_ON + 1, 1, 'lin'], [FRONT_OFF, 1], [FRONT_OFF + 1, 0, 'lin']]),
       },
       ev: [
-        [160, a => a.gleam('tip')],
-        [225, a => a.dust(100, 244, 6, -1)],
-        [T_WAVE, a => { a.flash('#f4fcff', 50); a.wave({ x: WAVE_X, y: 150, vx: WAVE_VX, R: 118, angle: -16, hit: Object.assign({}, HIT_SMALL, { dmg: DMG.blade }) }); }],
-        [T_TWISTER, a => {
-          const tg = a.target();
-          a.shockwave(tg.x, 244, { r: 130, ms: 360, color: '#f4fcff' });
-          a.dust(tg.x, 244, 8, 0);
-          a.tornado({ x0: tg.x, travel: TW_TRAVEL, hold: TW_HOLD, lift: 100, ticks: 3,
-                      tick: Object.assign({}, HIT_SMALL, { dmg: DMG.tick }), final: Object.assign({}, HIT, { dmg: DMG.drop }) });
-        }],
-        [T_DROP - 70, a => a.gleam('tip', 150)],
+        [30, a => a.dust(128, 244, 4, 0)],
+        [250, a => a.gleam('tip', 130)],
+        [T_SLASH, a => a.dust(100, 244, 6, -1)],
+        [T_HIT, a => a.hit(Object.assign({}, HIT, { dmg: DMG }))],
+        [T_PLANT, a => { a.dust(128, 244, 5, 0); a.shake(2, 70); }],
       ],
-      smear: { tip: 'tip', base: 'mid', from: 222, to: 340, window: 48 },
+      smear: { tip: 'tip', base: 'mid', from: T_SLASH, to: 430, window: 50, fill: '#fffdf4', inner: '#ffe08a' },
     },
   ],
 };

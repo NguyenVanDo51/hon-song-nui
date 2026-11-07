@@ -742,7 +742,7 @@ func _stack_hint() -> void:
 	var sel: Variant = _sel_unit()
 	var u: Dictionary = sel if sel != null else { }
 	if sel != null and Game.stacked(s, u):
-		ui.hint = "Hai quân đứng chung thành: cho [b]%s[/b] bước ra ô khác%s." % [
+		ui.hint = "Hai quân đứng chung lâu đài: cho [b]%s[/b] bước ra ô khác%s." % [
 			_name_of(u),
 			", hoặc bấm ra ngoài vùng đi để hủy mua (hoàn vàng)" if Game.can_unbuy(s, u) else "",
 		]

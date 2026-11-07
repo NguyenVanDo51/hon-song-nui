@@ -128,7 +128,7 @@ static func unit_type_look(side: String, type: String, hero_key: Variant) -> Dic
 		return heroes.get(hero_key, { "name": "?", "icon": "?", "blurb": "" })
 	return theme().units[side][type]
 
-## AE2 renames a unit every 2 levels: "Bộ binh" -> "Bộ binh lão luyện Lv2" ...; commanders keep their name (RM Unit.java:96)
+## AE2 renames a unit every 2 levels: "Vệ binh" -> "Vệ binh lão luyện Lv2" ...; commanders keep their name (RM Unit.java:96)
 static func unit_title(name: String, rank: int, hero := false) -> String:
 	if rank <= 0:
 		return name
@@ -168,7 +168,7 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	var st := type_stat(type, hero_key)
 	var out := []
 	if st.get("capC", false):
-		out.append("Chiếm được cả thành lẫn làng.")
+		out.append("Chiếm được cả lâu đài lẫn làng.")
 	elif st.get("capV", false):
 		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.TERRAIN.v.income)
 	var lo: int = st.atk
@@ -199,7 +199,7 @@ static func traits(type: String, hero_key: Variant) -> Array:
 	if st.get("waterAtk", 0):
 		out.append("Đứng dưới sông: +%d công, +%d thủ." % [st.waterAtk, st.get("waterDef", 0)])
 	if st.get("raise", false):
-		out.append("Gọi hồn: đứng cạnh lính ngã (cả địch) để dựng thành âm binh của ta.")
+		out.append("Gọi hồn: đứng cạnh lính ngã (cả địch) để dựng dậy thành bộ xương của ta.")
 	match st.move:
 		"fly":
 			out.append("Bay: mọi ô chỉ tốn 1 bước, vượt cả sông núi.")

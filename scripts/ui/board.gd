@@ -457,7 +457,7 @@ func _draw_support_range(ci: CanvasItem, pulse: float) -> void:
 				continue
 			_cell(ci, x, y, Color(col, 0.10 + pulse * 0.08), Color(col, 0.55), 0.04)
 
-## hover-attack forecast pinned above the target: "⚔ 40  ⤺ 24" (gold = kill, red = our unit falls)
+## hover-attack forecast pinned above the target: [sword] 40  [back] 24 (gold = kill, red = our unit falls)
 func _draw_preview(ci: CanvasItem) -> void:
 	var p: Variant = view.get("preview")
 	if p == null or s.is_empty():
@@ -467,11 +467,13 @@ func _draw_preview(ci: CanvasItem) -> void:
 	var dmg_max: int = p.dmgMax
 	var ctr_min: int = p.counterMin
 	var ctr_max: int = p.counterMax
-	var give := "⚔ %s%s" % [Style.range_txt(dmg_min, dmg_max), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else "")]
-	var take := "  ↩ %s%s" % [Style.range_txt(ctr_min, ctr_max), " ngã" if p.die else (" có thể ngã" if p.mayDie else "")] \
+	var give := "%s%s" % [Style.range_txt(dmg_min, dmg_max), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else "")]
+	var take := "%s%s" % [Style.range_txt(ctr_min, ctr_max), " ngã" if p.die else (" có thể ngã" if p.mayDie else "")] \
 			if ctr_max > 0 else ""
-	var w1 := Style.xbold.get_string_size(give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var w2 := Style.xbold.get_string_size(take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var ic := float(fs) * 1.1 # drawn icons (sword = we hit, back arrow = counter)
+	var gap := 4.0
+	var w1 := ic + gap + Style.xbold.get_string_size(give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var w2 := (12.0 + ic + gap + Style.xbold.get_string_size(take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x) if take != "" else 0.0
 	var pad := 7.0
 	var w := w1 + w2 + pad * 2
 	var h := fs * 1.5
@@ -481,12 +483,16 @@ func _draw_preview(ci: CanvasItem) -> void:
 	var y: float = p.y * T - h - 4
 	if y < 2:
 		y = (p.y + 1) * T + 4
-	var box := Style.box(Color(0.08, 0.04, 0.03, 0.92), Style.GOLD if p.kill else (Style.BAD if p.die else Style.BRONZE_2), 7, 0, 2)
+	var box := Style.box(Style.PAPER_HI, Style.CRIMSON if p.kill or p.die else Style.INK_D, 7, 0, 2)
 	ci.draw_style_box(box, Rect2(x, y, w, h))
 	var base := y + h / 2 + (Style.xbold.get_ascent(fs) - Style.xbold.get_descent(fs)) / 2
-	ci.draw_string(Style.xbold, Vector2(x + pad, base), give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.GOLD if p.kill else Style.GOOD)
+	var iy := y + (h - ic) / 2
+	ci.draw_texture_rect(Icons.tex("sword"), Rect2(x + pad, iy, ic, ic), false)
+	ci.draw_string(Style.xbold, Vector2(x + pad + ic + gap, base), give, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.CRIMSON_D if p.kill else Style.GOOD)
 	if take != "":
-		ci.draw_string(Style.xbold, Vector2(x + pad + w1, base), take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.BAD)
+		var x2 := x + pad + w1 + 12.0
+		ci.draw_texture_rect(Icons.tex("back"), Rect2(x2, iy, ic, ic), false)
+		ci.draw_string(Style.xbold, Vector2(x2 + ic + gap, base), take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.BAD)
 
 func _draw_units(ci: CanvasItem, time: float) -> void:
 	_info_spots.clear()
@@ -635,7 +641,8 @@ static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Ve
 	if u.rank:
 		Draw.text_a(ci, Style.xbold, Vector2(c.x - ts * 0.48, c.y - ts * 0.5), "Lv%d" % u.rank, roundi(ts * 0.2), STAR, 0.0, true, 3, STAR_INK)
 	if u.get("guard", false) and u.side == "e": # sleeping sentry (not the guard *stat*)
-		Draw.text_a(ci, Style.body, Vector2(c.x + ts * 0.24, c.y - ts * 0.52), "💤", roundi(ts * 0.22), Color.WHITE, 1.0, true)
+		var zs := ts * 0.26
+		ci.draw_texture_rect(Icons.tex("sleep"), Rect2(Vector2(c.x + ts * 0.2, c.y - ts * 0.62), Vector2(zs, zs)), false)
 
 ## how a figure stands this frame, as a transform around its feet: walking hops + sways + faces where it goes,
 ## striking leans into the blow (fx.offsets), getting hit shoves it back (fx.knock), dying topples it over (ghost),

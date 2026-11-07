@@ -385,14 +385,8 @@ func draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, t
 		var wall: Color = p.wall
 		ci.draw_rect(Rect2(_at(X, Y, 0.26, 0.5), Vector2(bd.T * 0.5, bd.T * 0.32)), wall)
 		ci.draw_rect(Rect2(_at(X, Y, 0.46, 0.62), Vector2(bd.T * 0.1, bd.T * 0.2)), Board.DOOR)
-		# curved roof (đình style)
-		var roof := _join(
-			[
-				Draw.quad(_at(X, Y, 0.12, 0.5), _at(X, Y, 0.2, 0.46), _at(X, Y, 0.3, 0.3), 6),
-				Draw.quad(_at(X, Y, 0.72, 0.3), _at(X, Y, 0.82, 0.46), _at(X, Y, 0.92, 0.42), 6),
-				PackedVector2Array([_at(X, Y, 0.84, 0.54), _at(X, Y, 0.2, 0.54)]),
-			]
-		)
+		# straight gable roof (cottage)
+		var roof := PackedVector2Array([_at(X, Y, 0.16, 0.54), _at(X, Y, 0.34, 0.28), _at(X, Y, 0.68, 0.28), _at(X, Y, 0.88, 0.54)])
 		ci.draw_colored_polygon(roof, roof_col)
 		ci.draw_rect(Rect2(_at(X, Y, 0.2, 0.5), Vector2(bd.T * 0.64, bd.T * 0.04)), Color(0, 0, 0, 0.2))
 		if own != "n":
@@ -404,14 +398,8 @@ func draw_building(ci: CanvasItem, t: String, X: float, Y: float, own: String, t
 		ci.draw_rect(Rect2(_at(X, Y, 0.12, 0.42), Vector2(bd.T * 0.76, bd.T * 0.06)), wall)
 		for i in 4:
 			ci.draw_rect(Rect2(_at(X, Y, 0.12 + 0.21 * i, 0.32), Vector2(bd.T * 0.13, bd.T * 0.12)), wall)
-		# gate tower roof
-		var roof := _join(
-			[
-				PackedVector2Array([_at(X, Y, 0.26, 0.34)]),
-				Draw.quad(_at(X, Y, 0.26, 0.34), _at(X, Y, 0.34, 0.3), _at(X, Y, 0.38, 0.18), 6),
-				Draw.quad(_at(X, Y, 0.62, 0.18), _at(X, Y, 0.66, 0.3), _at(X, Y, 0.74, 0.34), 6),
-			]
-		)
+		# gate tower roof: straight cone
+		var roof := PackedVector2Array([_at(X, Y, 0.28, 0.34), _at(X, Y, 0.5, 0.14), _at(X, Y, 0.72, 0.34)])
 		ci.draw_colored_polygon(roof, roof_col)
 		ci.draw_colored_polygon(Draw.arc_points(_at(X, Y, 0.5, 0.88), bd.T * 0.14, bd.T * 0.14, PI, TAU, 0.0, 12), Board.GATE)
 		# flag

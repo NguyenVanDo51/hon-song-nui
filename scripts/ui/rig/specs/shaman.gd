@@ -107,7 +107,7 @@ static func arc_half(ctx: RigCtx, cx: float, cy: float, rx: float, ry: float, fr
 	else:
 		ctx.ellipse(cx, cy, rx, ry, 0, PI, TAU)
 
-## Đông Sơn-ish marks: concentric circle, S-spiral, chevron (stroke INK w3 set by the caller in JS)
+## rune marks: concentric circle, S-spiral, chevron (stroke INK w3 set by the caller in JS)
 static func glyph(ctx: RigCtx, k: int, s: float) -> void:
 	ctx.begin_path()
 	if k == 0:

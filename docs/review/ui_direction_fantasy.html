@@ -1,0 +1,901 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hướng fantasy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700;800&family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&family=Sigmar&family=Texturina:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ================= page chrome ================= */
+:root{
+  --bg:#0e0a08; --panel:#18120f; --panel2:#211915; --line:#3a2c22; --txt:#efe4cf; --mut:#a8977d; --acc:#e0b85c; --good:#8fd16a; --bad:#ff7a66;
+  --ink:#231a15;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.6 "Be Vietnam Pro",system-ui,sans-serif}
+a{color:var(--acc)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 16px 96px}
+header.top h1{font:800 clamp(26px,4.4vw,44px)/1.15 "Alegreya SC",serif;margin:0 0 6px;color:var(--acc)}
+header.top p{margin:0;color:var(--mut);max-width:880px}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:18px 0 8px;font-size:14px}
+nav.toc a{text-decoration:none;color:var(--txt);border-bottom:1px dashed var(--line)}
+section{margin-top:56px}
+h2{font:800 clamp(22px,3vw,30px)/1.2 "Alegreya SC",serif;color:var(--acc);margin:0 0 12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+h2 small{font:600 13px "Be Vietnam Pro";color:var(--mut);margin-left:8px}
+h3{font:700 18px/1.3 "Be Vietnam Pro";margin:28px 0 10px}
+.note{color:var(--mut);font-size:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
+code{font:13px ui-monospace,Menlo,monospace;background:#241b16;border:1px solid #33261e;border-radius:4px;padding:0 4px;word-break:break-word}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 8px;text-align:left;vertical-align:top}
+table.t th{color:var(--acc);font-weight:700;white-space:nowrap}
+@media (max-width:700px){
+  table.t, table.t tbody, table.t tr, table.t td{display:block;width:100%}
+  table.t thead{display:none}
+  table.t tr{border:1px solid var(--line);border-radius:8px;margin:0 0 10px;padding:6px 8px;background:var(--panel)}
+  table.t td{border:0;padding:3px 0}
+  table.t td::before{content:attr(data-l);display:block;color:var(--acc);font-size:12px;font-weight:700}
+}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:1px 9px;border:1px solid var(--line);color:var(--mut)}
+.tag.good{color:var(--good);border-color:#3d5a2b}.tag.bad{color:var(--bad);border-color:#6a3128}
+/* gallery */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.gal figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.gal img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;object-position:top}
+.gal figcaption{padding:6px 10px;font-size:13px;color:var(--mut)}
+.gal figure.wide img{aspect-ratio:auto}
+/* sound toggle */
+.sbar{position:sticky;top:0;z-index:20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:rgba(14,10,8,.92);border-bottom:1px solid var(--line);padding:8px 16px;margin:0 -16px;font-size:13px}
+.sbar button{font:700 13px "Be Vietnam Pro";color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer}
+.sbar button[aria-pressed="true"]{border-color:var(--acc);color:var(--acc)}
+@media (max-width:700px){.sbar .note,.sbar > span:first-child{display:none}}
+
+/* ================= direction summary ================= */
+.dcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px}
+.dcard h3{margin:0 0 2px;font:800 24px/1.2 "Alegreya SC",serif}
+.dcard .vibe{color:var(--mut);margin:0 0 10px;font-style:italic}
+.dcard dl{margin:0;display:grid;grid-template-columns:96px 1fr;gap:4px 10px}
+.dcard dt{color:var(--acc);font-weight:700;font-size:13px}
+.dcard dd{margin:0}
+.sw{display:flex;flex-wrap:wrap;gap:4px}
+.sw span{display:inline-flex;align-items:center;gap:5px;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:1px 6px 1px 2px}
+.sw i{display:inline-block;width:18px;height:18px;border-radius:4px;border:1.5px solid #000}
+.dcard.recommended{border:2px solid var(--acc);box-shadow:0 0 0 4px rgba(224,184,92,.12)}
+.dcard .pill{float:right;font:800 11px "Be Vietnam Pro";color:#1a120c;background:var(--acc);border-radius:99px;padding:2px 8px}
+
+/* ================= comparison rows ================= */
+.cmp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.cmp{grid-template-columns:1fr}}
+.cell{border-radius:10px;overflow:hidden;border:1px solid var(--line);position:relative;min-width:0;display:flex;flex-direction:column}
+.cell > .stage{flex:1}
+.cmp.hudrow{grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr))}
+.hudrow .cell > .clab{top:auto;bottom:6px;left:8px}
+.cell > .clab{position:absolute;top:6px;left:8px;z-index:5;font:800 11px "Be Vietnam Pro";letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:rgba(0,0,0,.55);color:#fff}
+.stage{padding:34px 14px 18px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.states{display:flex;flex-wrap:wrap;gap:12px 10px;justify-content:center;align-items:flex-end}
+.st{display:flex;flex-direction:column;align-items:center;gap:6px}
+.st small{font:600 11px "Be Vietnam Pro";opacity:.75}
+.hint{font-size:12px;opacity:.7;text-align:center}
+.current-strip{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:#140b08;border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.current-strip .lab{font:700 12px "Be Vietnam Pro";color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.cur-btn{font:700 19px "Alegreya SC",serif;color:#fff6e3;background:#b1412d;border:1px solid #f08a63;border-radius:12px;padding:12px 22px;box-shadow:0 4px 8px rgba(0,0,0,.4)}
+.cur-btn.m{background:rgba(43,26,20,.94);border-color:#8a6a35;color:#f0c96c}
+
+/* shared SVG icon */
+.ico{width:20px;height:20px;flex:none;fill:var(--icf,currentColor);stroke:var(--ics,none);stroke-width:var(--icw,0);paint-order:stroke;stroke-linejoin:round;overflow:visible}
+
+/* generic component skeletons (each direction restyles) */
+button{font-family:inherit}
+.btn{position:relative;cursor:pointer;user-select:none;-webkit-user-select:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn:disabled,.btn.is-disabled{cursor:not-allowed}
+.btn .lbl{position:relative;z-index:2;display:inline-flex;align-items:center;gap:7px}
+.pop{animation:pop .22s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{scale:.94}60%{scale:1.06}100%{scale:1}}
+.hudwrap{width:100%;position:relative;overflow:hidden;aspect-ratio:2/1}
+.hud{position:absolute;left:0;top:0;width:640px;height:320px;transform-origin:0 0;background:url(ui_direction/board_crop.jpg) 0 0/640px 320px}
+.hud > *{position:absolute}
+.selbox{left:140px;top:0;width:80px;height:80px}
+.B .sel{border:3px solid var(--gold);border-radius:6px;box-shadow:0 0 0 2px var(--ink), inset 0 0 0 2px var(--ink), 0 0 18px rgba(242,210,126,.7)}
+
+/* =====================================================================
+   C · ĐÔNG HỒ  (dó paper, woodblock ink, flat natural pigments, stamps)
+   ===================================================================== */
+.C{--ink:#231a15;--paper:#f4e7c7;--paper2:#e6d3a8;--son:#cf4a30;--son-d:#9b2f1f;--hoe:#efb52f;--cham:#2f5d82;--la:#5f8f3c;--vang:#d97a6c;--txt:#231a15;
+  --icf:var(--hoe);--ics:var(--ink);--icw:2.6;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fiber:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .2' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23f)'/%3E%3C/svg%3E");
+  --shine:linear-gradient(118deg,transparent 20%,rgba(255,252,240,.38) 42%,rgba(230,240,255,.18) 50%,transparent 66%);
+  --r1:13px 9px 15px 8px / 8px 14px 9px 15px;
+  --r2:18px 12px 20px 11px / 11px 19px 12px 20px;
+  color:var(--txt);font-family:"Be Vietnam Pro";
+}
+.C .stage{background:var(--shine),var(--grain),var(--fiber),linear-gradient(180deg,#f6ead0,#ead7ae)}
+.C .btn{border:3px solid var(--ink);border-radius:var(--r1);padding:11px 24px 12px;min-width:150px;font:400 20px/1 "Paytone One",sans-serif;color:var(--paper);
+  background:var(--grain),var(--son);box-shadow:inset 0 0 0 2px var(--son), inset 0 0 0 3.5px rgba(244,231,199,.75), 4px 4px 0 var(--ink);
+  transition:transform .08s, box-shadow .08s, rotate .12s}
+.C .btn .lbl{text-shadow:2px 2px 0 var(--ink)}
+.C .btn:hover:not(:disabled),.C .btn.is-hover{rotate:-1.5deg;transform:translate(-1px,-1px);box-shadow:inset 0 0 0 2px var(--son), inset 0 0 0 3.5px rgba(244,231,199,.75), 6px 6px 0 var(--ink)}
+.C .btn:active:not(:disabled),.C .btn.is-pressed{rotate:0deg;transform:translate(4px,4px);box-shadow:inset 0 0 0 2px var(--son), inset 0 0 0 3.5px rgba(244,231,199,.75), 0 0 0 var(--ink)}
+.C .btn:disabled,.C .btn.is-disabled{color:#8d7c63;background:repeating-linear-gradient(135deg,rgba(35,26,21,.14) 0 2px,transparent 2px 7px),var(--paper2);border-color:#8d7c63;box-shadow:3px 3px 0 #8d7c63}
+.C .btn:disabled .lbl,.C .btn.is-disabled .lbl{text-shadow:none}
+.C .btn.sec{background:var(--grain),var(--paper);color:var(--ink);box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px rgba(35,26,21,.5), 4px 4px 0 var(--ink)}
+.C .btn.sec .lbl{text-shadow:none}
+.C .btn.sec:hover{box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px rgba(35,26,21,.5), 6px 6px 0 var(--ink)}
+.C .btn.sec:active{box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px rgba(35,26,21,.5), 0 0 0 var(--ink)}
+.C .btn.ic{min-width:0;padding:9px 10px;background:var(--grain),var(--cham)}
+.C .btn.ic .ico{width:24px;height:24px;--icf:var(--paper)}
+/* end turn: big seal */
+.C .endturn{width:122px;height:122px;border-radius:50% 47% 52% 49%;border:3px solid var(--ink);cursor:pointer;rotate:-5deg;padding:0;position:relative;
+  background:var(--grain),radial-gradient(circle, var(--hoe) 0 47%, var(--ink) 47.5% 49.5%, var(--son) 50% 100%);box-shadow:5px 5px 0 var(--ink);transition:transform .08s, box-shadow .08s, rotate .12s}
+.C .endturn b{display:block;font:400 21px/1 "Paytone One";color:var(--son-d)}
+.C .endturn small{display:block;font:700 10px/1.2 "Be Vietnam Pro";color:var(--ink);margin-top:3px}
+.C .endturn:hover,.C .endturn.is-hover{rotate:-9deg;box-shadow:7px 7px 0 var(--ink)}
+.C .endturn:active,.C .endturn.is-pressed{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink)}
+.C .endturn.ready{animation:wob 1.2s ease-in-out infinite}
+@keyframes wob{0%,100%{rotate:-5deg}50%{rotate:3deg;scale:1.05}}
+/* resource */
+.C .res{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.C .rtag{display:flex;align-items:center;gap:7px;border:3px solid var(--ink);border-radius:var(--r1);padding:3px 12px 3px 4px;background:var(--grain),var(--paper);box-shadow:3px 3px 0 var(--ink)}
+.C .coin{width:32px;height:32px}
+.C .num{font:400 25px/1 "Paytone One";color:var(--ink)}
+.C .plus{font:400 15px "Paytone One";color:var(--la)}
+.C .turn{border:3px solid var(--ink);background:var(--grain),var(--son);color:var(--paper);font:400 17px/1 "Paytone One";padding:6px 12px;rotate:-3deg;border-radius:var(--r1);box-shadow:3px 3px 0 var(--ink);text-shadow:2px 2px 0 var(--ink)}
+.C .goal{font-size:12px;color:#5a4636;display:flex;gap:6px;align-items:center;font-weight:600}
+.C .lab{font:800 11px "Be Vietnam Pro";color:#6d5643;text-transform:uppercase;letter-spacing:.08em}
+/* panels: paper sheet with woodblock double frame */
+.C .panel{position:relative;border:3px solid var(--ink);border-radius:var(--r2);padding:14px 16px;background:var(--shine),var(--grain),var(--fiber),var(--paper);box-shadow:inset 0 0 0 4px var(--paper), inset 0 0 0 5.5px var(--ink), 5px 5px 0 var(--ink)}
+.C .panel::before{content:"";position:absolute;inset:9px;border-radius:var(--r1);pointer-events:none;background:
+  linear-gradient(var(--ink),var(--ink)) 0 0/8px 8px no-repeat,linear-gradient(var(--ink),var(--ink)) 100% 0/8px 8px no-repeat,
+  linear-gradient(var(--ink),var(--ink)) 0 100%/8px 8px no-repeat,linear-gradient(var(--ink),var(--ink)) 100% 100%/8px 8px no-repeat}
+.C .ptitle{font:400 21px "Paytone One";color:var(--son-d);display:flex;align-items:center;gap:8px}
+.C .portrait{width:70px;height:70px;flex:none;border:3px solid var(--ink);border-radius:var(--r1);background:var(--grain),var(--son);box-shadow:inset 0 0 0 3px var(--hoe), 3px 3px 0 var(--ink);overflow:hidden;display:grid;place-items:end center}
+.C .portrait img{width:76px;height:76px;margin-bottom:-8px}
+.C .uname{font:400 22px/1 "Paytone One";color:var(--ink)}
+.C .usub{font-size:12px;color:#6d5643;font-weight:600}
+.C .hp{height:14px;border:2.5px solid var(--ink);border-radius:4px 7px 5px 8px;background:var(--paper2);overflow:hidden}
+.C .hp i{display:block;height:100%;width:var(--w);background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(35,26,21,.35) 9px 10px),var(--la);border-right:2.5px solid var(--ink)}
+.C .stats{display:flex;gap:6px;flex-wrap:wrap}
+.C .chip{display:flex;align-items:center;gap:4px;border:2.5px solid var(--ink);border-radius:var(--r1);background:#fbf3df;padding:1px 8px 1px 3px;font:400 15px "Paytone One";color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.C .chip .ico{width:18px;height:18px}
+.C .chip em{font:700 11px "Be Vietnam Pro";color:#6d5643;font-style:normal}
+.C .shoprow{display:flex;align-items:center;gap:10px;padding:5px 8px 5px 5px;border:2.5px solid var(--ink);border-radius:var(--r1);background:#fbf3df;margin-top:8px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .07s, box-shadow .07s}
+.C .shoprow:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink);background:#fff8e6}
+.C .shoprow:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.C .shoprow .pimg{width:44px;height:44px;flex:none;border:2.5px solid var(--ink);border-radius:var(--r1);background:var(--cham);overflow:hidden;display:grid;place-items:end center}
+.C .shoprow .pimg img{width:46px;height:46px;margin-bottom:-6px}
+.C .shoprow .nm{flex:1;font:400 17px/1.1 "Paytone One";color:var(--ink)}
+.C .shoprow .nm small{display:block;font:700 11px "Be Vietnam Pro";color:#6d5643}
+.C .price{display:flex;align-items:center;gap:4px;border:2.5px solid var(--ink);border-radius:var(--r1);padding:1px 8px 1px 3px;background:var(--hoe);font:400 17px "Paytone One";color:var(--ink);rotate:2deg}
+.C .price .coin{width:20px;height:20px}
+.C .shoprow.off{cursor:not-allowed;background:repeating-linear-gradient(135deg,rgba(35,26,21,.12) 0 2px,transparent 2px 7px),var(--paper2);box-shadow:2px 2px 0 #8d7c63;border-color:#8d7c63}
+.C .shoprow.off .nm,.C .shoprow.off .price{color:#8d7c63}.C .shoprow.off .price{background:var(--paper2);border-color:#8d7c63}
+.C .shoprow.off .pimg{filter:grayscale(1);opacity:.6}
+.C .dlg{display:flex;gap:12px;align-items:flex-start}
+.C .ribbon{display:inline-block;font:400 15px "Paytone One";color:var(--paper);background:var(--son);border:2.5px solid var(--ink);padding:1px 14px 2px 10px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%);margin-bottom:4px;text-shadow:1px 1px 0 var(--ink)}
+.C .say{font-size:15px;line-height:1.5;font-weight:600;color:var(--ink)}
+.C .mini{font:700 12px "Be Vietnam Pro";color:#6d5643}
+.C .title-art{position:relative;text-align:center}
+.C .ttl{position:relative;display:inline-block;font:400 clamp(32px,4.6vw,48px)/1.05 "Paytone One";color:var(--hoe);-webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--ink);rotate:-2deg}
+.C .title-art .stamp{flex:none;margin-top:-10px;width:50px;height:50px;display:grid;place-items:center;text-align:center;background:var(--son);color:var(--paper);border:2.5px solid var(--ink);border-radius:4px 7px 3px 6px;font:400 11px/1.05 "Paytone One";rotate:8deg;box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3px var(--son)}
+.C .kick{font:800 12px "Be Vietnam Pro";letter-spacing:.18em;text-transform:uppercase;color:var(--son-d)}
+.C .sel{border:3px dashed var(--ink);border-radius:var(--r1);background:rgba(239,181,47,.25);box-shadow:0 0 0 3px var(--hoe)}
+
+/* HUD composite tweaks (shared) */
+.hud .res{transform:scale(.8);transform-origin:0 0;left:8px;top:8px;flex-wrap:nowrap}
+.hud .ucardmini{right:8px;top:8px;width:250px;transform:scale(.82);transform-origin:100% 0}
+.hud .popup{left:178px;top:96px;transform:scale(.8);transform-origin:0 0}
+.hud .et-pos{right:12px;bottom:10px;transform:scale(.72);transform-origin:100% 100%}
+.popup .row{display:flex;gap:8px}
+.popup .btn{min-width:0;font-size:16px;padding-left:14px;padding-right:14px}
+.A .popup .btn{padding:10px 14px 15px}
+.C .popup .btn{padding:8px 13px 9px}
+
+/* style-guide token table swatches */
+.tok{display:inline-block;width:14px;height:14px;border:1.5px solid #000;border-radius:3px;vertical-align:-2px;margin-right:6px}
+.phase{border-left:3px solid var(--acc);padding:4px 0 4px 12px;margin:10px 0}
+.phase b{color:var(--acc)}
+.verdict{background:linear-gradient(180deg,#2a1a12,#1a110c);border:2px solid var(--acc);border-radius:12px;padding:16px 18px}
+.verdict h3{margin-top:0;font:800 24px "Alegreya SC";color:var(--acc)}
+footer{margin-top:60px;color:var(--mut);font-size:13px}
+
+/* ================= page tweaks for 4 columns ================= */
+.cmp{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1199px){.cmp{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.cmp{grid-template-columns:1fr}}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:1199px){.grid4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.grid4{grid-template-columns:1fr}}
+.endturn .emb{display:none}
+.ttlrow{display:inline-flex;align-items:flex-start;gap:4px;margin-top:8px;max-width:100%}
+.ttlrow .ttl{font-size:clamp(26px,6.6vw,44px)!important}
+.ft{text-align:center;display:flex;flex-direction:column;gap:8px;align-items:center}
+.C .ftb{font:400 20px/1.25 "Paytone One";color:var(--ink)}
+.C .ft .ttl{font-size:34px}
+.keep{border-left:3px solid var(--acc);padding-left:10px}
+.uimg{width:56px;height:56px;display:block}
+.uname-new{font:800 16px "Be Vietnam Pro";color:var(--txt)}
+.uname-new small{display:block;font:600 12px "Be Vietnam Pro";color:var(--mut)}
+.rig{font-size:12px;font-weight:700;white-space:nowrap}
+.rig.k{color:var(--good)}.rig.s{color:#ffd166}.rig.n{color:var(--bad)}
+.samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.sample{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.sample h4{margin:0 0 2px;font:800 17px "Be Vietnam Pro"}
+.sample .sub{font-size:12px;color:var(--mut);margin-bottom:8px}
+.sample .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;align-items:end;text-align:center}
+.sample .row3 > div{background:linear-gradient(180deg,#6d8f44,#5a7a3a);border-radius:8px;padding:4px 2px 2px;border:1px solid #2f3d1d}
+.sample .row3 > div.old{background:#2a201a;border-color:var(--line)}
+.sample .row3 img,.sample .row3 svg{width:100%;height:auto;max-width:120px;display:block;margin:0 auto}
+.sample .row3 small{display:block;font-size:11px;color:#fff;opacity:.85;padding:2px 0}
+.sample p{font-size:13px;margin:8px 0 0;color:var(--txt)}
+.sample.wide{grid-column:1/-1}
+.sample .row5{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;align-items:end;text-align:center}
+@media (max-width:700px){.sample .row5{grid-template-columns:repeat(3,1fr)}}
+.sample .row5 > div{background:linear-gradient(180deg,#6d8f44,#5a7a3a);border-radius:8px;padding:4px 2px 2px;border:1px solid #2f3d1d}
+.sample .row5 > div.old{background:#2a201a;border-color:var(--line)}
+.sample .row5 img,.sample .row5 svg{width:100%;height:auto;max-width:150px;display:block;margin:0 auto}
+.sample .row5 small{display:block;font-size:11px;color:#fff;opacity:.85;padding:2px 0}
+.q{background:#1d1510;border:1px solid var(--acc);border-radius:10px;padding:12px 16px}
+.q ol{margin:6px 0 0;padding-left:20px}.q li{margin:6px 0}
+
+/* =====================================================================
+   F1 · TRUYỆN KỴ SĨ  (C's woodcut language + C's font, parchment + wax seal + heraldry)
+   ===================================================================== */
+.F1{--paper:#f2e3c0;--paper2:#dcc596;--son:#b3262e;--son-d:#7d1720;--hoe:#e3b345;--cham:#27477a;--la:#4f8a3a}
+.F1 .stage{background:var(--shine),var(--grain),var(--fiber),radial-gradient(120% 90% at 50% 40%,#f6e9c9 0%,#e6d0a0 75%,#cdb07a 100%)}
+.F1 .btn.ic{background:var(--grain),var(--cham)}
+.F1 .ptitle{color:var(--son-d)}
+.F1 .price{background:var(--hoe)}
+.F1 .shoprow .pimg{background:var(--cham)}
+.F1 .turn{background:var(--grain),var(--cham);border-radius:3px;clip-path:polygon(0 0,100% 0,100% 100%,50% 82%,0 100%);padding:6px 14px 12px;box-shadow:none;rotate:0deg}
+.F1 .portrait{background:var(--grain),var(--cham);box-shadow:inset 0 0 0 3px var(--hoe),3px 3px 0 var(--ink)}
+.F1 .ribbon{background:var(--cham);clip-path:polygon(0 0,100% 0,calc(100% - 9px) 50%,100% 100%,0 100%,9px 50%);padding:1px 20px 3px}
+.F1 .say::first-letter{font:400 30px/.9 "Paytone One";color:var(--son);float:left;margin:3px 5px 0 0}
+.F1 .panel::before{inset:7px;background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 1 13 7 7 13 1 7Z' fill='%23e3b345' stroke='%23231a15' stroke-width='2'/%3E%3C/svg%3E") 0 0/14px 14px no-repeat,
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 1 13 7 7 13 1 7Z' fill='%23e3b345' stroke='%23231a15' stroke-width='2'/%3E%3C/svg%3E") 100% 0/14px 14px no-repeat,
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 1 13 7 7 13 1 7Z' fill='%23e3b345' stroke='%23231a15' stroke-width='2'/%3E%3C/svg%3E") 0 100%/14px 14px no-repeat,
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 1 13 7 7 13 1 7Z' fill='%23e3b345' stroke='%23231a15' stroke-width='2'/%3E%3C/svg%3E") 100% 100%/14px 14px no-repeat}
+/* wax seal end turn */
+.F1 .endturn{border-radius:52% 46% 50% 47% / 47% 52% 46% 53%;background:
+  radial-gradient(circle at 36% 30%,rgba(255,170,150,.55) 0 7%,transparent 22%),
+  radial-gradient(circle,#c22f36 0 50%,#8f1b22 51% 57%,#b3262e 58% 100%);box-shadow:5px 5px 0 var(--ink)}
+.F1 .endturn .emb{display:block;width:34px;height:34px;margin:-4px auto 2px;--icf:#8f1b22;--ics:#e2575c;--icw:1.2}
+.F1 .endturn b{color:#fbe9c6;text-shadow:0 2px 0 #5e0f14}
+.F1 .endturn small{color:#f6d3b4}
+.F1 .title-art .stamp{border-radius:52% 46% 50% 47%;background:radial-gradient(circle at 36% 30%,rgba(255,170,150,.55) 0 8%,transparent 24%),radial-gradient(circle,#c22f36 0 55%,#8f1b22 56% 64%,#b3262e 65%);box-shadow:2px 2px 0 var(--ink);width:54px;height:54px}
+.F1 .kick{color:var(--cham)}
+
+/* =====================================================================
+   F2 · VƯƠNG QUỐC ĐỒ CHƠI  (painted wood + iron rivets, thick lip, toy colours)
+   ===================================================================== */
+.F2{--ink:#1f1a17;--wood:#9a6034;--wood3:#5a3218;--iron:#6b737c;--red-d:#9e2417;--gold:#ffc83d;--blue:#2f76d8;--blue-d:#1b4a98;--cream:#fff3d6;
+  --paper:#fff3d6;--hoe:#ffc83d;--son:#e0412e;--son-d:#9e2417;--cham:#2f76d8;--la:#43b23a;--txt:#fff3d6;
+  --outl:-1.5px -1.5px 0 var(--ink),1.5px -1.5px 0 var(--ink),-1.5px 1.5px 0 var(--ink),1.5px 1.5px 0 var(--ink),0 3px 0 var(--ink);
+  --plank:repeating-linear-gradient(180deg,transparent 0 30px,rgba(40,18,6,.35) 30px 32px,rgba(255,220,170,.14) 32px 33px),linear-gradient(180deg,#a96d3b,#8c5630)}
+.F2 .stage{background:radial-gradient(40% 18% at 22% 24%,rgba(255,255,255,.55),transparent 70%),radial-gradient(30% 14% at 78% 16%,rgba(255,255,255,.45),transparent 70%),linear-gradient(180deg,#a9dbff 0%,#7cc0f2 60%,#6fb46a 60.5%,#5d9f57 100%)}
+.F2 .btn{--lip:var(--red-d);font:400 18px/1 "Sigmar",sans-serif;color:#fff;border:3px solid var(--ink);border-radius:14px;padding:11px 22px 13px;margin-bottom:9px;rotate:0deg;transform:none;
+  background:linear-gradient(180deg,#ff7d5e 0,#e0412e 46%,#c9331f 100%);
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 6px 0 var(--lip),0 6px 0 3px var(--ink);transition:transform .07s,box-shadow .07s,filter .12s}
+.F2 .btn .lbl{text-shadow:var(--outl)}
+.F2 .btn:hover:not(:disabled),.F2 .btn.is-hover{rotate:0deg;transform:translateY(-2px);filter:brightness(1.08);box-shadow:inset 0 3px 0 rgba(255,255,255,.45),0 8px 0 var(--lip),0 8px 0 3px var(--ink)}
+.F2 .btn:active:not(:disabled),.F2 .btn.is-pressed{rotate:0deg;transform:translateY(5px);box-shadow:inset 0 3px 0 rgba(255,255,255,.3),0 1px 0 var(--lip),0 1px 0 3px var(--ink)}
+.F2 .btn.sec{--lip:var(--wood3);color:var(--cream);background:repeating-linear-gradient(180deg,transparent 0 9px,rgba(40,18,6,.18) 9px 10px),linear-gradient(180deg,#bb7c47,#9a6034 55%,#87532b)}
+.F2 .btn.sec .lbl{text-shadow:var(--outl)}
+.F2 .btn.ic{--lip:var(--blue-d);padding:9px 11px 11px;background:linear-gradient(180deg,#64a3f2,#2f76d8 50%,#2565c0)}
+.F2 .btn.ic .ico{--icf:#fff;--ics:var(--ink);--icw:2.4}
+.F2 .btn:disabled,.F2 .btn.is-disabled{--lip:#857d70;color:#f2eee6;background:linear-gradient(180deg,#c9c2b6,#aaa294);border-color:var(--ink);box-shadow:0 3px 0 var(--lip),0 3px 0 3px var(--ink)}
+.F2 .btn:disabled .lbl,.F2 .btn.is-disabled .lbl{text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.F2 .ftb{font:400 19px/1.35 "Sigmar";color:#fff;text-shadow:var(--outl)}
+/* end turn: heraldic shield */
+.F2 .endturn{width:118px;height:134px;border:0;border-radius:0;rotate:0deg;background:none;box-shadow:none;filter:drop-shadow(0 6px 0 #6b1a10);isolation:isolate}
+.F2 .endturn::before{content:"";position:absolute;inset:0;z-index:-2;background:var(--ink);clip-path:path('M0 0 H118 V52 C118 94 92 118 59 134 C26 118 0 94 0 52 Z')}
+.F2 .endturn::after{content:"";position:absolute;inset:0;z-index:-1;clip-path:path('M5 5 H113 V52 C113 90 89 112 59 128 C29 112 5 90 5 52 Z');
+  background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 30%),conic-gradient(from 0deg at 50% 44%,#e0412e 0 90deg,#ffc83d 90deg 180deg,#e0412e 180deg 270deg,#ffc83d 270deg)}
+.F2 .endturn .emb{display:block;width:30px;height:30px;margin:-14px auto 2px;--icf:#fff;--ics:var(--ink);--icw:2.4}
+.F2 .endturn b{font:400 18px/1 "Sigmar";color:#fff;text-shadow:var(--outl)}
+.F2 .endturn small{font:800 10px "Be Vietnam Pro";color:#fff;text-shadow:0 1px 0 var(--ink),0 0 3px var(--ink)}
+.F2 .endturn:hover,.F2 .endturn.is-hover{rotate:0deg;transform:translateY(-2px);box-shadow:none;filter:drop-shadow(0 8px 0 #6b1a10) brightness(1.06)}
+.F2 .endturn:active,.F2 .endturn.is-pressed{transform:translateY(5px);box-shadow:none;filter:drop-shadow(0 1px 0 #6b1a10)}
+.F2 .endturn.ready{animation:bob 1.1s ease-in-out infinite}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -6px;scale:1.04}}
+/* resource */
+.F2 .rtag{background:var(--plank);border:3px solid var(--ink);border-radius:12px;box-shadow:0 4px 0 var(--wood3),0 4px 0 3px var(--ink)}
+.F2 .num{font:400 23px/1 "Sigmar";color:#fff;text-shadow:var(--outl)}
+.F2 .plus{font:400 15px "Sigmar";color:#8dff6e;text-shadow:var(--outl)}
+.F2 .turn{font:400 16px/1 "Sigmar";rotate:0deg;border-radius:10px;background:linear-gradient(180deg,#64a3f2,#2f76d8 55%,#2565c0);text-shadow:var(--outl);box-shadow:0 4px 0 var(--blue-d),0 4px 0 3px var(--ink)}
+.F2 .goal{color:#123a66;font-weight:800}
+.F2 .lab{color:#ffe2b8}
+/* wood board panel + iron rivets */
+.F2 .panel{color:var(--cream);border:3px solid var(--ink);border-radius:16px;background:var(--plank);
+  box-shadow:inset 0 0 0 3px rgba(255,214,160,.28),0 6px 0 var(--wood3),0 6px 0 3px var(--ink),0 12px 18px rgba(0,0,0,.3)}
+.F2 .panel::before{inset:5px;border-radius:12px;background:
+  radial-gradient(circle at 7px 7px,#eef2f5 0 2px,#8c949c 2.5px 4.5px,var(--ink) 5px 6px,transparent 6.5px) 0 0/14px 14px no-repeat,
+  radial-gradient(circle at 7px 7px,#eef2f5 0 2px,#8c949c 2.5px 4.5px,var(--ink) 5px 6px,transparent 6.5px) 100% 0/14px 14px no-repeat,
+  radial-gradient(circle at 7px 7px,#eef2f5 0 2px,#8c949c 2.5px 4.5px,var(--ink) 5px 6px,transparent 6.5px) 0 100%/14px 14px no-repeat,
+  radial-gradient(circle at 7px 7px,#eef2f5 0 2px,#8c949c 2.5px 4.5px,var(--ink) 5px 6px,transparent 6.5px) 100% 100%/14px 14px no-repeat}
+.F2 .ptitle{font:400 20px "Sigmar";color:var(--gold);text-shadow:var(--outl)}
+.F2 .uname{font:400 20px/1 "Sigmar";color:#fff;text-shadow:var(--outl)}
+.F2 .usub,.F2 .mini,.F2 .shoprow .nm small{color:#ffe2b8}
+.F2 .panel .mini{text-shadow:0 1px 0 var(--ink)}
+.F2 .portrait{border-radius:12px;background:linear-gradient(180deg,#a9dbff,#6fb3ea);box-shadow:inset 0 0 0 3px var(--gold),0 4px 0 var(--ink)}
+.F2 .hp{background:#3a2414;border-radius:8px}
+.F2 .hp i{background:linear-gradient(180deg,#9cf27a 0 35%,#43b23a 36% 100%)}
+.F2 .chip{font:400 14px "Sigmar";background:var(--cream);border-radius:10px;box-shadow:0 3px 0 var(--ink)}
+.F2 .chip .ico{--icf:var(--gold)}
+.F2 .shoprow{background:var(--cream);border-radius:12px;box-shadow:0 4px 0 #c9a46a,0 4px 0 2.5px var(--ink)}
+.F2 .shoprow:hover{transform:translateY(-1px);background:#fff;box-shadow:0 5px 0 #c9a46a,0 5px 0 2.5px var(--ink)}
+.F2 .shoprow:active{transform:translateY(3px);box-shadow:0 1px 0 #c9a46a,0 1px 0 2.5px var(--ink)}
+.F2 .shoprow .nm{font:400 15px/1.15 "Sigmar";color:var(--ink)}
+.F2 .shoprow .nm small{color:#7a5a3a;text-shadow:none}
+.F2 .shoprow .pimg{border-radius:10px;background:linear-gradient(180deg,#a9dbff,#6fb3ea)}
+.F2 .price{font:400 15px "Sigmar";border-radius:10px;rotate:0deg;background:linear-gradient(180deg,#ffe07a,#ffc83d 55%,#f0a91c)}
+.F2 .shoprow.off{box-shadow:0 2px 0 #8d7c63,0 2px 0 2.5px #8d7c63}
+.F2 .ribbon{font:400 14px "Sigmar";background:var(--son);text-shadow:var(--outl);padding:3px 16px 4px 10px}
+.F2 .say{color:var(--cream);font-weight:600;text-shadow:0 1px 0 rgba(0,0,0,.4)}
+.F2 .ttl{font:400 clamp(30px,4.2vw,46px)/1.1 "Sigmar";color:var(--gold);-webkit-text-stroke:3px var(--ink);text-shadow:0 5px 0 var(--ink);rotate:-2deg}
+.F2 .ft .ttl{font-size:30px}
+.F2 .title-art .stamp{border-radius:50%;background:linear-gradient(180deg,#ffe07a,#ffc83d 55%,#f0a91c);color:var(--ink);font:400 11px/1.05 "Sigmar";box-shadow:0 4px 0 #a26a08,0 4px 0 2.5px var(--ink);rotate:0deg}
+.F2 .kick{color:var(--blue-d)}
+.F2 .sel{border:3px solid #fff;border-radius:10px;background:rgba(255,200,61,.25);box-shadow:0 0 0 3px var(--ink),0 0 14px rgba(255,200,61,.9)}
+.F2 .popup .btn{padding:8px 12px 10px;font-size:15px}
+
+/* =====================================================================
+   F3 · SÁCH PHÉP  (dark grimoire leather, brass corners, glowing runes)
+   ===================================================================== */
+.F3{--ink:#120f1d;--lea:#2c2344;--brass:#d6ad55;--rune:#7fe8ff;--vio:#7c4dff;--paper:#efe6ff;--hoe:#d6ad55;--son:#7c4dff;--son-d:#3a1d8a;--cham:#1a87a8;--la:#6ee7a8;--txt:#ece6ff;
+  --icf:var(--brass);--ics:var(--ink);--icw:2.4;color:var(--txt)}
+.F3 .stage{background:
+  radial-gradient(1.4px 1.4px at 14% 22%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 72% 14%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 86% 64%,#cfe 50%,transparent 51%),radial-gradient(1.3px 1.3px at 34% 80%,#fff 50%,transparent 51%),
+  radial-gradient(60% 50% at 80% 0%,rgba(124,77,255,.28),transparent 70%),radial-gradient(50% 40% at 0% 100%,rgba(127,232,255,.14),transparent 70%),linear-gradient(180deg,#1d1633,#0d0a18)}
+.F3 .btn{--lip:#2d1572;font:700 21px/1 "Texturina",serif;color:#fff;border:3px solid var(--ink);border-radius:10px;padding:10px 24px 13px;margin-bottom:8px;rotate:0deg;transform:none;
+  background:linear-gradient(180deg,#a98bff 0,#7c4dff 45%,#5b2fd6 100%);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 5px 0 var(--lip),0 5px 0 3px var(--ink);transition:transform .07s,box-shadow .12s}
+.F3 .btn .lbl{text-shadow:0 2px 0 var(--ink)}
+.F3 .btn:hover:not(:disabled),.F3 .btn.is-hover{rotate:0deg;transform:translateY(-1px);box-shadow:inset 0 2px 0 rgba(255,255,255,.45),0 6px 0 var(--lip),0 6px 0 3px var(--ink),0 0 20px 2px rgba(127,232,255,.55)}
+.F3 .btn:active:not(:disabled),.F3 .btn.is-pressed{rotate:0deg;transform:translateY(4px);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 1px 0 var(--lip),0 1px 0 3px var(--ink),0 0 26px 4px rgba(127,232,255,.75)}
+.F3 .btn.sec{--lip:#0b0814;color:var(--brass);background:linear-gradient(180deg,#3d3160,#2c2344 55%,#231b38);box-shadow:inset 0 0 0 2px #2c2344,inset 0 0 0 3.5px rgba(214,173,85,.65),0 5px 0 var(--lip),0 5px 0 3px var(--ink)}
+.F3 .btn.sec:hover{box-shadow:inset 0 0 0 2px #2c2344,inset 0 0 0 3.5px rgba(214,173,85,.9),0 6px 0 var(--lip),0 6px 0 3px var(--ink),0 0 18px rgba(214,173,85,.45)}
+.F3 .btn.sec:active{box-shadow:inset 0 0 0 2px #2c2344,inset 0 0 0 3.5px rgba(214,173,85,.9),0 1px 0 var(--lip),0 1px 0 3px var(--ink)}
+.F3 .btn.ic{--lip:#0e5268;padding:9px 11px 11px;background:linear-gradient(180deg,#a8f2ff,#3fc4e3 50%,#1a87a8)}
+.F3 .btn.ic .ico{--icf:var(--ink);--ics:#c9f6ff;--icw:1.2}
+.F3 .btn:disabled,.F3 .btn.is-disabled{--lip:#211d2e;color:#8f88a8;background:linear-gradient(180deg,#4d4763,#3a354d);border-color:var(--ink);box-shadow:0 2px 0 var(--lip),0 2px 0 3px var(--ink)}
+.F3 .btn:disabled .lbl,.F3 .btn.is-disabled .lbl{text-shadow:none}
+.F3 .ftb{font:700 21px/1.3 "Texturina";color:#fff}
+/* end turn: magic circle */
+.F3 .endturn{border-radius:50%;rotate:0deg;background:radial-gradient(circle,#2c2344 0 50%,#3d3160 51% 60%,#241b3a 61%);box-shadow:0 5px 0 #0b0814,0 0 22px rgba(124,77,255,.55)}
+.F3 .endturn::before{content:"";position:absolute;inset:7px;border-radius:50%;background:repeating-conic-gradient(var(--rune) 0 3deg,transparent 3deg 18deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 68%,#000 69% 80%,transparent 81%);mask:radial-gradient(circle,transparent 0 68%,#000 69% 80%,transparent 81%);opacity:.85}
+.F3 .endturn > *{position:relative}
+.F3 .endturn .emb{display:block;width:24px;height:24px;margin:-2px auto 2px;--icf:var(--rune);--ics:var(--ink);--icw:1.5;filter:drop-shadow(0 0 4px var(--rune))}
+.F3 .endturn b{font:700 19px/1 "Texturina";color:#fff;text-shadow:0 0 8px rgba(127,232,255,.8),0 2px 0 var(--ink)}
+.F3 .endturn small{color:#b9a8e6}
+.F3 .endturn:hover,.F3 .endturn.is-hover{rotate:0deg;box-shadow:0 5px 0 #0b0814,0 0 30px rgba(127,232,255,.7)}
+.F3 .endturn:active,.F3 .endturn.is-pressed{transform:translateY(4px);box-shadow:0 1px 0 #0b0814,0 0 34px rgba(127,232,255,.9)}
+.F3 .endturn.ready{animation:glow 1.4s ease-in-out infinite}
+.F3 .endturn.ready::before{animation:spin 6s linear infinite}
+@keyframes glow{0%,100%{box-shadow:0 5px 0 #0b0814,0 0 14px rgba(124,77,255,.5)}50%{box-shadow:0 5px 0 #0b0814,0 0 34px rgba(127,232,255,.9)}}
+@keyframes spin{to{rotate:360deg}}
+/* resource */
+.F3 .rtag{background:linear-gradient(180deg,#3d3160,#2c2344);border:3px solid var(--ink);border-radius:10px;box-shadow:inset 0 0 0 2px #2c2344,inset 0 0 0 3.5px rgba(214,173,85,.7),0 4px 0 #0b0814}
+.F3 .num{font:700 24px/1 "Texturina";color:#fff}
+.F3 .plus{font:700 15px "Texturina";color:#7dffb0}
+.F3 .turn{font:700 17px/1 "Texturina";rotate:0deg;border-radius:8px;background:linear-gradient(180deg,#a98bff,#7c4dff 50%,#5b2fd6);text-shadow:0 2px 0 var(--ink);box-shadow:0 4px 0 #2d1572,0 4px 0 3px var(--ink)}
+.F3 .goal{color:#c9bde8}
+.F3 .lab{color:#b9a8e6}
+/* grimoire panel */
+.F3 .panel{color:var(--txt);border:3px solid var(--ink);border-radius:12px;background:radial-gradient(120% 80% at 0 0,rgba(124,77,255,.20),transparent 60%),var(--grain),linear-gradient(180deg,#2e2547,#1d1730);
+  box-shadow:inset 0 0 0 3px #2c2344,inset 0 0 0 4.5px rgba(214,173,85,.75),0 6px 0 #0b0814,0 12px 20px rgba(0,0,0,.4)}
+.F3 .panel::before{inset:2px;border-radius:9px;background:
+  linear-gradient(135deg,var(--brass) 0 9px,var(--ink) 9px 10.5px,transparent 11px) 0 0/22px 22px no-repeat,
+  linear-gradient(225deg,var(--brass) 0 9px,var(--ink) 9px 10.5px,transparent 11px) 100% 0/22px 22px no-repeat,
+  linear-gradient(45deg,var(--brass) 0 9px,var(--ink) 9px 10.5px,transparent 11px) 0 100%/22px 22px no-repeat,
+  linear-gradient(315deg,var(--brass) 0 9px,var(--ink) 9px 10.5px,transparent 11px) 100% 100%/22px 22px no-repeat}
+.F3 .ptitle{font:700 22px "Texturina";color:var(--brass);text-shadow:0 0 10px rgba(214,173,85,.35)}
+.F3 .uname{font:700 22px/1 "Texturina";color:#fff}
+.F3 .usub,.F3 .mini,.F3 .shoprow .nm small{color:#b9a8e6}
+.F3 .portrait{border-radius:50%;background:radial-gradient(circle at 50% 40%,#7c4dff,#2c2344 75%);box-shadow:inset 0 0 0 3px var(--brass),0 0 14px rgba(124,77,255,.6)}
+.F3 .hp{background:#0b0814;border-color:var(--ink);border-radius:6px}
+.F3 .hp i{background:linear-gradient(180deg,#b9ffd9,#6ee7a8 40%,#2fb37a);border-right-color:var(--ink);box-shadow:0 0 8px rgba(110,231,168,.6)}
+.F3 .chip{font:700 15px "Texturina";color:#fff;background:#120f1d;border:2px solid #8a6a2a;border-radius:8px;box-shadow:none}
+.F3 .chip .ico{--icf:var(--rune)}
+.F3 .shoprow{background:linear-gradient(180deg,#2e2547,#251d3a);border-radius:10px;box-shadow:inset 0 0 0 1.5px rgba(214,173,85,.45),0 3px 0 #0b0814}
+.F3 .shoprow:hover{transform:translateY(-1px);background:linear-gradient(180deg,#3a2f5a,#2c2344);box-shadow:inset 0 0 0 1.5px rgba(127,232,255,.8),0 4px 0 #0b0814,0 0 14px rgba(127,232,255,.35)}
+.F3 .shoprow:active{transform:translateY(2px);box-shadow:inset 0 0 0 1.5px rgba(127,232,255,.8),0 1px 0 #0b0814}
+.F3 .shoprow .nm{font:700 17px/1.1 "Texturina";color:#fff}
+.F3 .shoprow .pimg{border-radius:50%;background:radial-gradient(circle at 50% 40%,#7c4dff,#2c2344 75%)}
+.F3 .price{font:800 16px "Texturina";rotate:0deg;border-radius:8px;background:linear-gradient(180deg,#f2d27e,#d6ad55 55%,#a8843a)}
+.F3 .price .ico{--icf:#fff3c4}
+.F3 .shoprow.off{background:#1a1726;border-color:#4d4763;box-shadow:none}
+.F3 .shoprow.off .nm,.F3 .shoprow.off .price{color:#6f6888}.F3 .shoprow.off .price{background:#2a2638;border-color:#4d4763}
+.F3 .ribbon{font:700 15px "Texturina";background:var(--vio);color:#fff;text-shadow:0 1px 0 var(--ink)}
+.F3 .say{color:var(--txt);font-weight:500}
+.F3 .ttl{font:800 clamp(32px,4.6vw,50px)/1.05 "Texturina";color:#fff;-webkit-text-stroke:2px var(--ink);text-shadow:0 0 18px rgba(127,232,255,.75),0 4px 0 var(--ink);rotate:0deg}
+.F3 .title-art .stamp{border-radius:50%;background:radial-gradient(circle,#2c2344 0 55%,#7fe8ff 56% 62%,#2c2344 63%);color:var(--rune);font:700 11px/1.05 "Texturina";box-shadow:0 0 14px rgba(127,232,255,.7);rotate:0deg;border-color:var(--ink)}
+.F3 .kick{color:var(--rune)}
+.F3 .sel{border:3px solid var(--rune);border-radius:8px;background:rgba(127,232,255,.18);box-shadow:0 0 0 2px var(--ink),0 0 18px rgba(127,232,255,.9)}
+.F3 .popup .btn{padding:8px 13px 10px;font-size:16px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-coin" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.5a9.5 9.5 0 1 1 0 19a9.5 9.5 0 1 1 0-19Z M9.2 9.2h5.6v5.6H9.2Z"/></symbol>
+    <symbol id="i-gold" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M12 6.6 13.6 10.2 17.4 10.5 14.5 13 15.4 16.8 12 14.8 8.6 16.8 9.5 13 6.6 10.5 10.4 10.2Z" fill="rgba(0,0,0,.28)" stroke="none"/></symbol>
+    <symbol id="i-crown" viewBox="0 0 24 24"><path d="M3 18.5 2 7l5.2 4.4L12 3.5l4.8 7.9L22 7l-1 11.5Z M3.4 20h17.2v2.2H3.4Z"/></symbol>
+    <symbol id="i-sword" viewBox="0 0 24 24"><path d="M20.5 2 22 3.5 11.5 14l-1.5-1.5Z M5.2 12.2l1.6-1.6 6.6 6.6-1.6 1.6-1.6-1.6-3 3 .9.9-1.6 1.6-3.4-3.4 1.6-1.6.9.9 3-3Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 20 5v6c0 5.3-3.4 9.2-8 11-4.6-1.8-8-5.7-8-11V5Z"/></symbol>
+    <symbol id="i-foot" viewBox="0 0 24 24"><path d="M6 2.5h7.5v9.2l5.6 2.6c1.5.7 2.4 2 2.4 3.6V21H3.5v-4.2L6 14.5Z"/></symbol>
+    <symbol id="i-range" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.5a9.5 9.5 0 1 1 0 19a9.5 9.5 0 1 1 0-19Z M12 6.5a5.5 5.5 0 1 0 0 11a5.5 5.5 0 1 0 0-11Z M12 9.8a2.2 2.2 0 1 1 0 4.4a2.2 2.2 0 1 1 0-4.4Z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21 3.6 12.8C1.2 10.4 1.6 6.3 4.6 4.8c2.2-1.1 4.9-.4 6.2 1.6L12 8l1.2-1.6c1.3-2 4-2.7 6.2-1.6 3 1.5 3.4 5.6 1 8Z"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 2h2.4v20H5Z M7.4 3H20l-3.2 4.5L20 12H7.4Z"/></symbol>
+    <symbol id="i-wait" viewBox="0 0 24 24"><path d="M6 2h12v2.5l-4.6 7.5 4.6 7.5V22H6v-2.5l4.6-7.5L6 4.5Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M4.6 7.4 7.4 4.6 12 9.2l4.6-4.6 2.8 2.8-4.6 4.6 4.6 4.6-2.8 2.8-4.6-4.6-4.6 4.6-2.8-2.8 4.6-4.6Z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><path d="M12 2.5 14.6 9.4 21.5 12l-6.9 2.6L12 21.5l-2.6-6.9L2.5 12l6.9-2.6Z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path fill-rule="evenodd" id="gearpath" d=""/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+<div class="sbar" role="toolbar" aria-label="Điều khiển trang">
+  <span>Bấm thử mọi nút trong mockup (rê chuột / nhấn giữ).</span>
+  <button id="snd" aria-pressed="false">Âm thanh mẫu: tắt</button>
+  <span class="note">Âm thanh tổng hợp bằng WebAudio, chỉ để cảm nhận "cue".</span>
+</div>
+
+<header class="top" style="margin-top:22px">
+  <h1>Công Thành Chiến · Hướng fantasy (kỵ sĩ &amp; pháp sư)</h1>
+  <p>Tiếp nối <a href="ui_direction.html">ui_direction.html</a>. Yêu cầu: bỏ yếu tố lịch sử Việt → fantasy kỵ sĩ / pháp sư, dễ hiểu với người chơi mọi nước; giữ cái "ổn" của <b>C · Đông Hồ</b>. Trang này: 3 hướng fantasy mới (cùng bộ component với C để so 1:1) + đề xuất thiết kế lại quân (tên, hình, 4 mẫu vẽ). Chưa đổi code game.</p>
+  <div class="verdict" style="margin:14px 0 4px">
+  <h3 style="font-size:20px">Đã chốt (2026-11-07)</h3>
+  <ul class="tight">
+  <li><b>UI = F1 · Truyện Kỵ Sĩ</b> nhưng <b>giữ font của C</b> (Paytone One cho tiêu đề / nút / số, Be Vietnam Pro cho thân). Không dùng chữ gô-tích.</li>
+  <li><b>Voi chiến → Golem Đá</b>. <b>Máy bắn đá giữ nguyên</b> (chỉ vẽ lại kiểu lâu đài trung cổ).</li>
+  <li>Phe (tên tạm): <b>Quân Khởi Nghĩa</b> (phe ta) vs <b>Đế Quốc</b> (phe địch). Tướng: Hiệp Sĩ Chỉ Huy / Hắc Hiệp Sĩ.</li>
+  <li><b>Phạm vi lần này = chỉ giao diện</b>: da UI, hình quân / công trình, chữ hiển thị. <b>Không</b> đụng cốt truyện, luật, AI (mục 7).</li>
+  <li>Vệ Binh, Pháp Sư Gọi Hồn: hướng hình OK. Chỉ huy v2: <b>tư thế B · cắm kiếm</b> (rig hero sửa: đòn bắt đầu bằng nhổ kiếm).</li>
+  </ul>
+  </div>
+  <nav class="toc">
+    <a href="#f1">1. Giữ gì từ C</a><a href="#f2">2. Ba hướng fantasy</a><a href="#f3">3. Mockup so sánh</a><a href="#f4">4. UI đã chọn</a><a href="#f5">5. Thiết kế lại quân</a><a href="#f6">6. Bản đồ / công trình</a><a href="#f7">7. Phạm vi (chỉ giao diện)</a><a href="#f8">8. Còn cần chốt</a>
+  </nav>
+</header>
+
+<!-- ============================ 1 ============================ -->
+<section id="f1">
+<h2>1. Giữ gì từ C <small>"khung" giữ nguyên, chỉ thay họa tiết văn hóa</small></h2>
+<p class="note">C ổn vì <b>ngôn ngữ hình</b>, không vì bối cảnh Việt: nét mực dày giống quân chibi, màu phẳng, bóng in lệch cứng, nút bấm như "đóng dấu", chữ to tròn kiểu đồ chơi. Các thứ đó hợp fantasy y như hợp Đông Hồ → giữ hết, chỉ đổi phần "văn hóa".</p>
+<table class="t">
+<thead><tr><th>Phần của C</th><th>Giữ / bỏ</th><th>Thay bằng (fantasy)</th></tr></thead>
+<tbody>
+<tr><td data-l="Phần của C">Viền mực 3 px cùng màu nét quân (#2b2220 / #231a15)</td><td data-l="Giữ / bỏ"><span class="tag good">giữ</span></td><td data-l="Thay bằng">— (luật chung cả 3 hướng: UI và quân là 1 thế giới)</td></tr>
+<tr><td data-l="Phần của C">Bóng cứng lệch xuống phải, nhấn = lún về đúng chỗ bóng</td><td data-l="Giữ / bỏ"><span class="tag good">giữ</span></td><td data-l="Thay bằng">F1 giữ y nguyên; F2 / F3 đổi sang "mép dày" (lip) bên dưới, cùng cảm giác lún</td></tr>
+<tr><td data-l="Phần của C">Con dấu đỏ (triện) cho Hết lượt / nhãn</td><td data-l="Giữ / bỏ"><span class="tag bad">bỏ họa tiết</span></td><td data-l="Thay bằng"><b>Dấu sáp đỏ</b> (wax seal) in hình vương miện → cùng hành động "đóng dấu", nhưng ai cũng nhận ra là thư của vua</td></tr>
+<tr><td data-l="Phần của C">Giấy dó + thớ + ánh điệp</td><td data-l="Giữ / bỏ"><span class="tag bad">bỏ họa tiết</span></td><td data-l="Thay bằng"><b>Giấy da cừu (parchment)</b>: cùng texture hạt + thớ, mép sẫm hơn</td></tr>
+<tr><td data-l="Phần của C">Cờ đuôi nheo, ô vuông góc khung tranh in</td><td data-l="Giữ / bỏ"><span class="tag bad">bỏ họa tiết</span></td><td data-l="Thay bằng"><b>Băng rôn huy hiệu</b> 2 đuôi, góc khung hình thoi vàng (kiểu sách chép tay trung cổ)</td></tr>
+<tr><td data-l="Phần của C">Bảng màu son / hoa hòe / chàm</td><td data-l="Giữ / bỏ"><span class="tag good">giữ cấu trúc</span></td><td data-l="Thay bằng">Màu huy hiệu châu Âu: đỏ thẫm / vàng lá / lam hoàng gia (vẫn 3 màu chính + mực + giấy)</td></tr>
+<tr><td data-l="Phần của C">Mặt trời Đông Sơn, "Năm 40", Hai Bà Trưng, quân Đông Hán, đồng tiền lỗ vuông</td><td data-l="Giữ / bỏ"><span class="tag bad">bỏ hẳn</span></td><td data-l="Thay bằng">Vương miện, ngôi sao phép, đồng vàng tròn dập sao; tên người / phe fantasy (mục 5)</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============================ 2 ============================ -->
+<section id="f2">
+<h2>2. Ba hướng fantasy <small>đều từ "khung" C, khác nhau ở độ tối và vật liệu</small></h2>
+<div class="grid3">
+  <div class="dcard recommended">
+    <span class="pill">ĐÃ CHỌN</span>
+    <h3 style="color:#e3b345">F1 · Truyện Kỵ Sĩ</h3>
+    <p class="vibe">"Sách truyện cổ in khắc gỗ" - C mặc áo giáp. Gần C nhất.</p>
+    <dl>
+      <dt>Bảng màu</dt><dd><div class="sw"><span><i style="background:#f2e3c0"></i>giấy da</span><span><i style="background:#231a15"></i>mực</span><span><i style="background:#b3262e"></i>đỏ thẫm</span><span><i style="background:#e3b345"></i>vàng lá</span><span><i style="background:#27477a"></i>lam</span></div></dd>
+      <dt>Chữ</dt><dd><b>Giữ font C</b>: Paytone One (tiêu đề, nút, số) · thân: Be Vietnam Pro</dd>
+      <dt>Hình</dt><dd>Như C: chữ nhật "khắc tay" bo không đều, bóng in lệch.</dd>
+      <dt>Vật liệu</dt><dd>Giấy da có hạt + thớ, mép sẫm; màu phẳng.</dd>
+      <dt>Hoa văn</dt><dd>Khung đôi + hình thoi vàng ở góc, băng rôn 2 đuôi, chữ cái đầu đoạn thoại to màu đỏ (kiểu sách chép tay).</dd>
+      <dt>Nút / panel</dt><dd>Nút = đóng dấu (giữ C). Hết lượt = <b>dấu sáp đỏ</b> in vương miện.</dd>
+      <dt>Icon</dt><dd>Màu phẳng + nét mực dày (giữ C); đồng vàng tròn dập sao.</dd>
+      <dt>Chuyển động / âm</dt><dd>Rê = nghiêng nhẹ; nhấn = ấn dấu sáp ("bụp" trầm); lật trang giấy; kèn đồng ngắn khi thắng.</dd>
+    </dl>
+  </div>
+  <div class="dcard">
+    <h3 style="color:#ffc83d">F2 · Vương Quốc Đồ Chơi</h3>
+    <p class="vibe">"Hộp lính gỗ sơn màu" - tươi, nảy, giống game mobile phổ thông.</p>
+    <dl>
+      <dt>Bảng màu</dt><dd><div class="sw"><span><i style="background:#9a6034"></i>gỗ</span><span><i style="background:#6b737c"></i>sắt</span><span><i style="background:#e0412e"></i>đỏ</span><span><i style="background:#ffc83d"></i>vàng</span><span><i style="background:#2f76d8"></i>lam</span></div></dd>
+      <dt>Chữ</dt><dd><b>Sigmar</b> (rất đậm, tròn) viền đen dày · thân: Be Vietnam Pro</dd>
+      <dt>Hình</dt><dd>Bo tròn 14, đều; mép dày 6 px bên dưới (kiểu nút Clash / Kingdom Rush).</dd>
+      <dt>Vật liệu</dt><dd>Ván gỗ có khe + đinh tán sắt ở góc; nút sơn bóng có vệt sáng trên.</dd>
+      <dt>Hoa văn</dt><dd>Khiên huy hiệu chia 4 ô đỏ - vàng; dải ruy băng đỏ.</dd>
+      <dt>Nút / panel</dt><dd>Nút sơn có mép, lún 5 px. Hết lượt = <b>khiên huy hiệu</b> nhún nhảy khi sẵn sàng.</dd>
+      <dt>Icon</dt><dd>Trắng / vàng viền đen dày, như sticker.</dd>
+      <dt>Chuyển động / âm</dt><dd>Nảy mạnh, "cộc" gỗ, tiếng xu leng keng khi mua.</dd>
+    </dl>
+  </div>
+  <div class="dcard">
+    <h3 style="color:#7fe8ff">F3 · Sách Phép</h3>
+    <p class="vibe">"Cuốn sách phép bìa da, khóa đồng" - tối, huyền bí, nghiêng về pháp sư.</p>
+    <dl>
+      <dt>Bảng màu</dt><dd><div class="sw"><span><i style="background:#2c2344"></i>da tím than</span><span><i style="background:#d6ad55"></i>đồng thau</span><span><i style="background:#7c4dff"></i>tím phép</span><span><i style="background:#7fe8ff"></i>rune lam</span><span><i style="background:#6ee7a8"></i>ngọc</span></div></dd>
+      <dt>Chữ</dt><dd><b>Texturina</b> 700–800 (gô-tích mềm) · thân: Be Vietnam Pro</dd>
+      <dt>Hình</dt><dd>Bo 10–12, góc bọc đồng tam giác; chân dung tròn như ngọc.</dd>
+      <dt>Vật liệu</dt><dd>Da thuộc tối, chỉ đồng thau mảnh, phát sáng lam / tím.</dd>
+      <dt>Hoa văn</dt><dd>Vòng phép (vạch rune xoay), sao 4 cánh, đá quý.</dd>
+      <dt>Nút / panel</dt><dd>Nút tím có mép, rê = hào quang lam. Hết lượt = <b>vòng phép</b> xoay + thở sáng.</dd>
+      <dt>Icon</dt><dd>Đồng thau / lam phát sáng nhẹ, viền tối.</dd>
+      <dt>Chuyển động / âm</dt><dd>Lóe sáng, "ting" pha lê, ngân phép khi Hết lượt.</dd>
+    </dl>
+  </div>
+</div>
+</section>
+
+<!-- ============================ 3 ============================ -->
+<section id="f3">
+<h2>3. Mockup so sánh <small>C gốc (để đối chiếu) + 3 hướng fantasy, cùng nội dung</small></h2>
+<p class="note">Cột C dùng nội dung mới (đã bỏ chữ lịch sử) để chỉ khác nhau ở "da". Chân dung / hàng mua dùng mẫu quân vẽ mới ở mục 5 (Máy Bắn Đá vẫn là hình cũ); ảnh bàn cờ ở hàng HUD vẫn là bàn cờ hiện tại.</p>
+<div id="rows"></div>
+</section>
+
+<!-- ============================ 4 ============================ -->
+<section id="f4">
+<h2>4. UI đã chọn</h2>
+<div class="verdict">
+<h3>Đã chọn F1 · Truyện Kỵ Sĩ + font C (mượn ánh sáng phép của F3 cho hiệu ứng chiêu)</h3>
+<ul class="tight">
+<li><b>Là C mà anh đã thấy ổn</b>: cùng nét mực, bóng in lệch, nút đóng dấu, màu phẳng. Chỉ đổi họa tiết: triện → dấu sáp, giấy dó → giấy da, cờ đuôi nheo → băng rôn huy hiệu. Rủi ro "không giống cái mình thích" thấp nhất.</li>
+<li><b>Fantasy rõ mà không cần đọc chữ</b>: dấu sáp vương miện, băng rôn huy hiệu, khung sách chép tay = "truyện hiệp sĩ" với người chơi mọi nước.</li>
+<li><b>Hợp quân chibi</b>: quân vẽ màu phẳng viền đậm → UI kiểu tranh khắc gỗ đi cùng tự nhiên. F2 (gradient bóng) và F3 (phát sáng) đều "bóng bẩy" hơn quân.</li>
+<li><b>Font</b> (đã chốt): giữ Paytone One của C → chữ to tròn kiểu đồ chơi, dấu tiếng Việt rõ (xem hàng "Thử font"). Chất fantasy đến từ dấu sáp, băng rôn, khung sách chép tay, không từ chữ gô-tích.</li>
+<li><b>Mượn từ F3</b>: ánh sáng lam / tím + vòng rune chỉ cho <i>hiệu ứng phép</i> (pháp sư bắn, gọi hồn, hào quang tu sĩ) → phép thuật nổi bật trên nền UI giấy. <b>Không lấy</b>: panel tối, gradient tím cho nút.</li>
+</ul>
+<p class="note" style="margin:8px 0 0"><b>Điểm yếu đã biết (giống C)</b>: panel giấy sáng chìm vào đường đất / làng màu kem trên bàn cờ. Cách xử lý: viền mực 3 px + bóng mờ đen 35% quanh panel nổi trên bàn cờ, hoặc thanh HUD có dải tối phía sau. Phải đo lại bằng probe chụp màn 1280x720 + 844x390.</p>
+<p class="note" style="margin:6px 0 0">Nếu muốn game <b>trẻ / phổ thông</b> hơn (giống game mobile bán chạy) → F2. Nếu muốn <b>huyền bí, nghiêng pháp sư</b> và tương phản tối nhất trên bàn cờ → F3 (nhưng xa C nhất).</p>
+</div>
+</section>
+
+<!-- ============================ 5 ============================ -->
+<section id="f5">
+<h2>5. Thiết kế lại quân <small>tên + hình, giữ nguyên luật / chỉ số / AI</small></h2>
+<h3>Ràng buộc (đọc từ code)</h3>
+<ul class="tight">
+<li><b>Một bộ quân dùng chung cho 2 phe</b>, chỉ khác màu (<code>content/theme.gd</code> → <code>units.p</code> / <code>units.e</code>). → Không làm kiểu "người vs orc". Hai phe = <b>hai vương quốc</b>, cùng loại quân, khác huy hiệu + màu.</li>
+<li><b>Khóa trong <code>rules.gd</code> giữ nguyên</b> (<code>soldier … ghost</code>), chỉ số không đổi, <b>không đụng</b> <code>ai.gd</code> / <code>ai_plan</code> / preset bot. Đổi = tên, mô tả, icon, hình SVG, rig đòn đánh, hiệu ứng, âm thanh.</li>
+<li><b>Tên phải "nói" được cơ chế</b>: nhìn tên đoán được vai (bắn xa, gọi xác, trợ chiến, công thành…).</li>
+<li>2 tướng cố định (<code>anhhung</code> phe ta, <code>tuonggiac</code> phe địch). Thoại / nhân vật lịch sử trong <code>people</code> sẽ bỏ cùng chế độ màn số (nhánh <code>feat/levels</code>) → không cần thiết kế lại.</li>
+</ul>
+
+<h3>Hai phe <small class="note">tên tạm · chỉ đổi chữ + huy hiệu + màu, không thêm cốt truyện</small></h3>
+<div class="grid2">
+  <div class="box"><b style="color:#e2664b">Quân Khởi Nghĩa</b> <span class="tag">phe ta · đỏ thẫm + vàng</span><br>Huy hiệu vương miện (dòng dõi vương quốc cũ). Giữ đúng màu phe ta hiện tại (<code>#c9503f</code> + vàng <code>#e2c36e</code>) → không đổi màu bàn cờ, viền quân, thanh máu.</div>
+  <div class="box"><b style="color:#7fa2f0">Đế Quốc</b> <span class="tag">phe địch · lam + bạc</span><br>Huy hiệu đại bàng. Giữ lam phe địch (<code>#4f74c9</code>), điểm nhấn vàng → bạc (<code>#d9dee3</code>) để 2 phe khác nhau cả ở chi tiết nhỏ.</div>
+</div>
+<p class="note">Cốt truyện tham khảo (chưa làm, chỉ để giữ hình ảnh nhất quán): Đế Quốc rất mạnh, đã chiếm phần lớn bản đồ của vương quốc → quân khởi nghĩa nổi dậy chiếm lại từng lâu đài. Hợp sẵn với lối chơi "công thành".</p>
+
+<h3>Bảng quân <small class="note">Rig: <span class="rig k">giữ</span> = dùng lại khung + nhịp đánh · <span class="rig s">sửa</span> = đổi vũ khí / tư thế · <span class="rig n">mới</span> = khung mới</small></h3>
+<table class="t" id="roster">
+<thead><tr><th>Hiện tại</th><th>Tên mới</th><th>Cơ chế phải đọc ra</th><th>Hình (dáng · vũ khí · màu)</th><th>Rig</th><th>Phương án khác</th></tr></thead>
+<tbody></tbody>
+</table>
+
+<h3>Mẫu vẽ (cùng nét chibi: viền <code>#2b2220</code> 7 px, đầu to, màu phẳng)</h3>
+<p class="note">Chỉ huy v2 "uy phong hơn": áo choàng xòe rộng, giáp vai 2 lớp viền vàng, mũ vương miện + đôi cánh, đại kiếm có ngọc, mặt nghiêm; Hắc Hiệp Sĩ = thép đen, mũ sừng, mắt đỏ. 2 tư thế để chọn. Vệ Binh + Pháp Sư Gọi Hồn đã OK (giữ như cũ).</p>
+<div class="samples" id="samples"></div>
+</section>
+
+<!-- ============================ 6 ============================ -->
+<section id="f6">
+<h2>6. Bản đồ / công trình <small>tên đổi, luật giữ</small></h2>
+<table class="t">
+<thead><tr><th>Ô</th><th>Hiện tại</th><th>Mới</th><th>Ghi chú hình</th></tr></thead>
+<tbody>
+<tr><td data-l="Ô"><code>.</code></td><td data-l="Hiện tại">Đồng lúa</td><td data-l="Mới"><b>Đồng cỏ</b></td><td data-l="Ghi chú">bỏ luống lúa, cỏ + hoa dại</td></tr>
+<tr><td data-l="Ô"><code>=</code></td><td data-l="Hiện tại">Cầu tre</td><td data-l="Mới"><b>Cầu gỗ</b></td><td data-l="Ghi chú">ván gỗ + lan can</td></tr>
+<tr><td data-l="Ô"><code>v</code></td><td data-l="Hiện tại">Làng</td><td data-l="Mới"><b>Làng</b> (giữ tên)</td><td data-l="Ghi chú">nhà mái rơm vách gỗ + cối xay gió nhỏ; cờ phe trên nóc</td></tr>
+<tr><td data-l="Ô"><code>x</code></td><td data-l="Hiện tại">Làng hỏng</td><td data-l="Mới"><b>Làng cháy</b></td><td data-l="Ghi chú">mái sập, khói; sửa được (giữ luật)</td></tr>
+<tr><td data-l="Ô"><code>c</code></td><td data-l="Hiện tại">Thành</td><td data-l="Mới"><b>Lâu đài</b></td><td data-l="Ghi chú">2 tháp tròn + cổng, cờ phe; tên game "Công Thành Chiến" vẫn đúng nghĩa</td></tr>
+<tr><td data-l="Ô"><code>t</code></td><td data-l="Hiện tại">Đền</td><td data-l="Mới"><b>Giếng Thần</b></td><td data-l="Ghi chú">giếng đá + ánh sáng; hồi máu mọi phe, thủ +15 (giữ luật)</td></tr>
+<tr><td data-l="Ô"><code>r f h m ~</code></td><td data-l="Hiện tại">Đường mòn, Rừng, Đồi, Núi, Sông</td><td data-l="Mới">giữ</td><td data-l="Ghi chú">rừng có thể thêm cây thông</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============================ 7 ============================ -->
+<section id="f7">
+<h2>7. Phạm vi lần này: chỉ giao diện <small>ước lượng, chưa làm</small></h2>
+<div class="grid2">
+<div class="box"><b class="tag good">LÀM</b>
+<ul class="tight">
+<li>Da UI F1 + font C: <code>style.gd</code> (token, nút, panel, dấu sáp Hết lượt), <code>hud_widgets.gd</code>, màn tiêu đề, popup, thẻ quân, icon thay emoji.</li>
+<li>Hình 22 SVG quân (11 loại × 2 phe) theo bảng mục 5.</li>
+<li>Rig đòn đánh: <b>mới</b> elephant → Golem; <b>sửa</b> hero (tư thế cắm kiếm → nhổ kiếm rồi chém), archer (cung), drum (tu sĩ); còn lại giữ.</li>
+<li>Hình công trình / ô: lâu đài, làng + cối xay, làng cháy, cầu gỗ, giếng thần, đồng cỏ.</li>
+<li>Chữ hiển thị: tên quân / tướng / ô / phe, mô tả thẻ ⓘ (chỉ chữ, không đổi khóa).</li>
+<li>Âm thanh UI: dấu sáp, lật giấy, kèn (thay trống đồng / chiêng).</li>
+</ul></div>
+<div class="box"><b class="tag bad">KHÔNG LÀM lúc này</b>
+<ul class="tight">
+<li>Cốt truyện, thoại, nhân vật trong <code>people</code>, chương / màn.</li>
+<li>Luật + chỉ số <code>rules.gd</code>, khóa quân (<code>soldier … ghost</code>), <code>ai.gd</code> / <code>ai_plan</code> / preset bot.</li>
+<li>Logic phe, mục tiêu, chế độ màn số (<code>feat/levels</code>).</li>
+</ul></div>
+</div>
+<table class="t" style="margin-top:14px">
+<thead><tr><th>Phần</th><th>File</th><th>Ước lượng</th></tr></thead>
+<tbody>
+<tr><td data-l="Phần">Da UI F1 (kế hoạch P0–P5 trang cũ, đổi hoa văn)</td><td data-l="File"><code>style.gd</code>, <code>hud_widgets.gd</code>, <code>story_overlay.gd</code> (chỉ khung), màn tiêu đề, <code>assets/fonts</code> (+ Paytone One, SIL OFL 1.1)</td><td data-l="Ước lượng">6–8 ngày (nút + panel ≈ 3 ngày đã thấy khác)</td></tr>
+<tr><td data-l="Phần">22 SVG quân</td><td data-l="File"><code>assets/units/styles/chibi/*_p|e.svg</code></td><td data-l="Ước lượng">2–3 ngày</td></tr>
+<tr><td data-l="Phần">Rig: golem mới, sửa chỉ huy + cung thủ + tu sĩ</td><td data-l="File"><code>scripts/ui/rig/specs/*.gd</code>, <code>rigs.gd</code></td><td data-l="Ước lượng">1.5–2 ngày</td></tr>
+<tr><td data-l="Phần">Công trình / ô</td><td data-l="File"><code>board_paint.gd</code>, <code>assets/terrain/chibi/</code></td><td data-l="Ước lượng">1–1.5 ngày</td></tr>
+<tr><td data-l="Phần">Chữ hiển thị + âm thanh UI</td><td data-l="File"><code>content/theme.gd</code>, <code>content/guide.gd</code>, <code>audio.gd</code>, <code>tools/bake_sfx.gd</code></td><td data-l="Ước lượng">1 ngày</td></tr>
+<tr><td data-l="Phần">Kiểm</td><td data-l="File">tests, probe chụp 1280x720 + 844x390, click driver (tìm nút theo chữ → đổi chữ thì sửa driver)</td><td data-l="Ước lượng">0.5–1 ngày</td></tr>
+</tbody>
+</table>
+</section>
+
+<!-- ============================ 8 ============================ -->
+<section id="f8">
+<h2>8. Còn cần chốt</h2>
+<div class="q"><ol>
+<li><s>Tư thế chỉ huy</s> → đã chọn B · cắm kiếm.</li>
+<li>Sau khi chọn: viết kế hoạch triển khai (chỉ giao diện, mục 7) rồi mới đụng code.</li>
+</ol></div>
+</section>
+
+<footer>docs/review/ui_direction_fantasy.html · mockup HTML/CSS chỉ để so hướng · font tải từ Google Fonts để xem trước, không file nào vào repo.</footer>
+</div>
+
+<script>
+(function(){let d='';const n=8;for(let i=0;i<n*4;i++){const a=Math.PI*2*i/(n*4)-Math.PI/2,r=(i%4<2)?10.5:8;d+=(i?'L':'M')+(12+r*Math.cos(a)).toFixed(2)+' '+(12+r*Math.sin(a)).toFixed(2)}document.getElementById('gearpath').setAttribute('d',d+'Z M12 8.6a3.4 3.4 0 1 0 0 6.8a3.4 3.4 0 1 0 0-6.8Z')})();
+
+/* ---------------- new unit sample SVGs (256 box, chibi stroke rules) ---------------- */
+const PAL={p:{m:'#c9503f',d:'#93362b',a:'#e2c36e'},e:{m:'#4f74c9',d:'#34509a',a:'#d9dee3'}};
+const K='#2b2220',SK='#f3cfa6',BR='#5a4a3c',DK='#3a2e28',MT='#cdd4da',MT2='#aab3bd',MT3='#7e8790',BONE='#ece6da',WOOD='#a87a4c';
+const open=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256"><g stroke="${K}" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">`;
+const legs=(l=BR,b=DK)=>`<rect x="104" y="196" width="20" height="40" rx="4" fill="${l}"/><rect x="98" y="228" width="30" height="18" rx="8" fill="${b}"/><rect x="134" y="196" width="20" height="40" rx="4" fill="${l}"/><rect x="130" y="228" width="32" height="18" rx="8" fill="${b}"/>`;
+const boots=`<rect x="98" y="226" width="30" height="20" rx="8" fill="${DK}"/><rect x="132" y="226" width="32" height="20" rx="8" fill="${DK}"/>`;
+const head=`<circle cx="130" cy="84" r="54" fill="${SK}"/>`;
+const eyes=`<circle cx="148" cy="115" r="6" fill="${K}"/><circle cx="170" cy="115" r="6" fill="${K}"/><circle cx="150" cy="113" r="2" fill="#fff"/><circle cx="172" cy="113" r="2" fill="#fff"/>`;
+const blush=`<ellipse cx="179" cy="127" rx="6" ry="4" fill="#f09a88" opacity=".6"/>`;
+const emblem=(s,cx,cy,c)=> s==='p'
+  ? `<path d="M${cx-16} ${cy+10} L${cx-14} ${cy-8} L${cx-7} ${cy+1} L${cx} ${cy-14} L${cx+7} ${cy+1} L${cx+14} ${cy-8} L${cx+16} ${cy+10} Z" fill="${c}" stroke-width="4"/>`
+  : `<path d="M${cx-19} ${cy-5} Q${cx-11} ${cy-13} ${cx-5} ${cy-4} L${cx} ${cy-15} L${cx+5} ${cy-4} Q${cx+11} ${cy-13} ${cx+19} ${cy-5} Q${cx+11} ${cy+2} ${cx+5} ${cy+2} L${cx} ${cy+13} L${cx-5} ${cy+2} Q${cx-11} ${cy+2} ${cx-19} ${cy-5} Z" fill="${c}" stroke-width="4"/>`;
+const ARM=(x1,y1,cx,cy,x2,y2,c,w=14)=>`<path d="M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}" fill="none" stroke="${K}" stroke-width="${w+12}"/><path d="M${x1} ${y1} Q${cx} ${cy} ${x2} ${y2}" fill="none" stroke="${c}" stroke-width="${w}"/>`;
+
+const SVG={
+hero:s=>{const P=PAL[s];return open+
+  `<path d="M104 128 Q66 170 56 238 Q92 228 122 238 Q118 190 140 132 Z" fill="${P.m}"/><path d="M90 160 Q76 196 74 228" fill="none" stroke="${P.d}" stroke-width="5"/>`+
+  legs(MT2,MT3)+
+  `<path d="M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z" fill="${MT}"/>`+
+  `<path d="M114 127 L144 127 L150 208 Q128 214 108 208 Z" fill="${P.m}"/>`+
+  `<path d="M95 186 L161 186" stroke="${BR}" stroke-width="10"/><circle cx="128" cy="187" r="7" fill="${P.a}" stroke-width="4"/>`+
+  emblem(s,129,158,P.a)+
+  `<path d="M44 128 L120 128 Q122 180 82 222 Q42 180 44 128 Z" fill="${P.m}"/><path d="M55 139 L109 139 Q110 175 82 207 Q54 175 55 139 Z" fill="none" stroke="${P.a}" stroke-width="5"/>`+emblem(s,82,166,P.a)+
+  `<path d="M191 150 L191 32 L198 12 L205 32 L205 150 Z" fill="#eef2f5"/><path d="M198 34 L198 144" stroke="${MT2}" stroke-width="3"/>`+
+  `<rect x="193" y="160" width="10" height="24" rx="3" fill="${BR}"/><circle cx="198" cy="190" r="7" fill="${P.a}" stroke-width="5"/><rect x="175" y="149" width="46" height="12" rx="4" fill="${P.a}" stroke-width="5"/>`+
+  ARM(152,140,176,152,196,170,MT)+`<circle cx="198" cy="172" r="12" fill="${MT2}" stroke-width="5"/>`+
+  `<path d="M128 40 Q122 8 90 2 Q96 22 82 36 Q104 26 116 44 Z" fill="${P.m}" stroke-width="5"/><path d="M118 30 Q108 16 96 12" fill="none" stroke="${P.d}" stroke-width="4"/>`+
+  head+
+  `<path d="M76 90 A54 54 0 0 1 184 90 L190 100 L70 100 Z" fill="${MT}"/><path d="M90 70 Q98 52 114 42" fill="none" stroke="#f4f6f8" stroke-width="5"/><path d="M72 94 L188 94" stroke="${MT3}" stroke-width="5"/>`+
+  `<rect x="119" y="30" width="20" height="12" rx="4" fill="${P.a}" stroke-width="5"/>`+
+  `</g><path d="M140 104 L155 109 M163 109 L178 104" stroke="${K}" stroke-width="5" stroke-linecap="round"/>`+eyes+blush+
+  `<path d="M150 131 Q159 139 168 131" fill="none" stroke="${K}" stroke-width="3.5" stroke-linecap="round"/></svg>`},
+soldier:s=>{const P=PAL[s];return open+legs()+
+  `<path d="M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z" fill="${MT2}"/>`+
+  `<path d="M96 150 Q128 158 160 150 M94 170 Q128 178 162 170" fill="none" stroke="${MT3}" stroke-width="3"/>`+
+  `<path d="M112 127 L146 127 L150 206 Q128 212 106 206 Z" fill="${P.m}"/><path d="M95 188 L161 188" stroke="${BR}" stroke-width="10"/>`+
+  `<line x1="198" y1="52" x2="198" y2="240" stroke="${K}" stroke-width="15"/><line x1="198" y1="52" x2="198" y2="240" stroke="${WOOD}" stroke-width="7"/>`+
+  `<path d="M204 56 L240 64 L226 70 L240 78 L204 82 Z" fill="${P.m}" stroke-width="5"/>`+
+  `<path d="M198 6 Q213 28 205 50 L191 50 Q183 28 198 6 Z" fill="#eef2f5" stroke-width="5"/><path d="M198 16 L198 44" stroke="${MT2}" stroke-width="4"/><rect x="189" y="48" width="18" height="10" rx="3" fill="${P.a}" stroke-width="5"/>`+
+  ARM(152,140,176,150,196,160,P.m,12)+`<circle cx="198" cy="160" r="12" fill="${SK}" stroke-width="5"/>`+
+  `<path d="M48 138 L118 138 L118 166 Q116 200 83 216 Q50 200 48 166 Z" fill="${P.m}"/><path d="M52 158 L83 182 L114 158" fill="none" stroke="${P.a}" stroke-width="10"/>`+
+  head+
+  `<path d="M74 92 A56 56 0 0 1 186 92 L190 100 L70 100 Z" fill="${MT}"/><path d="M88 74 Q96 56 110 46" fill="none" stroke="#f4f6f8" stroke-width="5"/><path d="M72 96 L188 96" stroke="${MT3}" stroke-width="5"/>`+
+  `<rect x="155" y="92" width="9" height="30" rx="3" fill="${MT}" stroke-width="4"/>`+
+  `</g>`+eyes+blush+`<path d="M152 133 Q158 137 165 133" fill="none" stroke="${K}" stroke-width="3" stroke-linecap="round"/></svg>`},
+shaman:s=>{const P=PAL[s];const G='#8be37a';return open+
+  `<path d="M60 152 Q42 138 52 118 Q58 132 66 130 Q60 116 74 104 Q74 126 84 136 Q82 154 60 152 Z" fill="${G}" stroke-width="5"/><circle cx="64" cy="138" r="2.6" fill="${K}" stroke="none"/><circle cx="73" cy="137" r="2.6" fill="${K}" stroke="none"/>`+
+  `<line x1="200" y1="60" x2="200" y2="244" stroke="${K}" stroke-width="15"/><line x1="200" y1="60" x2="200" y2="244" stroke="${BR}" stroke-width="7"/>`+
+  `<path d="M200 4 Q214 16 210 28 Q206 34 200 30 Q193 34 190 26 Q190 14 200 4 Z" fill="${G}" stroke-width="4"/>`+
+  `<path d="M182 48 Q182 24 200 24 Q218 24 218 48 Q218 58 210 60 L210 68 L190 68 L190 60 Q182 58 182 48 Z" fill="${BONE}" stroke-width="5"/><circle cx="193" cy="46" r="4.5" fill="${K}" stroke="none"/><circle cx="207" cy="46" r="4.5" fill="${K}" stroke="none"/><path d="M196 62 L196 68 M200 62 L200 68 M204 62 L204 68" stroke="${K}" stroke-width="2.5"/>`+
+  boots+
+  `<path d="M100 128 Q128 118 156 128 L176 230 Q128 242 80 230 Z" fill="${P.d}"/>`+
+  `<path d="M84 222 Q128 233 172 222" fill="none" stroke="${P.m}" stroke-width="8"/><path d="M128 132 L131 226" stroke="${P.m}" stroke-width="6"/>`+
+  `<path d="M92 176 Q128 186 164 176" fill="none" stroke="${K}" stroke-width="15"/><path d="M92 176 Q128 186 164 176" fill="none" stroke="${WOOD}" stroke-width="7"/>`+
+  `<path d="M120 146 Q120 136 128 136 Q136 136 136 146 Q136 151 132 152 L132 156 L124 156 L124 152 Q120 151 120 146 Z" fill="${BONE}" stroke-width="4"/>`+
+  ARM(152,140,176,150,196,160,P.d,16)+`<circle cx="200" cy="162" r="12" fill="${SK}" stroke-width="5"/>`+
+  `<path d="M86 46 Q54 30 36 48 Q60 54 76 68 Z" fill="${P.d}"/>`+
+  `<path d="M72 112 Q56 42 112 24 Q152 14 178 36 Q198 56 192 104 Z" fill="${P.d}"/>`+
+  head+
+  `<path d="M76 98 Q72 40 130 30 Q188 36 188 96 Q168 66 132 64 Q98 66 76 98 Z" fill="${P.d}"/><path d="M82 92 Q102 70 132 68 Q164 68 182 88" fill="none" stroke="${P.m}" stroke-width="5"/>`+
+  `</g><path d="M140 103 L155 109 M163 109 L178 103" stroke="${K}" stroke-width="5" stroke-linecap="round"/>`+
+  `<circle cx="148" cy="116" r="6" fill="${K}"/><circle cx="170" cy="116" r="6" fill="${K}"/><circle cx="150" cy="114" r="2" fill="${G}"/><circle cx="172" cy="114" r="2" fill="${G}"/>`+
+  `<path d="M141 124 Q148 128 155 124 M163 124 Q170 128 177 124" fill="none" stroke="#9b86b8" stroke-width="2.5" stroke-linecap="round"/>`+
+  `<path d="M151 134 Q160 136 168 129" fill="none" stroke="${K}" stroke-width="3.5" stroke-linecap="round"/></svg>`},
+hero2:(s,pose)=>{const P=PAL[s],dk=s==='e';
+  const M1=dk?'#646a7a':MT,M2=dk?'#474c5b':MT2,M3=dk?'#30343f':MT3,TR=dk?'#c9cfd6':P.a,HI=dk?'#8d93a3':'#f6f8fa';
+  const cape=`<path d="M100 122 Q44 150 24 244 Q60 232 92 244 Q128 236 162 246 Q198 232 230 244 Q212 166 156 122 Z" fill="${P.m}"/>`+
+    `<path d="M98 142 Q64 180 54 232 Q76 226 96 232 Z" fill="${P.d}" stroke="none"/><path d="M158 142 Q192 180 202 232 Q180 226 160 232 Z" fill="${P.d}" stroke="none"/>`+
+    `<path d="M28 239 Q60 228 92 239 Q128 231 162 241 Q198 228 226 239" fill="none" stroke="${TR}" stroke-width="5"/>`;
+  const legs2=`<rect x="96" y="194" width="24" height="40" rx="5" fill="${M2}"/><rect x="138" y="194" width="24" height="40" rx="5" fill="${M2}"/>`+
+    `<rect x="86" y="226" width="38" height="20" rx="8" fill="${M3}"/><rect x="134" y="226" width="40" height="20" rx="8" fill="${M3}"/>`+
+    `<circle cx="108" cy="206" r="8" fill="${TR}" stroke-width="5"/><circle cx="150" cy="206" r="8" fill="${TR}" stroke-width="5"/>`;
+  const torso=`<path d="M98 126 Q128 114 158 126 L168 202 Q128 214 88 202 Z" fill="${M1}"/><path d="M110 136 Q107 162 112 190" fill="none" stroke="${HI}" stroke-width="5"/>`+
+    `<path d="M104 130 Q128 143 152 130" fill="none" stroke="${TR}" stroke-width="6"/>`+
+    `<path d="M90 192 Q128 204 166 192 L172 214 Q128 228 84 214 Z" fill="${P.m}"/><path d="M87 210 Q128 224 169 210" fill="none" stroke="${TR}" stroke-width="5"/>`+
+    `<path d="M92 190 Q128 200 164 190" fill="none" stroke="${BR}" stroke-width="9"/><circle cx="128" cy="196" r="7" fill="${TR}" stroke-width="4"/>`;
+  const pauld=`<path d="M118 124 Q84 110 68 138 Q88 133 104 148 Z" fill="${M1}"/><path d="M110 125 Q84 118 74 135" fill="none" stroke="${TR}" stroke-width="5"/>`+
+    `<path d="M138 124 Q172 110 188 138 Q168 133 152 148 Z" fill="${M1}"/><path d="M146 125 Q172 118 182 135" fill="none" stroke="${TR}" stroke-width="5"/>`;
+  const crest=dk
+    ? `<path d="M86 72 Q50 66 42 24 Q62 50 96 56 Z" fill="#e8dcc0"/><path d="M174 72 Q210 66 218 24 Q198 50 164 56 Z" fill="#e8dcc0"/>`
+    : `<path d="M92 86 Q62 84 34 60 Q46 60 52 56 Q32 44 26 20 Q44 32 58 34 Q48 20 50 4 Q70 26 76 40 Q84 54 100 64 Z" fill="#f7f4ec"/>`+
+      `<path d="M86 74 Q64 66 46 52 M80 58 Q64 46 50 30 M86 50 Q74 36 62 20" fill="none" stroke="#cfc6b0" stroke-width="3"/>`+
+      `<path d="M168 86 Q198 84 226 60 Q214 60 208 56 Q228 44 234 20 Q216 32 202 34 Q212 20 210 4 Q190 26 184 40 Q176 54 160 64 Z" fill="#f7f4ec"/>`+
+      `<path d="M174 74 Q196 66 214 52 M180 58 Q196 46 210 30 M174 50 Q186 36 198 20" fill="none" stroke="#cfc6b0" stroke-width="3"/>`;
+  const helm=`<path d="M74 88 A56 56 0 0 1 186 88 L192 98 L68 98 Z" fill="${M1}"/><path d="M90 68 Q98 50 114 42" fill="none" stroke="${HI}" stroke-width="5"/>`+
+    (dk ? `<path d="M122 74 L130 22 L138 74 Z" fill="${M2}" stroke-width="5"/>`
+        : `<path d="M104 80 L106 56 L118 70 L130 48 L142 70 L154 56 L156 80 Q130 72 104 80 Z" fill="${TR}" stroke-width="5"/><circle cx="130" cy="70" r="5" fill="#d23a3a" stroke-width="3"/>`)+
+    `<path d="M70 86 Q130 72 190 86 L192 98 Q130 84 68 98 Z" fill="${TR}" stroke-width="5"/>`;
+  const eye=dk?'#ff5a4a':'#fff';
+  const face=`<circle cx="149" cy="117" r="6.5" fill="${K}"/><circle cx="170" cy="117" r="6.5" fill="${K}"/>`+
+    `<circle cx="151" cy="115" r="2" fill="${eye}"/><circle cx="172" cy="115" r="2" fill="${eye}"/>`+
+    `<path d="M137 104 L157 111 M161 111 L181 104" stroke="${K}" stroke-width="7.5" stroke-linecap="round"/>`+
+    `<path d="M152 133 Q160 130 168 132" fill="none" stroke="${K}" stroke-width="4" stroke-linecap="round"/>`;
+  let body;
+  if(pose===1){
+    body=cape+legs2+torso+emblem(s,128,162,TR)+ARM(100,142,80,164,94,186,M1,14)+`<circle cx="94" cy="188" r="11" fill="${M2}" stroke-width="5"/>`+pauld+crest+head+helm+
+      `<path d="M189 150 L189 26 L198 4 L207 26 L207 150 Z" fill="#eef2f5"/><path d="M198 30 L198 144" stroke="${M2}" stroke-width="3"/>`+
+      `<rect x="192" y="160" width="12" height="22" rx="3" fill="${BR}"/><circle cx="198" cy="188" r="8" fill="${TR}" stroke-width="5"/>`+
+      `<path d="M170 150 Q198 140 226 150 L224 162 Q198 154 172 162 Z" fill="${TR}"/><circle cx="198" cy="156" r="5" fill="#d23a3a" stroke-width="3"/>`+
+      ARM(152,140,178,150,196,168,M1,14)+`<circle cx="198" cy="172" r="12" fill="${M2}" stroke-width="5"/>`;
+  } else {
+    body=cape+legs2+torso+
+      `<path d="M119 170 L119 236 L128 252 L137 236 L137 170 Z" fill="#eef2f5"/><path d="M128 174 L128 236" stroke="${M2}" stroke-width="3"/>`+
+      `<rect x="122" y="128" width="12" height="34" rx="3" fill="${BR}"/><circle cx="128" cy="124" r="9" fill="${TR}" stroke-width="5"/>`+
+      `<path d="M96 162 Q128 150 160 162 L158 174 Q128 164 98 174 Z" fill="${TR}"/><circle cx="128" cy="166" r="5" fill="#d23a3a" stroke-width="3"/>`+
+      ARM(104,140,98,158,118,150,M1,14)+ARM(152,140,158,158,138,150,M1,14)+
+      `<circle cx="121" cy="148" r="12" fill="${M2}" stroke-width="5"/><circle cx="135" cy="148" r="12" fill="${M2}" stroke-width="5"/>`+
+      pauld+emblem(s,84,128,TR)+crest+head+helm;
+  }
+  return open+body+`</g>`+face+`</svg>`},
+};
+const uri=s=>'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(s);
+const NEW={hero:{p:uri(SVG.hero2('p',2)),e:uri(SVG.hero2('e',2))},soldier:{p:uri(SVG.soldier('p'))},shaman:{p:uri(SVG.shaman('p'))}};
+
+/* ---------------- roster table ---------------- */
+const U='../../assets/units/styles/chibi/';
+const ROSTER=[
+ ['hero','Anh hùng / Tướng giặc','Hiệp Sĩ Chỉ Huy / Hắc Hiệp Sĩ ✔','Knight-Commander / Black Knight','Chiếm lâu đài, đánh nặng, ngã thì mua lại ở lâu đài','Áo choàng lớn, giáp tấm viền vàng, giáp vai 2 lớp, mũ vương miện + cánh, đại kiếm. Hắc Hiệp Sĩ: giáp thép đen, mũ sừng, mắt đỏ. Nếu chọn tư thế "cắm kiếm" → rig sửa (đòn bắt đầu bằng nhổ kiếm).','k','tư thế ở mục 5'],
+ ['soldier','Bộ binh','Vệ Binh','Footman','Rẻ, đông, chiếm / sửa làng','Mũ sắt có thanh mũi, áo xích + áo khoác màu phe, giáo có cờ nhỏ, khiên tam giác.','k','Kiếm Sĩ (kiếm + khiên tròn)'],
+ ['archer','Nỏ thủ','Cung Thủ','Longbowman','Bắn 1–2 ô, +15 công vs quân bay (mũi tên săn rồng)','Mũ trùm, cung dài cao hơn người, ống tên sau lưng. Đòn: kéo dây → bắn.','s','Lính Nỏ (giữ nỏ, đổi trang phục) → rig giữ'],
+ ['boat','Thủy binh','Hải Tặc','Corsair','Mạnh dưới sông (+10 công, +15 thủ), lên bờ đi bộ','Khăn trùm đầu màu phe, mái chèo / móc câu, đứng trên thuyền nhỏ khi ở nước.','k','Người Cá (đẹp nhưng lên bờ hơi vô lý)'],
+ ['shaman','Thầy mo','Pháp Sư Gọi Hồn','Necromancer','Đánh yếu, gọi quân ngã dậy thành Bộ Xương','Áo choàng trùm đầu màu phe tối, gậy đầu lâu có lửa xanh, hồn ma nhỏ bay cạnh.','k','—'],
+ ['ghost','Âm binh','Bộ Xương','Skeleton','Không mua được, thủ rất mỏng, không chiếm làng','Bộ xương cầm kiếm gỉ + khiên vỡ, mảnh vải màu phe, mắt lửa xanh.','k','Hồn Ma (bay lơ lửng)'],
+ ['drum','Trống đồng','Tu Sĩ Ánh Sáng','Cleric','Hào quang +10 công cho quân cạnh; +15 công vs Bộ Xương','Áo trắng viền màu phe, chùy ngắn + đèn / biểu tượng mặt trời tròn trơn. Đòn: giơ đèn → vòng sáng.','s','Lính Kèn Hiệu (giữ ý "thổi kèn tiếp sức")'],
+ ['wolf','Sói','Sói Bóng Đêm','Shadow Wolf','Chạy 6, cắn làm địch −10 công / −10 thủ','Sói đen to, khói tím ở chân, vòng cổ màu phe. Giữ dáng 4 chân.','k','Sát Thủ (dao tẩm độc) → rig mới'],
+ ['elephant','Voi chiến','Golem Đá ✔','Stone Golem','Thủ rất dày, đánh nặng, lên được núi','Khối đá to, rêu, rune phát sáng màu phe trên ngực. Đòn: đấm xuống đất.','n','<i>đã chốt</i>'],
+ ['catapult','Máy bắn đá','Máy Bắn Đá ✔','Trebuchet','Đứng yên mới bắn, tầm 2–4, không đánh trả, phá làng địch','Giữ máy, vẽ lại kiểu trung cổ: khung gỗ + đai sắt, cờ màu phe, lính kéo dây mũ sắt. Đạn đá giữ nguyên.','k','<i>đã chốt</i>'],
+ ['bird','Rồng','Rồng','Dragon','Bay, đi 7, mạnh nhất, sợ Cung Thủ','Rồng phương Tây 4 chân 2 cánh, vảy màu phe, sừng vàng / bạc.','k','Sư Thứu (griffin)'],
+];
+const rigTxt={k:'giữ',s:'sửa',n:'mới'};
+document.querySelector('#roster tbody').innerHTML=ROSTER.map(([k,old,nm,en,mech,look,rig,alt])=>
+ `<tr><td data-l="Hiện tại"><div style="display:flex;gap:8px;align-items:center"><img class="uimg" src="${U+k}_p.svg" alt=""><span>${old}<br><code>${k}</code></span></div></td>
+  <td data-l="Tên mới"><div class="uname-new">${nm}<small>${en}</small></div></td>
+  <td data-l="Cơ chế">${mech}</td><td data-l="Hình">${look}</td>
+  <td data-l="Rig"><span class="rig ${rig}">${rigTxt[rig]}</span></td><td data-l="Phương án khác">${alt}</td></tr>`).join('');
+
+/* ---------------- samples ---------------- */
+const SAMPLES=[
+ ['soldier','Vệ Binh','lính cơ bản · thay "Bộ binh" · OK','Giữ dáng giáo của quân cũ (rig dùng lại), nón sắt có thanh mũi, áo xích, khiên tam giác sọc chữ V, cờ nhỏ trên giáo.'],
+ ['shaman','Pháp Sư Gọi Hồn','gọi xác · thay "Thầy mo" · OK','Mũ trùm đầu màu phe tối, gậy đầu lâu lửa xanh, hồn ma nhỏ bay cạnh = đọc ra "gọi hồn".'],
+];
+const tile=(svg,lab,old)=>`<div class="${old?'old':''}">${svg}<small>${lab}</small></div>`;
+document.getElementById('samples').innerHTML=
+ `<div class="sample wide"><h4>Hiệp Sĩ Chỉ Huy / Hắc Hiệp Sĩ · v2 "uy phong"</h4><div class="sub">tướng · thay "Anh hùng" / "Tướng giặc" · đã chọn <b>B · cắm kiếm</b></div><div class="row5">
+   ${tile(`<img src="${U}hero_p.svg" alt="">`,'hiện tại',1)}
+   ${tile(SVG.hero2('p',1),'A · Khởi Nghĩa')}${tile(SVG.hero2('e',1),'A · Đế Quốc')}
+   ${tile(SVG.hero2('p',2),'B · Khởi Nghĩa')}${tile(SVG.hero2('e',2),'B · Đế Quốc')}</div>
+   <p><b>A · giơ kiếm</b>: động, sẵn sàng đánh; rig hiện tại dùng lại. <b>B · cắm kiếm</b>: hai tay đặt trên chuôi, áo choàng xòe = uy nghi kiểu tượng; đòn đánh phải thêm nhịp nhổ kiếm (rig sửa). Cả 2: áo choàng rộng viền vàng, giáp vai 2 lớp, mũ vương miện + cánh (Đế Quốc: thép đen, sừng, mắt đỏ), mặt nghiêm.</p></div>`+
+ SAMPLES.map(([k,nm,sub,txt])=>
+ `<div class="sample"><h4>${nm}</h4><div class="sub">${sub}</div><div class="row3">
+   ${tile(`<img src="${U+k}_p.svg" alt="">`,'hiện tại',1)}${tile(SVG[k]('p'),'Khởi Nghĩa')}${tile(SVG[k]('e'),'Đế Quốc')}</div><p>${txt}</p></div>`).join('');
+
+/* ---------------- comparison rows ---------------- */
+const ico=(id,cls='')=>`<svg class="ico ${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+const coin=d=>`<svg class="ico coin" viewBox="0 0 24 24" aria-hidden="true" style="--icf:${d==='F3'?'#d6ad55':d==='F2'?'#ffc83d':d==='F1'?'#e3b345':'#efb52f'}"><use href="#${d==='C'?'i-coin':'i-gold'}"/></svg>`;
+const DIRS=[{k:'C',cls:'C',n:'C · Đông Hồ (gốc)'},{k:'F1',cls:'C F1',n:'F1 · Truyện Kỵ Sĩ'},{k:'F2',cls:'C F2',n:'F2 · Vương Quốc Đồ Chơi'},{k:'F3',cls:'C F3',n:'F3 · Sách Phép'}];
+const EMB={C:'i-crown',F1:'i-crown',F2:'i-crown',F3:'i-target'};
+
+function fontTest(d){
+  return `<div class="ft"><span class="ttl">Ầ Ặ Ỗ Ữ Đ</span><span class="ptitle">Pháp Sư Gọi Hồn</span><span class="ftb">Hết lượt · Mộ quân · Kỵ Sĩ</span></div>`;
+}
+function btnStates(d){
+  const st=[['','thường'],['is-hover','rê chuột'],['is-pressed','nhấn'],['is-disabled','khóa']];
+  return `<div class="states">${st.map(([c,l])=>`<div class="st"><button class="btn ${c}" ${c==='is-disabled'?'disabled':''}><span class="lbl">Xuất quân</span></button><small>${l}</small></div>`).join('')}</div>
+  <div class="states"><button class="btn sec"><span class="lbl">Bản đồ</span></button><button class="btn ic" aria-label="Cài đặt"><span class="lbl">${ico('i-gear')}</span></button><button class="btn" disabled><span class="lbl">${ico(d==='C'?'i-coin':'i-gold')} Thiếu vàng</span></button></div>`;
+}
+function endTurn(d){
+  const e=`<svg class="emb" viewBox="0 0 24 24" aria-hidden="true"><use href="#${EMB[d]}"/></svg>`;
+  return `<div class="states"><div class="st"><button class="endturn">${e}<b>Hết<br>lượt</b><small>còn 3 quân</small></button><small>còn quân</small></div><div class="st"><button class="endturn ready">${e}<b>Hết<br>lượt</b><small>xong hết</small></button><small>sẵn sàng</small></div></div>`;
+}
+function resBar(d,compact){
+  const goal=`<div class="goal">${ico('i-target')} Chiếm 1 lâu đài + hạ Hắc Hiệp Sĩ</div>`;
+  return `<div class="res"><span class="turn">Lượt 3</span><div class="rtag">${coin(d)}<span class="num">1200</span><span class="plus">+80</span></div></div>${compact?'':goal}`;
+}
+const hpBar=pct=>`<div class="hp"><i style="--w:${pct}%"></i></div>`;
+const stats=()=>`<div class="stats"><span class="chip">${ico('i-sword')}55–64</span><span class="chip">${ico('i-shield')}20</span><span class="chip">${ico('i-foot')}5</span><span class="chip">${ico('i-range')}1</span></div>`;
+const portrait=src=>`<div class="portrait"><img src="${src}" alt=""></div>`;
+const panel=(inner,style='')=>`<div class="panel" style="${style}">${inner}</div>`;
+function unitCard(d,mini){
+  const inner=`<div style="display:flex;gap:12px;align-items:center">${portrait(NEW.hero.p)}<div style="flex:1;min-width:0"><div class="uname">Hiệp Sĩ Chỉ Huy</div><div class="usub">Tướng · Khởi Nghĩa · bậc 2</div><div style="display:flex;align-items:center;gap:6px;margin-top:6px">${ico('i-heart')}<div style="flex:1">${hpBar(70)}</div><b style="font-size:15px">70</b></div></div></div><div style="margin-top:10px">${stats()}</div>${mini?'':`<div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn sec sm" style="min-width:0;font-size:15px;padding-left:14px;padding-right:14px"><span class="lbl">Chi tiết</span></button></div>`}`;
+  return panel(inner,mini?'':'width:min(320px,100%)');
+}
+function shop(d){
+  const row=(img,nm,sub,p,off)=>`<div class="shoprow ${off?'off':''}" role="button" tabindex="0"><span class="pimg"><img src="${img}" alt=""></span><span class="nm">${nm}<small>${sub}</small></span><span class="price">${coin(d)}${p}</span></div>`;
+  return panel(`<div class="ptitle">Mộ quân</div><div class="mini" style="margin:2px 0">Có 600 vàng · quân 3/15</div>
+   ${row(NEW.soldier.p,'Vệ Binh','chiếm làng, sửa làng',150)}
+   ${row(NEW.shaman.p,'Pháp Sư Gọi Hồn','gọi Bộ Xương dậy',400)}
+   ${row(U+'catapult_p.svg','Máy Bắn Đá','thiếu 100 vàng',700,true)}
+   <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn sec sm" style="min-width:0;font-size:15px;padding-left:14px;padding-right:14px"><span class="lbl">${ico('i-x')} Đóng</span></button></div>`,'width:min(330px,100%)');
+}
+function dialog(d){
+  return panel(`<div class="dlg">${portrait(NEW.hero.p)}<div style="flex:1;min-width:0"><span class="ribbon">Hiệp Sĩ Chỉ Huy</span><div class="say">Quân Đế Quốc đã vượt sông đêm qua. Vệ binh giữ cầu, máy bắn đá nhắm cổng thành - trước bình minh, lâu đài phải về tay ta!</div><div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:8px;flex-wrap:wrap"><span class="mini">2/6</span><button class="btn sec sm" style="min-width:0;font-size:14px;padding-left:12px;padding-right:12px"><span class="lbl">Tua »</span></button><button class="btn sm" style="min-width:0;font-size:14px;padding-left:12px;padding-right:12px"><span class="lbl">Bỏ qua ›</span></button></div></div></div>`,'width:100%');
+}
+function hud(d){
+  const pop=`<div class="popup">${panel(`<div class="mini" style="margin-bottom:8px">Hiệp Sĩ Chỉ Huy · ô làng</div><div class="row"><button class="btn"><span class="lbl">${ico('i-flag')} Chiếm</span></button><button class="btn sec"><span class="lbl">${ico('i-wait')} Chờ</span></button><button class="btn sec ic" aria-label="Hủy"><span class="lbl">${ico('i-x')}</span></button></div>`)}</div>`;
+  return `<div class="hudwrap"><div class="hud"><div class="selbox sel"></div><div class="res-pos" style="left:8px;top:8px">${resBar(d,true)}</div><div class="ucardmini">${unitCard(d,true)}</div>${pop}<div class="et-pos">${endTurn(d).match(/<button[\s\S]*?<\/button>/)[0]}</div></div></div>`;
+}
+function title(d){
+  return `<div class="title-art"><div class="kick">Kỵ sĩ · pháp sư · chiến thuật theo lượt</div><div class="ttlrow"><div class="ttl">Công Thành Chiến</div><span class="stamp">Màn<br>12</span></div></div><div class="states" style="margin-top:6px"><button class="btn"><span class="lbl">Chơi tiếp</span></button><button class="btn sec"><span class="lbl">1 đấu 1</span></button></div>`;
+}
+const ROWS=[
+  ['Thử font tiếng Việt (dấu chồng, cỡ lớn + cỡ nút)',fontTest],
+  ['Nút chính · thường / rê / nhấn / khóa',btnStates,true],
+  ['Nút Hết lượt',endTurn],
+  ['Thanh tài nguyên (lượt, vàng, mục tiêu)',d=>resBar(d,false)],
+  ['Thẻ quân (chân dung = mẫu tướng mới)',d=>unitCard(d,false)],
+  ['Popup Mộ quân (1 hàng thiếu vàng)',shop],
+  ['Hộp thoại + chân dung',dialog],
+  ['HUD trên bàn cờ thật (ảnh crop 640x320 từ game, component thu nhỏ như máy nhỏ)',hud,false,true],
+  ['Tiêu đề menu chính',title],
+];
+const host=document.getElementById('rows');
+ROWS.forEach(([name,fn,cur,isHud])=>{
+  const h=document.createElement('h3');h.textContent=name;host.appendChild(h);
+  if(cur){const c=document.createElement('div');c.className='current-strip';c.innerHTML='<span class="lab">Game hiện tại (để so)</span><span class="cur-btn">Xuất quân</span><span class="cur-btn m">Bản đồ</span><span class="note">viền 1 px, bóng mờ, nhấn chỉ tối 15%</span>';host.appendChild(c)}
+  const g=document.createElement('div');g.className='cmp'+(isHud?' hudrow':'');
+  DIRS.forEach(({k,cls,n})=>{g.insertAdjacentHTML('beforeend',`<div class="cell ${cls}" data-k="${k}"><span class="clab">${n}</span><div class="stage" ${isHud?'style="padding:0;min-height:0;display:block"':''}>${fn(k)}</div></div>`)});
+  host.appendChild(g);
+});
+function fitHud(){document.querySelectorAll('.hudwrap').forEach(w=>{w.querySelector('.hud').style.transform=`scale(${w.clientWidth/640})`})}
+addEventListener('resize',fitHud);fitHud();
+
+/* ---------------- juice: pop on release + sound ---------------- */
+document.addEventListener('touchstart',()=>{},{passive:true});
+let AC=null,sndOn=false;
+const sb=document.getElementById('snd');
+sb.onclick=()=>{sndOn=!sndOn;sb.setAttribute('aria-pressed',sndOn);sb.textContent='Âm thanh mẫu: '+(sndOn?'bật':'tắt');if(sndOn&&!AC)AC=new (window.AudioContext||window.webkitAudioContext)();};
+function tone(f,dur,type='sine',gain=.2,when=0,f2){const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.02)}
+function noise(dur,freq,q,gain=.2,when=0){const t=AC.currentTime+when,b=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=q;const g=AC.createGain();g.gain.value=gain;s.connect(f).connect(g).connect(AC.destination);s.start(t)}
+const SND={
+  C:{press(){noise(.06,1200,4,.5);tone(520,.07,'square',.06,0,400)},deny(){noise(.05,600,3,.4);noise(.05,500,3,.4,.08)},end(){noise(.09,700,3,.6);tone(150,.25,'sine',.3,0,90)}},
+  F1:{press(){tone(140,.12,'sine',.35,0,80);noise(.05,900,2,.25)},deny(){tone(120,.1,'triangle',.3);tone(100,.12,'triangle',.3,.12)},end(){tone(130,.18,'sine',.45,0,70);noise(.12,600,1.5,.3);tone(392,.22,'sawtooth',.05,.15);tone(523,.4,'sawtooth',.05,.32)}},
+  F2:{press(){noise(.04,1800,5,.5);tone(660,.08,'triangle',.18,0,880)},deny(){tone(300,.12,'square',.08,0,200)},end(){tone(523,.1,'triangle',.18);tone(659,.1,'triangle',.18,.1);tone(784,.25,'triangle',.18,.2)}},
+  F3:{press(){tone(1568,.25,'sine',.08);tone(2093,.3,'sine',.05,.03)},deny(){tone(220,.2,'sine',.15,0,160)},end(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,.6,'sine',.07,i*.06));tone(110,.9,'sine',.25,0,90)}},
+};
+document.addEventListener('pointerup',e=>{
+  const b=e.target.closest('.btn,.endturn,.shoprow');if(!b)return;
+  const cell=b.closest('.cell');const k=cell?cell.dataset.k:null;
+  const off=b.disabled||b.classList.contains('off');
+  if(!off){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}
+  if(sndOn&&AC&&k){if(off)SND[k].deny();else if(b.classList.contains('endturn'))SND[k].end();else SND[k].press()}
+});
+document.addEventListener('animationend',e=>{if(e.animationName==='pop')e.target.classList.remove('pop')});
+</script>
+</body>
+</html>

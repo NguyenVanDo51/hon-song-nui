@@ -1,5 +1,5 @@
 extends RigSpec
-## Âm binh "Âm kiếm" (docs/anim_demo/ghost.spec.js): broken sword grows a spectral blade, drift-forward purple slash
+## Bộ Xương "Âm kiếm" (docs/anim_demo/ghost.spec.js): broken sword grows a spectral blade, drift-forward purple slash
 ## (wave = THE hit), afterimage echoes of the full token on the drift, fade-drift back.
 
 const SPIRIT := "#b48cff"

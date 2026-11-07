@@ -113,7 +113,7 @@ func _eyebrow(text: String, fs := 12) -> Label:
 	var f := FontVariation.new()
 	f.base_font = Style.bold
 	f.spacing_glyph = 2
-	return Style.lbl(text.to_upper(), fs, Style.BRONZE, f)
+	return Style.lbl(text.to_upper(), fs, Style.ROYAL, f)
 
 func _h2(text: String, fs := 30) -> Label:
 	return Style.lbl(text, fs, Style.GOLD, Style.display)
@@ -128,22 +128,22 @@ func _head(back_text: String, back_fn: Callable, title := "") -> HBoxContainer:
 ## clickable glass card (mission / hero pick): hover = gold border; hot = gold border + soft glow
 func _click_card(content: Control, on_click: Callable, enabled := true, hot := false, pulse := false) -> PanelContainer:
 	var p := PanelContainer.new()
-	var normal := Style.box(Style.GLASS, Style.LACQUER_3, 12, 14)
-	var hover: StyleBoxFlat = normal.duplicate()
-	hover.border_color = Style.GOLD
-	hover.shadow_color = Color(0, 0, 0, 0.55)
-	hover.shadow_size = 16
+	var normal := Style.paper(14.0)
+	normal.frame = false
+	normal.shadow = Vector2(4, 4)
+	var hover: SkinBox = normal.duplicate()
+	hover.shift = Vector2(-1, -1)
+	hover.shadow = Vector2(6, 6)
+	hover.face = Style.PAPER_HI
 	if hot:
-		normal = Style.box(Color(0.22, 0.14, 0.08, 0.9), Style.GOLD, 12, 14)
-		normal.shadow_color = Color(Style.GOLD, 0.15)
-		normal.shadow_size = 14
+		normal = normal.duplicate()
+		normal.face = Color("#f6dc8e")
+		normal.inner = Style.CRIMSON
 		hover = normal
 		if pulse:
 			var tw := p.create_tween().set_loops().set_trans(Tween.TRANS_SINE)
-			tw.tween_property(normal, "shadow_size", 22, 1.2)
-			tw.parallel().tween_property(normal, "shadow_color", Color(Style.GOLD, 0.3), 1.2)
-			tw.tween_property(normal, "shadow_size", 14, 1.2)
-			tw.parallel().tween_property(normal, "shadow_color", Color(Style.GOLD, 0.15), 1.2)
+			tw.tween_property(normal, "face", Color("#fbe7a8"), 1.2)
+			tw.tween_property(normal, "face", Color("#f6dc8e"), 1.2)
 	p.add_theme_stylebox_override("panel", normal)
 	p.add_child(content)
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -298,14 +298,14 @@ func _open_credits() -> void:
 	var ov := Control.new()
 	ov.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.008, 0.004, 0.72)
+	dim.color = Color(0.16, 0.10, 0.05, 0.7)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ov.add_child(dim)
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	ov.add_child(center)
 	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", Style.box(Color("#1d100b"), Style.BRONZE_2, 16, 22))
+	card.add_theme_stylebox_override("panel", Style.paper(22.0, 10.0))
 	card.custom_minimum_size.x = 620
 	center.add_child(card)
 	var v := Style.vbox(12)
@@ -685,7 +685,7 @@ func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callabl
 	layer.mouse_filter = Control.MOUSE_FILTER_STOP
 	layer.z_index = 120
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.008, 0.004, 0.7)
+	dim.color = Color(0.16, 0.10, 0.05, 0.7)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(dim)
 	var center := CenterContainer.new()
@@ -743,7 +743,7 @@ func add_overlays() -> void:
 	codex.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	codex.visible = false
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.008, 0.004, 0.72)
+	dim.color = Color(0.16, 0.10, 0.05, 0.7)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	codex.add_child(dim)
 	var mc := MarginContainer.new()
@@ -754,10 +754,7 @@ func add_overlays() -> void:
 	var center := CenterContainer.new()
 	mc.add_child(center)
 	var card := PanelContainer.new()
-	var cs := Style.box(Color("#1d100b"), Style.BRONZE_2, 16, 18)
-	cs.shadow_color = Color(0, 0, 0, 0.55)
-	cs.shadow_size = 30
-	cs.shadow_offset = Vector2(0, 10)
+	var cs := Style.paper(18.0, 10.0)
 	card.add_theme_stylebox_override("panel", cs)
 	center.add_child(card)
 	_codex_card = card
@@ -838,7 +835,7 @@ func _show_codex() -> void:
 
 ## one card per terrain: name, defence bonus, move cost per move class, rule note
 func _codex_terrain() -> void:
-	var classes := [["foot", "Bộ"], ["water", "Thủy binh"], ["fly", "Rồng"]]
+	var classes := [["foot", "Đi bộ"], ["water", "Hải tặc"], ["fly", "Bay"]]
 	for t: String in Rules.TERRAIN:
 		var ter: Dictionary = Rules.TERRAIN[t]
 		var card := Style.card(Color(0, 0, 0, 0.3), Style.LACQUER_3, 10, 12)

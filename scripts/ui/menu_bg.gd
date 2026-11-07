@@ -1,6 +1,6 @@
 class_name MenuBg
 extends Control
-## animated menu backdrop: shader sky / sun / ridges / river, CPU rising embers, vignette on top.
+## animated menu backdrop: parchment page with a woodcut landscape (shader), drifting gold-leaf flecks, toasted edges.
 ## Port of drawBg in src/ui/screens.js. Only animates while visible.
 
 const BG_SHADER := preload("res://shaders/menu_bg.gdshader")
@@ -19,9 +19,6 @@ func _init() -> void:
 	fx = Control.new()
 	fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var add := CanvasItemMaterial.new()
-	add.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	fx.material = add
 	fx.draw.connect(_draw_fx)
 	add_child(fx)
 	vig = _rect(VIG_SHADER)
@@ -73,4 +70,4 @@ func _draw_fx() -> void:
 		var ep: float = e.p
 		var er: float = e.r
 		var a := clampf(ey / H, 0.0, 1.0) * (0.5 + 0.5 * sin(t / 200.0 + ep))
-		fx.draw_circle(Vector2(ex, ey), er, Color(1, 0.706, 0.353, a), true, -1.0, true)
+		fx.draw_circle(Vector2(ex, ey), er, Color(0.78, 0.56, 0.18, a * 0.7), true, -1.0, true)

@@ -1,5 +1,5 @@
 extends RigSpec
-## Thủy binh "Sóng cuộn" (docs/anim_demo/boat.spec.js). Paddle-spear sweep -> blade slaps the water -> curling wave
+## Hải Tặc "Sóng cuộn" (docs/anim_demo/boat.spec.js). Paddle-spear sweep -> blade slaps the water -> curling wave
 ## rolls forward and crashes on the target = THE hit (WaveFx).
 
 const GROUND := 244.0

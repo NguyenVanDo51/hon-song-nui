@@ -74,7 +74,7 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	intro_layer = layer
 	var dim := ColorRect.new()
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	dim.color = Color(0.02, 0.01, 0.0, 0.62)
+	dim.color = Color(0.16, 0.10, 0.05, 0.6)
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(dim)
 	var center := CenterContainer.new()
@@ -82,10 +82,7 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(center)
 	var card := PanelContainer.new()
-	var cs := Style.box(Color(0.10, 0.06, 0.04, 0.98), Color(Style.GOLD, 0.7), 16, 22, 2)
-	cs.shadow_color = Color(0, 0, 0, 0.6)
-	cs.shadow_size = 30
-	cs.shadow_offset = Vector2(0, 10)
+	var cs := Style.paper(22.0, 10.0)
 	card.add_theme_stylebox_override("panel", cs)
 	card.custom_minimum_size.x = 620
 	center.add_child(card)
@@ -183,16 +180,15 @@ func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], b
 	for c in end_layer.get_children():
 		c.queue_free()
 	var dim := ColorRect.new()
-	dim.color = Color(0.02, 0.008, 0.004, 0.72)
+	dim.color = Color(0.16, 0.10, 0.05, 0.7)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	end_layer.add_child(dim)
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	end_layer.add_child(center)
 	var card := PanelContainer.new()
-	var cs := Style.box(Color("#1f110b"), Style.GOLD if win else Style.SEA, 16, 26)
-	cs.shadow_color = Color(0, 0, 0, 0.55)
-	cs.shadow_size = 30
+	var cs := Style.paper(26.0, 10.0)
+	cs.edge = Style.INK_D if win else Style.ROYAL_D
 	card.add_theme_stylebox_override("panel", cs)
 	card.custom_minimum_size.x = 500
 	card.clip_contents = true

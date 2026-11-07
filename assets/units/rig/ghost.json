@@ -1,6 +1,6 @@
 {
  "name": "ghost",
- "title": "Âm binh · Âm kiếm",
+ "title": "Bộ Xương · Kiếm ma",
  "feet": 244,
  "cx": 128,
  "outline": 7,
@@ -9,15 +9,16 @@
  "targetCY": 150,
  "shadowR": 50,
  "parts": {
-  "bandT": "<path d=\"M80 86 Q58 76 36 84 L46 90 L38 98 Q60 90 80 96 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M78 94 Q56 100 42 120 L54 115 L52 126 Q64 110 82 104 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M52 92 L64 91\" stroke=\"#93362b\" stroke-width=\"3\"/>",
-  "tail": "<path d=\"M102 184 L160 184 Q166 220 138 236 Q110 248 80 240 Q58 234 44 212 Q66 228 86 224 Q106 218 102 184 Z\" fill=\"#d9d4f0\"/>\n<path d=\"M44 212 Q34 200 42 190\" fill=\"none\" stroke-width=\"5\"/>\n<path d=\"M148 202 Q146 222 122 232 M92 234 Q76 232 64 222\" fill=\"none\" stroke=\"#b8aedb\" stroke-width=\"5\"/>",
-  "torso": "<path d=\"M100 128 Q128 118 156 128 L164 200 L152 194 L142 204 L132 194 L120 204 L110 194 L98 202 L92 196 Z\" fill=\"#d9d4f0\"/>\n<path d=\"M112 142 L106 160 M118 170 L112 186\" stroke=\"#b8aedb\" stroke-width=\"5\"/>\n<path d=\"M106 134 L156 182\" stroke=\"#2b2220\" stroke-width=\"22\"/>\n<path d=\"M106 134 L156 182\" stroke=\"#c9503f\" stroke-width=\"10\"/>\n<path d=\"M150 180 L164 214 L154 207 L148 218 L140 188 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M120 148 L128 156\" stroke=\"#93362b\" stroke-width=\"4\"/>",
-  "head": "<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#d9d4f0\"/>\n<path d=\"M77 82 Q72 46 98 32 L100 14 L118 26 L134 8 L144 26 L166 20 L164 38 Q186 54 184 80 Q162 60 132 62 Q102 62 77 82 Z\" fill=\"#8f84bd\" stroke-width=\"5\"/>\n<path d=\"M77 72 Q130 52 183 72 L184 90 Q130 70 78 92 Z\" fill=\"#c9503f\"/>\n<path d=\"M82 82 Q130 64 181 81\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"4\"/>\n<path d=\"M126 64 L122 74 L130 72\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"3\"/>\n<circle cx=\"80\" cy=\"90\" r=\"8\" fill=\"#c9503f\" stroke-width=\"5\"/>",
-  "face": "<path d=\"M132 95 L146 90 M160 90 L174 95\" stroke=\"#2b2220\" stroke-width=\"3\" stroke-linecap=\"round\"/>\n<ellipse cx=\"142\" cy=\"107\" rx=\"8.5\" ry=\"10.5\" fill=\"#2b2220\"/>\n<ellipse cx=\"166\" cy=\"107\" rx=\"8.5\" ry=\"10.5\" fill=\"#2b2220\"/>\n<circle cx=\"142\" cy=\"108\" r=\"5\" fill=\"#b48cff\"/>\n<circle cx=\"166\" cy=\"108\" r=\"5\" fill=\"#b48cff\"/>\n<circle cx=\"143.5\" cy=\"106\" r=\"2\" fill=\"#f4efff\"/>\n<circle cx=\"167.5\" cy=\"106\" r=\"2\" fill=\"#f4efff\"/>\n<ellipse cx=\"168\" cy=\"121\" rx=\"5\" ry=\"3.5\" fill=\"#b8aedb\"/>\n<ellipse cx=\"153\" cy=\"125\" rx=\"4\" ry=\"5.5\" fill=\"#2b2220\"/>",
-  "arm": "<path d=\"M150 146 Q174 156 196 166\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"24\"/>\n<path d=\"M150 146 Q174 156 196 166\" fill=\"none\" stroke=\"#d9d4f0\" stroke-width=\"12\"/>\n<path d=\"M178 152 L174 164 M186 156 L184 168\" stroke=\"#b8aedb\" stroke-width=\"4\"/>",
+  "bandT": "<path d=\"M80 86 Q58 76 36 84 L44 88 L38 94 L48 93 Q62 88 80 96 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M78 94 Q56 100 42 120 L52 116 L48 126 L58 118 Q66 108 82 104 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M52 89 L64 88 M60 108 L68 104\" stroke=\"#93362b\" stroke-width=\"3\"/>",
+  "tail": "<path d=\"M116 196 L110 226 M142 196 L148 224\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"17\"/>\n<path d=\"M116 196 L110 226 M142 196 L148 224\" fill=\"none\" stroke=\"#ece6da\" stroke-width=\"7\"/>\n<circle cx=\"113\" cy=\"212\" r=\"6\" fill=\"#ece6da\" stroke-width=\"4\"/>\n<circle cx=\"145\" cy=\"210\" r=\"6\" fill=\"#ece6da\" stroke-width=\"4\"/>\n<path d=\"M98 232 Q100 222 112 224 Q124 226 126 234 Q112 240 98 232 Z\" fill=\"#ece6da\" stroke-width=\"5\"/>\n<path d=\"M136 230 Q138 220 150 222 Q162 224 164 232 Q150 238 136 230 Z\" fill=\"#ece6da\" stroke-width=\"5\"/>\n<path d=\"M106 184 Q128 176 152 184 L148 198 Q128 204 110 198 Z\" fill=\"#d8d2c6\"/>\n<path d=\"M104 188 L154 188 L152 206 L144 200 L138 214 L130 202 L122 216 L116 202 L108 208 Z\" fill=\"#93362b\"/>",
+  "torso": "<path d=\"M126 128 L126 192\" stroke=\"#2b2220\" stroke-width=\"16\"/>\n<path d=\"M126 128 L126 192\" stroke=\"#d8d2c6\" stroke-width=\"7\"/>\n<path d=\"M102 132 Q128 122 154 132 Q164 154 154 176 Q128 184 102 176 Q92 154 102 132 Z\" fill=\"#ece6da\"/>\n<path d=\"M104 150 Q128 158 152 150 M104 164 Q128 172 154 164\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"5\"/>\n<path d=\"M128 134 L128 176\" stroke=\"#d8d2c6\" stroke-width=\"4\"/>\n<path d=\"M106 134 L156 182\" stroke=\"#2b2220\" stroke-width=\"22\"/>\n<path d=\"M106 134 L156 182\" stroke=\"#c9503f\" stroke-width=\"10\"/>\n<path d=\"M150 180 L164 214 L156 206 L152 220 L146 204 L140 188 Z\" fill=\"#c9503f\" stroke-width=\"5\"/>\n<path d=\"M120 148 L128 156 M138 164 L142 170\" stroke=\"#93362b\" stroke-width=\"4\"/>",
+  "shield": "<path d=\"M98 148 A28 28 0 1 0 110 162 L100 160 L104 154 Z\" fill=\"#a87a4c\"/>\n<path d=\"M72 152 L72 192 M96 168 L96 192\" fill=\"none\" stroke=\"#5a4a3c\" stroke-width=\"3\"/>\n<circle cx=\"84\" cy=\"172\" r=\"8\" fill=\"#9a7b5a\" stroke-width=\"5\"/>\n<path d=\"M78 180 L70 188 L73 194 L66 198\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\"/>",
+  "head": "<path d=\"M126 126 Q150 118 182 108 Q188 132 172 148 Q150 156 130 146 Z\" fill=\"#ece6da\"/>\n<circle cx=\"130\" cy=\"84\" r=\"54\" fill=\"#ece6da\"/>\n<path d=\"M84 112 Q100 134 132 138 Q100 140 84 112 Z\" fill=\"#d8d2c6\" stroke=\"none\"/>\n<path d=\"M112 36 L120 46 L112 54 L118 60\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\"/>\n<path d=\"M77 66 Q130 46 183 66 L184 84 L172 80 L166 86 L156 78 Q130 70 106 78 L98 84 L92 78 L78 86 Z\" fill=\"#c9503f\"/>\n<path d=\"M82 76 Q130 58 181 75\" fill=\"none\" stroke=\"#93362b\" stroke-width=\"4\"/>\n<circle cx=\"80\" cy=\"90\" r=\"8\" fill=\"#c9503f\" stroke-width=\"5\"/>",
+  "face": "<ellipse cx=\"142\" cy=\"108\" rx=\"9.5\" ry=\"11\" fill=\"#2b2220\"/>\n<ellipse cx=\"168\" cy=\"108\" rx=\"9.5\" ry=\"11\" fill=\"#2b2220\"/>\n<path d=\"M142 115 Q135 110 138 103 Q140 106 142 104 Q142 98 146 96 Q149 104 147 110 Q146 115 142 115 Z\" fill=\"#8be37a\"/>\n<path d=\"M168 115 Q161 110 164 103 Q166 106 168 104 Q168 98 172 96 Q175 104 173 110 Q172 115 168 115 Z\" fill=\"#8be37a\"/>\n<circle cx=\"143\" cy=\"110\" r=\"2\" fill=\"#f4ffef\"/>\n<circle cx=\"169\" cy=\"110\" r=\"2\" fill=\"#f4ffef\"/>\n<path d=\"M155 120 L151 128 L159 128 Z\" fill=\"#2b2220\" stroke=\"#2b2220\" stroke-width=\"2\" stroke-linejoin=\"round\"/>\n<rect x=\"140\" y=\"131\" width=\"36\" height=\"9\" rx=\"3\" fill=\"#ece6da\" stroke=\"#2b2220\" stroke-width=\"3\"/>\n<path d=\"M149 131 L149 140 M158 131 L158 140 M167 131 L167 140\" stroke=\"#2b2220\" stroke-width=\"2.5\"/>",
+  "arm": "<path d=\"M150 146 Q174 156 196 166\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"18\"/>\n<path d=\"M150 146 Q174 156 196 166\" fill=\"none\" stroke=\"#ece6da\" stroke-width=\"7\"/>\n<circle cx=\"174\" cy=\"156\" r=\"6\" fill=\"#ece6da\" stroke-width=\"4\"/>",
   "ghostBlade": "<g transform=\"rotate(14 198 168)\">\n<path d=\"M191 94 L188 40 L198 12 L208 40 L205 90 L203 80 L199 94 L196 86 Z\" fill=\"#b48cff\" stroke-width=\"5\"/>\n<path d=\"M198 84 L198 34\" stroke=\"#f1eaff\" stroke-width=\"6\"/>\n</g>",
-  "sword": "<g transform=\"rotate(14 198 168)\">\n<rect x=\"193\" y=\"156\" width=\"10\" height=\"36\" rx=\"3\" fill=\"#3a2e28\" stroke-width=\"5\"/>\n<circle cx=\"198\" cy=\"196\" r=\"6\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n<path d=\"M191 150 L191 94 L196 86 L199 94 L203 80 L205 90 L205 150 Z\" fill=\"#cdd4da\" stroke-width=\"5\"/>\n<path d=\"M198 146 L198 100\" stroke=\"#aab3bd\" stroke-width=\"4\"/>\n<rect x=\"182\" y=\"146\" width=\"32\" height=\"10\" rx=\"4\" fill=\"#e2c36e\" stroke-width=\"5\"/>\n</g>",
-  "hand": "<circle cx=\"198\" cy=\"168\" r=\"12\" fill=\"#d9d4f0\" stroke-width=\"5\"/>"
+  "sword": "<g transform=\"rotate(14 198 168)\">\n<rect x=\"193\" y=\"156\" width=\"10\" height=\"36\" rx=\"3\" fill=\"#3a2e28\" stroke-width=\"5\"/>\n<circle cx=\"198\" cy=\"196\" r=\"6\" fill=\"#9a7b5a\" stroke-width=\"5\"/>\n<path d=\"M191 150 L191 94 L196 86 L199 94 L203 80 L205 90 L205 150 Z\" fill=\"#9a7b5a\" stroke-width=\"5\"/>\n<path d=\"M198 146 L198 100\" stroke=\"#6f5640\" stroke-width=\"4\"/>\n<path d=\"M191 128 L195 124 L191 120 M205 112 L201 108 L205 104\" fill=\"none\" stroke=\"#2b2220\" stroke-width=\"3\"/>\n<rect x=\"182\" y=\"146\" width=\"32\" height=\"10\" rx=\"4\" fill=\"#6f5640\" stroke-width=\"5\"/>\n</g>",
+  "hand": "<circle cx=\"198\" cy=\"168\" r=\"11\" fill=\"#ece6da\" stroke-width=\"5\"/>\n<path d=\"M191 164 L205 164 M191 171 L205 171\" stroke=\"#d8d2c6\" stroke-width=\"2.5\"/>"
  },
  "raw": [
   "face"
@@ -96,6 +97,11 @@
    "ga"
   ],
   [
+   "shield",
+   "body",
+   "ga"
+  ],
+  [
    "head",
    "head",
    "ga"
@@ -155,7 +161,7 @@
  "attacks": [
   {
    "id": "slash",
-   "label": "👻 Âm kiếm",
+   "label": "💀 Kiếm ma",
    "dur": 1250,
    "tr": {
     "x": [

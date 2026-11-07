@@ -307,13 +307,13 @@ func rule_tests_2() -> void:
 	run(
 		"AE2 titles: 4 tiers (0-1 none, 2-3, 4-5, 6-9); commanders only LvN; big level-up only on renames",
 		func() -> void:
-			eq(Content.unit_title("Bộ binh", 0), "Bộ binh")
-			eq(Content.unit_title("Bộ binh", 1), "Bộ binh Lv1")
-			eq(Content.unit_title("Bộ binh", 3), "Bộ binh lão luyện Lv3")
-			eq(Content.unit_title("Bộ binh", 5), "Bộ binh tinh nhuệ Lv5")
-			eq(Content.unit_title("Bộ binh", 6), "Bộ binh dũng mãnh Lv6")
-			eq(Content.unit_title("Bộ binh", 9), "Bộ binh dũng mãnh Lv9")
-			eq(Content.unit_title("Anh hùng", 4, true), "Anh hùng Lv4")
+			eq(Content.unit_title("Vệ binh", 0), "Vệ binh")
+			eq(Content.unit_title("Vệ binh", 1), "Vệ binh Lv1")
+			eq(Content.unit_title("Vệ binh", 3), "Vệ binh lão luyện Lv3")
+			eq(Content.unit_title("Vệ binh", 5), "Vệ binh tinh nhuệ Lv5")
+			eq(Content.unit_title("Vệ binh", 6), "Vệ binh dũng mãnh Lv6")
+			eq(Content.unit_title("Vệ binh", 9), "Vệ binh dũng mãnh Lv9")
+			eq(Content.unit_title("Hiệp Sĩ Chỉ Huy", 4, true), "Hiệp Sĩ Chỉ Huy Lv4")
 			var loud := []
 			for r in range(1, 10):
 				if Content.rank_announced("soldier", r):

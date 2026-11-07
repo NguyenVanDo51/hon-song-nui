@@ -70,7 +70,7 @@ func _fit_scale() -> void:
 
 func _build_rotate_hint() -> void:
 	_rotate = ColorRect.new()
-	(_rotate as ColorRect).color = Style.LACQUER
+	(_rotate as ColorRect).color = Style.PAPER
 	_rotate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_rotate.mouse_filter = Control.MOUSE_FILTER_STOP
 	_rotate.z_index = 200
@@ -78,8 +78,12 @@ func _build_rotate_hint() -> void:
 	var c := CenterContainer.new()
 	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var v := Style.vbox(14)
-	var icon := Style.lbl("🔄", 64, Style.GOLD, Style.display_x)
-	icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var icon := TextureRect.new()
+	icon.texture = Icons.tex("rotate")
+	icon.custom_minimum_size = Vector2(72, 72)
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(icon)
 	var t := Style.lbl("Xoay ngang màn hình để chơi", 22, Style.INK, Style.display)
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -5,7 +5,7 @@ extends RefCounted
 
 const DIR := "res://assets/units/rig/"
 ## enemy = our art with only the team colours swapped (SHARED.md); commanders have their own spec instead
-const TEAM_SWAP := [["#c9503f", "#4f74c9"], ["#93362b", "#32508f"]]
+const TEAM_SWAP := [["#c9503f", "#4f74c9"], ["#93362b", "#32508f"], ["#e2c36e", "#d9dee3"]]
 const EASES := ["lin", "out", "in", "io", "outExpo", "outBack", "hold"]
 
 static var _cache := { }

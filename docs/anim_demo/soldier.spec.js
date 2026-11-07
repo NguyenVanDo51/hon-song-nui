@@ -4,7 +4,7 @@ const HIT_SMALL = { small: true, stop: 45, amp: 4, kx: 0, debris: 'spark', n: 3,
 // main hit:   api.hit(Object.assign({}, HIT, { dmg: 42 }))     or  wave/projectile/tornado { hit: Object.assign({}, HIT, { dmg: 42 }) }
 // multi-tick: Object.assign({}, HIT_SMALL, { dmg: 6 }) for the small ticks before the final HIT
 
-// Bộ binh (soldier_p.svg): spear + round shield. Attack = step-in -> coil -> lunging thrust + piercing lance streak.
+// Vệ Binh (footman): kettle helm, mail + team tabard, pennant spear, heater shield. Attack = step-in -> coil -> lunging thrust + piercing lance streak.
 const DMG = 50;   // rules.gd soldier atk 50
 
 // armed at thrust start; fires HIT the frame the spear tip crosses the target front, then draws the lance through it
@@ -52,45 +52,44 @@ function pierceFx(a) {
 }
 
 const SPEC = {
-  title: 'Bộ binh · Đâm thương xuyên giáp',
-  subtitle: 'Bước lên → thu thương → đâm thẳng, luồng sáng xuyên qua địch.',
+  title: 'Vệ Binh · Đâm giáo xuyên giáp',
+  subtitle: 'Bước lên → thu giáo → đâm thẳng, luồng sáng xuyên qua địch.',
   feet: 244, cx: 128, range: 1,
   parts: {
-    shield: `<circle cx="84" cy="166" r="40" fill="#c9503f"/>
-<circle cx="84" cy="166" r="27" fill="none" stroke="#93362b" stroke-width="5"/>
-<path d="M84 145 L84 187 M63 166 L105 166" stroke="#93362b" stroke-width="4"/>
-<circle cx="84" cy="166" r="10" fill="#e2c36e" stroke-width="5"/>`,
     legB: `<rect x="104" y="196" width="20" height="40" rx="4" fill="#5a4a3c"/>
 <rect x="98" y="228" width="30" height="18" rx="8" fill="#3a2e28"/>`,
     legF: `<rect x="134" y="196" width="20" height="40" rx="4" fill="#5a4a3c"/>
 <rect x="130" y="228" width="32" height="18" rx="8" fill="#3a2e28"/>`,
-    torso: `<path d="M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z" fill="#c9503f"/>
-<path d="M93 191 Q128 200 163 191" fill="none" stroke="#93362b" stroke-width="6"/>
-<path d="M95 172 L161 172" stroke="#5a4a3c" stroke-width="10"/>
-<circle cx="128" cy="172" r="6" fill="#e2c36e" stroke-width="4"/>`,
-    spear: `<line x1="198" y1="50" x2="198" y2="240" stroke="#2b2220" stroke-width="15"/>
-<line x1="198" y1="50" x2="198" y2="240" stroke="#a87a4c" stroke-width="7"/>`,
-    tassel: `<path d="M198 58 Q186 70 188 90 Q194 84 198 92 Q202 84 208 90 Q210 70 198 58 Z" fill="#c9503f" stroke-width="5"/>`,
-    spearHead: `<path d="M198 6 Q213 28 205 48 L191 48 Q183 28 198 6 Z" fill="#cdd4da" stroke-width="5"/>
-<path d="M198 16 L198 42" stroke="#aab3bd" stroke-width="4"/>
-<rect x="190" y="46" width="16" height="12" rx="3" fill="#e2c36e" stroke-width="5"/>`,
-    crest: `<path d="M138 38 C144 16 128 2 102 6 C114 12 116 24 116 38 Z" fill="#c9503f" stroke-width="5"/>
-<path d="M131 30 C131 18 122 11 110 10" fill="none" stroke="#93362b" stroke-width="4"/>`,
-    head: `<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
-<path d="M76 86 A54 54 0 0 1 184 86 L192 96 L68 96 Z" fill="#aab3bd"/>
-<path d="M88 70 Q94 52 110 42" fill="none" stroke="#cdd4da" stroke-width="5"/>
-<path d="M72 90 L188 90" stroke="#7e8790" stroke-width="5"/>
-<rect x="119" y="28" width="20" height="10" rx="4" fill="#e2c36e" stroke-width="5"/>`,
-    arm: `<path d="M152 140 Q176 150 198 158" fill="none" stroke="#2b2220" stroke-width="24"/>
-<path d="M152 140 Q176 150 198 158" fill="none" stroke="#c9503f" stroke-width="12"/>
+    // mail shirt + team tabard + belt
+    torso: `<path d="M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z" fill="#aab3bd"/>
+<path d="M96 150 Q128 158 160 150 M94 170 Q128 178 162 170" fill="none" stroke="#7e8790" stroke-width="3"/>
+<path d="M112 127 L146 127 L150 206 Q128 212 106 206 Z" fill="#c9503f"/>
+<path d="M95 188 L161 188" stroke="#5a4a3c" stroke-width="10"/>`,
+    spear: `<line x1="198" y1="52" x2="198" y2="240" stroke="#2b2220" stroke-width="15"/>
+<line x1="198" y1="52" x2="198" y2="240" stroke="#a87a4c" stroke-width="7"/>`,
+    // swallowtail pennant (rigid on the spear: the tassel spring hangs, a flag must not)
+    tassel: `<path d="M204 56 L240 64 L226 70 L240 78 L204 82 Z" fill="#c9503f" stroke-width="5"/>`,
+    spearHead: `<path d="M198 6 Q213 28 205 50 L191 50 Q183 28 198 6 Z" fill="#eef2f5" stroke-width="5"/>
+<path d="M198 16 L198 44" stroke="#aab3bd" stroke-width="4"/>
+<rect x="189" y="48" width="18" height="10" rx="3" fill="#e2c36e" stroke-width="5"/>`,
+    arm: `<path d="M152 140 Q176 150 196 160" fill="none" stroke="#2b2220" stroke-width="24"/>
+<path d="M152 140 Q176 150 196 160" fill="none" stroke="#c9503f" stroke-width="12"/>
 <circle cx="198" cy="160" r="12" fill="#f3cfa6" stroke-width="5"/>`,
-    face: `<path d="M141 104 L154 107 M164 107 L177 104" stroke="#2b2220" stroke-width="4" stroke-linecap="round"/>
-<circle cx="148" cy="115" r="6" fill="#2b2220"/>
+    // heater shield, gold chevron
+    shield: `<path d="M48 138 L118 138 L118 166 Q116 200 83 216 Q50 200 48 166 Z" fill="#c9503f"/>
+<path d="M52 158 L83 182 L114 158" fill="none" stroke="#e2c36e" stroke-width="10"/>`,
+    // kettle helm + nasal bar
+    head: `<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
+<path d="M74 92 A56 56 0 0 1 186 92 L190 100 L70 100 Z" fill="#cdd4da"/>
+<path d="M88 74 Q96 56 110 46" fill="none" stroke="#f4f6f8" stroke-width="5"/>
+<path d="M72 96 L188 96" stroke="#7e8790" stroke-width="5"/>
+<rect x="155" y="92" width="9" height="30" rx="3" fill="#cdd4da" stroke-width="4"/>`,
+    face: `<circle cx="148" cy="115" r="6" fill="#2b2220"/>
 <circle cx="170" cy="115" r="6" fill="#2b2220"/>
 <circle cx="150" cy="113" r="2" fill="#fff"/>
 <circle cx="172" cy="113" r="2" fill="#fff"/>
 <ellipse cx="179" cy="127" rx="6" ry="4" fill="#f09a88" opacity="0.6"/>
-<path d="M151 132 Q158 137 165 132" fill="none" stroke="#2b2220" stroke-width="3" stroke-linecap="round"/>`,
+<path d="M152 133 Q158 137 165 133" fill="none" stroke="#2b2220" stroke-width="3" stroke-linecap="round"/>`,
   },
   raw: ['face'],
   bones: [
@@ -104,10 +103,10 @@ const SPEC = {
     { name: 'legB', pivot: [114, 198], ch: 'legB' },
     { name: 'legF', pivot: [144, 198], ch: 'legF' },
   ],
-  // source order; face last (arm's shoulder cap sits under the mouth)
-  draw: [['shield', 'shield'], ['legB', 'legB'], ['legF', 'legF'], ['torso', 'body'],
-         ['spear', 'spear'], ['tassel', 'tassel'], ['spearHead', 'spear'],
-         ['crest', 'crest'], ['head', 'head'], ['arm', 'arm'], ['face', 'head']],
+  // sample order (shield in front of the body, head over the shoulder); `crest` bone kept, no art (kettle helm)
+  draw: [['legB', 'legB'], ['legF', 'legF'], ['torso', 'body'],
+         ['spear', 'spear'], ['tassel', 'spear'], ['spearHead', 'spear'],
+         ['arm', 'arm'], ['shield', 'shield'], ['head', 'head'], ['face', 'head']],
   points: { tip: ['spear', 198, 8], mid: ['spear', 198, 110], hand: ['arm', 198, 160] },
   springs: {
     crest: { k: 230, c: 9, drive: (p, vx, c) => clamp(vx * .035, -14, 30) + p.lean * .7 + p.head * .6 + (c.idle ? 1.8 * Math.sin(c.clock / 700) : 0) },
@@ -118,7 +117,7 @@ const SPEC = {
   attacks: [
     {
       // 0-130 step-in · 130-300 coil · 300-345 hold · 345-410 thrust (contact = tip crosses target front) · 410-660 follow-through · 660-760 retract · 760-1100 recover
-      id: 'thrust', label: '🗡 Đâm thương', dur: 1100,
+      id: 'thrust', label: '🗡 Đâm giáo', dur: 1100,
       tr: {
         x: track([[0, 0], [130, 8, 'out'], [300, -20, 'out'], [345, -21], [410, 26, 'outExpo'], [660, 22, 'out'], [760, 4, 'io'], [1100, 0, 'io']]),
         y: track([[0, 0], [65, -6, 'out'], [130, 0, 'in'], [300, 4, 'out'], [345, 4], [385, -6, 'outExpo'], [470, 0, 'in']]),

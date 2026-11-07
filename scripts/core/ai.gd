@@ -88,6 +88,8 @@ const DEFAULT := {
 	# flexible army (docs/ai.md "Đội hình linh hoạt = Khó v5"), 0 = off
 	"role_w": 0.0, # unit jobs: shaman acts last + waits by fresh graves, drum acts first, boats count waterDef as cover
 	"mix_w": 0.0, # situational buys, affordable now only (AIBuy._mix_bonus)
+	"mix_save": 0.0, # > 0: material lead >= 1 + this -> save one turn of income for a called-for unit costing >= 500
+	"sham_save": 0.0, # 1 = mix_save also saves for a shaman when graves are within its reach from the castle
 }
 const SUPPORT := ["shaman", "wolf", "drum"]
 
@@ -493,6 +495,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var role_w: float = P.role_w
 	var wdef: int = st.get("waterDef", 0)
 	var wet_def: int = roundi(role_w * wdef)
+	var bite: int = st.get("poison", 0) if role_w > 0.0 else 0
 	var fresh: Array = _fresh_graves(s) if role_w > 0.0 and st.get("raise", "") != "" else []
 	var sup: Dictionary = mem.get("sup", { }) if lone_w > 0.0 else { }
 	var hero_at: Vector2i = mem.get("hero_at", Vector2i(-99, -99))
@@ -618,6 +621,8 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 						sc -= feed_w * 0.2 * value(s, d)
 				if lone_full > 0.0 and left > 0:
 					exposure += lone_w * val * clampf((minf(lone_full, left) / left - 0.6) / 0.4, 0.0, 1.0)
+				if bite > 0: # wolf first: every follow-up hit on the bitten target lands +bite
+					sc += role_w * bite * AIPlan._followers(s, u, d, rx, ry) * dv / 100.0
 			var atk_sc := sc + (-gd * goal_w + tdef * def_w) * atk_pos_w - exposure + atk_bias
 			consider.call(atk_sc, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
 	return best[0]

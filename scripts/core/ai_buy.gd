@@ -89,6 +89,13 @@ static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := {
 	var graves: Array = s.graves
 	var mix_w: float = P.mix_w
 	var mix := _mix_bonus(s, side, counts, at, mem) if mix_w > 0.0 else { }
+	var big := _big_want(s, side, mix, P) if mix_w > 0.0 else ""
+	if big != "": # ahead: the called-for heavy unit now, or nothing (one turn of saving)
+		var bcost: int = Game.UNITS[big].cost
+		if bcost > s.gold[side]:
+			return null
+		if ok == null or ok_types.has(big):
+			return big
 	var best: Variant = null
 	for type: String in s.allowed[side]:
 		var st: Dictionary = Game.UNITS[type]
@@ -187,8 +194,9 @@ static func _mix_bonus(s: Dictionary, side: String, counts: Dictionary, at: Vari
 		free += 1
 		if Game.dist(ax, ay, gx, gy) <= sh_mv + 1:
 			near += 1
-	if counts.get("shaman", 0) < 2:
-		out.shaman = 2.0 * mini(near, 2) + (0.5 if free >= 2 else 0.0)
+	var n_sh: int = counts.get("shaman", 0)
+	if n_sh < 2:
+		out.shaman = 2.0 * mini(near, 2) + (1.5 if n_sh == 0 and (free >= 1 or _in_contact(s, side)) else 0.0)
 	# boat: a river route to the foe's castles shorter than walking
 	if at != null:
 		var goals := []
@@ -255,3 +263,55 @@ static func _mix_bonus(s: Dictionary, side: String, counts: Dictionary, at: Vari
 	if not aa:
 		out.bird = 0.5
 	return out
+
+## any of our non-commanders within 5 of a foe (fighting -> graves soon)
+static func _in_contact(s: Dictionary, side: String) -> bool:
+	for u: Dictionary in s.units:
+		if u.side != side or u.type == "hero":
+			continue
+		var ux: int = u.x
+		var uy: int = u.y
+		for e: Dictionary in s.units:
+			var ex: int = e.x
+			var ey: int = e.y
+			if e.side != side and Game.dist(ux, uy, ex, ey) <= 5:
+				return true
+	return false
+
+## mix_save: material (value x hp + gold) >= (1 + mix_save) x the foe's -> the called-for unit costing >= 500 that
+## gold + one income reaches (biggest bonus, then cheapest); "" = buy as usual. Never while behind (v4 buy_sup: tempo)
+static func _big_want(s: Dictionary, side: String, mix: Dictionary, P: Dictionary) -> String:
+	var ms: float = P.mix_save
+	if ms <= 0.0:
+		return ""
+	var mine := 0.0
+	var theirs := 0.0
+	for u: Dictionary in s.units:
+		var hp: float = u.hp
+		var v := AI.value(s, u) * hp / 100.0
+		if u.side == side:
+			mine += v
+		else:
+			theirs += v
+	var foe := Game.other(side)
+	var g_me: int = s.gold[side]
+	var g_foe: int = s.gold[foe]
+	if mine + g_me < (1.0 + ms) * (theirs + g_foe):
+		return ""
+	var reach: int = g_me + Game.income(s, side)
+	var sham_save: bool = P.sham_save > 0.0
+	var allowed: Array = s.allowed[side]
+	var best := ""
+	var best_b := 0.0
+	var best_c := 0
+	for t: String in mix:
+		var b: float = mix[t]
+		var c: int = Game.UNITS[t].cost
+		var floor_c := 400 if t == "shaman" and b >= 2.0 and sham_save else 500 # sham_save: graves it reaches
+		if b <= 0.0 or c < floor_c or c > reach or not allowed.has(t):
+			continue
+		if best == "" or b > best_b or (b == best_b and c < best_c):
+			best = t
+			best_b = b
+			best_c = c
+	return best

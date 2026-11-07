@@ -305,6 +305,8 @@ Mục tiêu: AI mua loại quân theo tình huống + dùng đúng việc từng
 
 **Seed giữ riêng (ghi trước khi xem kết quả)**: `hard_v5` vs `hard_v3` salt 9700000–007 `games=16` (768 ván); vs `hard_v2_0` / Khó v1 / Thường salt 9700100–107 / 9700200–207 / 9700300–307 `games=9` (432 ván), cùng seed cho hàng `hard_v3`; thử spam: `hard_v3+_spam:1` (chỉ được mua lính + cung) vs `hard_v5` và vs `hard_v3`, salt 9700400–407 `games=4` (192 ván). Luật ship: `AI.PRESETS.hard` = v5 chỉ khi (v5 vs `hard_v3`) ≥ 0,50 trên 768 ván **và** v5 vs `hard_v2_0` / Khó v1 / Thường không kém hàng `hard_v3` quá ~1 SE **và** đội hình đa dạng hơn rõ (quân hỗ trợ được mua + làm việc thật) **và** thời gian trong ngân sách (lượt TB ≤ ~0,3 s, tệ nhất ≤ 1,5 s). Không thì giữ v3, knob v5 để 0, `hard_v5` cố định để so.
 
+"Đa dạng hơn rõ" (ghi trước lượt dev cuối, đo bằng `sim/probes/army_probe.gd`, A vs `hard_v3`): ≥ 3 loại trong {thầy mo, trống, sói, voi, máy bắn đá, chim} được mua ≥ 0,2 / ván với tỉ lệ việc thật ≥ 30% **và** ma được gọi ≥ 2× v3 **và** thuyền kết thúc trên nước ≥ 2× v3.
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

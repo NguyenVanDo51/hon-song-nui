@@ -364,6 +364,32 @@ func v5_tests() -> void:
 			check(AI.buy_step(s, { }) != null, "still buys now"),
 	)
 	run(
+		"mix_save: ahead + a called-for heavy unit within one income -> save for it, then buy it; behind -> buy now",
+		func() -> void:
+			# 3 foe archers -> elephant called for (no 4-cluster: no drum); we lead 4 soldiers to 3 archers
+			var s := blank(
+				[
+					["p", "soldier", 1, 1],
+					["p", "soldier", 1, 2],
+					["p", "soldier", 0, 4],
+					["p", "soldier", 4, 0],
+					["e", "archer", 4, 4],
+					["e", "archer", 4, 3],
+					["e", "archer", 3, 4],
+				]
+			)
+			s.aiParams = { "p": { "mix_w": 1.0, "mix_save": 0.1 } }
+			s.gold.p = 560
+			s.gold.e = 0
+			eq(AI.buy_step(s, { }), null, "560 + 50 income reaches 600: save")
+			s.gold.p = 600
+			var st: Dictionary = AI.buy_step(s, { })
+			eq(st.get("type"), "elephant", "600: elephant")
+			s.gold.p = 560
+			s.gold.e = 2000
+			check(AI.buy_step(s, { }) != null, "behind (foe bank): buy now"),
+	)
+	run(
 		"hard v5 knobs: legal steps, state untouched, no AI.rng draws, deterministic",
 		func() -> void:
 			var prev: Callable = AI.rng

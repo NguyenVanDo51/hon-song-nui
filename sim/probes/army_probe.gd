@@ -64,6 +64,7 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 	s.aiParams = { me: A, foe: B }
 	var mem := { }
 	var steps := 0
+	var bought := false # first buy of this A turn seen
 	while s.winner == null and s.turn <= 60 and steps < 30000:
 		var stv: Variant = AI.next_step(s, mem)
 		if stv == null:
@@ -73,6 +74,9 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 					add("at_cap")
 				var g: int = s.gold[me]
 				add("gold_end", g)
+				if g >= 150 and Game.cap_count(s, me) < s.unitCap:
+					add("unspent") # could afford a soldier, did not buy
+			bought = false
 			Game.end_turn(s)
 			mem = { }
 			continue
@@ -84,6 +88,15 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 			steps += 1
 			continue
 		if st.kind == "buy":
+			if not bought:
+				bought = true
+				var g0: int = s.gold[me]
+				add("buy0_n")
+				add("buy0_gold", g0)
+				if g0 >= 400:
+					add("buy0_400")
+				if g0 >= 600:
+					add("buy0_600")
 			add("buy_" + str(st.type))
 			add("buys")
 			AI.apply_step(s, st)
@@ -157,6 +170,11 @@ func _report() -> void:
 	print(
 		"boat acts ending on water %.1f%%; A turns at unit cap %.1f%%; gold banked at A turn end %.0f"
 		% [100.0 * gm("boat_on_water") / ba, 100.0 * gm("at_cap") / maxf(gm("turns"), 1.0), gm("gold_end") / maxf(gm("turns"), 1.0)]
+	)
+	var b0 := maxf(gm("buy0_n"), 1.0)
+	print(
+		"first buy of a turn: gold %.0f, >= 400 %.1f%%, >= 600 %.1f%%; turn ends with >= 150 unspent below cap %.1f%%"
+		% [gm("buy0_gold") / b0, 100.0 * gm("buy0_400") / b0, 100.0 * gm("buy0_600") / b0, 100.0 * gm("unspent") / maxf(gm("turns"), 1.0)]
 	)
 	var kinds := 0
 	for t: String in TYPES:

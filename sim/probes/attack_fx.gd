@@ -42,7 +42,7 @@ func _at(t0: int, ms: int) -> void:
 func _shot(g: GameScreen, n: String) -> void:
 	await RenderingServer.frame_post_draw
 	var r := tile_rect(g, 6, 4)
-	var c: Vector2 = g._wrap.global_position + r.get_center()
+	var c: Vector2 = g.hud.map_wrap.global_position + r.get_center()
 	var box := Rect2i(Vector2i(c - Vector2(r.size.x * 2.2, r.size.y * 1.6)), Vector2i(int(r.size.x * 3.6), int(r.size.y * 2.8)))
 	box = box.intersection(Rect2i(Vector2i.ZERO, root.get_texture().get_size()))
 	var path := "%s/%s.png" % [OS.get_cmdline_user_args()[0], n]

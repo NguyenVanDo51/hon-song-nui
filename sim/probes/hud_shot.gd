@@ -30,7 +30,7 @@ func _run(g: GameScreen) -> void:
 	g.refresh()
 	g._on_tile(pos(h).x, pos(h).y)
 	await _wait(4)
-	print("TL pick: card at ", g._card.position, " end visible ", g._btn_end.visible)
+	print("TL pick: card at ", g.hud.card.position, " end visible ", g.hud.btn_end.visible)
 	await main.shot(tag + "_pick_tl")
 	g.cancel()
 	g.cancel()
@@ -43,7 +43,7 @@ func _run(g: GameScreen) -> void:
 	g.refresh()
 	g._on_tile(pos(far).x, pos(far).y)
 	await _wait(4)
-	print("TR pick: card at ", g._card.position)
+	print("TR pick: card at ", g.hud.card.position)
 	await main.shot(tag + "_pick_tr")
 	while g.ui.sel != null:
 		g.cancel()

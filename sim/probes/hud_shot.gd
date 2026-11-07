@@ -17,6 +17,10 @@ func _run(g: GameScreen) -> void:
 	var s: Dictionary = g.s
 	var tag: String = args.get("tag", "hud")
 	await main.shot(tag + "_idle")
+	g.hud.show_menu(true)
+	await _wait(4)
+	await main.shot(tag + "_menu")
+	g.hud.show_menu(false)
 	# park our commander on the top-left tile, then pick it
 	var h: Dictionary = units_of(s).filter(
 		func(u: Dictionary) -> bool:

@@ -121,6 +121,37 @@ class Banner extends Control:
 		if inner.size.x > 0:
 			draw_rect(inner, Color(Style.PAPER, 0.55 * a), false, 1.5)
 
+## small swallow-tail title ribbon pinned on a card's top edge (pause menu)
+class Ribbon extends Control:
+	const CUT := 18.0
+	const SH := 4.0
+
+	func _init(text: String) -> void:
+		mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var l := Style.lbl(text, 24, Style.PAPER_HI, Style.display_x)
+		Style.ink_outline(l, 6)
+		l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		l.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		l.offset_right = -SH
+		l.offset_bottom = -SH - 2
+		add_child(l)
+		var w := Style.display_x.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24).x
+		custom_minimum_size = Vector2(w + 2 * CUT + 60, 50)
+
+	func _draw() -> void:
+		var r := Rect2(Vector2.ZERO, size - Vector2(SH, SH))
+		var mid := r.get_center().y
+		var rib := PackedVector2Array([r.position, Vector2(r.end.x, 0), Vector2(r.end.x - CUT, mid), r.end, Vector2(0, r.end.y), Vector2(CUT, mid)])
+		var sh := PackedVector2Array()
+		for q in rib:
+			sh.append(q + Vector2(SH, SH))
+		draw_colored_polygon(sh, Style.INK_D)
+		draw_colored_polygon(rib, Style.CRIMSON)
+		var loop := rib.duplicate()
+		loop.append(rib[0])
+		draw_polyline(loop, Style.INK_D, 3.0, true)
+
 ## slow spinning victory rays behind the end card
 class Rays extends Control:
 	func _process(_dt: float) -> void:

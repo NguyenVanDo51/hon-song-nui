@@ -1,6 +1,6 @@
 class_name GameHud
 extends RefCounted
-## GameScreen part (review E5): map frame + board mount, floating HUD (turn / gold / goal, ⏩ ⚙, Hết lượt), ⚙ menu,
+## GameScreen part (review E5): map frame + board mount, floating HUD (goal TL, turn / gold TC, ⏩ ⚙, Hết lượt), ⚙ pause,
 ## corner card placement, gold count, turn banner. Reads / calls the screen (gs) directly.
 
 const HUD_M := 10.0 # HUD distance from the screen edge
@@ -15,7 +15,7 @@ var gold_tw: Tween
 var btn_hint: Button
 var btn_ff: Button
 var gear: Button
-var menu: PanelContainer
+var menu: Control # ⚙ pause screen (dim + card); .visible = open
 var hud_tr: Control
 var card_avoid: Array[Vector2i] = [] # tiles the corner card must not cover (rects rebuilt on placement)
 var card_terrain := false # card shows a tile, not a unit: HUD stays up
@@ -30,7 +30,11 @@ var _goal: RichTextLabel
 var _btn_speed: Button
 var _btn_sound: Button
 var _btn_restart: Button
+var _btn_music: Button
+var _pause: PanelContainer
+var _ribbon: HudWidgets.Ribbon
 var _hud_tl: Control
+var _hud_tc: HBoxContainer
 var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _frame: Panel
 var _banner: HudWidgets.Banner
@@ -67,31 +71,38 @@ func build_hud() -> void:
 	_banner = HudWidgets.Banner.new()
 	_banner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	map_wrap.add_child(_banner)
-	# top-left: turn, gold, goal
+	# top-left: goal on a paper slip
 	var tl := PanelContainer.new()
 	tl.add_theme_stylebox_override("panel", _hud_box())
 	tl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tl.z_index = 40
 	gs.add_child(tl)
 	_hud_tl = tl
-	var tv := Style.vbox(2)
-	tl.add_child(tv)
-	var th := Style.hbox(10)
-	tv.add_child(th)
-	turn_label = Style.lbl("Lượt 1", 19, Style.GOLD, Style.display_x)
-	th.add_child(turn_label)
-	_gold_box = Style.hbox(5)
-	_gold_box.add_child(HudWidgets.Coin.new())
-	gold_num = Style.lbl("0", 16, Style.GOLD, Style.bold)
-	gold_num.pivot_offset = Vector2(10, 10)
-	_gold_box.add_child(gold_num)
-	_income = Style.lbl("", 13, Style.GOOD, Style.semi)
-	_gold_box.add_child(_income)
-	th.add_child(_gold_box)
 	_goal = Style.rich("", 13, Style.INK)
 	_goal.fit_content = true
 	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
-	tv.add_child(_goal)
+	tl.add_child(_goal)
+	# top-centre: turn + gold, bare ink-outlined text (no panel: covers less of the map)
+	_hud_tc = Style.hbox(16)
+	_hud_tc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_hud_tc.z_index = 40
+	gs.add_child(_hud_tc)
+	turn_label = Style.lbl("Lượt 1", 22, Style.PAPER_HI, Style.display_x)
+	Style.ink_outline(turn_label, 7)
+	_hud_tc.add_child(turn_label)
+	_gold_box = Style.hbox(5)
+	_gold_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var coin := HudWidgets.Coin.new()
+	coin.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_gold_box.add_child(coin)
+	gold_num = Style.lbl("0", 22, Style.LEAF, Style.display_x)
+	Style.ink_outline(gold_num, 7)
+	gold_num.pivot_offset = Vector2(10, 14)
+	_gold_box.add_child(gold_num)
+	_income = Style.lbl("", 16, Color("#9ad36f"), Style.display_x)
+	Style.ink_outline(_income, 6)
+	_gold_box.add_child(_income)
+	_hud_tc.add_child(_gold_box)
 	# top-right: ⏩ (enemy turn) + ⚙
 	var top_r := Style.hbox(8)
 	top_r.z_index = 40
@@ -182,58 +193,133 @@ func _hud_box() -> StyleBox:
 	b.content_margin_bottom = 10
 	return b
 
-## ⚙ dropdown: hint, unit book, speed, sound, 2D/3D, restart, leave
+## ⚙ pause screen: dim board, paper card under a "Tạm dừng" ribbon; resume / hint (big), sound / music / speed (round
+## toggles), unit book / restart / leave (small tiles)
 func _build_menu() -> void:
-	menu = PanelContainer.new()
-	menu.add_theme_stylebox_override("panel", _hud_box())
+	menu = Control.new()
+	menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	menu.z_index = 55
 	menu.visible = false
 	gs.add_child(menu)
-	var v := Style.vbox(6)
-	v.custom_minimum_size.x = 230
-	menu.add_child(v)
-	var item := func(text: String, tip: String, fn: Callable, close := true) -> Button:
+	var dim := ColorRect.new()
+	dim.color = Color(0.16, 0.10, 0.05, 0.55)
+	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	dim.gui_input.connect(
+		func(e: InputEvent) -> void:
+			var mb := e as InputEventMouseButton
+			if mb != null and mb.pressed:
+				show_menu(false),
+	)
+	menu.add_child(dim)
+	_pause = PanelContainer.new()
+	var ps := Style.paper(22.0)
+	ps.content_margin_top = 46
+	_pause.add_theme_stylebox_override("panel", ps)
+	menu.add_child(_pause)
+	_ribbon = HudWidgets.Ribbon.new("Tạm dừng")
+	menu.add_child(_ribbon)
+	var v := Style.vbox(12)
+	v.custom_minimum_size.x = 380
+	_pause.add_child(v)
+	var go := _ibtn(
+		"▶ Tiếp tục",
+		"Quay lại ván (Esc)",
+		func() -> void:
+			show_menu(false),
+	)
+	go.theme_type_variation = "PrimaryBtn"
+	go.add_theme_font_size_override("font_size", 22)
+	go.add_theme_constant_override("icon_max_width", 22)
+	v.add_child(go)
+	btn_hint = _ibtn(
+		"💬 Gợi ý nước đi",
+		"Gợi ý (phím H)",
+		func() -> void:
+			show_menu(false)
+			gs._on_hint(),
+	)
+	btn_hint.theme_type_variation = "RoyalBtn"
+	btn_hint.add_theme_constant_override("icon_max_width", 22)
+	v.add_child(btn_hint)
+	var toggles := Style.hbox(26)
+	toggles.alignment = BoxContainer.ALIGNMENT_CENTER
+	v.add_child(toggles)
+	_btn_sound = _toggle(
+		toggles,
+		"Âm thanh",
+		func() -> void:
+			gs.main.audio.set_muted(not gs.main.audio.muted)
+			sound_label(),
+	)
+	_btn_music = _toggle(
+		toggles,
+		"Nhạc",
+		func() -> void:
+			gs.main.audio.set_music(not gs.main.audio.music_on)
+			sound_label(),
+	)
+	_btn_speed = _toggle(toggles, "Tốc độ", on_speed)
+	_btn_speed.tooltip_text = "Tốc độ hoạt cảnh"
+	var hr := ColorRect.new()
+	hr.color = Color(Style.INK_D, 0.25)
+	hr.custom_minimum_size.y = 2
+	v.add_child(hr)
+	var row := Style.hbox(10)
+	v.add_child(row)
+	var tile := func(text: String, tip: String, fn: Callable) -> Button:
 		var b := _ibtn(
 			text,
 			tip,
 			func() -> void:
-				if close:
-					show_menu(false)
+				show_menu(false)
 				fn.call(),
 		)
-		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		b.custom_minimum_size.y = 40
-		v.add_child(b)
+		b.theme_type_variation = "TileBtn"
+		b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.add_theme_constant_override("icon_max_width", 22)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.custom_minimum_size.y = 64
+		row.add_child(b)
 		return b
-	btn_hint = item.call("💬 Gợi ý nước đi", "Gợi ý (phím H)", gs._on_hint)
-	item.call(
+	tile.call(
 		"📖 Sách lính",
 		"Tính chất từng loại quân",
 		func() -> void:
 			gs.main.menus.open_codex(gs._me()),
 	)
-	_btn_speed = item.call("", "Tốc độ hoạt cảnh", on_speed, false)
-	_btn_sound = item.call(
-		"",
-		"Âm thanh",
-		func() -> void:
-			gs.main.audio.set_muted(not gs.main.audio.muted)
-			sound_label(),
-		false,
-	)
-	_btn_restart = item.call("↩ Đánh lại màn này", "Chơi lại màn này từ đầu", _confirm_restart)
-	item.call(
-		"🏠 Về menu chính",
-		"Lưu ván và về menu",
+	_btn_restart = tile.call("↩ Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart)
+	var home: Button = tile.call(
+		"🏠 Về menu",
+		"Lưu ván và về menu chính",
 		func() -> void:
 			gs.save()
 			gs.main.show_title(),
 	)
+	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
+		home.add_theme_color_override(c, Style.CRIMSON_D)
+
+## round on/off button with a small caption under it
+func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
+	var col := Style.vbox(4)
+	parent.add_child(col)
+	var b := _ibtn("", caption, fn)
+	b.theme_type_variation = "RoundOn"
+	b.custom_minimum_size = Vector2(58, 58)
+	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", 28)
+	col.add_child(b)
+	var l := Style.lbl(caption, 12, Style.MUTED, Style.bold)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(l)
+	return b
 
 func show_menu(on: bool) -> void:
 	menu.visible = on
 	if on:
-		menu.size = Vector2.ZERO
+		sound_label()
+		speed_label()
 		place_hud()
 
 ## map fills the screen; HUD floats over it. Nothing picked: turn/gold (TL), ⏩ ⚙ (TR), end turn (BR).
@@ -249,6 +335,7 @@ func place_hud() -> void:
 	var picked := card.visible
 	var unit_card := picked and not card_terrain
 	_hud_tl.visible = not unit_card
+	_hud_tc.visible = not unit_card
 	hud_tr.visible = not unit_card
 	btn_end.visible = not unit_card
 	hud_tr.reset_size()
@@ -258,6 +345,13 @@ func place_hud() -> void:
 	_goal.autowrap_mode = TextServer.AUTOWRAP_OFF
 	_hud_tl.reset_size()
 	_hud_tl.position = Vector2(M, M)
+	_hud_tc.reset_size()
+	var tcs := _hud_tc.get_combined_minimum_size()
+	var tc_x := maxf((gs.size.x - tcs.x) / 2.0, M + _hud_tl.get_combined_minimum_size().x + 14)
+	if tc_x + tcs.x > hud_tr.position.x - 10: # narrow screen: tuck it under the goal slip
+		_hud_tc.position = Vector2(M + 6, M + _hud_tl.get_combined_minimum_size().y + 4)
+	else:
+		_hud_tc.position = Vector2(tc_x, M + 2)
 	btn_end.custom_minimum_size = Vector2(SEAL, SEAL)
 	var eb := btn_end.get_combined_minimum_size()
 	btn_end.size = eb
@@ -285,8 +379,20 @@ func place_hud() -> void:
 			_hud_tl.visible = card.position.y > M or card.position.x > M
 			hud_tr.visible = card.position.y > M or card.position.x <= M
 	if menu.visible:
-		var ms := menu.get_combined_minimum_size()
-		menu.position = Vector2(gs.size.x - ms.x - M, M + trs.y + 6)
+		_place_pause()
+
+## pause card centred (ribbon overhangs its top edge), shrunk to fit short phone screens
+func _place_pause() -> void:
+	_pause.reset_size()
+	_ribbon.reset_size()
+	var ps := _pause.get_combined_minimum_size()
+	var rs := _ribbon.get_combined_minimum_size()
+	var k := minf(1.0, minf((gs.size.y - 24.0) / (ps.y + rs.y / 2.0), (gs.size.x - 24.0) / ps.x))
+	var top := (gs.size.y - (ps.y + rs.y / 2.0) * k) / 2.0 + rs.y / 2.0 * k
+	_pause.scale = Vector2(k, k)
+	_pause.position = Vector2((gs.size.x - ps.x * k) / 2.0, top).floor()
+	_ribbon.scale = Vector2(k, k)
+	_ribbon.position = (_pause.position + Vector2((ps.x - rs.x) / 2.0, -rs.y / 2.0 - 4.0) * k).floor()
 
 ## the whole window is map; the HUD overlays it
 func _layout() -> void:
@@ -303,7 +409,7 @@ func _ibtn(text: String, tip: String, fn: Callable) -> Button:
 	return b
 
 func speed_label() -> void:
-	_btn_speed.text = "» Tốc độ hoạt cảnh: x%d" % int(FX.speed)
+	_btn_speed.text = "x%d" % int(FX.speed)
 
 func on_speed() -> void:
 	FX.speed = 2.0 if FX.speed == 1.0 else (3.0 if FX.speed == 2.0 else 1.0)
@@ -322,7 +428,14 @@ func _confirm_restart() -> void:
 	)
 
 func sound_label() -> void:
-	Style.set_btn_text(_btn_sound, "🔇 Âm thanh: Tắt" if gs.main.audio.muted else "🔊 Âm thanh: Bật")
+	var muted := gs.main.audio.muted
+	var music := gs.main.audio.music_on
+	_btn_sound.icon = Icons.tex("mute" if muted else "sound")
+	_btn_sound.theme_type_variation = "RoundOff" if muted else "RoundOn"
+	_btn_sound.tooltip_text = "Âm thanh: %s" % ("tắt" if muted else "bật")
+	_btn_music.icon = Icons.tex("music_off" if not music else "music")
+	_btn_music.theme_type_variation = "RoundOff" if not music else "RoundOn"
+	_btn_music.tooltip_text = "Nhạc: %s" % ("tắt" if not music else "bật")
 
 func fit() -> void:
 	if gs.s.is_empty():
@@ -392,11 +505,11 @@ func _goal_line() -> String:
 	var obj := Content.goal_text(win, "bar", hero_keys, { "n": n, "left": maxi(0, turns - turn + 1) })
 	return "🎯 %s" % obj
 
-## top-left HUD: turn, gold, income, goal
+## top-centre turn / gold / income, top-left goal
 func refresh_top() -> void:
 	var me := gs._me()
 	turn_label.text = "Lượt %d" % gs.s.turn + ((" · " + gs._side_name(me)) if gs._hotseat() else "")
-	turn_label.add_theme_color_override("font_color", (Style.P_NAME if me == "p" else Style.SEA_HI) if gs._hotseat() else Style.GOLD)
+	turn_label.add_theme_color_override("font_color", (Style.P_NAME if me == "p" else Style.SEA_HI) if gs._hotseat() else Style.PAPER_HI)
 	gold_num.text = str(gs.s.gold[me] if gold_shown < 0 else gold_shown)
 	var allowed_me: Array = gs.s.allowed[me]
 	_gold_box.visible = allowed_me.size() > 0 or Game.castles(gs.s, me) > 0

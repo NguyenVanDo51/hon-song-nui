@@ -446,7 +446,8 @@ func _place() -> void:
 		Vector2(rr.position.x - bs.x - gap, c.y - bs.y / 2.0),
 		Vector2(c.x - bs.x / 2.0, hand_r.end.y + 4.0) if below else Vector2(c.x - bs.x / 2.0, hand_r.position.y - bs.y - 4.0),
 	]
-	var lim := Rect2(Vector2(8, 8), size - Vector2(16, 16))
+	var e := Style.safe_insets(self) # phone notch / rounded corners
+	var lim := Rect2(Vector2(8 + e.x, 8 + e.y), size - Vector2(16 + e.x + e.z, 16 + e.y + e.w))
 	var avoid: Array[Rect2] = [rr.grow(2.0)]
 	if _hand.visible:
 		avoid.append(hand_r)
@@ -466,7 +467,7 @@ func _place() -> void:
 		best = p
 		break
 	if best.x < 0.0:
-		best = Vector2(clampf(cands[0].x, 8.0, size.x - bs.x - 8.0), clampf(cands[0].y, 8.0, size.y - bs.y - 8.0))
+		best = Vector2(clampf(cands[0].x, lim.position.x, lim.end.x - bs.x), clampf(cands[0].y, lim.position.y, lim.end.y - bs.y))
 	_bubble.position = best.floor()
 	_bubble.visible = _say.text != ""
 

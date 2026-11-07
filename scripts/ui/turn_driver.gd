@@ -246,7 +246,7 @@ func finish() -> void:
 		var tip := Content.text("loseTip_" + str(gs.s.reason))
 		if not tip.begins_with("loseTip_"):
 			reason_text += "\n" + tip
-	await gs.get_tree().create_timer(0.6).timeout
+	await gs.get_tree().create_timer(0.6, false).timeout
 	if gs.gen != my:
 		return
 	gs.main.audio.play("win" if win else "lose")
@@ -293,7 +293,7 @@ func finish() -> void:
 		buttons.append(["Menu", gs.main.show_title, false])
 	gs.cards.show_end(win, reason_text, buttons, star_goals if win else [], best_before, stars)
 	if gs.main.flags.has("shots"):
-		gs.get_tree().create_timer(1.5).timeout.connect(
+		gs.get_tree().create_timer(1.5, false).timeout.connect(
 			func() -> void:
 				var tag: String = gs.main.flags.get("tag", "s")
 				gs.main.shot(tag + "_end"),

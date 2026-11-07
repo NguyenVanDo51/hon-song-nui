@@ -44,6 +44,7 @@
 
 ## Nợ kỹ thuật
 Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
+- [ ] (2026-11-07) `sim/golden.txt` lệch trên master từ trước merge v4 (`da0dc59` đã lệch; m02 4 dòng: t7/t10/t6/t7 thay vì t8/t11/t20/t43) — nhiều khả năng do chỉnh vàng m02 / nội dung (phiên reskin + levels). Cần chủ thay đổi xác nhận rồi tạo lại golden; agent AI tạm so trace với bản chạy từ master `7fac98c`.
 - [ ] (2026-11-07) `scripts/ui/game_hud.gd:198` menu ⚙ "Tạm dừng" chỉ che bàn, không dừng game -> mở giữa lượt địch thì bot vẫn đi phía sau. Dừng thật cần cả tween lẫn `create_timer` của turn_driver cùng pause (timer mặc định chạy khi pause) -> dễ lệch hoạt cảnh.
 - [ ] (2026-11-07) Bot gần như không mua quân đắt: 72 ván đấu tự do (bot vs bot, Thường, cap 15) chỉ 2 Golem + 1 Sói, 0 Máy Bắn Đá / Rồng; cấm lính+cung thì mua Hải Tặc trên bản đồ đất liền. Chỉ mua lính+cung thắng 39/72 vs 27/72 khi mua đủ loại -> người chơi dồn quân rẻ không bị trừng phạt. Script đo: `spam_sim.gd` (p `s.allowed` = soldier+archer / full / cấm). Sửa = đụng `ai.gd` -> chờ user cho phép.
 - [ ] (2026-11-07) `assets/ui/icons/*.svg` mới import mặc định `svg/scale=1.0`; phải sửa tay `.import` lên 2.0 rồi `--import` lại -> quên là icon mờ. Thêm test kiểm mọi icon `.import` có `svg/scale=2.0`.

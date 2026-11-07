@@ -1,7 +1,7 @@
 # AE2 original vs ours: UNITS
 
 ## Summary (5 lines)
-1. `pak/units.bin` fully parsed (12 records, 209 B, 0 bytes left over); layout comes from loader `c.class a(Li;)V` pc 17–191. Stats for all 10 playable types (cost / atk min-max / def / mv / rmin-rmax / move class) are **byte-identical** to our `rules.gd UNITS`.
+1. `pak/units.bin` fully parsed (12 records, 209 B, 0 bytes left over); layout comes from loader `c.class a(Li;)V` pc 17–191. Stats for all 10 playable types (cost / atk min-max / def / mv / rmin-rmax / move class) are **byte-identical** to our `rules.gd UNITS`. (Since 2026-11-08 ours stores mv = original − 1 = steps really walked; see combat.md "move budget".)
 2. units.bin holds only **flag bits**; every amount (+15 anti-air, +15 Wisp vs Skeleton, +10/+15 water, −10/−10 poison, +10 aura, +2/rank, max rank 9, King 200 +200 → 1000) is a constant in the code. Ours matches every one.
 3. Real differences: ghost `cost: 150` (original −1 = not buyable; ours only feeds the AI `aiValue` default); Crystal (type 11) missing (campaign only, deliberate); ours-only fields `heavy` / `shot` / `aiWeight` / `aiValue` (cosmetic / AI); `raze` is a flag in ours vs hard-coded `type == 7` in the original (same behavior). Edge case: aura min distance 1 in the original vs 0 in ours (a unit stacked on the Wisp's tile).
 4. 3 items that spec.md lists as "mod only, not yet checked" are **original behavior** (bytecode): the roll never hits atkMax; poison is applied after the counter and even if the wolf died; a dead Wisp still gives its aura.

@@ -3,6 +3,7 @@ extends SceneTree
 ## mission=t01 / t02 fresh: walks the tutorial steps instead (intro cards on, guide lock, ⚙ skip)
 
 const LayoutStorm := preload("res://sim/layout_storm.gd")
+const IntroSpeedCheck := preload("res://sim/intro_speed_check.gd")
 
 var main: Main
 var fails := 0
@@ -498,6 +499,7 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	ok(g.cards.intro_layer == null, "intro card closes")
+	await IntroSpeedCheck.run(self, g, any_u)
 	for k: Key in [KEY_ENTER, KEY_SPACE]:
 		await _intro_replay_then_key(g, any_u, k)
 	g._on_hint()

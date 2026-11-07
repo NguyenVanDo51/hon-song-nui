@@ -8,6 +8,8 @@ const TURN_MS := 110.0
 
 ## playback speed x1 / x2 / x3: every duration is divided by it
 static var speed := 1.0
+## >0 = this FX ignores the game speed (intro popup plays at 1x)
+var fixed_speed := 0.0
 
 var audio: Audio
 var parts: Array = []
@@ -30,8 +32,11 @@ var _last := 0.0
 static func now() -> float:
 	return Time.get_ticks_usec() / 1000.0
 
-static func sp(ms: float) -> float:
-	return ms / speed
+func spd() -> float:
+	return fixed_speed if fixed_speed > 0.0 else speed
+
+func sp(ms: float) -> float:
+	return ms / spd()
 
 func sleep(ms: float) -> void:
 	await get_tree().create_timer(sp(ms) / 1000.0).timeout
@@ -582,7 +587,7 @@ func dust(x: float, y: float) -> void:
 
 # ---------- update + draw ----------
 func update(t: float) -> void:
-	var dt := minf(0.05, (t - _last) / 1000.0) * speed
+	var dt := minf(0.05, (t - _last) / 1000.0) * spd()
 	_last = t
 	if not rigs.is_empty():
 		for r: Rig in rigs:

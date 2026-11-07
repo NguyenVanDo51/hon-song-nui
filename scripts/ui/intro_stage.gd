@@ -82,6 +82,7 @@ func setup(p_side: String, p_type: String, p_hero_key: Variant) -> void:
 	type = p_type
 	hero_key = p_hero_key
 	fx = FX.new()
+	fx.fixed_speed = 1.0
 	add_child(fx)
 	board = Board.new()
 	board.fx = fx
@@ -114,9 +115,7 @@ func stop() -> void:
 	_gen += 1
 	if fx != null:
 		fx.clear()
-	for i in 30:
-		if _live <= 0:
-			return
+	while _live > 0: # no frame cap: a coroutine still awaiting FX.attack must not outlive the free
 		await get_tree().process_frame
 
 func _phase(p: String) -> void:
@@ -165,7 +164,7 @@ static func _unit(id: int, p_side: String, p_type: String, x: int) -> Dictionary
 ## frame-polled sleep (a timer would resume after the stage is freed); false = scene dropped
 func _wait(ms: float, g: int) -> bool:
 	var t0 := FX.now()
-	while FX.now() - t0 < FX.sp(ms):
+	while FX.now() - t0 < fx.sp(ms):
 		await get_tree().process_frame
 		if g != _gen:
 			return false
@@ -260,7 +259,7 @@ func _walk(u: Dictionary, to: int, g: int) -> bool:
 			await get_tree().process_frame
 			if g != _gen:
 				return false
-			k = minf(1.0, (FX.now() - t0) / FX.sp(STEP_MS))
+			k = minf(1.0, (FX.now() - t0) / fx.sp(STEP_MS))
 			copy.x = x - 1 + k
 		fx.dust(x, 0)
 	u.x = to
@@ -296,7 +295,7 @@ func _pop(field: String, g: int) -> void:
 		await get_tree().process_frame
 		if g != _gen:
 			return
-		k = minf(1.0, (FX.now() - t0) / FX.sp(260.0))
+		k = minf(1.0, (FX.now() - t0) / fx.sp(260.0))
 		_marks.set(field, k / 0.6 * 1.2 if k < 0.6 else lerpf(1.2, 1.0, (k - 0.6) / 0.4))
 
 func _process(_dt: float) -> void:

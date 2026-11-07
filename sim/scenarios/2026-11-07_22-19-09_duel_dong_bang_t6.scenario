@@ -1,0 +1,261 @@
+{
+"actual": -742.6999999999998,
+"expected": -529.2399999999998,
+"format": 1,
+"kind": "bot_exploited",
+"note": "bot_exploited: expected -529, got -743 after the human reply",
+"replay": "2026-11-07_22-19-09_duel_dong_bang",
+"side": "e",
+"state": {
+&"aiParams": {
+"e": {
+"feed_w": 1.0,
+"hp_cap": 81.2937,
+"kill_hero": 552.335,
+"lone_w": 0.3,
+"mix_save": 0.1,
+"mix_w": 1.0,
+"order_w": 1.0,
+"pl_chain": 1.0,
+"planner": 2,
+"role_w": 1.0,
+"sham_save": 1.0,
+"tgt_sup": 0.5,
+"tgt_thr": 2.0,
+"trade_w": 1.0
+}
+},
+"allowed": {
+"e": ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird"],
+"p": ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant", "catapult", "bird"]
+},
+&"ctrl": {
+"e": "ai:army",
+"p": "human"
+},
+"gold": {
+"e": 170,
+"p": 30
+},
+"graves": [{
+"ttl": 1,
+"x": 8,
+"y": 8
+}],
+"h": 11,
+"hadCastle": {
+"e": true,
+"p": true
+},
+"heroDead": {
+"e": true,
+"p": false
+},
+"heroDeaths": {
+"e": 1,
+"p": 0
+},
+"heroKey": {
+"e": "tuonggiac",
+"p": "anhhung"
+},
+"heroSaved": {
+"e": {
+"rank": 1,
+"xp": 2767
+},
+"p": {}
+},
+"lost": {
+"e": 0,
+"p": 3
+},
+"nextId": 16,
+"night": false,
+"owner": {
+Vector2i(1, 8): "p",
+Vector2i(1, 9): "p",
+Vector2i(2, 2): "p",
+Vector2i(2, 6): "e",
+Vector2i(6, 7): "e",
+Vector2i(7, 3): "p",
+Vector2i(11, 4): "e",
+Vector2i(12, 1): "e",
+Vector2i(12, 2): "e"
+},
+"reason": null,
+&"rng": 561659054,
+"scenario": "duel:dong_bang",
+"seed": 2732130126,
+"side": "e",
+"tiles": [[".", ".", ".", ".", ".", ".", "h", "f", ".", ".", ".", ".", ".", "."], [".", ".", ".", ".", "f", "f", "m", "h", ".", ".", ".", ".", "c", "."], [".", ".", "c", ".", "h", "f", "h", "f", ".", ".", ".", "r", "v", "."], [".", ".", "r", ".", "h", "m", "r", "v", "r", "r", "r", "r", "r", "h"], [".", ".", "r", "r", "h", "f", "r", "r", "r", "r", "r", "v", "r", "f"], [".", "~", "~", "=", "~", "~", "t", "t", "~", "~", "=", "~", "~", "."], ["f", "r", "v", "r", "r", "r", "r", "r", "f", "h", "r", "r", ".", "."], ["h", "r", "r", "r", "r", "r", "v", "r", "m", "h", ".", "r", ".", "."], [".", "v", "r", ".", ".", ".", "f", "h", "f", "h", ".", "c", ".", "."], [".", "c", ".", ".", ".", ".", "h", "m", "f", "f", ".", ".", ".", "."], [".", ".", ".", ".", ".", ".", "f", "h", ".", ".", ".", ".", ".", "."]],
+"turn": 6,
+"unitCap": 15,
+"units": [{
+"acted": true,
+&"guard": false,
+"hp": 66,
+"id": 1,
+"rank": 0,
+"side": "p",
+"type": "hero",
+"x": 2,
+"xp": 6078,
+"y": 5
+}, {
+"acted": false,
+&"guard": false,
+"hp": 50,
+"id": 4,
+"rank": 1,
+"side": "e",
+"type": "soldier",
+"x": 5,
+"xp": 2033,
+"y": 7
+}, {
+"acted": false,
+&"guard": false,
+"hp": 52,
+"id": 7,
+&"paid": {
+"cost": 250,
+"turn": 1
+},
+"rank": 1,
+"side": "e",
+"type": "archer",
+"x": 8,
+"xp": 4767,
+"y": 4
+}, {
+"acted": false,
+&"guard": false,
+"hp": 62,
+"id": 8,
+&"paid": {
+"cost": 150,
+"turn": 2
+},
+"rank": 1,
+"side": "e",
+"type": "soldier",
+"x": 4,
+"xp": 675,
+"y": 6
+}, {
+"acted": false,
+&"guard": false,
+"hp": 70,
+"id": 9,
+&"paid": {
+"cost": 150,
+"turn": 3
+},
+"rank": 0,
+"side": "p",
+"type": "soldier",
+"x": 7,
+"xp": 2640,
+"y": 3
+}, {
+"acted": false,
+&"guard": false,
+"hp": 91,
+"id": 10,
+&"paid": {
+"cost": 150,
+"turn": 3
+},
+"rank": 0,
+"side": "e",
+"type": "soldier",
+"x": 9,
+"xp": 6600,
+"y": 8
+}, {
+"acted": true,
+&"guard": false,
+"hp": 100,
+"id": 11,
+&"paid": {
+"cost": 250,
+"turn": 4
+},
+"rank": 0,
+"side": "p",
+"type": "archer",
+"x": 2,
+"xp": 4088,
+"y": 8
+}, {
+"acted": false,
+&"guard": false,
+"hp": 76,
+"id": 12,
+&"paid": {
+"cost": 150,
+"turn": 4
+},
+"rank": 0,
+"side": "e",
+"type": "soldier",
+"x": 8,
+"xp": 3630,
+"y": 3
+}, {
+"acted": true,
+&"guard": false,
+"hp": 51,
+"id": 13,
+&"paid": {
+"cost": 150,
+"turn": 5
+},
+"rank": 0,
+"side": "p",
+"type": "soldier",
+"x": 2,
+"xp": 4688,
+"y": 7
+}, {
+"acted": false,
+&"guard": false,
+"hp": 100,
+"id": 14,
+&"paid": {
+"cost": 150,
+"turn": 5
+},
+"rank": 0,
+"side": "e",
+"type": "soldier",
+"x": 8,
+"xp": 0,
+"y": 2
+}, {
+"acted": true,
+&"guard": false,
+"hp": 94,
+"id": 15,
+&"paid": {
+"cost": 150,
+"turn": 6
+},
+"rank": 0,
+"side": "p",
+"type": "soldier",
+"x": 1,
+"xp": 2190,
+"y": 6
+}],
+"v": 4,
+"w": 14,
+"waves": [],
+"win": {
+"type": "castles"
+},
+"winner": null
+},
+"turn": 6
+}

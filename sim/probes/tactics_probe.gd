@@ -7,6 +7,7 @@ extends SceneTree
 ## examples=N -> print N turns where ref (hard_v2_0, ref=v3: hard_v3) from the same start leaves a lone killable unit and A
 ##     does not
 const Tune := preload("res://sim/tune.gd")
+const TacticsLib := preload("res://sim/tactics_lib.gd")
 const SUPPORT := ["shaman", "wolf", "drum"]
 
 var seed_v := 1.0
@@ -211,23 +212,16 @@ func _turn_end(s: Dictionary, me: String, start_support: Dictionary) -> Dictiona
 		add("support_reachable")
 		if Game.unit_by_id(s, id) == null:
 			add("support_killed_same_turn")
-	var threat := AI.threat_map(s, me)
 	var watch := { }
 	if not Game.hero_alive(s, Game.other(me)):
 		add("foe_no_hero_turns")
-	for u: Dictionary in s.units:
-		if u.side != me:
-			continue
+	for x: Dictionary in TacticsLib.exposure(s, me):
+		var u: Dictionary = x.u
 		var ux: int = u.x
 		var uy: int = u.y
 		var hp: int = u.hp
-		var full := AI.expected_hit(s, u, ux, uy, threat.get(Vector2i(ux, uy)), 1.0)
-		var allies := 0
-		for o: Dictionary in s.units:
-			var ox: int = o.x
-			var oy: int = o.y
-			if o.side == me and o.id != u.id and Game.dist(ox, oy, ux, uy) <= 2:
-				allies += 1
+		var allies: int = x.allies
+		var killable: bool = x.killable
 		var tags := []
 		var hero: bool = u.type == "hero"
 		var rank: int = u.rank
@@ -238,12 +232,12 @@ func _turn_end(s: Dictionary, me: String, start_support: Dictionary) -> Dictiona
 			add("hero_allies2", allies)
 			if allies == 0:
 				add("hero_alone")
-			if full >= hp:
+			if killable:
 				add("hero_killable")
 			tags.append("hero")
 		else:
 			add("unit_turns")
-			if full >= hp:
+			if killable:
 				add("killable")
 				tags.append("killable")
 				if allies == 0:
@@ -284,44 +278,13 @@ func _example(start: Dictionary, steps: Array, s: Dictionary, me: String) -> voi
 
 ## own non-commander units in enemy reach, killable by focus (mid rolls), no ally within 2
 func _lone(s: Dictionary, me: String) -> Array:
-	var threat := AI.threat_map(s, me)
 	var out := []
-	for u: Dictionary in s.units:
-		if u.side != me or u.type == "hero":
-			continue
-		var ux: int = u.x
-		var uy: int = u.y
-		var hp: int = u.hp
-		var full := AI.expected_hit(s, u, ux, uy, threat.get(Vector2i(ux, uy)), 1.0)
-		if full < hp:
-			continue
-		var alone := true
-		for o: Dictionary in s.units:
-			var ox: int = o.x
-			var oy: int = o.y
-			if o.side == me and o.id != u.id and Game.dist(ox, oy, ux, uy) <= 2:
-				alone = false
-		if alone:
-			out.append("%s#%d (%d,%d) %dhp" % [u.type, u.id, ux, uy, hp])
+	for u: Dictionary in TacticsLib.lone(s, me):
+		out.append(TacticsLib.unit_str(u))
 	return out
 
 func _fmt(start: Dictionary, steps: Array) -> String:
-	var out := []
-	for st: Dictionary in steps:
-		if st.kind == "buy":
-			out.append("buy %s" % st.type)
-			continue
-		var a: Dictionary = st.act
-		var aid: int = a.id
-		var u: Variant = Game.unit_by_id(start, aid)
-		var who: String = u.type if u != null else "new"
-		var tail := ""
-		if a.kind == "attack":
-			var tid: int = a.target
-			var tg: Variant = Game.unit_by_id(start, tid)
-			tail = " #%d %s" % [tid, tg.type if tg != null else "?"]
-		out.append("%s#%d->(%d,%d) %s%s" % [who, aid, a.to[0], a.to[1], a.kind, tail])
-	return "; ".join(out)
+	return TacticsLib.fmt_steps(start, steps)
 
 ## after the foe's turn: which watched units died
 func _judge(s: Dictionary, watch: Dictionary) -> void:

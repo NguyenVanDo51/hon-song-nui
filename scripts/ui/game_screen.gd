@@ -139,6 +139,7 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	hud.quests.bind(s, "")
 	var tut_steps: Array = def.get("tutorial", []) if ctx.kind == "campaign" else []
 	tutorial.bind(self, tut_steps)
+	MatchRec.begin(s, ctx) # replay file (new / continued); before save(): ctx keeps its path
 	save()
 	refresh()
 	turns.begin()
@@ -443,6 +444,7 @@ func _unbuy_sel() -> bool:
 	var cost: int = u.paid.cost
 	var id: int = u.id
 	Game.unbuy(s, id)
+	MatchRec.step(s, { "kind": "unbuy", "id": id })
 	_clear_sel()
 	hud.coins.board = board
 	hud.coins.play([{ "x": x, "y": y, "amount": cost }])
@@ -714,6 +716,7 @@ func commit(extra: Dictionary) -> void:
 	refresh()
 	var before := player.snapshot()
 	var ev := Game.do_action(s, act)
+	MatchRec.step(s, { "kind": "act", "act": act })
 	var done := Quests.observe(s, ev) # before save: progress persists; stamp after playback
 	hud.quests.hold(done)
 	save()
@@ -735,6 +738,7 @@ func buy_unit(type: String) -> void:
 	var nu: Variant = Game.buy(s, x, y, type)
 	if nu == null:
 		return
+	MatchRec.step(s, { "kind": "buy", "x": x, "y": y, "type": type })
 	GameLog.crumb("buy %s at %d,%d" % [type, x, y])
 	fx.buy_fx(x, y)
 	hud.bump_gold()

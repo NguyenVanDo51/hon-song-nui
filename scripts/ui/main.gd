@@ -31,6 +31,7 @@ func _ready() -> void:
 	if flags.has("profile"): # profile=test: settings / progress / save kept apart from the player's
 		Store.use_profile(str(flags.profile))
 	GameLog.boot(str(flags.get("profile", "")), args) # crash / error log per session (README "Log lỗi / crash")
+	MatchRec.boot(str(flags.get("profile", "")), flags.has("bot")) # match replays (README "Ghi trận / phân tích")
 	if flags.has("norig"): # norig: every attack uses the old FX.attack instead of the code-rigged animation
 		Rigs.enabled = false
 	if flags.has("safe"): # safe=l,t,r,b: preview a phone's hidden edges (notch / rounded corners) on desktop

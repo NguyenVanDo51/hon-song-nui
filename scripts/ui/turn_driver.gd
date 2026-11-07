@@ -209,10 +209,7 @@ func finish() -> void:
 	Store.clear_game()
 	var campaign: bool = gs.ctx.kind == "campaign"
 	var star_goals: Array = Stars.check(gs.s, gs.def) if campaign else []
-	var stars := star_goals.filter(
-		func(g: Dictionary) -> bool:
-			return g.ok,
-	).size()
+	var stars := Stars.final(gs.s, gs.def) if campaign else 0
 	var best_before := Store.stars_of(str(gs.ctx.get("id", ""))) if campaign else 0
 	Store.record_result(gs.ctx, gs.s.winner, stars) # before any await: leaving during the pause must not lose the win
 	var duel: bool = gs.ctx.kind == "duel"

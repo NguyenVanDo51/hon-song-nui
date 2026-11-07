@@ -1,6 +1,6 @@
 # Chế độ Level (bỏ cốt truyện + chương) — thiết kế
 
-Ngày: 2026-11-07. Trạng thái: nháp, chờ người dùng duyệt.
+Ngày: 2026-11-07. Trạng thái: user duyệt hướng đi 2026-11-07 ("cứ lên plan chuẩn đi, code trước"); sim / cân bằng chờ bot V2-hard xong.
 Ký hiệu: **(user)** = người dùng quyết · **(Claude)** = Claude tự quyết, người dùng xem lại được.
 
 ## 1. Ý định
@@ -47,7 +47,7 @@ Ký hiệu: **(user)** = người dùng quyết · **(Claude)** = Claude tự qu
 - Giữ: `id` (`"L001"`), `order`, `title` (tên ngắn, chỉ là nhãn, vd "Bến sông"), `hero`, `enemyHero`, `newUnits`, `allowed`, `gold`, `win`, `stars`, `unitCap`, `night`, `map`, `owner`, `units`, `waves`.
 - Thêm:
   - `tier`: `"easy" | "mid" | "hard"` -> nhãn Dễ / Trung bình / Khó.
-  - `ai`: preset bot phe địch (`"easy" | "normal"`; mặc định `normal`). Chỉ **chọn** preset có sẵn qua `s.aiParams`, không đổi logic bot. Hiện `Game.new_game` chỉ điền `aiParams` khi def có `ctrl` (1 đấu 1) -> nối thêm cho level (ngoài logic bot); sim tự dùng theo. MVP không dùng `hard` (đang huấn luyện, chậm, sẽ đổi). (Claude)
+  - `ai`: preset bot phe địch, **chỉ `"normal"` hoặc `"hard"`** (user: bot ngu quá người chơi chán; không dùng `easy`). Mặc định `normal`. Chỉ **chọn** preset có sẵn qua `s.aiParams`, không đổi logic bot. Hiện `Game.new_game` chỉ điền `aiParams` khi def có `ctrl` (1 đấu 1) -> nối thêm cho level (ngoài logic bot); sim tự dùng theo. Level `hard` được viết ngay; đo / chỉnh sau khi `hard` (V2) huấn luyện xong.
   - `gen` (tùy chọn): `{ recipe, seed, sim: { win, turnsMed, n, ai_rev } }` — công thức + kết quả sim lúc chọn, để tái tạo / biết khi nào phải đo lại. (Claude)
 - `Content.levels()` thay `Content.campaign()`; bỏ API chương.
 
@@ -68,7 +68,7 @@ Ký hiệu: **(user)** = người dùng quyết · **(Claude)** = Claude tự qu
 - Đo: % thắng phe ta khi bot (mặc định) chơi phe ta vs bot preset `ai` của level, K ván seed cố định (`sim/sim.gd`).
 - Ngưỡng ban đầu (Claude, chỉnh sau khi user chơi thử): Dễ ≥ 80% · Trung bình 55–80% · Khó 30–55%. Bot phe ta ≠ người -> chỉ là thước tương đối; playtest của user là nguồn thật.
 - Nhịp răng cưa (Claude): mỗi khối ~5 level đi lên, level ngay sau Khó là Dễ / Trung bình ("thở"), level ra mắt thứ mới ≤ Trung bình. Khó dần theo khối.
-- Đòn bẩy (không đụng logic bot): vàng 2 phe, quân ban đầu, `waves`, `unitCap`, preset bot địch, số thành / làng mỗi bên, khoảng cách, địa hình chắn, đêm, giới hạn lượt.
+- Độ khó đến từ bản đồ + quân + vàng, **không** từ việc cho bot chơi dở (user). Đòn bẩy (không đụng logic bot): vàng 2 phe, quân ban đầu, `waves`, `unitCap`, preset bot địch (`normal` / `hard`), số thành / làng mỗi bên, khoảng cách, địa hình chắn, đêm, giới hạn lượt.
 - Bot đổi (V2-hard xong, hoặc đổi bot mặc định) -> chạy lại sim mọi level, sửa `tier` / mốc sao (`gen.sim.ai_rev` cho biết level nào đo bằng bot cũ).
 
 ## 10. Công cụ tạo level (`sim/levelgen.gd`)
@@ -80,7 +80,10 @@ Chạy headless, ngoài game. Quy trình:
 5. **Sim**: K ván (đề xuất 12) -> % thắng phe ta, trung vị lượt, % ván chạm giới hạn lượt, chỉ số giằng co (vd số lần đổi bên dẫn điểm theo thế cờ; định nghĩa cụ thể = builder).
 6. **Lọc + chấm**: đúng band tier, trung vị lượt trong khoảng (~8–25), giằng co ≥ ngưỡng, không trùng khung với level đã chọn. Giữ top vài bản / công thức.
 7. **Xuất**: `content/levels/LNNN.gd` (+ `gen`), ảnh bàn cờ (probe có cửa sổ — cần màn hình máy bật) -> Claude xem, chọn bản hay nhất. Mốc sao = trung vị như `Stars` hiện nay.
-- Làm công cụ + sinh level **không cần chờ** bot V2-hard (chỉ chạy sim, không sửa bot). Bot mới xong -> chạy lại sim mọi level 1 lần (§9). (Claude)
+- **Trình tự (user): code + vẽ bản đồ trước, sim / kiểm chứng sau khi bot hoàn thiện.**
+  - Giờ: công cụ dựng bản đồ + kiểm hợp lệ (bước 1–4, 7) chạy đủ; bước 5–6 (sim, lọc theo band) viết code + chạy thử vài ván để biết code chạy, chưa chạy đại trà.
+  - Chọn bản đồ giờ = kiểm hợp lệ + chỉ số cấu trúc (cân đối làng / thành theo khoảng cách, có đường vòng, không thành lộ thiên…) + Claude xem ảnh. `tier` tạm = theo công thức.
+  - Bot xong -> chạy sim mọi level, gắn `tier` thật, đặt mốc sao, sửa / thay level lệch band.
 - Ngân sách: 50 level × ~5 ứng viên × 12 ván ≈ 3000 ván ≈ 15–25 phút với 2–4 tiến trình (bot v1). Bot huấn luyện chạy cùng máy -> giới hạn số tiến trình; đo thực tế trước khi chạy đại trà.
 
 ## 11. Skill tạo level
@@ -103,7 +106,8 @@ Chạy headless, ngoài game. Quy trình:
 ## 14. Thứ tự làm
 - **P0**: rebase `feat/stars-threat` + `chore/drop-3d` lên master mới, merge (chờ user OK).
 - **P1**: chế độ level, bỏ truyện + chương, 16 màn cũ -> L-level, màn chọn level, đổi tiến độ đã lưu. Không đụng bot.
-- **P2**: `levelgen` + skill; sinh thêm tới 30–50 level; user chơi thử.
+- **P2**: `levelgen` + skill; vẽ thêm tới 30–50 level (chưa sim đại trà); user chơi thử được ngay.
+- **P2b** (sau bot V2-hard): sim mọi level, gắn tier, mốc sao, thay level lệch.
 - **P3** (sau bot V2-hard): phe thủ chặn ô đích (`reach`); kiểu thắng mới "chiếm N làng" (thắng khi đầu lượt ta giữ ≥ N làng; hook bot cho cả phe chiếm lẫn phe giữ); đo lại độ khó mọi level bằng bot mới. Trước P3: MVP dùng `reach` ít (≤ 3 level) vì địch chưa biết chặn đích.
 - **P4**: nội dung mới (quân / tướng / địa hình / hiệu ứng) -> ~100 level.
 

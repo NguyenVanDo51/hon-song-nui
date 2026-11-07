@@ -67,7 +67,7 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Đã chạy: tests 51/51, click_driver fails=0, bot m02 có zoom chụp màn hình.
 
 ## 2026-11-05 — làng hỏng (theo AE2 bản Java)
-- Ô `x` = làng hỏng: không chủ, không vàng, không hồi máu, thủ 15 như làng. Đặt sẵn: m10 (2), m11, m12 (2), m14, m16, skirmish dong_bang (cặp đối xứng).
+- Ô `x` = làng hỏng: không chủ, không vàng, không hồi máu, thủ 15 như làng. Đặt sẵn: m10 (2), m11, m12 (2), m14, m16, skirmish dong_bang, cua_bien (cặp đối xứng).
 - Máy bắn đá (`raze`): chưa đi trong lượt, phá làng địch / chưa ai chiếm trong tầm 2–4, không có quân đứng -> `x`. Thành không phá được.
 - Bộ binh / tướng (`capV`) đứng trên `x` -> "Sửa làng" (hết lượt) -> làng chưa ai chiếm, lượt sau mới chiếm.
 - AI: máy bắn đá chỉ phá làng của đối phương khi không có đòn tốt hơn; lính coi làng hỏng là đích, sửa rồi chiếm.

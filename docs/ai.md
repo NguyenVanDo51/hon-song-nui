@@ -17,6 +17,7 @@
 - `tools/tune.sh 6 25 8 16`: 6 đảo × 25 phút, 12–13 thế hệ / đảo (48 ván / thế hệ, 96 khi xác nhận; 576–624 ván / đảo), 2 lần nhận.
 - Tốc độ: ~1,0 ván/s một tiến trình khi máy rảnh; 0,4 ván/s mỗi đảo khi 6 đảo + việc khác (tổng ~2,4 ván/s); 4 tiến trình: ~0,65 ván/s mỗi cái.
 - Ván có lợi thế ghế theo bản đồ (DEFAULT vs DEFAULT: dong_bang phe e thắng ~80%, nui_rung phe p ~75%) -> luôn đấu cả 2 ghế.
+  - 2026-11-08 bản đồ mới (`maps/ae2-ratios`, sim `skirmish 48 normal <map>`, AI normal 2 bên, vàng 500 / trần 10): dong_bang p 25 / e 23 / hòa 0, cua_bien p 30 / e 18 / 0, nui_rung p 27 / e 18 / 3. Số trên (80% / 75%) = bản đồ cũ.
 - Best (đảo 5): `hp_cap` 150 -> 81,3, `kill_hero` 600 -> 552 (lính rẻ cũng tính giá chết -> ít lao vào chỗ chết). Vs `DEFAULT`: 0,562 / 96 ván (seed chọn đảo), **0,573 / 384 ván seed mới** (salt 9000001–4; ~2,9 SE). Đảo 2 (`caution` 0,6 -> 0,94): 0,531 / 96. 4 đảo còn lại không nhận con nào (0,500).
 - Ghi vào `sim/tuned_params.txt`; AI mặc định của game **không đổi**.
 

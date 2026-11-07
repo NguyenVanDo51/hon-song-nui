@@ -1,5 +1,5 @@
 extends "res://sim/probes/probe_base.gd"
-## layout storm hunt (MQ OOM crash): 1 vs 1 vs Máy Khó, empty tiles picked (terrain card), then window sizes + ⚙ menu
+## layout storm hunt (MQ OOM crash): 1 vs 1 vs Máy Siêu khó (ai:hard), empty tiles picked (terrain card), then window sizes + ⚙ menu
 ## cycled while the game plays on; counts ⏩ ⚙ / quest slip minimum_size_changed per frame (LayoutStorm).
 ##   tools/run_guarded.sh /tmp/ll.log -- --path . -s sim/probes/layout_loop.gd -- fresh profile=test speed=3 [bot] [secs=60]
 ## headless works too (layout forced to 1280x720; window sizes then do nothing). shots=DIR shot_every=999: terrain card png

@@ -11,7 +11,7 @@
 - `evolve out=<file> games=8 minutes=20 island=k thr=0.55`: đột biến ~3 khóa của best (×exp(N(0, 0.3)), `noise` + `cap_last` giữ nguyên), đấu con vs best; giữ con khi > thr trên 2 bộ seed (2·48 ván). Ghi `var_to_str({gen, best, history})` sau mỗi thế hệ -> chạy lại cùng file = tiếp tục.
 - `tools/tune.sh [islands] [minutes] [games] [held_games]`: các đảo chạy song song (mỗi đảo 1 tiến trình, `run_guarded`), rồi mỗi best vs `DEFAULT` trên seed giữ riêng (salt 9000000, `held_games`·6 ván); đảo tốt nhất (nếu > 0.5) -> `sim/tuned_params.txt`. Không đổi AI mặc định của game.
 - `presets games=N [names=easy,normal,hard_v1,hard_v2]`: vòng tròn các mức độ khó (bên dưới).
-- Spec: `hard_v1` = Khó trước planner (cố định, thước đo), `hard_v2` = `AI.PRESETS.hard` (nay = Khó v3), `hard_v2_0` / `hard_v3` = Khó v2 / v3 lúc ship (cố định); ghi đè `<spec>+khóa:giá trị` (vd `hard_v2+pl_kill:2`). `time a= b= games=` = ms mỗi bước / lượt của A. `log=1` = 1 dòng mỗi ván (thắng, lý do, lượt, số lần tướng chết).
+- Spec: `hard_v1` = Khó trước planner (cố định, thước đo), `hard_v2` = `AI.PRESETS.hard` (nay = Khó v3), `hard_v2_0` / `hard_v3` = Khó v2 / v3 lúc ship (cố định), `hard_v5` = v3 + `AI.V5_ARMY` (= `AI.PRESETS.army`); ghi đè `<spec>+khóa:giá trị` (vd `hard_v2+pl_kill:2`). `time a= b= games=` = ms mỗi bước / lượt của A. `log=1` = 1 dòng mỗi ván (thắng, lý do, lượt, số lần tướng chết).
 
 ### Phiên tune 2026-11-06 (AI `5a75b2a` = `fe83a5d` + bảng tham số, Mac 10 nhân, chạy chung máy với việc khác)
 - `tools/tune.sh 6 25 8 16`: 6 đảo × 25 phút, 12–13 thế hệ / đảo (48 ván / thế hệ, 96 khi xác nhận; 576–624 ván / đảo), 2 lần nhận.
@@ -359,6 +359,7 @@ Knob (`AI.DEFAULT`, mặc định 0 = tắt -> Dễ / Thường / chiến dịch
 - Dồn quân rẻ không bị trừng phạt — còn **mạnh hơn** chính nó khi được mua đủ loại (+0,09, ~2,4 SE): Khó v3 phí vàng cho thuyền / thầy mo. v5 không đổi điều đó (0,607 vs 0,586: trong nhiễu). Khớp bảng sát thương ở trên: với chỉ số / giá hiện tại, lính + cung là tối ưu mỗi vàng -> trừng phạt spam là việc **cân bằng nội dung** (ghi `docs/TODO.md`).
 
 **Kết luận: không ship.** Trượt cả 2 luật: v5 vs v3 = 0,431 (cần ≥ 0,50) và "đa dạng hơn rõ" (dev: 2 / 3 loại hỗ trợ ≥ 0,2 / ván). `AI.PRESETS.hard` giữ = Khó v3; knob v5 để 0; `hard_v5` (`sim/tune.gd` `V5_ARMY`) cố định để so. Màn g11 / g17 / g20 (`"ai": "hard"`) không đổi -> không cần đo lại.
+- **1 đấu 1 (2026-11-07)**: Khó = `ai:army` = `AI.PRESETS.army` (= `hard_v5`, quân đa dạng, user muốn chơi thử); Siêu khó = `ai:hard` = Khó v3. Knob ở `AI.V5_ARMY` (1 nguồn: preset, `tune.gd`, test).
 
 Vì sao:
 - Vàng lúc mua TB ~270: quân ≥ 400 chỉ mua được ngay ở 7–12% lượt. Đa dạng thật cần để dành, và mỗi lượt để dành = 1–2 lính ra trận muộn 1 lượt; AE2 tính sát thương × máu / 100 + dồn đòn -> số quân (Lanchester bậc 2) thắng chất lượng. Cùng bài học v4 `buy_sup` (0,22), nhẹ hơn vì chỉ để dành 1 lượt và chỉ khi đang hơn.

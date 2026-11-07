@@ -15,7 +15,7 @@ const TACTICS := {
 	"hero_cgoal": 1.0,
 }
 ## flexible army knobs (docs/ai.md "Đội hình linh hoạt = Khó v5")
-const V5 := { "role_w": 1.0, "mix_w": 1.0, "pl_chain": 1.0, "mix_save": 0.1, "sham_save": 1.0 } # = tune.gd V5_ARMY
+const V5 := AI.V5_ARMY
 
 func planner_tests() -> void:
 	run(

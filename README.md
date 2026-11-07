@@ -7,7 +7,7 @@ Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`). Chế đ
 
 Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); một chỉ huy mỗi phe (Anh hùng / Tướng giặc), cùng chỉ số. Không có cốt truyện: chỉ chơi cờ.
 
-Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích**. Thêm chế độ đấu tự do (3 chiến trường), **1 đấu 1** (hai người chung máy, đổi tay mỗi lượt, hoặc đấu máy Dễ / Thường / Khó; `docs/1v1.md`) và Sách lính. Luật: `docs/spec.md`.
+Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích**. Thêm chế độ đấu tự do (3 chiến trường), **1 đấu 1** (hai người chung máy, đổi tay mỗi lượt, hoặc đấu máy Dễ / Trung bình / Khó / Siêu khó; `docs/1v1.md`) và Sách lính. Luật: `docs/spec.md`.
 
 **Bản đồ** bố trí theo lối bản đồ chiến thuật cổ điển (đối chiếu bản làm lại Ancient Empires Reloaded): **đường mòn** nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi ở lõi, đồi quanh, rừng ở mép) chiếm ~30% đất, chừa một vòng trống quanh thành. Đường mòn chỉ khác đồng lúa ở hình vẽ (thủ 0, tốn 1). Bản đồ sinh lại bằng `sim/mapgen.gd` từ bố cục tay (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích).
 

@@ -7,7 +7,6 @@ var checked := 0
 
 func _init() -> void:
 	for m: Dictionary in Content.campaign():
-		Content.use_chapter(Content.chapter_of(m))
 		var s := Game.new_game(m)
 		var mid: String = m.id
 		for u: Dictionary in s.units:

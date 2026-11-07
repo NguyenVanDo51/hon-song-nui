@@ -4,11 +4,7 @@ extends RefCounted
 const DEF := {
 	"id": "m12",
 	"order": 12,
-	"chapter": "c2",
 	"title": "Trận Lãng Bạc",
-	"place": "Lãng Bạc · Tiên Du, Bắc Ninh (có thuyết là Hồ Tây)",
-	"region": "Lãng Bạc",
-	"pos": [56, 32],
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

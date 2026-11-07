@@ -1,8 +1,8 @@
 class_name Main
 extends Control
-## app shell: theme, audio, menus (title / campaign / skirmish / 1 vs 1 / codex), the game screen, debug flags.
+## app shell: theme, audio, menus (title / levels / skirmish / 1 vs 1 / codex), the game screen, debug flags.
 ## debug args (after `--`): mission=m01 (start it) bot (AI plays our side) speed=3
-##   fresh (ignore save) screen=title|campaign|skirmish|duel|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
+##   fresh (ignore save) screen=title|levels|skirmish|duel|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
 
 const BASE := Vector2(1280, 720)
 const MIN_SCALE := 0.8
@@ -99,8 +99,8 @@ func _boot() -> void:
 		start_game(Game.new_game(md), mctx)
 		return
 	var sc: String = flags.get("screen", "title")
-	if sc.begins_with("campaign"):
-		menus.show_campaign(sc.split(":")[1] if ":" in sc else "")
+	if sc == "levels":
+		menus.show_levels()
 	elif sc == "skirmish":
 		menus.show_skirmish()
 	elif sc == "duel":
@@ -116,11 +116,11 @@ func show_title() -> void:
 	game.leave()
 	menus.show_title()
 
-func show_campaign(chapter_id := "") -> void:
+func show_levels(pg := -1) -> void:
 	game.leave()
-	menus.show_campaign(chapter_id)
+	menus.show_levels(pg)
 
-## campaign mission entered fresh (map / next mission)
+## level entered fresh (grid / next level)
 func play_mission(m: Dictionary) -> void:
 	var mid: String = m.id
 	menus.confirm_start(Game.new_game(m), { "kind": "campaign", "id": mid })

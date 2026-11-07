@@ -1,5 +1,5 @@
 extends "res://sim/probes/probe_base.gd"
-## look check: enemy threat zone (archer / catapult / dragon picked), win card stars (late = 1 star), campaign map stars.
+## look check: enemy threat zone (archer / catapult / dragon picked), win card stars (late = 1 star), level grid stars.
 ##   tools/run_guarded.sh /tmp/st.log -- --path . -s sim/probes/stars_threat_shot.gd -- mission=m02 fresh nointro profile=test shots=<dir>
 
 func _wait(n: int) -> void:
@@ -47,7 +47,7 @@ func _run(g: GameScreen) -> void:
 	await _pick_enemy(g, "bird", mini(hx + 6, w - 1), hy, "threat_bird")
 	while g.ui.sel != null:
 		g.cancel()
-	# win card: on par, commander alive, then campaign map with the stars kept
+	# win card: on par, commander alive, then the level grid with the stars kept
 	s.winner = "p"
 	s.reason = "castlesLost"
 	var bar: Dictionary = g.def.stars
@@ -58,13 +58,9 @@ func _run(g: GameScreen) -> void:
 	g.turns.finish()
 	await create_timer(2.6).timeout
 	await main.shot("end_win")
-	main.show_campaign("c1")
-	await _wait(8)
-	var cm: Node = _find(root, "CampMap")
-	if cm != null:
-		cm.set("hover", str(g.ctx.id))
-		await _wait(4)
-	await main.shot("camp_map")
+	main.show_levels()
+	await _wait(30)
+	await main.shot("levels")
 	quit()
 
 func _find(n: Node, cls: String) -> Node:

@@ -4,11 +4,7 @@ extends RefCounted
 const DEF := {
 	"id": "m10",
 	"order": 10,
-	"chapter": "c2",
 	"title": "Sóng An Biên",
-	"place": "An Biên · Hải Phòng",
-	"region": "An Biên",
-	"pos": [80, 44],
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

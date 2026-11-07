@@ -1,8 +1,7 @@
 class_name Content
 extends RefCounted
-## content registry: chapters (content/chapters/*.gd), campaign missions (content/campaign/*.gd, sorted by `order`,
-## each tagged with its `chapter`), skirmish maps, theme lookups. All name / icon resolution goes through here.
-## theme() is the base theme with the active chapter's overrides merged in (enemy faction skin, UI words, chapter map).
+## content registry: levels (content/campaign/*.gd, sorted by `order`), skirmish maps, theme lookups.
+## All name / icon resolution goes through here.
 
 const THEME_SCRIPT := preload("res://content/theme.gd")
 const SKIRMISH := preload("res://content/skirmish_maps.gd")
@@ -10,7 +9,6 @@ const CAMPAIGN_DIR := "res://content/campaign"
 ## level difficulty label (def.tier) and the enemy bot preset a level may ask for (def.ai; never "easy": too weak to be fun)
 const TIERS := ["easy", "mid", "hard"]
 const LEVEL_AI := ["normal", "hard"]
-const CHAPTER_DIR := "res://content/chapters"
 const GUIDE := preload("res://content/guide.gd")
 const STATE_V := 4 # Game.new_game writes it as "v"; bump + migrate_save when the saved state shape changes
 ## v3 -> v4: aura / poison stamps carry their amount (auraAtk / poisonAmt); v3 had them fixed at 10
@@ -21,10 +19,7 @@ const OLD_HEROES := { "trungtrac": "anhhung", "todinh": "tuonggiac", "mavien": "
 const CTRLS := ["human", "ai:easy", "ai:normal", "ai:hard"]
 
 static var _campaign: Array = []
-static var _chapters: Array = []
-static var _themes := { }
-## chapter whose skin / map the UI shows; set by the menus and the game screen
-static var active_chapter := "c1"
+static var _theme := { }
 
 static func _defs(dir: String) -> Array:
 	var out := []
@@ -44,62 +39,14 @@ static func _defs(dir: String) -> Array:
 	return out
 
 static func theme() -> Dictionary:
-	if not _themes.has(active_chapter):
-		var t: Dictionary = THEME_SCRIPT.THEME.duplicate(true)
-		var ch: Variant = chapter(active_chapter)
-		if ch != null:
-			var chd: Dictionary = ch
-			var over: Dictionary = chd.get("theme", { })
-			_deep_merge(t, over)
-			t.chapter = ch
-		_themes[active_chapter] = t
-	return _themes[active_chapter]
-
-static func _deep_merge(into: Dictionary, over: Dictionary) -> void:
-	for k: Variant in over:
-		if into.get(k) is Dictionary and over[k] is Dictionary:
-			var sub_into: Dictionary = into[k]
-			var sub_over: Dictionary = over[k]
-			_deep_merge(sub_into, sub_over)
-		else:
-			into[k] = over[k]
+	if _theme.is_empty():
+		_theme = THEME_SCRIPT.THEME.duplicate(true)
+	return _theme
 
 static func campaign() -> Array:
 	if _campaign.is_empty():
 		_campaign = _defs(CAMPAIGN_DIR)
 	return _campaign
-
-static func chapters() -> Array:
-	if _chapters.is_empty():
-		_chapters = _defs(CHAPTER_DIR)
-	return _chapters
-
-static func chapter(id: String) -> Variant:
-	for c: Dictionary in chapters():
-		if c.id == id:
-			return c
-	return null
-
-static func chapter_of(m: Dictionary) -> String:
-	return m.get("chapter", "c1")
-
-static func missions_of(chapter_id: String) -> Array:
-	return campaign().filter(
-		func(m: Dictionary) -> bool:
-			return chapter_of(m) == chapter_id,
-	)
-
-static func use_chapter(id: String) -> void:
-	active_chapter = id if chapter(id) != null else "c1"
-
-## a chapter opens once every mission before it (campaign order) is won
-static func chapter_unlocked(id: String, unlocked_index: int) -> bool:
-	var ms := missions_of(id)
-	if ms.is_empty():
-		return true
-	var first: Dictionary = ms[0]
-	var first_id: String = first.id
-	return mission_index(first_id) <= unlocked_index
 
 static func mission(id: String) -> Variant:
 	for m: Dictionary in campaign():
@@ -114,6 +61,12 @@ static func mission_index(id: String) -> int:
 			return i
 	return -1
 
+## the level after this one in order, null after the last
+static func next_level(id: String) -> Variant:
+	var i := mission_index(id)
+	var c := campaign()
+	return c[i + 1] if i >= 0 and i + 1 < c.size() else null
+
 ## free-play def: any hero vs the map's enemy hero (default: the first enemy hero in the theme)
 ## AE2 lets the player set starting gold and the unit cap; easy = the enemy starts with half the gold
 static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 300, cap := 15) -> Dictionary:
@@ -125,7 +78,6 @@ static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 3
 		"title": m.name,
 		"hero": hero_key,
 		"enemyHero": m.get("enemyHero", heroes_of("e")[0]),
-		"chapter": m.get("chapter", "c1"),
 		"map": { "rows": m.rows },
 		"owner": m.owner,
 		"units": m.units,

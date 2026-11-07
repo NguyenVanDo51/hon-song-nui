@@ -1,0 +1,182 @@
+class_name LevelSelect
+extends VBoxContainer
+## "Thử thách" grid: one cell per level (number, tier colour, best stars, lock), PER_PAGE a page, info for the
+## hovered / last tapped level, "Tiếp" = first level not yet won. Levels open up to the furthest win + 1 (Store.unlocked_index).
+
+signal level_picked(id: String)
+
+const PER_PAGE := 20
+const COLS := 5
+const TIER_COL := { "easy": Color("#6fbf5a"), "mid": Color("#e0a93e"), "hard": Color("#d65040") }
+const TIER_NAME := { "easy": "Dễ", "mid": "Trung bình", "hard": "Khó" }
+
+var levels: Array = []
+var open_index := 0
+var page := 0
+var _grid: GridContainer
+var _info: VBoxContainer
+var _pager: HBoxContainer
+
+static func page_of(index: int) -> int:
+	@warning_ignore("integer_division")
+	return index / PER_PAGE
+
+static func tier_of(def: Dictionary) -> String:
+	var t: String = def.get("tier", "mid")
+	return t if TIER_COL.has(t) else "mid"
+
+func setup(lv: Array, open: int, pg: int) -> void:
+	levels = lv
+	open_index = open
+	page = clampi(pg, 0, page_of(maxi(0, levels.size() - 1)))
+	add_theme_constant_override("separation", 14)
+	_pager = Style.hbox(10)
+	_pager.alignment = BoxContainer.ALIGNMENT_CENTER
+	add_child(_pager)
+	var row := Style.hbox(18)
+	add_child(row)
+	_grid = GridContainer.new()
+	_grid.columns = COLS
+	_grid.add_theme_constant_override("h_separation", 10)
+	_grid.add_theme_constant_override("v_separation", 10)
+	row.add_child(_grid)
+	_info = Style.vbox(6)
+	_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_info.custom_minimum_size.x = 260
+	row.add_child(_info)
+	_build()
+
+func _build() -> void:
+	for c in _grid.get_children():
+		c.queue_free()
+	for c in _pager.get_children():
+		c.queue_free()
+	var pages := page_of(maxi(0, levels.size() - 1)) + 1
+	if pages > 1:
+		var prev := Style.button("‹", "SegBtn")
+		prev.disabled = page == 0
+		prev.pressed.connect(
+			func() -> void:
+				_turn(-1),
+		)
+		_pager.add_child(prev)
+		_pager.add_child(Style.lbl("Trang %d / %d" % [page + 1, pages], 14, Style.MUTED))
+		var nxt := Style.button("›", "SegBtn")
+		nxt.disabled = page >= pages - 1
+		nxt.pressed.connect(
+			func() -> void:
+				_turn(1),
+		)
+		_pager.add_child(nxt)
+	var first := page * PER_PAGE
+	for i in range(first, mini(first + PER_PAGE, levels.size())):
+		var cell := Cell.new()
+		var def: Dictionary = levels[i]
+		cell.index = i
+		cell.tier = tier_of(def)
+		cell.locked = i > open_index
+		cell.stars = Store.stars_of(str(def.id))
+		cell.done = Store.is_done(str(def.id))
+		cell.next = i == open_index
+		cell.mouse_entered.connect(
+			func() -> void:
+				_show_info(i),
+		)
+		cell.picked.connect(_pick)
+		_grid.add_child(cell)
+	_show_info(mini(open_index, levels.size() - 1))
+
+func _turn(d: int) -> void:
+	page += d
+	_build()
+
+func _pick(i: int) -> void:
+	_show_info(i)
+	if i <= open_index:
+		var def: Dictionary = levels[i]
+		level_picked.emit(str(def.id))
+
+## title, tier, goal, the 3 star goals of level i (+ best stars), and the play button
+func _show_info(i: int) -> void:
+	for c in _info.get_children():
+		c.queue_free()
+	if i < 0 or i >= levels.size():
+		return
+	var def: Dictionary = levels[i]
+	var tier := tier_of(def)
+	var locked := i > open_index
+	var head := Style.hbox(10)
+	head.add_child(Style.lbl("THỬ THÁCH %d" % (i + 1), 13, Style.MUTED, Style.bold))
+	var tc: Color = TIER_COL[tier]
+	head.add_child(Style.lbl(str(TIER_NAME[tier]).to_upper(), 13, tc, Style.bold))
+	_info.add_child(head)
+	_info.add_child(Style.lbl(str(def.get("title", "")), 26, Style.GOLD if not locked else Style.MUTED, Style.display))
+	_info.add_child(Style.lbl(Menus.goal_text(def), 15, Style.INK, null, true))
+	if def.has("stars"):
+		var got := Store.stars_of(str(def.id))
+		var goals := Stars.goals(def)
+		for k in goals.size():
+			var g: Dictionary = goals[k]
+			var line := Style.hbox(8)
+			var ic := HudWidgets.StarIcon.new()
+			ic.custom_minimum_size = Vector2(16, 16)
+			ic.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			ic.on = k < got # best count kept, not which goals: light that many
+			line.add_child(ic)
+			var gl := Style.lbl(str(g.text), 14, Style.MUTED, null, true)
+			gl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			line.add_child(gl)
+			_info.add_child(line)
+	var note := "Thắng thử thách trước để mở" if locked else ("Bấm để chơi lại" if Store.is_done(str(def.id)) else "Bấm để vào trận")
+	_info.add_child(Style.lbl(note, 13, Style.MUTED))
+	if not locked:
+		var b := Style.menu_button("Vào trận ›", "", true)
+		b.pressed.connect(
+			func() -> void:
+				_pick(i),
+		)
+		_info.add_child(b)
+
+## one level: number, tier band, 0–3 stars, lock; "next" = the first not yet won (gold ring)
+class Cell extends Control:
+	signal picked(index: int)
+
+	var index := 0
+	var tier := "mid"
+	var locked := false
+	var done := false
+	var next := false
+	var stars := 0
+
+	func _init() -> void:
+		custom_minimum_size = Vector2(84, 84)
+		mouse_filter = Control.MOUSE_FILTER_STOP
+		mouse_entered.connect(queue_redraw)
+		mouse_exited.connect(queue_redraw)
+
+	func _ready() -> void:
+		mouse_default_cursor_shape = Control.CURSOR_ARROW if locked else Control.CURSOR_POINTING_HAND
+
+	func _gui_input(ev: InputEvent) -> void:
+		var mb := ev as InputEventMouseButton
+		if mb != null and mb.pressed and mb.button_index == MOUSE_BUTTON_LEFT:
+			picked.emit(index)
+			accept_event()
+
+	func _draw() -> void:
+		var hot := get_global_rect().has_point(get_global_mouse_position()) and not locked
+		var col: Color = LevelSelect.TIER_COL[tier]
+		var bg := Style.LACQUER_2 if not locked else Color(0.08, 0.05, 0.035, 0.85)
+		var border := Style.GOLD if (next or hot) else Color(col, 0.55 if not locked else 0.2)
+		draw_style_box(Style.box(bg, border, 12, 0, 2 if (next or hot) else 1), Rect2(Vector2.ZERO, size))
+		draw_rect(Rect2(6, size.y - 9, size.x - 12, 4), Color(col, 0.85 if not locked else 0.3))
+		var c := Vector2(size.x / 2, size.y * 0.42)
+		if locked:
+			Draw.text_c(self, Style.body, c, "🔒", 22, Style.MUTED)
+		else:
+			Draw.text_c(self, Style.display, c, str(index + 1), 28, Style.GOLD if done or next else Style.INK)
+		if not locked:
+			for k in 3:
+				var sc := Vector2(size.x / 2 + (k - 1) * 17, size.y - 22)
+				var on := k < stars
+				Draw.star(self, sc, 7.0, Color("#ffd96a") if on else Color(0.2, 0.13, 0.08), Color(0.94, 0.79, 0.42, 0.6), 1.0)

@@ -517,7 +517,7 @@ func _run() -> void:
 	g.s.reason = "castlesLost"
 	g.turns.finish()
 	await wait(1.5)
-	press("Màn tiếp")
+	press("Thử thách tiếp")
 	await wait(0.6)
 	var m03_ok: bool = g.visible and g.s.scenario == "m03"
 	ok(m03_ok, "next mission starts m03")
@@ -552,6 +552,31 @@ func _run() -> void:
 	main.show_title()
 	await wait(0.8)
 	ok(Store.is_done("m03") and not g.cards.end_layer.visible, "win kept when leaving during the end pause")
+	# title -> "Thử thách" grid -> "Vào trận" = the first level not yet won
+	press("Thử thách")
+	await wait(0.6)
+	var grid := _find_cls(main, "LevelSelect")
+	ok(grid != null, "level grid shows")
+	var all := Content.campaign()
+	var want: Dictionary = all[mini(Store.unlocked_index(), all.size() - 1)]
+	press("Vào trận")
+	await wait(0.8)
+	var go_ok: bool = g.visible and str(g.s.scenario) == str(want.id)
+	ok(go_ok, "grid 'Vào trận' starts the first level not yet won (%s)" % want.id)
+	Store.clear_game() # the duel part below starts from no saved game
+	main.show_title()
+	await wait(0.4)
 	await _duel(g)
 	print("DRIVER DONE fails=%d" % fails)
 	quit(1 if fails else 0)
+
+## first node whose script has global class `cls`
+func _find_cls(n: Node, cls: String) -> Node:
+	var sc: Script = n.get_script()
+	if sc != null and sc.get_global_name() == cls:
+		return n
+	for c in n.get_children():
+		var f := _find_cls(c, cls)
+		if f != null:
+			return f
+	return null

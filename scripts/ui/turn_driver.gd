@@ -236,49 +236,30 @@ func finish() -> void:
 	var buttons := []
 	if gs.ctx.kind == "campaign":
 		var mission_id: String = gs.ctx.id
-		var i := Content.mission_index(mission_id)
-		var cid := Content.chapter_of(gs.def)
+		var back := func() -> void:
+			gs.main.show_levels(LevelSelect.page_of(maxi(0, Content.mission_index(mission_id))))
 		if win:
-			var c := Content.campaign()
-			var chapter_ms := Content.missions_of(cid)
-			if chapter_ms.back().id == gs.ctx.id:
-				var chap: Dictionary = Content.chapter(cid)
-				reason_text += " Hết chương: %s." % chap.title
-			if i + 1 < c.size():
-				var next: Dictionary = c[i + 1]
-				var new_chapter := Content.chapter_of(next) != cid
+			var nx: Variant = Content.next_level(mission_id)
+			if nx != null:
+				var next: Dictionary = nx
 				buttons.append(
 					[
-						"Chương tiếp ›" if new_chapter else "Màn tiếp ›",
+						"Thử thách tiếp ›",
 						func() -> void:
 							gs.main.play_mission(next),
 						true,
 					]
 				)
 			else:
-				reason_text += " Toàn bộ chiến dịch đã hoàn thành!"
-			buttons.append(
-				[
-					"Bản đồ chiến dịch",
-					func() -> void:
-						gs.main.show_campaign(cid),
-					false,
-				]
-			)
+				reason_text += " Đã thắng mọi thử thách!"
+			buttons.append(["Chọn thử thách", back, false])
 		else:
 			var c2 := gs.ctx.duplicate()
 			var retry := func() -> void:
 				var m: Dictionary = Content.mission(mission_id)
 				gs.main.start_game(Game.new_game(m), c2)
 			buttons.append(["Đánh lại", retry, true])
-			buttons.append(
-				[
-					"Bản đồ chiến dịch",
-					func() -> void:
-						gs.main.show_campaign(cid),
-					false,
-				]
-			)
+			buttons.append(["Chọn thử thách", back, false])
 	elif duel:
 		var c3 := gs.ctx.duplicate()
 		buttons.append(

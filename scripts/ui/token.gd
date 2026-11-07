@@ -263,9 +263,9 @@ class Atlas extends RefCounted:
 		vp = Baked.new(_paint)
 		host.add_child(vp)
 
-	## (re)render when tile size, screen scale, commanders or chapter changed; cheap no-op otherwise
+	## (re)render when tile size, screen scale or commanders changed; cheap no-op otherwise
 	func ensure(p_T: float, scale: float, hero_keys: Dictionary) -> void:
-		var k := "%s|%s|%s|%.3f|%.3f" % [Content.active_chapter, hero_keys.get("p"), hero_keys.get("e"), p_T, scale]
+		var k := "%s|%s|%.3f|%.3f" % [hero_keys.get("p"), hero_keys.get("e"), p_T, scale]
 		if k == key:
 			return
 		key = k

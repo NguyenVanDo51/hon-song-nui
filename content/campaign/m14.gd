@@ -4,11 +4,7 @@ extends RefCounted
 const DEF := {
 	"id": "m14",
 	"order": 14,
-	"chapter": "c2",
 	"title": "Rút Về Cấm Khê",
-	"place": "Từ Lãng Bạc về chân núi Ba Vì",
-	"region": "Rút quân",
-	"pos": [36, 42],
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

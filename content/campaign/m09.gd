@@ -4,11 +4,7 @@ extends RefCounted
 const DEF := {
 	"id": "m09",
 	"order": 9,
-	"chapter": "c2",
 	"title": "Tin Dữ Hợp Phố",
-	"place": "Hợp Phố · bờ biển phía đông bắc",
-	"region": "Hợp Phố",
-	"pos": [88, 12],
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["boat"],

@@ -4,11 +4,7 @@ extends RefCounted
 const DEF := {
 	"id": "m15",
 	"order": 15,
-	"chapter": "c2",
 	"title": "Thành Cấm Khê",
-	"place": "Cấm Khê · Ba Vì, Hà Nội",
-	"region": "Cấm Khê",
-	"pos": [14, 50],
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["bird"],

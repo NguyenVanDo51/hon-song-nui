@@ -3,16 +3,11 @@
 Tên cũ: Hồn Sông Núi (repo / thư mục `hon-song-nui`, save cũ ở `~/Library/Application Support/Godot/app_userdata/Hồn Sông Núi/`, đã chép sang thư mục tên mới).
 
 Chiến thuật theo lượt trên lưới ô, lấy cảm hứng từ các cuộc khởi nghĩa của phụ nữ Việt thời Bắc thuộc. Godot 4.7, GDScript, chạy trên web và máy bàn.
-Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`), rồi mở rộng thành hai chương.
-
-| Chương | Năm | Màn | Chỉ huy ta | Chỉ huy địch |
-|---|---|---|---|---|
-| 1 · Khởi nghĩa Hai Bà Trưng | 40 | m01–m08 | Trưng Trắc | Tô Định |
-| 2 · Chống Mã Viện | 42–43 | m09–m16 | Trưng Trắc | Mã Viện |
+Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`). Chế độ chính: **Thử thách** = chuỗi level đánh số, thắng level này mở level sau, nhãn Dễ / Trung bình / Khó, 3 sao mỗi level (không cốt truyện, không chương; thiết kế `docs/superpowers/specs/2026-11-07-levels-design.md`).
 
 Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); một chỉ huy mỗi phe (Anh hùng / Tướng giặc), cùng chỉ số. Không có cốt truyện: chỉ chơi cờ.
 
-Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích** (chương 2). Chương sau mở khi thắng hết chương trước. Thêm chế độ đấu tự do (3 chiến trường), **1 đấu 1** (hai người chung máy, đổi tay mỗi lượt, hoặc đấu máy Dễ / Thường / Khó; `docs/1v1.md`) và Sách lính. Luật: `docs/spec.md`.
+Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích**. Thêm chế độ đấu tự do (3 chiến trường), **1 đấu 1** (hai người chung máy, đổi tay mỗi lượt, hoặc đấu máy Dễ / Thường / Khó; `docs/1v1.md`) và Sách lính. Luật: `docs/spec.md`.
 
 **Bản đồ** bố trí theo lối bản đồ chiến thuật cổ điển (đối chiếu bản làm lại Ancient Empires Reloaded): **đường mòn** nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi ở lõi, đồi quanh, rừng ở mép) chiếm ~30% đất, chừa một vòng trống quanh thành. Đường mòn chỉ khác đồng lúa ở hình vẽ (thủ 0, tốn 1). Bản đồ sinh lại bằng `sim/mapgen.gd` từ bố cục tay (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích).
 
@@ -32,7 +27,7 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 
 ### Điều khiển
 - Bấm lính để thấy ô đi được. Bấm **quân địch**: ô trắng = nó đi tới, ô đỏ + viền đỏ = ô nó đánh tới được lượt sau; quân ta trong vùng có dấu **!** đỏ.
-- **Sao màn**: thắng · tướng không ngã · mốc riêng (thắng trong N lượt / mất ≤ K lính). Hiện ở thẻ kết thúc + bản đồ chiến dịch (giữ số sao cao nhất). **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
+- **Sao màn**: thắng · tướng không ngã · mốc riêng (thắng trong N lượt / mất ≤ K lính). Hiện ở thẻ kết thúc + lưới Thử thách (giữ số sao cao nhất). **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
 - Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Không có "đi tại chỗ": bấm lại lính đang đứng là bỏ chọn (trừ khi chiếm / cứu thương được ngay tại đó). Không có bảng bên: mọi lệnh (⚔ Đánh / 🏠 Chiếm / 🩹 / Chờ / Hủy), dự báo trận, mua lính, thông tin lính và ô đất hiện trong một popup ngay cạnh ô trên bàn cờ, tự né không che quân.
 - **Đánh trên bàn cờ**: mỗi đòn, máy quay sà vào hai quân, hoạt cảnh đòn đánh (rig) + đánh trả, rồi lùi ra. Theo tốc độ x1/x2/x3.
 - **Lượt địch**: giữ `Space` hoặc chuột để chạy x4; nút **⏩ Tua lượt địch** tua hết lượt đó (bỏ cận cảnh).
@@ -42,7 +37,7 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 - Bấm thành trống của ta để mua lính (popup cạnh thành). Nút **Hết lượt** nằm ở góc dưới bên phải bàn cờ, sáng nhịp khi mọi quân đã ra lệnh.
 - **ⓘ** ở góc mỗi quân: thẻ thông tin (chỉ số, buff đang có, đặc tính, cách dùng). Quân đứng cạnh Trống trận / tướng hào quang có chấm ⚔ cam (+10 công), cạnh tướng che chắn có chấm 🛡 xanh (+10 thủ); rê chuột lên nguồn buff để thấy 4 ô nó phủ. Lần đầu gặp một loại quân, game dừng lại giới thiệu nó.
 
-Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|campaign[:c2]|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt.
+Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|levels|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt.
 
 ## Kiểm tra
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (macOS / Linux: `MAX_SEC=120 tools/run_guarded.sh out.log -- --headless --path . -s sim/tests.gd`) (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
@@ -105,9 +100,8 @@ Tham số AI (`AI.DEFAULT`, ghi đè theo phe `s.aiParams`), tự đấu để t
 | Muốn đổi | Sửa ở |
 |---|---|
 | Tên, icon, màu phe, chữ giao diện | `content/theme.gd` |
-| Chương (tiêu đề, năm, bản đồ sơ đồ, lời kết chương) | `content/chapters/cN.gd` |
 | Lối chơi từng loại quân (thẻ giới thiệu, ⓘ) | `content/guide.gd` (đặc tính tự sinh từ chỉ số) |
-| Màn (1 file / màn, tự gom theo `order`, gắn `chapter`) | `content/campaign/mNN.gd`, định dạng ở `docs/content.md` |
+| Level (1 file / level, tự gom theo `order`) | `content/campaign/mNN.gd`, định dạng ở `docs/content.md` |
 | Bản đồ đấu tự do | `content/skirmish_maps.gd` |
 | Chỉ số lính, tướng, địa hình, kinh tế | `scripts/core/rules.gd` |
 | Ảnh thật thay emoji / hình vẽ | thêm `"img": "res://…png"` vào lính / tướng / địa hình trong theme |
@@ -115,8 +109,8 @@ Tham số AI (`AI.DEFAULT`, ghi đè theo phe `s.aiParams`), tự đấu để t
 Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục có NotoSansSymbols2.ttf>` để tải PNG Noto tương ứng.
 
 ## Kiến trúc
-- `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom chương + màn và trả theme đã gộp theo chương đang mở. `rules.gd` = số liệu + cờ (quân, công trình), `objectives.gd` = kiểu mục tiêu màn; `game.gd` / `ai.gd` không so tên quân / ký tự ô.
-- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `camp_map.gd` (tiêu đề, tab chương + bản đồ, đấu tự do, Sách lính), `game_screen.gd` (trạng thái ván, chọn quân + click, gợi ý) + phần tách ra: `game_hud.gd` (HUD nổi, ⚙, thẻ góc, Hết lượt), `info_panel.gd` (popup lệnh / ⓘ / mua cạnh ô), `event_player.gd` (phát lại sự kiện, đếm vàng / máu), `turn_driver.gd` (lượt, lượt địch, bot, trao máy, kết thúc), `game_cards.gd` (giới thiệu quân mới, thẻ kết thúc), `board.gd` (bàn 2D: quân vẽ từ atlas, FX, đêm, nhãn dự báo) + `board_paint.gd` (vẽ địa hình bake 1 texture, nhà cửa), `fx.gd` + `fx_strikes.gd` (đòn cận chiến riêng từng loại quân), `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh dựng sẵn thành wav trong `assets/sfx`, tạo lại: `godot --headless --path . -s tools/bake_sfx.gd`; + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
+- `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom level + theme. `rules.gd` = số liệu + cờ (quân, công trình), `objectives.gd` = kiểu mục tiêu màn; `game.gd` / `ai.gd` không so tên quân / ký tự ô.
+- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `level_select.gd` (tiêu đề, lưới Thử thách, đấu tự do, Sách lính), `game_screen.gd` (trạng thái ván, chọn quân + click, gợi ý) + phần tách ra: `game_hud.gd` (HUD nổi, ⚙, thẻ góc, Hết lượt), `info_panel.gd` (popup lệnh / ⓘ / mua cạnh ô), `event_player.gd` (phát lại sự kiện, đếm vàng / máu), `turn_driver.gd` (lượt, lượt địch, bot, trao máy, kết thúc), `game_cards.gd` (giới thiệu quân mới, thẻ kết thúc), `board.gd` (bàn 2D: quân vẽ từ atlas, FX, đêm, nhãn dự báo) + `board_paint.gd` (vẽ địa hình bake 1 texture, nhà cửa), `fx.gd` + `fx_strikes.gd` (đòn cận chiến riêng từng loại quân), `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh dựng sẵn thành wav trong `assets/sfx`, tạo lại: `godot --headless --path . -s tools/bake_sfx.gd`; + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
 - `shaders/`: nền menu, logo ánh kim, vignette, màn đêm.
 - Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 

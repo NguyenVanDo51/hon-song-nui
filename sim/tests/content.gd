@@ -28,28 +28,18 @@ func content_tests() -> void:
 			check(not Content.theme().has("people"), "theme people gone"),
 	)
 	run(
-		"chapters: 2 chapters, every mission in one, missions of a chapter are consecutive",
+		"next level + paging",
 		func() -> void:
-			eq(
-				Content.chapters().map(
-					func(c: Dictionary) -> String:
-						return c.id,
-				),
-				["c1", "c2"],
-			)
-			var seen := []
-			for m: Dictionary in Content.campaign():
-				var c := Content.chapter_of(m)
-				check(Content.chapter(c) != null, "chapter of %s" % m.id)
-				if seen.is_empty() or seen.back() != c:
-					check(not seen.has(c), "chapter %s split" % c)
-					seen.append(c)
-			for c: Dictionary in Content.chapters():
-				for key: String in ["title", "subtitle", "rivers", "labels", "outro"]:
-					check(c.has(key), "%s.%s" % [c.id, key])
-				var cid: String = c.id
-				check(Content.missions_of(cid).size() >= 6, cid + " has missions")
-			check(Content.chapter_unlocked("c1", 0) and not Content.chapter_unlocked("c2", 7) and Content.chapter_unlocked("c2", 8), "unlock order"),
+			var lv := Content.campaign()
+			var first: Dictionary = lv[0]
+			var second: Dictionary = lv[1]
+			var last: Dictionary = lv.back()
+			var nx: Dictionary = Content.next_level(str(first.id))
+			eq(nx.id, second.id)
+			eq(Content.next_level(str(last.id)), null)
+			eq(LevelSelect.page_of(0), 0)
+			eq(LevelSelect.page_of(19), 0)
+			eq(LevelSelect.page_of(20), 1),
 	)
 	run(
 		"our commander can walk (over turns) to every castle, the enemy commander and the reach goal",
@@ -98,14 +88,11 @@ func content_tests() -> void:
 	run(
 		"one roster for both sides; one commander for us; enemy commanders share one look",
 		func() -> void:
-			for c: String in ["c1", "c2"]:
-				Content.use_chapter(c)
-				for ty: String in Rules.UNITS:
-					if ty == "hero":
-						continue
-					eq(Content.unit_type_look("e", ty, null).name, Content.unit_type_look("p", ty, null).name, ty)
-					eq(Content.unit_type_look("e", ty, null).icon, Content.unit_type_look("p", ty, null).icon, ty)
-			Content.use_chapter("c1")
+			for ty: String in Rules.UNITS:
+				if ty == "hero":
+					continue
+				eq(Content.unit_type_look("e", ty, null).name, Content.unit_type_look("p", ty, null).name, ty)
+				eq(Content.unit_type_look("e", ty, null).icon, Content.unit_type_look("p", ty, null).icon, ty)
 			# exactly two commanders across every campaign + skirmish: one look + one stat line per side
 			eq(Content.heroes_of("p"), ["anhhung"])
 			eq(Content.heroes_of("e"), ["tuonggiac"])

@@ -4,11 +4,7 @@ extends RefCounted
 const DEF := {
 	"id": "m16",
 	"order": 16,
-	"chapter": "c2",
 	"title": "Đêm Sông Hát",
-	"place": "Hát Môn · Phúc Thọ, Hà Nội",
-	"region": "Hát Giang",
-	"pos": [26, 34],
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

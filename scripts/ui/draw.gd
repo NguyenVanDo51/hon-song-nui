@@ -50,7 +50,6 @@ const SIZES := [
 ## transform the current item is drawn with. draw_set_transform* is absolute, so nested helpers compose with this
 ## (painters that set a transform go through set_xf; every Layer resets it at the start of its _draw)
 static var xf := Transform2D.IDENTITY
-static var _pal_key := ""
 static var _pal := { }
 static var _cols := { }
 
@@ -81,11 +80,9 @@ static func to_col(v: Variant) -> Color:
 	var hex: String = v
 	return Color(hex)
 
-## the active chapter's theme with every "#..." string pre-parsed into a Color (factions, terrain, units).
-## Rebuilt when Content.use_chapter switches chapter.
+## the theme with every "#..." string pre-parsed into a Color (factions, terrain, units); built once
 static func pal() -> Dictionary:
-	if _pal_key != Content.active_chapter or _pal.is_empty():
-		_pal_key = Content.active_chapter
+	if _pal.is_empty():
 		_pal = _parse(Content.theme())
 	return _pal
 

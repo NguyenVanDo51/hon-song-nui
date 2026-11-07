@@ -1,6 +1,6 @@
 class_name Menus
 extends Control
-## menu screens over the animated backdrop: title, campaign (chapter tabs + clickable map), skirmish, 1 vs 1,
+## menu screens over the animated backdrop: title, levels (Thử thách grid), skirmish, 1 vs 1,
 ## plus the codex overlay (added above the game screen). Port of the menu half of src/ui/screens.js + shell.html.
 
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
@@ -217,12 +217,10 @@ func show_title() -> void:
 	list.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	var camp := Content.campaign()
 	var ui := Store.unlocked_index()
-	var prog := "Đã hoàn thành cả hai chương"
+	var prog := "Đã thắng mọi thử thách"
 	if ui < camp.size():
 		var cm: Dictionary = camp[ui]
-		var cid := Content.chapter_of(cm)
-		var ms := Content.missions_of(cid)
-		prog = "Chương %d · Màn %d/%d: %s" % [Content.chapters().find(Content.chapter(cid)) + 1, ms.find(cm) + 1, ms.size(), cm.title]
+		prog = "Thử thách %d/%d: %s" % [ui + 1, camp.size(), cm.title]
 	var sv: Variant = Store.load_game()
 	if sv != null:
 		var svd: Dictionary = sv
@@ -239,7 +237,7 @@ func show_title() -> void:
 						main.start_game(st2, ctx2),
 			)
 		)
-	list.add_child(_on(Style.menu_button("Chiến dịch", prog, sv == null), show_campaign))
+	list.add_child(_on(Style.menu_button("Thử thách", prog, sv == null), show_levels))
 	list.add_child(_on(Style.menu_button("Đấu tự do", Content.text("skirmishBlurb")), show_skirmish))
 	list.add_child(_on(Style.menu_button("1 đấu 1", Content.text("duelBlurb")), show_duel))
 	list.add_child(
@@ -361,64 +359,28 @@ func _logo(text: String) -> Control:
 	return holder
 
 # ---------- campaign ----------
-## chapter "" = the chapter of the first unwon mission
-func show_campaign(chapter_id := "") -> void:
+## levels grid; page -1 = the page holding the first level not yet won
+func show_levels(pg := -1) -> void:
 	var open := Store.unlocked_index()
-	if chapter_id == "":
-		var camp0 := Content.campaign()
-		var cm0: Dictionary = camp0[mini(open, camp0.size() - 1)]
-		chapter_id = Content.chapter_of(cm0)
-	Content.use_chapter(chapter_id)
-	var ch: Dictionary = Content.theme().get("chapter", { })
+	var all := Content.campaign()
 	var v := _page(1040)
-	var ch_title: String = ch.get("title", "Chiến dịch")
 	v.add_child(
 		_head(
 			"‹ Trở lại",
 			func() -> void:
 				main.show_title(),
-			ch_title,
+			"Thử thách",
 		)
 	)
-	# chapter tabs
-	var tabs := Style.hbox(8)
-	var chs := Content.chapters()
-	for k in chs.size():
-		var c: Dictionary = chs[k]
-		var cid: String = c.id
-		var unlocked := Content.chapter_unlocked(cid, open)
-		var label := "Chương %d · %s" % [k + 1, c.get("years", "")] + ("" if unlocked else "  🔒")
-		var b := Style.button(label, "SegOn" if c.id == chapter_id else "SegBtn")
-		b.disabled = not unlocked
-		b.tooltip_text = c.title + ("" if unlocked else " · thắng hết chương trước để mở")
-		_on(
-			b,
-			func() -> void:
-				show_campaign(cid),
-		)
-		tabs.add_child(b)
-	v.add_child(tabs)
-	var subtitle: String = ch.get("subtitle", "")
-	var blurb: String = ch.get("blurb", "")
-	var sub := Style.lbl(subtitle, 15, Style.MUTED)
-	v.add_child(sub)
-	if blurb != "":
-		v.add_child(Style.lbl(blurb, 14, Style.INK, null, true))
-	var map := CampMap.new()
-	map.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	map.setup(open)
-	map.picked.connect(
+	var ls := LevelSelect.new()
+	ls.setup(all, open, LevelSelect.page_of(mini(open, all.size() - 1)) if pg < 0 else pg)
+	ls.level_picked.connect(
 		func(id: String) -> void:
 			_sfx("ui")
 			var md: Dictionary = Content.mission(id)
 			main.play_mission(md),
 	)
-	var mv := Style.vbox(6)
-	mv.add_child(map)
-	var note: String = ch.get("note", "")
-	mv.add_child(Style.lbl(note, 12, Style.MUTED))
-	v.add_child(mv)
-	# no mission cards: the map is the menu (hover a node for its title, click to start it: story plays over the map)
+	v.add_child(ls)
 
 # ---------- skirmish ----------
 func show_skirmish() -> void:

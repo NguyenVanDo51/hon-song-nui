@@ -4,11 +4,7 @@ extends RefCounted
 const DEF := {
 	"id": "m11",
 	"order": 11,
-	"chapter": "c2",
 	"title": "Bát Nàn Giữ Ải",
-	"place": "Tiên Phong · Phú Thọ",
-	"region": "Phú Thọ",
-	"pos": [14, 20],
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["wolf"],

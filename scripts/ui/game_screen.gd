@@ -113,7 +113,6 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	s = state
 	ctx = c
 	def = _def_for(c)
-	Content.use_chapter(Content.chapter_of(def)) # enemy skin + wording of this chapter
 	_reset_ui()
 	stats = { "p": 0, "e": 0 }
 	var view_hide: Dictionary = board.view.hide

@@ -6,11 +6,7 @@ extends RefCounted
 const DEF := {
 	"id": "m13",
 	"order": 13,
-	"chapter": "c2",
 	"title": "Địu Con Phá Vây",
-	"place": "Lãng Bạc · Bắc Ninh",
-	"region": "Phá vây",
-	"pos": [64, 46],
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["shaman"],

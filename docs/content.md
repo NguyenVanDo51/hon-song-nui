@@ -1,15 +1,15 @@
 # Thêm nội dung
 
 ## Đổi tên / hình / màu
-- `content/theme.gd`: tên game, lời dẫn, chữ trên giao diện (`text`), bản đồ chiến dịch (`chapter`: sông là đường SVG `M x,y C … S …` trong khung 100 × 70, hồ, nhãn), tên + icon lính mỗi phe, tướng (`side: "p"|"e"` quyết định phe nào dùng), người kể chuyện, màu phe, màu địa hình.
+- `content/theme.gd`: tên game, lời dẫn, chữ trên giao diện (`text`), tên + icon lính mỗi phe, tướng (`side: "p"|"e"` quyết định phe nào dùng), người kể chuyện, màu phe, màu địa hình.
 - Có ảnh thật: thêm `"img": "res://assets/…png"` vào lính / tướng / địa hình -> bàn cờ dùng ảnh thay emoji / hình vẽ code.
 - Chỉ số, luật: `scripts/core/rules.gd` (không chứa tên).
 
-## Chương
-`content/chapters/cN.gd` (`DEF`): `id`, `order`, `title`, `years`, `subtitle`, `blurb` (tab chương), `note`, `rivers` / `lakes` / `labels` (bản đồ sơ đồ, khung 100 × 70, sông là đường SVG `M x,y C … S …`), `theme` (ghi đè lên `content/theme.gd` khi chơi chương này, ví dụ đổi tên + màu phe địch, chữ "Lượt quân …"), `outro` (thoại hiện khi thắng màn cuối chương). Chương sau mở khi đã thắng mọi màn trước nó.
+## Level (Thử thách)
+Mỗi level = 1 file `content/campaign/*.gd` (`DEF`), xếp theo `order`; số hiện cho người chơi = thứ tự trong danh sách. Mở khóa: mọi level tới level xa nhất đã thắng, + level kế (`Store.unlocked_index`). Màn chọn: `scripts/ui/level_select.gd` (20 ô / trang, màu theo `tier`, sao tốt nhất, khóa). Không chương (bỏ 2026-11-07).
 
 ## Bản đồ đấu tự do
-`content/skirmish_maps.gd`: `name`, `blurb`, `rows`, `owner`, `units`, tùy chọn `chapter` (skin địch) và `enemyHero`. Nên vẽ đối xứng xoay 180° (test kiểm tra cho các bản đồ mới).
+`content/skirmish_maps.gd`: `name`, `blurb`, `rows`, `owner`, `units`, tùy chọn `enemyHero`. Nên vẽ đối xứng xoay 180° (test kiểm tra cho các bản đồ mới).
 
 ## Bố trí bản đồ
 Theo lối bản đồ chiến thuật cổ điển: **đường mòn** (`r`) nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi lõi, đồi quanh, rừng mép), khoảng 30% đất; chừa vòng trống quanh thành. Mọi quân lội được sông (3 bước, thủ 0) và lên được núi (3 bước), nên sông / núi là chỗ chậm chứ không phải tường. **Đền** (`t`): 1–2 ô giữa hai phe, không đặt dưới quân / thành / làng, không có chủ (không ghi vào `owner`); quân phe nào đứng đó cũng hồi máu, thủ +15. Bản đồ đấu tự do: đền đặt thành cặp đối xứng xoay 180°. Vẽ tay xong có thể cho `sim/mapgen.gd` sắp lại địa hình (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích): chạy nó, rồi chép các dòng `MAP` vào file màn.
@@ -42,16 +42,15 @@ Trước: `Game` / `AI` / UI so ký tự `v` / `c` / `x` / `t` ở ~15 chỗ, th
 
 Trước: sửa 7 chỗ (`Game.loss_reason` + `end_turn`, `AI.goals_for` + `best_for_unit`, `board.gd` + `board3d.gd` vẽ ô đích, `game_screen._goal_line`, `Content.WIN_TYPES`, validator trong `sim/tests.gd`) + theme.
 
-## Thêm màn chiến dịch
-Tạo `content/campaign/mNN.gd` (game tự gom mọi file trong thư mục, xếp theo `order`; `"chapter": "c2"` gắn màn vào chương, mặc định c1):
+## Thêm level
+Tạo `content/campaign/<id>.gd` (game tự gom mọi file trong thư mục, xếp theo `order`):
 
 ```gdscript
 extends RefCounted
 
 const DEF := {
 	"id": "m09", "order": 9,
-	"title": "Tên màn", "place": "Địa danh",
-	"region": "Tên vùng", "pos": [x, y],   # điểm trên bản đồ chiến dịch (khung 100 x 70)
+	"title": "Tên level",
 	"hero": "anhhung",                    # luôn là anhhung
 	"enemyHero": "tuonggiac",             # luôn là tuonggiac; null = địch không có tướng
 	"newUnits": ["wolf"],                 # ghi chú: màn ra mắt loại lính đó (thẻ giới thiệu quân tự bật theo quân trên bản đồ, xem dưới)
@@ -72,12 +71,12 @@ const DEF := {
 
 Vào màn: thẳng bàn cờ, rồi thẻ giới thiệu quân mới (nếu có). Không thoại / sử tích (bỏ 2026-11-07).
 
-Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành), `story`, `history`, `tips` (bỏ cốt truyện 2026-11-07).
+Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành), `story`, `history`, `tips`, `chapter`, `region`, `pos`, `place` (bỏ cốt truyện + chương 2026-11-07).
 
 ## Nhịp ra quân mới (2026-11-06)
 Theo cách AE2 gốc mở quân (m0–m7: màn không mua xen kẽ, quân mới thấy ở phe địch / kịch bản trước khi mua được):
 - Mỗi loại 3 bước: **thấy** (phe địch, hoặc đặt sẵn) -> **cầm** (đặt sẵn cho ta, chưa có trong `allowed.p`) -> **mua** (màn sau).
-- Không 2 màn ra mắt liền nhau; không ra quân mới ở màn khó (sim < ~75%) hay trận cuối chương.
+- Không 2 màn ra mắt liền nhau; không ra quân mới ở màn khó (sim < ~75%) .
 - Thẻ giới thiệu bật theo quân trên bản đồ + `waves` + `allowed` (cả 2 phe), không theo `newUnits` -> dời màn ra mắt phải sửa cả 4 chỗ.
 
 | Loại | Thấy | Cầm | Mua |

@@ -57,6 +57,7 @@ func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no
 	gs._clear_sel()
 	var before := gs.player.snapshot()
 	var ev := Game.end_turn(gs.s)
+	GameLog.crumb("end turn -> turn %s side %s" % [gs.s.turn, gs.s.side])
 	_count_from(ev)
 	gs.save()
 	if gs.s.winner != null:
@@ -119,6 +120,7 @@ func ai_turn() -> void:
 	var side: String = gs.s.side
 	var game_seed: int = gs.s.get("seed", 0)
 	var turn: int = gs.s.turn
+	GameLog.crumb("ai turn %d side %s" % [turn, side])
 	AI.seed_game(game_seed * 1000 + turn) # same game + turn -> same enemy choices after a reload
 	user_speed = FX.speed
 	ff = false
@@ -154,6 +156,7 @@ func ai_turn() -> void:
 		return
 	var before := gs.player.snapshot()
 	var ev := Game.end_turn(gs.s)
+	GameLog.crumb("ai end turn -> turn %s side %s" % [gs.s.turn, gs.s.side])
 	_count_from(ev) # our income lands here (AI's end_turn): total counts up when coins land
 	gs.save()
 	if gs.s.winner != null:
@@ -206,6 +209,7 @@ func _bot_turn() -> void:
 		await end_player_turn(true)
 
 func finish() -> void:
+	GameLog.crumb("game over winner=%s reason=%s turn=%s" % [gs.s.winner, gs.s.get("reason"), gs.s.turn])
 	Store.clear_game()
 	var campaign: bool = gs.ctx.kind == "campaign"
 	var star_goals: Array = Stars.check(gs.s, gs.def) if campaign else []

@@ -518,6 +518,8 @@ func _run() -> void:
 		g.cancel()
 	ok(g.hud.btn_end.visible and not g.hud.card.visible, "nothing picked -> HUD back, card gone")
 	press("Hết lượt")
+	for r: Array in await HudChecks.pause_menu(self, g):
+		okv(r[0], str(r[1]))
 	var low := 1 << 30
 	for i in 1200:
 		if s.side == "p" and not g.ui.busy:

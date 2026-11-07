@@ -196,6 +196,7 @@ func _build_menu() -> void:
 	menu = Control.new()
 	menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	menu.z_index = 55
+	menu.process_mode = Node.PROCESS_MODE_ALWAYS # the rest of the game screen pauses under it
 	menu.visible = false
 	gs.add_child(menu)
 	var dim := ColorRect.new()
@@ -322,8 +323,13 @@ func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
 	col.add_child(l)
 	return b
 
+## ⚙ = real pause: game screen (its _process, tweens, FX.sleep timers) + FX.now() stop; resume continues mid-animation
 func show_menu(on: bool) -> void:
 	menu.visible = on
+	gs.get_tree().paused = on
+	PauseClock.hold(on)
+	if on and gs.tutorial != null:
+		gs.tutorial.visible = false # its _process (which hides it under the menu) is paused too
 	_btn_skip.visible = gs.def.has("tutorial")
 	if on:
 		sound_label()

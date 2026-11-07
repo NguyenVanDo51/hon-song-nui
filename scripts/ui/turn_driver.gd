@@ -246,7 +246,7 @@ func finish() -> void:
 		var tip := Content.text("loseTip_" + str(gs.s.reason))
 		if not tip.begins_with("loseTip_"):
 			reason_text += "\n" + tip
-	await gs.get_tree().create_timer(0.6).timeout
+	await gs.get_tree().create_timer(0.6, false).timeout
 	if gs.gen != my:
 		return
 	gs.main.audio.play("win" if win else "lose")

@@ -173,6 +173,8 @@ func _side_name(side: String) -> String:
 	return str(f.get("duelShort", f.name)) if _hotseat() else str(f.short)
 
 func leave() -> void:
+	if hud.menu != null and hud.menu.visible:
+		hud.show_menu(false) # never leave the tree paused
 	if not s.is_empty() and _is_ai(_turn_side()):
 		FX.speed = turns.user_speed
 	hud.btn_ff.visible = false

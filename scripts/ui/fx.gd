@@ -28,13 +28,13 @@ var _gen := 0 # bumped by clear(): delayed effects of an older scene drop out
 var _last := 0.0
 
 static func now() -> float:
-	return Time.get_ticks_usec() / 1000.0
+	return PauseClock.ms()
 
 static func sp(ms: float) -> float:
 	return ms / speed
 
 func sleep(ms: float) -> void:
-	await get_tree().create_timer(sp(ms) / 1000.0).timeout
+	await get_tree().create_timer(sp(ms) / 1000.0, false).timeout
 
 func clear() -> void:
 	_gen += 1
@@ -426,7 +426,7 @@ func capture(x: int, y: int, side: String) -> void:
 	var c: String = Content.theme().factions[side].glow
 	ring(x, y, c, 700.0, 1.4, 0.12)
 	var g := _gen
-	get_tree().create_timer(sp(150.0) / 1000.0).timeout.connect(
+	get_tree().create_timer(sp(150.0) / 1000.0, false).timeout.connect(
 		func() -> void:
 			if g == _gen:
 				ring(x, y, "#ffe39a", 600.0, 1.0, 0.06),

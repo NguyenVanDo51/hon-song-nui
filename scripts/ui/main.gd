@@ -49,8 +49,10 @@ func _ready() -> void:
 	menus = Menus.new()
 	menus.main = self
 	add_child(menus)
+	process_mode = Node.PROCESS_MODE_ALWAYS # menus, audio, codex, debug flags run through the ⚙ pause
 	game = GameScreen.new()
 	game.main = self
+	game.process_mode = Node.PROCESS_MODE_PAUSABLE # only the game screen stops (GameHud.show_menu)
 	add_child(game)
 	menus.add_overlays() # codex sits above the game screen
 	if flags.has("speed"):

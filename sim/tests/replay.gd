@@ -42,6 +42,19 @@ func replay_tests() -> void:
 			_rm(dir),
 	)
 	run(
+		"AI choosing a step (guard wake) leaves the hash alone",
+		func() -> void:
+			var s := blank([["p", "soldier", 2, 2], ["e", "soldier", 3, 3], ["e", "archer", 5, 4]])
+			var g: Dictionary = unit(s, 1)
+			g.guard = true
+			s.side = "e"
+			var h0 := Replay.state_hash(s)
+			AI.next_step(s, { }) # greedy: wakes the guard (enemy near) before picking
+			var woke: bool = not g.get("guard", true)
+			check(woke, "guard woken by next_step")
+			eq(Replay.state_hash(s), h0, "hash unchanged by thinking"),
+	)
+	run(
 		"1 vs 1 by do_action on both sides: file replays to the same final state",
 		func() -> void:
 			var dir := _tmp()

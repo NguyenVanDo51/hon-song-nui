@@ -228,7 +228,8 @@ static func lessons_md(entries: Array) -> String:
 	L.append("# Bài học từ các trận đã ghi")
 	L.append("")
 	L.append("Tự sinh bởi `tools/review_match.sh` (`sim/review.gd`), README \"Ghi trận / phân tích\". Không sửa tay: mỗi lần chạy")
-	L.append("dựng lại cả file từ dòng `<!-- data ... -->` của từng trận. Chi tiết trận: `<id>.review.md` cạnh file `.replay`.")
+	L.append("dựng lại cả file từ dòng `<!-- data ... -->` của từng trận (phân tích lại 1 trận = thay mục cũ). Ván cờ `bot` không vào đây.")
+	L.append("Chi tiết trận: `<id>.review.md` cạnh file `.replay`.")
 	L.append("")
 	L.append("## Mẫu lặp lại (%d trận)" % entries.size())
 	for who: String in ["human_tags", "bot_tags"]:

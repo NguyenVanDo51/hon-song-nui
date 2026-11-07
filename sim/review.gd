@@ -35,7 +35,9 @@ func _init() -> void:
 		var r := lib.review(rep)
 		ReviewOut.write(r, p.trim_suffix(Replay.EXT))
 		if lessons != "off" and (not head.get("bot", false) or args.has("lessons_bot")):
-			ReviewOut.update_lessons(lessons, r) # `bot` flag runs (our side = AI) would skew the human patterns
+			ReviewOut.update_lessons(lessons, r)
+		elif lessons != "off":
+			print("review: `bot` flag run (our side = AI) -> not added to %s (lessons_bot to force)" % lessons)
 		var rp: Dictionary = r.replay
 		if not rp.verified:
 			fails += 1

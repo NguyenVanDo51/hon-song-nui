@@ -402,7 +402,7 @@ static func _missed_kill(h: Dictionary) -> Dictionary:
 		var tid: int = d.id
 		if killed >= AI.value(S, d) or Game.unit_by_id(E, tid) == null:
 			continue
-		Game.fixed_roll = 0.0 # min rolls: a sure kill
+		Game.fixed_roll = 0.0 # min rolls = sure (counters roll low too, but only hurt attackers that already hit)
 		var pre := AIPlan.focus(S.duplicate(true), me, tid)
 		Game.fixed_roll = prev_roll
 		if not pre.is_empty():

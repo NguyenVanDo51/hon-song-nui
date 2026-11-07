@@ -41,9 +41,9 @@ func _run(g: GameScreen) -> void:
 	print("[tut] stamp: guide visible=", g.tutorial.visible, " celebrating=", g.hud.quests.celebrating())
 	await main.shot(str(args.get("tag", "tut")) + "_t01_s2_stamp")
 	await _shot(g, "t01_s2")
-	g._on_tile_clicked(1, 1)
+	g._on_tile_clicked(2, 1)
 	await _shot(g, "t01_s2b")
-	g._on_tile_clicked(1, 1)
+	g._on_tile_clicked(2, 1)
 	for i in 600:
 		if not g.ui.busy:
 			break

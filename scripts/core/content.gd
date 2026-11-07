@@ -207,9 +207,9 @@ static func traits(type: String, hero_key: Variant) -> Array:
 			out.append("Đi trên sông chỉ tốn 1 bước (quân khác tốn 3).")
 	if st.get("noCap", false):
 		out.append("Không tính vào giới hạn quân.")
-	if st.mv >= 6:
+	if st.mv >= 5:
 		out.append("Đi xa %d ô mỗi lượt." % st.mv)
-	elif st.mv <= 3:
+	elif st.mv <= 2:
 		out.append("Chậm: chỉ đi %d ô mỗi lượt." % st.mv)
 	if st.def >= 25:
 		out.append("Thủ rất dày (%d): hợp làm tường chắn." % st.def)

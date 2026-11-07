@@ -18,8 +18,8 @@ const DEF := {
 	"ai": "normal",
 	"win": { "type": "rout" },
 	"stars": { "turns": 6 },
-	"map": { "rows": ["ff...hhf.", "fvrr....f", ".r.rf....", ".r..h....", ".r.......", "ff..ff...", "fh..ffh.."] },
-	"units": [["p", "hero", 1, 4], ["e", "soldier", 8, 4, { "guard": true, "hp": 60 }], ["e", "soldier", 8, 6, { "guard": true, "hp": 50 }]],
+	"map": { "rows": ["ff...hhf.", "frvr....f", ".r.rf....", ".r..h....", ".r.......", "ff..ff...", "fh..ffh.."] },
+	"units": [["p", "hero", 1, 4], ["e", "soldier", 7, 4, { "guard": true, "hp": 60 }], ["e", "soldier", 8, 6, { "guard": true, "hp": 50 }]],
 	"quests": [
 		{ "do": "select", "what": "hero" },
 		{ "do": "capture", "what": "v" },
@@ -29,9 +29,9 @@ const DEF := {
 	],
 	"tutorial": [
 		{ "q": 0, "point": [1, 4], "allow": [[1, 4]], "say": "Chọn tướng" },
-		{ "q": 1, "point": [1, 1], "allow": [[1, 1], [1, 4]], "say": "Làng: vàng mỗi lượt, đứng trên thì hồi máu" },
+		{ "q": 1, "point": [2, 1], "allow": [[2, 1], [1, 4]], "say": "Làng: vàng mỗi lượt, đứng trên thì hồi máu" },
 		{ "q": 2, "point": "end_turn", "allow": ["end_turn"], "say": "Hết lượt" },
-		{ "q": 3, "point": [4, 2], "allow": [[4, 2], [1, 1]], "say": "Rừng: thủ cao hơn" },
+		{ "q": 3, "point": [4, 2], "allow": [[4, 2], [2, 1]], "say": "Rừng: thủ cao hơn" },
 		{ "q": 4, "point": [5, 2], "allow": [[5, 2], [4, 2]], "say": "Đánh địch" },
 	],
 }

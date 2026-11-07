@@ -770,7 +770,7 @@ func _tut_t01(g: GameScreen) -> void:
 	var hero := _hero(s)
 	var hid: int = hero.id
 	# step 1: only the hero answers
-	g._on_tile_clicked(8, 4)
+	g._on_tile_clicked(7, 4)
 	g._on_tile_clicked(3, 3)
 	okv(g.ui.sel == null and g.ui.info == null and tut.step == 0, "t01 step 1: clicks off the hero do nothing")
 	await _key(KEY_TAB)
@@ -790,7 +790,7 @@ func _tut_t01(g: GameScreen) -> void:
 		if tut.visible:
 			break
 		await process_frame
-	await _tap(g, _tile_r(g, 8, 4).get_center())
+	await _tap(g, _tile_r(g, 7, 4).get_center())
 	okv(g.ui.sel == null and tut.step == 0, "t01 step 1: real click on the dim (enemy tile) swallowed")
 	var on_dim: Control = await _hover_at(g, Vector2(4, g.size.y / 2.0))
 	ok(on_dim == tut, "t01: pointer on the dim hits the guide overlay")
@@ -798,7 +798,7 @@ func _tut_t01(g: GameScreen) -> void:
 	ok(hov != null and (hov == g.board or g.board.is_ancestor_of(hov)), "t01: pointer in the hole reaches the board")
 	await _tap(g, tut.target_rect().get_center())
 	okv(tut.step == 1 and g.ui.sel == hid and s.tut_step == 1, "t01 step 1 done: real click through the hole picks the hero -> step 2")
-	ok(_near(tut.target_rect(), _tile_r(g, 1, 1)), "t01 step 2: hole on the village")
+	ok(_near(tut.target_rect(), _tile_r(g, 2, 1)), "t01 step 2: hole on the village")
 	await main.shot("tut_t01_step2")
 	# Đánh tiếp resumes the same step
 	g.save()
@@ -810,13 +810,13 @@ func _tut_t01(g: GameScreen) -> void:
 	hero = Game.unit_by_id(s, hid)
 	okv(g.visible and s.tut_step == 1 and tut.step == 1 and tut.active() and tut.visible, "t01: Đánh tiếp resumes step 2")
 	ok(_near(tut.target_rect(), _tile_r(g, pos(hero).x, pos(hero).y)), "t01 step 2 resumed: nothing picked -> hole on the hero")
-	g._on_tile_clicked(1, 1)
+	g._on_tile_clicked(2, 1)
 	okv(g.ui.sel == null and g.ui.info == null, "t01 step 2: village needs the hero picked first")
 	g._on_tile_clicked(pos(hero).x, pos(hero).y)
 	okv(g.ui.sel == hid, "t01 step 2: hero picked again")
-	g._on_tile_clicked(8, 4)
+	g._on_tile_clicked(7, 4)
 	okv(g.ui.sel == hid and g.ui.mode == "idle", "t01 step 2: enemy click swallowed")
-	g._on_tile_clicked(1, 1)
+	g._on_tile_clicked(2, 1)
 	g.commit({ "kind": "wait" }) # the orders popup's ⏳ Chờ would burn the hero without the village
 	okv(not hero.acted and g.ui.sel == hid, "t01 step 2: wait refused (capture only)")
 	ok(await _live(tut), "t01 step 2: guide up with the orders popup")
@@ -853,7 +853,7 @@ func _tut_t01(g: GameScreen) -> void:
 	await process_frame
 	okv(g.ui.sel == hid and not tut.allows(pos(hero)) and tut.allows(Vector2i(4, 2)), "t01 step 4: picked -> own tile closed")
 	g._on_tile_clicked(pos(hero).x, pos(hero).y)
-	okv(g.ui.sel == hid and not hero.acted and pos(hero) == Vector2i(1, 1), "t01 step 4: own tile click swallowed")
+	okv(g.ui.sel == hid and not hero.acted and pos(hero) == Vector2i(2, 1), "t01 step 4: own tile click swallowed")
 	g._on_tile_clicked(4, 2)
 	okv(tut.allows("act:wait"), "t01 step 4: ⏳ Chờ confirms the forest")
 	g._on_tile_clicked(4, 2)

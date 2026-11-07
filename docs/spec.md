@@ -39,18 +39,19 @@ Bấm 1 quân địch: ô trắng mờ = ô nó đi tới được; ô đỏ = c
 Công trình = mô tả trong `TERRAIN` (`income`, `cap`, `heals`, `sells`, `razeTo`, `repairTo`/`repairBy`): làng 30 vàng, chiếm `capV`, phá -> làng hỏng; thành 50 vàng, chiếm `capC`, mua lính; làng hỏng sửa (`capV`) -> làng; đền hồi máu mọi phe.
 
 ## Lính (giá · công / thủ / đi / tầm)
+Đi = số bước thật = số trong `units.bin` gốc − 1 (gốc: ô đích phải còn dư > 0 bước; màn thông tin gốc hiện số thô).
 | Lính | AE2 | Giá | C / T / Đi / Tầm | Đặc biệt |
 |---|---|---|---|---|
-| Bộ binh | Soldier | 150 | 50–55 / 5 / 5 / 1 | chiếm, sửa làng |
-| Nỏ thủ | Archer | 250 | 50–55 / 5 / 5 / 1–2 | +15 vs rồng |
-| Thủy binh | Elemental | 300 | 50–55 / 10 / 5 / 1 | sông giá 1, dưới sông +10 / +15 |
-| Thầy mo | Sorceress | 400 | 40–45 / 5 / 5 / 1 | gọi hồn |
-| Trống đồng | Wisp | 500 | 35–40 / 10 / 5 / 1 | hào quang tầm 2, +15 vs âm binh |
-| Sói | Dire Wolf | 600 | 60–65 / 15 / 6 / 1 | cắn: −10 / −10 |
-| Voi chiến | Golem | 600 | 60–70 / 30 / 5 / 1 | |
-| Máy bắn đá | Catapult | 700 | 50–70 / 10 / 4 / 2–4 | công thành, phá làng |
-| Rồng | Dragon | 1000 | 70–80 / 25 / 7 / 1 | bay |
-| Âm binh | Skeleton | — | 40–50 / 2 / 5 / 1 | gọi từ mộ, không tính trần |
+| Bộ binh | Soldier | 150 | 50–55 / 5 / 4 / 1 | chiếm, sửa làng |
+| Nỏ thủ | Archer | 250 | 50–55 / 5 / 4 / 1–2 | +15 vs rồng |
+| Thủy binh | Elemental | 300 | 50–55 / 10 / 4 / 1 | sông giá 1, dưới sông +10 / +15 |
+| Thầy mo | Sorceress | 400 | 40–45 / 5 / 4 / 1 | gọi hồn |
+| Trống đồng | Wisp | 500 | 35–40 / 10 / 4 / 1 | hào quang tầm 2, +15 vs âm binh |
+| Sói | Dire Wolf | 600 | 60–65 / 15 / 5 / 1 | cắn: −10 / −10 |
+| Voi chiến | Golem | 600 | 60–70 / 30 / 4 / 1 | |
+| Máy bắn đá | Catapult | 700 | 50–70 / 10 / 3 / 2–4 | công thành, phá làng |
+| Rồng | Dragon | 1000 | 70–80 / 25 / 6 / 1 | bay |
+| Âm binh | Skeleton | — | 40–50 / 2 / 4 / 1 | gọi từ mộ, không tính trần |
 
 Số liệu đặc biệt (hào quang, độc, thưởng vs loại, gọi hồn ra loại gì) là cờ trong `UNITS`; quân bị đóng dấu giữ phe đóng dấu (`aura` / `poison`) + lượng (`auraAtk` / `poisonAmt`). Lưu ván v4 (v3 tự nâng, lượng = 10).
 

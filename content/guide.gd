@@ -26,10 +26,10 @@ const PLAY := {
 	"boat": "Đi trên sông chỉ 1 bước, đứng dưới nước +10 công, +15 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh.",
 	"shaman": "Đánh yếu, đừng đưa lên đầu. Đứng cạnh lính ngã (cả lính địch) rồi bấm Gọi hồn: thêm một bộ xương miễn phí. Lính ngã mất sau lượt kế của mỗi bên, nên đứng gần chỗ đang đánh.",
 	"drum": "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đánh bộ xương +15 công.",
-	"wolf": "Chạy 6 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ.",
+	"wolf": "Chạy 5 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ.",
 	"elephant": "Thủ rất dày, đánh mạnh, lên được cả núi. Đưa lên chặn cầu, cửa ải hoặc đấm thẳng vào chỗ địch đông. Đắt: đừng để bị vây.",
 	"catapult": "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt.",
-	"bird": "Bay qua sông, núi chỉ tốn 1 bước, đi 7 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch.",
+	"bird": "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch.",
 	"ghost": "Pháp sư gọi hồn dựng dậy, không mua được, không tính vào trần quân, không chiếm được làng. Dùng làm lá chắn, chặn đường hoặc đánh phụ. Sợ tu sĩ ánh sáng.",
 }
 

@@ -242,7 +242,7 @@ func v5_tests() -> void:
 			var to_a: Array = on.act.to
 			var to := xy(to_a)
 			check(Game.dist(to.x, to.y, 2, 3) <= 2 and Game.dist(to.x, to.y, 2, 2) <= 2, "aura reaches both soldiers")
-			var b := blank([["p", "boat", 0, 2], ["e", "soldier", 5, 5]])
+			var b := blank([["p", "boat", 0, 2], ["e", "soldier", 4, 5]])
 			for x in 6:
 				b.tiles[2][x] = "~"
 				b.tiles[3][x] = "f"

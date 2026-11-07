@@ -420,7 +420,7 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := { }
 	txt.add_child(lbl(desc, 14, INK, null, true))
 	head.add_child(txt)
 	v.add_child(head)
-	var rows := [["Công", st.atk, 75], ["Thủ", st.def, 30], ["Đi", st.mv, 7], ["Tầm", stat_range(st)]]
+	var rows := [["Công", st.atk, 75], ["Thủ", st.def, 30], ["Đi", st.mv, 6], ["Tầm", stat_range(st)]]
 	if type != "ghost":
 		rows.append(["Giá", st.cost])
 	v.add_child(stat_bars(rows))

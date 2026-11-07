@@ -42,7 +42,7 @@ const UNITS := {
 		"name": "Sói bóng đêm",
 		"icon": "🐺",
 		"fig": "res://assets/units/elephant.svg",
-		"desc": "Sói đen to lớn từ rừng sâu. Chạy nhanh (6 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta.",
+		"desc": "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta.",
 	},
 	"elephant": {
 		"name": "Golem đá",
@@ -60,7 +60,7 @@ const UNITS := {
 		"name": "Rồng",
 		"icon": "🔥",
 		"fig": "res://assets/units/bird.svg",
-		"desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 7. Mạnh nhất, đắt nhất. Cung thủ bắn rồng +15 công.",
+		"desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 6. Mạnh nhất, đắt nhất. Cung thủ bắn rồng +15 công.",
 	},
 	"ghost": {
 		"name": "Bộ xương",

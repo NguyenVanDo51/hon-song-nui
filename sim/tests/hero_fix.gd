@@ -8,6 +8,7 @@ const SCEN := "res://sim/scenarios/2026-11-07_22-19-09_duel_dong_bang_t%d.scenar
 const CASTLE := Vector2i(11, 8) # unowned castle next to the bot's side of dong_bang
 
 func hero_tests() -> void:
+	_old_moves(true)
 	run(
 		"presets: hard / army carry HERO_FIX (= tune.gd frozen copy); army = hard + V5_ARMY",
 		func() -> void:
@@ -77,6 +78,19 @@ func hero_tests() -> void:
 			AI.greedy_step(c, mem)
 			check(not mem.has("hbt"), "knob off: no buy map"),
 	)
+	_old_moves(false)
+
+## the match was recorded when units walked mv + 1 (before 2026-11-08): replay its scenarios under that rule
+func _old_moves(on: bool) -> void:
+	if not on:
+		Game.use_tables(Rules.UNITS, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
+		return
+	var units: Dictionary = Rules.UNITS.duplicate(true)
+	for t: String in units:
+		var st: Dictionary = units[t]
+		var mv: int = st.mv
+		st.mv = mv + 1
+	Game.use_tables(units, Rules.HEROES, Rules.RULES, Rules.TERRAIN)
 
 ## the bot's (e) planned turn from the recorded start at turn, with knobs P; returns the state after it (mid rolls)
 func _play(turn: int, P: Dictionary) -> Dictionary:

@@ -371,8 +371,8 @@ func rule_tests() -> void:
 			var sol := unit(s, 0)
 			var reach := Game.reachable(s, sol)
 			var th := Game.threat_tiles(s, sol, reach)
-			check(th.has(Vector2i(0, 1)) and not reach.has(Vector2i(0, 1)), "6 away: hit, not walked to")
-			check(not th.has(Vector2i(0, 2)), "7 away: out of reach")
+			check(th.has(Vector2i(0, 0)) and not reach.has(Vector2i(0, 0)), "5 away: hit, not walked to")
+			check(not th.has(Vector2i(0, 1)), "6 away: out of reach")
 			var cat := unit(s, 1)
 			var tc := Game.threat_tiles(s, cat, Game.reachable(s, cat))
 			check(tc.has(Vector2i(3, 1)) and tc.has(Vector2i(0, 2)), "catapult rings 2..4 round its tile")
@@ -421,17 +421,17 @@ func rule_tests() -> void:
 		"rules tables = docs/spec.md (cost, atk, atkMax, def, mv, rmin, rmax; terrain def / cost)",
 		func() -> void:
 			var spec := {
-				"hero": [200, 55, 65, 20, 5, 1, 1],
-				"soldier": [150, 50, 55, 5, 5, 1, 1],
-				"archer": [250, 50, 55, 5, 5, 1, 2],
-				"boat": [300, 50, 55, 10, 5, 1, 1],
-				"shaman": [400, 40, 45, 5, 5, 1, 1],
-				"drum": [500, 35, 40, 10, 5, 1, 1],
-				"wolf": [600, 60, 65, 15, 6, 1, 1],
-				"elephant": [600, 60, 70, 30, 5, 1, 1],
-				"catapult": [700, 50, 70, 10, 4, 2, 4],
-				"bird": [1000, 70, 80, 25, 7, 1, 1],
-				"ghost": [150, 40, 50, 2, 5, 1, 1],
+				"hero": [200, 55, 65, 20, 4, 1, 1],
+				"soldier": [150, 50, 55, 5, 4, 1, 1],
+				"archer": [250, 50, 55, 5, 4, 1, 2],
+				"boat": [300, 50, 55, 10, 4, 1, 1],
+				"shaman": [400, 40, 45, 5, 4, 1, 1],
+				"drum": [500, 35, 40, 10, 4, 1, 1],
+				"wolf": [600, 60, 65, 15, 5, 1, 1],
+				"elephant": [600, 60, 70, 30, 4, 1, 1],
+				"catapult": [700, 50, 70, 10, 3, 2, 4],
+				"bird": [1000, 70, 80, 25, 6, 1, 1],
+				"ghost": [150, 40, 50, 2, 4, 1, 1],
 			}
 			for t: String in spec:
 				var u: Dictionary = Rules.UNITS[t]

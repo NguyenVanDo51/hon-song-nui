@@ -338,7 +338,7 @@ Knob (`AI.DEFAULT`, mặc định 0 = tắt -> Dễ / Thường / chiến dịch
 - Luật "đa dạng hơn rõ" với `hard_v5` (dev): ma 4,8× ✓, thuyền trên nước 2× ✓, nhưng chỉ 2 loại hỗ trợ ≥ 0,2 / ván (thầy mo, trống; sói 0,14) ✗ -> **trượt ngay ở dev**. Vẫn chạy held-out để có số (`hard_v5` cố định = ứng viên đa dạng nhất).
 - Thời gian (`tune.gd -- time a=<spec> b=hard_v1 games=4 salt=9100000`, 24 ván, v5 và v3 chạy cùng lúc, tải ~4–5): **v5 lượt TB 211 ms, p95 503 ms, tệ nhất 848 ms**; bước TB 21 ms, tệ nhất 834 ms. v3 cùng lúc: lượt 193 / 399 / 632 ms -> trong ngân sách (+9% TB).
 
-**Kết quả seed giữ riêng** (`tools/match_par.sh`, 8 tiến trình, chạy từ bản chụp code `0d21793`; cùng seed cho 2 hàng ở mỗi cột; ± SE nhị thức; không lần nào chạm `pl_ms`):
+**Kết quả seed giữ riêng** (`tools/match_par.sh`, 8 tiến trình, chạy từ bản chụp code `0d21793` (riêng `hard_v3` vs `hard_v2_0`: `3e66a9b`); kiểm: `hard_v3` ra đúng cùng 6 ván ở code master `a127c25` và code mới, `hard_v5` = `hard_v3+role_w:1+mix_w:1+pl_chain:1+mix_save:0,1+sham_save:1` cùng ván (salt 9410003); cùng seed cho 2 hàng ở mỗi cột; ± SE nhị thức; không lần nào chạm `pl_ms`):
 
 | A | vs `hard_v3` (768, 9700000–007) | vs `hard_v2_0` (432, 9700100–107) | vs Khó v1 (432, 9700200–207) | vs Thường (432, 9700300–307) |
 |---|---|---|---|---|

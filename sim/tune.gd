@@ -71,6 +71,7 @@ const V4_TACTICS := {
 	"pl_chain": 0.0, # T5: drum / wolf never bought in self-play, test only, off
 	"pl_dp": 0.0, # T6-T8 decision-point ply3 + snipe: dev 0.495, off
 	"ret_terr": 0.0, # T9: dev 0.516, off
+	"buy_sup": 0.0, # T12 save up for drum / wolf: dev 0.224, off (added after held-out; 0 = held-out spec unchanged)
 }
 
 var seed_v := 1.0

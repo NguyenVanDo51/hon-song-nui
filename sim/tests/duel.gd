@@ -165,7 +165,7 @@ func duel_tests() -> void:
 			check(not Store.fits_content(gone), "unknown level id does not fit"),
 	)
 	run(
-		"level grid: first tap selects (info), second tap on the same cell starts; ring = first level not won",
+		"level grid: first tap selects (info), second tap on the same cell starts; ring = next level after the furthest win",
 		func() -> void:
 			Store.use_profile("unit_tests")
 			var lv := Content.levels()
@@ -175,10 +175,10 @@ func duel_tests() -> void:
 			)
 			Store.set_v("campaign_done", [ids[0], ids[2]])
 			eq(Store.unlocked_index(), 3, "open up to the furthest win + 1")
-			eq(LevelSelect.first_unwon(lv, 3), 1, "level 2 skipped -> it is next")
+			eq(LevelSelect.first_unwon(lv, 3), 3, "level 2 skipped -> still the one after the furthest win")
 			var ls := LevelSelect.new()
 			ls.setup(lv, Store.unlocked_index(), 0)
-			eq(ls.sel, 1, "starts on the first level not won")
+			eq(ls.sel, 3, "starts on the next level")
 			var got := []
 			ls.level_picked.connect(
 				func(id: String) -> void:
@@ -192,6 +192,25 @@ func duel_tests() -> void:
 			ls._pick(5)
 			eq(got, [ids[0]], "locked cell never starts")
 			ls.free()
+			Store.set_v("campaign_done", []),
+	)
+	run(
+		"level ring: a veteran who won m05 is pointed past it, not back at t01; last level won -> first gap",
+		func() -> void:
+			Store.use_profile("unit_tests")
+			var lv := Content.levels()
+			var ids: Array = lv.map(
+				func(m: Dictionary) -> String:
+					return m.id,
+			)
+			Store.set_v("campaign_done", ["m01", "m02", "m03", "m04", "m05"])
+			var nx: Dictionary = Content.next_level("m05")
+			eq(LevelSelect.first_unwon(lv, Store.unlocked_index()), Content.level_index(str(nx.id)), "ring on the level after m05")
+			check(LevelSelect.first_unwon(lv, Store.unlocked_index()) != Content.level_index("t01"), "not t01")
+			Store.set_v("campaign_done", [ids[ids.size() - 1]])
+			eq(LevelSelect.first_unwon(lv, Store.unlocked_index()), 0, "last level won -> first not won")
+			Store.set_v("campaign_done", ids)
+			eq(LevelSelect.first_unwon(lv, Store.unlocked_index()), ids.size(), "all won -> size")
 			Store.set_v("campaign_done", []),
 	)
 	run(

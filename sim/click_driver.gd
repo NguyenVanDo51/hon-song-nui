@@ -1,11 +1,15 @@
 extends SceneTree
 ## drives the human click path through the real UI (no bot). run with -- mission=m02 fresh nointro
+## mission=t01 / t02 fresh: walks the tutorial steps instead (intro cards on, guide lock, ⚙ skip)
 
 var main: Main
 var fails := 0
 
 func _init() -> void:
 	Store.use_profile("driver") # never touch the player's save / progress / settings
+	var argv := Array(OS.get_cmdline_user_args())
+	if argv.has("mission=t01") or argv.has("mission=t02"):
+		Store.set_v("seen_units", []) # before boot: the intro cards must show ahead of step 1
 	var scn: PackedScene = load("res://main.tscn")
 	main = scn.instantiate()
 	main.flags["nozoom"] = "1"
@@ -251,6 +255,15 @@ func _run() -> void:
 	FX.speed = 3.0
 	await wait(1.0)
 	var g: GameScreen = main.game
+	var mission := str(main.flags.get("mission", ""))
+	if mission in ["t01", "t02"]:
+		if mission == "t01":
+			await _tut_t01(g)
+		else:
+			await _tut_t02(g)
+		print("DRIVER DONE fails=%d" % fails)
+		quit(1 if fails else 0)
+		return
 	var s: Dictionary = g.s
 	var hero: Dictionary = units_of(s).filter(
 		func(u: Dictionary) -> bool:
@@ -577,6 +590,245 @@ func _find_cls(n: Node, cls: String) -> Node:
 		return n
 	for c in n.get_children():
 		var f := _find_cls(c, cls)
+		if f != null:
+			return f
+	return null
+
+# ---------- tutorial levels ----------
+func _key(code: Key) -> void:
+	var e := InputEventKey.new()
+	e.keycode = code
+	e.pressed = true
+	Input.parse_input_event(e)
+	await process_frame
+	await process_frame
+
+## a real left click (press + release) at p in GameScreen coords, through the viewport's GUI picking
+func _tap(g: GameScreen, p: Vector2) -> void:
+	var at := g.get_global_transform_with_canvas() * p
+	for down: bool in [true, false]:
+		var e := InputEventMouseButton.new()
+		e.button_index = MOUSE_BUTTON_LEFT
+		e.pressed = down
+		e.position = at
+		e.global_position = at
+		main.get_viewport().push_input(e, true)
+		await process_frame
+	await process_frame
+
+## control the GUI picks under p (GameScreen coords), via a real mouse motion
+func _hover_at(g: GameScreen, p: Vector2) -> Control:
+	var e := InputEventMouseMotion.new()
+	e.position = g.get_global_transform_with_canvas() * p
+	e.global_position = e.position
+	main.get_viewport().push_input(e, true)
+	await process_frame
+	return main.get_viewport().gui_get_hovered_control()
+
+## tile rect in GameScreen coords (the guide overlay's coords)
+static func _tile_r(g: GameScreen, x: int, y: int) -> Rect2:
+	var r: Rect2 = g.board.tile_rect(x, y)
+	r.position += g.hud.map_wrap.position
+	return r
+
+static func _near(a: Rect2, b: Rect2) -> bool:
+	return a.get_center().distance_to(b.get_center()) < 3.0
+
+## intro cards up first (guide hidden under them), closed, then the guide comes up
+func _tut_open(g: GameScreen, tag: String) -> void:
+	root.size = Vector2i(1280, 720) # headless window is 64 px: real clicks need the board on screen
+	await wait(0.3)
+	var tut := g.tutorial
+	ok(tut.active() and tut.step == 0, tag + ": guide on at step 1")
+	var saw := false
+	for i in 120:
+		if g._intro_on:
+			saw = true
+			break
+		await process_frame
+	ok(saw, tag + ": new-unit intro shows first")
+	await process_frame
+	ok(not tut.visible, tag + ": guide hidden under the intro")
+	for i in 20:
+		if not g._intro_on:
+			break
+		g.cards.intro_closed.emit()
+		await wait(0.3)
+	for i in 300:
+		if tut.visible:
+			break
+		await process_frame
+	ok(tut.visible, tag + ": step 1 shows once the intro is closed")
+
+func _hero(s: Dictionary) -> Dictionary:
+	return units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "p" and u.type == "hero",
+	)[0]
+
+## t01: select, village, end turn, forest, (enemy turn), attack, then free play; ⚙ skip + Đánh tiếp resume mid-way
+func _tut_t01(g: GameScreen) -> void:
+	await _tut_open(g, "t01")
+	var tut := g.tutorial
+	var s: Dictionary = g.s
+	var hero := _hero(s)
+	var hid: int = hero.id
+	# step 1: only the hero answers
+	g._on_tile_clicked(8, 4)
+	g._on_tile_clicked(3, 3)
+	okv(g.ui.sel == null and g.ui.info == null and tut.step == 0, "t01 step 1: clicks off the hero do nothing")
+	await _key(KEY_TAB)
+	await _key(KEY_E)
+	await _key(KEY_H)
+	okv(g.ui.sel == null and g.ui.hint == null and s.side == "p" and s.turn == 1, "t01 step 1: Tab / E / H off")
+	ok(_near(tut.target_rect(), _tile_r(g, pos(hero).x, pos(hero).y)), "t01 step 1: hole on the hero")
+	var gc: Vector2 = g.hud.gear.get_global_rect().get_center() - tut.global_position
+	ok(not tut._has_point(gc) and tut._has_point(Vector2(4, g.size.y / 2.0)), "t01: overlay lets ⚙ through, blocks elsewhere")
+	g.hud.gear.pressed.emit()
+	await process_frame
+	ok(g.hud.menu.visible and find_btn(g.hud.menu, Content.text("tutSkip")) != null, "t01: ⚙ mid-step opens the menu with Bỏ qua")
+	await process_frame
+	ok(not tut.visible, "t01: guide steps aside while the menu is open")
+	g.hud.show_menu(false)
+	for i in 300:
+		if tut.visible:
+			break
+		await process_frame
+	await _tap(g, _tile_r(g, 8, 4).get_center())
+	okv(g.ui.sel == null and tut.step == 0, "t01 step 1: real click on the dim (enemy tile) swallowed")
+	var on_dim: Control = await _hover_at(g, Vector2(4, g.size.y / 2.0))
+	ok(on_dim == tut, "t01: pointer on the dim hits the guide overlay")
+	var hov: Control = await _hover_at(g, tut.target_rect().get_center())
+	ok(hov != null and (hov == g.board or g.board.is_ancestor_of(hov)), "t01: pointer in the hole reaches the board")
+	await _tap(g, tut.target_rect().get_center())
+	okv(tut.step == 1 and g.ui.sel == hid and s.tut_step == 1, "t01 step 1 done: real click through the hole picks the hero -> step 2")
+	ok(_near(tut.target_rect(), _tile_r(g, 1, 1)), "t01 step 2: hole on the village")
+	await main.shot("tut_t01_step2")
+	# Đánh tiếp resumes the same step
+	g.save()
+	main.show_title()
+	await wait(0.6)
+	press("Đánh tiếp")
+	await wait(1.4)
+	s = g.s
+	hero = Game.unit_by_id(s, hid)
+	okv(g.visible and s.tut_step == 1 and tut.step == 1 and tut.active() and tut.visible, "t01: Đánh tiếp resumes step 2")
+	ok(_near(tut.target_rect(), _tile_r(g, pos(hero).x, pos(hero).y)), "t01 step 2 resumed: nothing picked -> hole on the hero")
+	g._on_tile_clicked(1, 1)
+	okv(g.ui.sel == null and g.ui.info == null, "t01 step 2: village needs the hero picked first")
+	g._on_tile_clicked(pos(hero).x, pos(hero).y)
+	okv(g.ui.sel == hid, "t01 step 2: hero picked again")
+	g._on_tile_clicked(8, 4)
+	okv(g.ui.sel == hid and g.ui.mode == "idle", "t01 step 2: enemy click swallowed")
+	g._on_tile_clicked(1, 1)
+	g.commit({ "kind": "wait" }) # the orders popup's ⏳ Chờ would burn the hero without the village
+	okv(not hero.acted and g.ui.sel == hid, "t01 step 2: wait refused (capture only)")
+	g._on_tile_clicked(1, 1)
+	await idle(g)
+	okv(s.quests[1].done and tut.step == 2, "t01 step 2 done: village taken -> step 3")
+	# step 3: end turn only
+	await process_frame
+	ok(_near(tut.target_rect(), Rect2(g.hud.btn_end.position, g.hud.btn_end.size)), "t01 step 3: hole on Hết lượt")
+	g._on_tile_clicked(pos(hero).x, pos(hero).y)
+	okv(g.ui.sel == null, "t01 step 3: board locked")
+	press("Hết lượt")
+	var back: bool = await turn_of(g, "p")
+	okv(back and s.turn == 2 and tut.step == 3, "t01 step 3 done: enemy turn played, turn 2 -> step 4")
+	# step 4: forest
+	g._on_tile_clicked(pos(hero).x, pos(hero).y)
+	g._on_tile_clicked(4, 2)
+	g._on_tile_clicked(4, 2)
+	await idle(g)
+	okv(s.quests[3].done and tut.step == 4 and pos(hero) == Vector2i(4, 2), "t01 step 4 done: hero in the forest -> step 5")
+	# step 5 needs the enemy turn first: hero spent -> the guide points at Hết lượt
+	await process_frame
+	ok(tut.allows("end_turn") and _near(tut.target_rect(), Rect2(g.hud.btn_end.position, g.hud.btn_end.size)), "t01 step 5: hero spent -> end turn")
+	press("Hết lượt")
+	back = await turn_of(g, "p")
+	okv(back and s.turn == 3 and tut.step == 4 and tut.active(), "t01: enemy turn played, still step 5")
+	var foe: Variant = Game.unit_at(s, 5, 2)
+	okv(foe != null and foe.side == "e", "t01 step 5: a guard stands on the pointed tile")
+	await process_frame
+	ok(_near(tut.target_rect(), _tile_r(g, 4, 2)), "t01 step 5: nothing picked -> hole on the hero")
+	g._on_tile_clicked(pos(hero).x, pos(hero).y)
+	await process_frame
+	ok(_near(tut.target_rect(), _tile_r(g, 5, 2)), "t01 step 5: hero picked -> hole on the guard")
+	g._on_tile_clicked(5, 2)
+	g._on_tile_clicked(5, 2)
+	await idle(g)
+	await process_frame
+	okv(s.quests[4].done and not tut.active() and tut.step == 5 and not tut.visible, "t01 step 5 done: guide gone")
+	# free play
+	g._on_tile_clicked(3, 5)
+	okv(g.ui.info != null, "t01: free play, any tile answers")
+	ok(g.hud.quests.visible, "t01: quest panel stays")
+
+## t02: castle -> buy button, hurt soldier -> our village, end turn, heal on its own; then replay = guide again; ⚙ skip
+func _tut_t02(g: GameScreen) -> void:
+	await _tut_open(g, "t02")
+	var tut := g.tutorial
+	var s: Dictionary = g.s
+	g._on_tile_clicked(2, 4)
+	okv(g.ui.sel == null, "t02 step 1: hero click swallowed")
+	ok(_near(tut.target_rect(), _tile_r(g, 1, 4)), "t02 step 1: hole on our castle")
+	await _tap(g, tut.target_rect().get_center())
+	await wait(0.2)
+	okv(g.ui.buyAt == [1, 4], "t02 step 1: real click through the hole opens the shop")
+	var b := _buy_btn(g.panel.actions, "soldier")
+	ok(b != null and _near(tut.target_rect(), Rect2(b.global_position - tut.global_position, b.size)), "t02 step 1: hole moves to the buy button")
+	await main.shot("tut_t02_buy")
+	ok(not tut.allows("buy:archer"), "t02 step 1: other buys refused")
+	var hb: Control = await _hover_at(g, tut.target_rect().get_center())
+	ok(b != null and hb != null and (hb == b or b.is_ancestor_of(hb)), "t02 step 1: pointer in the hole reaches the buy button")
+	await _tap(g, tut.target_rect().get_center())
+	okv(s.quests[0].done and tut.step == 1 and g.ui.sel == null, "t02 step 1 done: bought -> step 2, new soldier not picked")
+	var hurt: Variant = Game.unit_at(s, 3, 2)
+	okv(hurt != null and hurt.hp < 100, "t02: hurt soldier on (3,2)")
+	await process_frame
+	await process_frame
+	ok(_near(tut.target_rect(), _tile_r(g, 3, 2)), "t02 step 2: hole on the hurt soldier %s vs %s" % [tut.target_rect(), _tile_r(g, 3, 2)])
+	g._on_tile_clicked(2, 1)
+	okv(g.ui.sel == null and g.ui.info == null, "t02 step 2: village needs the soldier first")
+	g._on_tile_clicked(3, 2)
+	g._on_tile_clicked(2, 1)
+	g._on_tile_clicked(2, 1)
+	await idle(g)
+	okv(s.quests[1].done and tut.step == 2, "t02 step 2 done: soldier on the village -> step 3")
+	press("Hết lượt")
+	await process_frame
+	okv(tut.step == 3 and not tut.active(), "t02 step 4 (heal) holds no lock")
+	for i in 3000:
+		if s.quests[3].done and tut.step == 4:
+			break
+		await process_frame
+	await process_frame
+	await process_frame
+	var dim: Control = tut.get_child(0)
+	ok(tut.visible and not dim.visible, "t02 heal: its line pops up (no dim)")
+	var back: bool = await turn_of(g, "p")
+	okv(back and s.turn == 2 and s.quests[3].done and tut.step == 4 and not tut.active(), "t02: healed at turn start -> guide done")
+	# replay: the lock runs again
+	var t02: Dictionary = Content.level("t02")
+	main.start_game(Game.new_game(t02), { "kind": "campaign", "id": "t02" })
+	await wait(0.4)
+	okv(g.tutorial.active() and g.tutorial.step == 0 and g.s.tut_step == 0, "t02 replay: guide from step 1 again")
+	# ⚙ -> Bỏ qua hướng dẫn: 1-star win, back to the grid, no save left
+	var done: Array = Store.done_list().duplicate()
+	done.erase("t02")
+	Store.set_v("campaign_done", done)
+	g.hud.gear.pressed.emit()
+	await process_frame
+	press(Content.text("tutSkip"))
+	await wait(0.6)
+	var skip_ok: bool = Store.is_done("t02") and Store.stars_of("t02") >= 1 and not g.visible and Store.load_game() == null
+	ok(skip_ok, "t02: Bỏ qua = win (1 star), level grid, save cleared")
+	ok(_find_cls(main, "LevelSelect") != null, "t02: level grid shows after skip")
+
+func _buy_btn(n: Node, type: String) -> Button:
+	if n is Button and str(n.get_meta("buy", "")) == type:
+		return n
+	for c: Node in n.get_children():
+		var f := _buy_btn(c, type)
 		if f != null:
 			return f
 	return null

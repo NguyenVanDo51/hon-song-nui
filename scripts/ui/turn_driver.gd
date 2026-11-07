@@ -47,6 +47,9 @@ func _turn_banner() -> String:
 func end_player_turn(_force := false) -> void: # _force: legacy arg (end turn no longer asks twice)
 	if gs.ui.busy or not gs._human_turn() or gs.s.winner != null:
 		return
+	if not gs.tutorial.allows("end_turn"):
+		gs.tutorial.refuse()
+		return
 	if gs._stuck_unit() != null: # a unit bought onto an occupied castle has not stepped off yet
 		gs._clear_sel()
 		gs._force_stack()

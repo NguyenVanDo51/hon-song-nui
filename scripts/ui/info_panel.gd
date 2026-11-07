@@ -465,6 +465,7 @@ func render_pop(my_turn: bool) -> void:
 				{ "disabled": not o.ok or not my_turn, "hot": gs.ui.hotBuy == o.type },
 			)
 			b.tooltip_text = look.blurb if o.type == "hero" else look.desc
+			b.set_meta("buy", type) # tutorial: the step's buy button gets the hole
 			b.custom_minimum_size = Vector2(POP_W, 46)
 			var row := Style.hbox(8)
 			row.mouse_filter = Control.MOUSE_FILTER_IGNORE

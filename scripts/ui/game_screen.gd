@@ -3,7 +3,7 @@ extends Control
 ## the war table: game state, board view, selection + input, hint. The rest lives in helpers that read / call it directly
 ## (review E5): hud = GameHud (map frame, floating HUD, ⚙ menu, corner card), panel = InfoPanel (orders / unit / buy popup,
 ## card text), player = EventPlayer (event playback, income / heal count-ups), turns = TurnDriver (turn flow, AI / bot loop,
-## hotseat handoff, finish), cards = GameCards (new-unit intro, end screen).
+## hotseat handoff, finish), cards = GameCards (new-unit intro, end screen), tutorial = Tutorial (step lock of t01 / t02).
 ## "me" = the side the person at the screen plays (_me); "p" / "e" literals left here mean faction colour.
 ## Port of the game half of src/ui/screens.js.
 
@@ -27,6 +27,7 @@ var panel: InfoPanel
 var player: EventPlayer
 var turns: TurnDriver
 var cards: GameCards
+var tutorial: Tutorial
 
 var _hover_at := 0
 # reach / best attack tile, memoised per board position: hovering re-asks them every mouse move
@@ -78,6 +79,8 @@ func _build() -> void:
 	hud.build_hud()
 	panel.build_pop()
 	cards.build_end()
+	tutorial = Tutorial.new()
+	add_child(tutorial) # last child: on top of the HUD for clicks
 	resized.connect(hud.place_hud)
 
 ## while the enemy moves: hold Space or a mouse button (or ⏩) to run x4
@@ -134,6 +137,8 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	if ctx.kind == "campaign" and not s.has("quests"): # new game, or a save from before quests
 		Quests.init_state(s, def)
 	hud.quests.bind(s, "")
+	var tut_steps: Array = def.get("tutorial", []) if ctx.kind == "campaign" else []
+	tutorial.bind(self, tut_steps)
 	save()
 	refresh()
 	turns.begin()
@@ -388,6 +393,9 @@ func _on_tile_clicked(x: int, y: int) -> void:
 		hud.show_menu(false)
 		return
 	if s.is_empty() or ui.busy or s.winner != null:
+		return
+	if not tutorial.allows(Vector2i(x, y)):
+		tutorial.refuse()
 		return
 	if ui.peek != null: # first click anywhere just closes the unit card
 		ui.peek = null
@@ -646,6 +654,10 @@ func _unhandled_input(ev: InputEvent) -> void:
 		return
 	if not (key != null and key.pressed and not key.echo):
 		return
+	if tutorial.active() and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER, KEY_TAB, KEY_E, KEY_H]:
+		tutorial.refuse()
+		get_viewport().set_input_as_handled()
+		return
 	match key.keycode:
 		KEY_SPACE, KEY_ENTER, KEY_KP_ENTER:
 			default_action()
@@ -688,6 +700,9 @@ func _set_dest(x: int, y: int) -> void:
 	refresh()
 
 func commit(extra: Dictionary) -> void:
+	if not tutorial.allows("act:" + str(extra.kind)):
+		tutorial.refuse()
+		return
 	player.stop_heal_counts() # an action's own hp playback must not be overridden by a heal still counting
 	var my := gen
 	var u: Dictionary = _sel_unit()
@@ -711,6 +726,9 @@ func commit(extra: Dictionary) -> void:
 		turns.finish()
 
 func buy_unit(type: String) -> void:
+	if not tutorial.allows("buy:" + type):
+		tutorial.refuse()
+		return
 	var x: int = ui.buyAt[0]
 	var y: int = ui.buyAt[1]
 	var nu: Variant = Game.buy(s, x, y, type)
@@ -776,7 +794,7 @@ func _open_work() -> int:
 
 # ---------- hint ----------
 func _on_hint() -> void:
-	if s.is_empty() or ui.busy or not _human_turn() or s.winner != null:
+	if s.is_empty() or ui.busy or not _human_turn() or s.winner != null or tutorial.active():
 		return
 	_reset_ui()
 	var step: Variant = AI.next_step(s.duplicate(true), { }) # next_step may clear guard flags: ask on a copy
@@ -815,10 +833,11 @@ func _on_hint() -> void:
 func refresh() -> void:
 	if s.is_empty():
 		return
+	tutorial.advance()
 	_build_view()
 	hud.refresh_top()
 	panel.clear_pop()
 	var my_turn: bool = _human_turn() and not ui.busy and s.winner == null
-	hud.btn_hint.disabled = not my_turn
+	hud.btn_hint.disabled = not my_turn or tutorial.active()
 	hud.refresh_end_button(my_turn)
 	panel.render_pop(my_turn)

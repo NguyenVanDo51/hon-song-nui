@@ -31,6 +31,7 @@ var _btn_speed: Button
 var _btn_sound: Button
 var _btn_restart: Button
 var _btn_music: Button
+var _btn_skip: Button
 var _pause: PanelContainer
 var _ribbon: HudWidgets.Ribbon
 var _hud_tc: HBoxContainer
@@ -296,6 +297,16 @@ func _build_menu() -> void:
 	)
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
 		home.add_theme_color_override(c, Style.CRIMSON_D)
+	_btn_skip = _ibtn(
+		Content.text("tutSkip"),
+		Content.text("tutSkipTip"),
+		func() -> void:
+			show_menu(false)
+			_skip_tutorial(),
+	)
+	_btn_skip.theme_type_variation = "TileBtn"
+	_btn_skip.custom_minimum_size.y = 48
+	v.add_child(_btn_skip)
 
 ## round on/off button with a small caption under it
 func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
@@ -315,6 +326,7 @@ func _toggle(parent: Control, caption: String, fn: Callable) -> Button:
 
 func show_menu(on: bool) -> void:
 	menu.visible = on
+	_btn_skip.visible = gs.def.has("tutorial")
 	if on:
 		sound_label()
 		speed_label()
@@ -333,7 +345,7 @@ func place_hud() -> void:
 	var picked := card.visible
 	var unit_card := picked and not card_terrain
 	_hud_tc.visible = not unit_card
-	hud_tr.visible = not unit_card
+	hud_tr.visible = not unit_card or (gs.tutorial != null and gs.tutorial.active()) # ⚙ (Bỏ qua hướng dẫn) reachable in every step
 	btn_end.visible = not unit_card
 	quests.visible = not unit_card
 	hud_tr.reset_size()
@@ -423,6 +435,13 @@ func on_speed() -> void:
 	FX.speed = 2.0 if FX.speed == 1.0 else (3.0 if FX.speed == 2.0 else 1.0)
 	Store.set_v("speed", FX.speed)
 	speed_label()
+
+## tutorial level: counts as a 1-star win (best kept), back to the level grid
+func _skip_tutorial() -> void:
+	var id := str(gs.ctx.get("id", ""))
+	Store.clear_game()
+	Store.record_result(gs.ctx, "p", 1)
+	gs.main.show_levels(LevelSelect.page_of(maxi(0, Content.level_index(id))))
 
 func _confirm_restart() -> void:
 	if gs.s.is_empty() or gs.ui.busy:

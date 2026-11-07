@@ -30,6 +30,8 @@ const DEFAULT := {
 	"pl_ms": 4000.0, # emergency wall-clock cap per plan
 	# kept from v4 (docs/ai.md "Mẹo người chơi trên mạng"), used by v5; 0 = off
 	"pl_chain": 0.0, # focus: drum (aura) / wolf (poison) hit first: + this x buff x follow-up hitters x target worth / 100
+	# commander fixes (docs/ai.md "Sửa lỗi tướng từ trận người chơi"); 0 = off
+	"pl_hero_kill": 0.0, # > 0: opponent reply also tried, at this roll: buy units that reach our commander, focus-kill it
 }
 ## knob sets for the greedy turn (merged over the side's own knobs); first = as is
 const STYLES := [
@@ -456,13 +458,26 @@ static func _reply_score(c: Dictionary, side: String, shared: Dictionary, P: Dic
 	var foe := Game.other(side)
 	Game.fixed_roll = knob(P, "pl_opp_roll") # > 0.5: plan against a lucky reply
 	var replies := [[]]
+	var hk_at := -1 # replies index played at the hero-kill roll
+	var hk_roll := knob(P, "pl_hero_kill")
 	if c.winner == null:
 		replies.append_array(kill_prefixes(c, foe, int(knob(P, "pl_opp_kill"))))
+		if hk_roll > 0.0:
+			Game.fixed_roll = hk_roll
+			var hk := hero_kill_prefix(c, foe)
+			Game.fixed_roll = knob(P, "pl_opp_roll")
+			if not hk.is_empty():
+				hk_at = replies.size()
+				replies.append(hk)
 	var worst := INF
-	for pre: Array in replies:
+	for i in replies.size():
+		var pre: Array = replies[i]
 		var r: Dictionary = c if replies.size() == 1 else c.duplicate(true)
+		if i == hk_at:
+			Game.fixed_roll = hk_roll # same roll as found: the prefix stays legal
 		for st: Dictionary in pre:
 			AI.apply_step(r, st)
+		Game.fixed_roll = knob(P, "pl_opp_roll")
 		play_greedy(r, shared)
 		Game.fixed_roll = 0.5
 		if r.winner == null:
@@ -473,6 +488,71 @@ static func _reply_score(c: Dictionary, side: String, shared: Dictionary, P: Dic
 		Game.fixed_roll = knob(P, "pl_opp_roll")
 	Game.fixed_roll = 0.5
 	return worst
+
+## foe (to move on c) kills our commander: focus with its units; else buy the type that hits it hardest (first castle with
+## one) and focus again, <= 4 buys. Steps from c, [] when it survives (Game.fixed_roll). c untouched
+static func hero_kill_prefix(c: Dictionary, foe: String) -> Array:
+	var me := Game.other(foe)
+	var hid := -1
+	for u: Dictionary in c.units:
+		if u.side == me and u.type == "hero":
+			hid = u.id
+	if hid < 0:
+		return []
+	var r: Dictionary = c.duplicate(true)
+	var buys := []
+	for k in 5:
+		var f := focus(r.duplicate(true), foe, hid)
+		if not f.is_empty():
+			return buys + f
+		if k == 4:
+			break
+		var bought := false
+		for key: Vector2i in Game.castle_tiles(r, foe):
+			var t := _best_hitter(r, foe, key, hid)
+			if t != "":
+				var st := { "kind": "buy", "x": key.x, "y": key.y, "type": t }
+				AI.apply_step(r, st)
+				buys.append(st)
+				bought = true
+				break
+		if not bought:
+			break
+	return []
+
+## affordable type bought at castle key that hits unit hid hardest this turn (mid roll); "" = none reaches it
+static func _best_hitter(r: Dictionary, foe: String, key: Vector2i, hid: int) -> String:
+	var h: Dictionary = Game.unit_by_id(r, hid)
+	var hx: int = h.x
+	var hy: int = h.y
+	var best := ""
+	var best_d := 0
+	for o: Dictionary in Game.buy_options(r, foe, key.x, key.y):
+		var ot: String = o.type
+		var base: Dictionary = Game.UNITS[ot]
+		if not o.ok or base.get("siege", false):
+			continue
+		var vu := { "id": -1, "side": foe, "type": ot, "x": key.x, "y": key.y, "hp": 100, "xp": 0, "rank": 0, "acted": false }
+		var st := Game.stat(r, vu)
+		var rmin: int = st.rmin
+		var rmax: int = st.rmax
+		if Game.dist(key.x, key.y, hx, hy) > st.mv + rmax:
+			continue
+		var units: Array = r.units
+		units.append(vu)
+		var reach := Game.reachable(r, vu)
+		units.pop_back()
+		for t: Dictionary in reach.values():
+			var tx: int = t.x
+			var ty: int = t.y
+			var dd := Game.dist(tx, ty, hx, hy)
+			if dd < rmin or dd > rmax:
+				continue
+			var d := Game.damage(r, vu, tx, ty, 100, h)
+			if d > best_d:
+				best = ot
+				best_d = d
+	return best
 
 ## the side to move plays the rest of its turn with the greedy AI (its s.aiParams knobs)
 static func play_greedy(c: Dictionary, shared: Dictionary) -> void:

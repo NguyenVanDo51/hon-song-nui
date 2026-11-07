@@ -2,8 +2,8 @@ extends SceneTree
 ## human-tactics metrics of a hard AI (docs/ai.md "Kinh nghiệm người chơi"): A (AI.PRESETS.hard + over) vs B, every
 ## skirmish map, both seats. Counted at each of A's turn ends / over the foe's reply.
 ## <godot> --headless --path . -s sim/probes/tactics_probe.gd -- [games=2] [salt=9200000] [base=hard] [over=k:v+k:v]
-##     [opp=v1|v2_0|v3|normal]
-## base=v2_0 / v3 -> tune.gd's frozen hard_v2_0 / hard_v3 instead of AI.PRESETS.hard
+##     [opp=v1|v2_0|v3|normal|<tune.gd frozen name>]
+## base=v2_0 / v3 -> tune.gd's frozen hard_v2_0 / hard_v3 instead of AI.PRESETS.hard; base=<tune.gd frozen name> (hard_v5b)
 ## examples=N -> print N turns where ref (hard_v2_0, ref=v3: hard_v3) from the same start leaves a lone killable unit and A
 ##     does not
 const Tune := preload("res://sim/tune.gd")
@@ -28,6 +28,8 @@ func _init() -> void:
 		A = Tune.HARD_V2_0.duplicate()
 	elif base == "v3":
 		A = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
+	elif base.begins_with("hard_v"):
+		A = Tune.frozen(base).duplicate()
 	var a_over: String = args.get("over", "")
 	for kv: String in a_over.split("+", false):
 		var p := kv.split(":", true, 1)
@@ -43,6 +45,8 @@ func _init() -> void:
 		B = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
 	elif opp == "normal":
 		B = { }
+	elif opp.begins_with("hard_v"):
+		B = Tune.frozen(opp)
 	var sum_of: String = args.get("sum", "")
 	if sum_of != "": # merge the raw lines of parallel runs (tools/tactics_par.sh)
 		for path: String in sum_of.split(",", false):
@@ -115,6 +119,13 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 			var act: Dictionary = st.act
 			if act.kind == "attack":
 				_attack(s, act, turn_atk)
+			var mid: int = act.id
+			var mover: Dictionary = Game.unit_by_id(s, mid)
+			if mover.type == "hero":
+				var mhp: int = mover.hp
+				add("hero_acts")
+				if act.kind == "wait" and act.to == [mover.x, mover.y] and mhp >= 70:
+					add("hero_idle") # healthy commander stood still, did nothing
 		var before := { }
 		for u: Dictionary in s.units:
 			before[u.id] = u
@@ -133,6 +144,8 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 					add("fed_rankups") # foe leveled off our attack (its counter)
 				if e.t == "capture" and Game.sells(e.tile):
 					add("castle_caps")
+					if e.get("prev") == null:
+						add("castle_caps_free")
 				if e.t == "rank" and before.has(e.id) and before[e.id].side == me:
 					add("own_rankups")
 		else:
@@ -234,6 +247,15 @@ func _turn_end(s: Dictionary, me: String, start_support: Dictionary) -> Dictiona
 				add("hero_alone")
 			if killable:
 				add("hero_killable")
+			var c: Dictionary = s.duplicate(true) # human-style reply: fresh buys + focus on the commander
+			Game.end_turn(c)
+			if c.winner == null:
+				var prev := Game.fixed_roll
+				for r: float in [0.5, 0.75]:
+					Game.fixed_roll = r
+					if not AIPlan.hero_kill_prefix(c, Game.other(me)).is_empty():
+						add("hero_buykill_%d" % roundi(r * 100))
+				Game.fixed_roll = prev
 			tags.append("hero")
 		else:
 			add("unit_turns")
@@ -324,6 +346,10 @@ func _report(args: Dictionary) -> void:
 		["hero allies within 2 (avg)", gm("hero_allies2") / ht],
 		["hero alone (no ally within 2) %", gm("hero_alone") * 100.0 / ht],
 		["hero killable at turn end %", gm("hero_killable") * 100.0 / ht],
+		["hero killable incl. fresh buys, mid roll %", gm("hero_buykill_50") * 100.0 / ht],
+		["hero killable incl. fresh buys, roll 0.75 %", gm("hero_buykill_75") * 100.0 / ht],
+		["healthy hero idle (wait in place, hp>=70) % of hero acts", _pct("hero_idle", "hero_acts")],
+		["unowned castles taken / game", gm("castle_caps_free") / maxf(1.0, g)],
 		["bad trades (non-kill, lose value) %", _pct("bad_trades", "attacks_nokill")],
 		["non-kill from worse ground %", _pct("nokill_worse_ground", "attacks_nokill")],
 		["ranged after melee on same target / 100 attacks", gm("ranged_after_melee") * 100.0 / maxf(1.0, gm("attacks"))],

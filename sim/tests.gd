@@ -14,6 +14,7 @@ const AudioTests := preload("res://sim/tests/audio.gd")
 const QuestTests := preload("res://sim/tests/quests.gd")
 const GameLogTests := preload("res://sim/tests/game_log.gd")
 const ReplayTests := preload("res://sim/tests/replay.gd")
+const HeroTests := preload("res://sim/tests/hero_fix.gd")
 
 var failed := 0
 var passed := 0
@@ -28,6 +29,7 @@ func _init() -> void:
 	_add(PlannerTests.new(), "planner_tests")
 	_add(PlannerTests.new(), "tactics_tests")
 	_add(PlannerTests.new(), "v5_tests")
+	_add(HeroTests.new(), "hero_tests")
 	_add(LevelgenTests.new(), "levelgen_tests")
 	_add(AudioTests.new(), "audio_tests")
 	_add(QuestTests.new(), "quest_tests")

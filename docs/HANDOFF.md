@@ -116,3 +116,11 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Bot Khó v3 (merge 3ef121a) mạnh hơn v2: đo lại g11 / g17 / g20 (bot hard) -> g11 2/12, g20 3/12 -> tăng vàng phe ta (g11 950, g20 1500) -> 5/12, 6/12; g17 4/12 giữ nguyên. Vàng phe địch gần như không đổi kết quả với v3.
 - Lưu ý: bot phe ta được lợi thế vàng vốn cho người -> màn tay hầu hết ra "Dễ"; nhãn thật cần user chơi thử.
 - Việc sau: `docs/TODO.md` § "Thử thách".
+
+## 2026-11-07 — hướng dẫn cầm tay + nhiệm vụ + popup quân bằng cảnh diễn (nhánh `feat/tutorial-quests`, chưa merge)
+- Spec `docs/superpowers/specs/2026-11-07-tutorial-quests-design.md`, plan `docs/superpowers/plans/2026-11-07-tutorial-quests.md`.
+- Nhiệm vụ: `scripts/core/quests.gd` (verb registry, `for_level` = `def.quests` + DEBUT quân mới trong `content/guide.gd`, chỉ campaign + ván mới). Thiếu nhiệm vụ -> thắng nhưng −1 ★ (sàn 1) qua `Stars.final`. Không có nhiệm vụ địa hình (user). Chỉ t01 t02 m01–m04 m10 + màn có `newUnits` có nhiệm vụ.
+- UI: `quest_panel.gd` góc trên phải (1 dòng, chạm bung, mờ + bấm xuyên khi che, ẩn khi chọn quân); `intro_stage.gd` popup quân = 6 ô diễn đi + đánh (sinh từ cờ quân, không dạy mẹo); `tutorial.gd` + `shaders/tut_hole.gdshader` tối + lỗ + tay + 1 dòng, ⚙ Bỏ qua hướng dẫn.
+- Màn: `content/levels/t01.gd` (order 1), `t02.gd` (order 2, không quân địch). Vòng "màn tiếp" = màn chưa thắng sau màn xa nhất đã thắng.
+- Kiểm: tests 156/0, lint ok, click_driver m02 (có / không intro) / t01 / t02 fails=0; ảnh probe `sim/probes/tut_shot.gd`, `intro_shot.gd`, `hud_shot.gd`.
+- Nợ mở: `docs/TODO.md` § Nợ kỹ thuật (golden cũ, tên màn m01–m16 còn sử Việt, `_eff` hết địch trong tầm, font thiếu ❤🪙…).

@@ -53,6 +53,57 @@ func press(text: String, where: Node = null) -> bool:
 		return true
 	return false
 
+## real mouse click on "Xem lại" replays the scene; Enter / Space afterwards still closes the card (no button takes focus)
+func _intro_replay_then_key(g: GameScreen, u: Dictionary, k: Key) -> void:
+	g._intro_on = true # as in intro_new_units: GameScreen only maps keys to the card then
+	g.cards.intro_card(u, 0, 1)
+	await wait(0.5) # card scale-in done: button rect is final
+	var stage := g.cards.intro_stage
+	var phases: Array[String] = []
+	stage.phase_changed.connect(
+		func(p: String) -> void:
+			phases.append(p),
+	)
+	var again := find_btn(g.cards.intro_layer, "Xem lại")
+	ok(again != null, "intro: replay button")
+	if again == null:
+		g.cards.intro_closed.emit()
+		g._intro_on = false
+		return
+	var old_size := root.size
+	root.size = Vector2i(1280, 720) # headless window is 64 px: real mouse picking needs the button inside the viewport
+	await wait(0.3)
+	var at := again.get_global_rect().get_center()
+	var mm := InputEventMouseMotion.new()
+	mm.position = at
+	mm.global_position = at
+	root.push_input(mm, true)
+	await process_frame
+	for down: bool in [true, false]:
+		var mb := InputEventMouseButton.new()
+		mb.button_index = MOUSE_BUTTON_LEFT
+		mb.pressed = down
+		mb.position = at
+		mb.global_position = at
+		root.push_input(mb, true)
+		await process_frame
+	await wait(0.4)
+	ok(phases.has("reach"), "intro: clicking Xem lại replays the scene (%s)" % [phases])
+	ok(root.gui_get_focus_owner() == null, "intro: no control holds focus after the click")
+	root.size = old_size
+	phases.clear()
+	for down: bool in [true, false]:
+		var key := InputEventKey.new()
+		key.keycode = k
+		key.physical_keycode = k
+		key.pressed = down
+		root.push_input(key, true)
+		await process_frame
+	for i in 30:
+		await process_frame
+	ok(g.cards.intro_layer == null and not phases.has("reach"), "intro: %s after Xem lại closes the card (no replay)" % OS.get_keycode_string(k))
+	g._intro_on = false
+
 ## s.units read fresh (Game swaps the array when a unit dies)
 static func units_of(s: Dictionary) -> Array:
 	return s.units
@@ -416,6 +467,8 @@ func _run() -> void:
 	for i in 30:
 		await process_frame
 	ok(g.cards.intro_layer == null, "intro card closes")
+	for k: Key in [KEY_ENTER, KEY_SPACE]:
+		await _intro_replay_then_key(g, any_u, k)
 	g._on_hint()
 	await process_frame
 	ok(g.ui.hint != null, "hint shows")

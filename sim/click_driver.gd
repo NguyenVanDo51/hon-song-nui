@@ -558,7 +558,7 @@ func _run() -> void:
 	var grid := _find_cls(main, "LevelSelect")
 	ok(grid != null, "level grid shows")
 	var all := Content.levels()
-	var want: Dictionary = all[mini(Store.unlocked_index(), all.size() - 1)]
+	var want: Dictionary = all[mini(LevelSelect.first_unwon(all, Store.unlocked_index()), all.size() - 1)]
 	press("Vào trận")
 	await wait(0.8)
 	var go_ok: bool = g.visible and str(g.s.scenario) == str(want.id)

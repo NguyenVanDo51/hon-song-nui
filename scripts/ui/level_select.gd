@@ -1,7 +1,8 @@
 class_name LevelSelect
 extends VBoxContainer
-## "Thử thách" grid: one cell per level (number, tier colour, best stars, lock), PER_PAGE a page, info for the
-## hovered / last tapped level, "Tiếp" = first level not yet won. Levels open up to the furthest win + 1 (Store.unlocked_index).
+## "Thử thách" grid: one cell per level (number, tier colour, best stars, lock), PER_PAGE a page, info for the selected
+## level (hover or first tap selects; a tap on the selected cell / "Vào trận" starts it, so phones can read the info first).
+## Gold ring = first level not yet won. Levels open up to the furthest win + 1 (Store.unlocked_index).
 
 signal level_picked(id: String)
 
@@ -13,6 +14,7 @@ const TIER_NAME := { "easy": "Dễ", "mid": "Trung bình", "hard": "Khó" }
 var levels: Array = []
 var open_index := 0
 var page := 0
+var sel := 0 # selected level (info panel); a second tap on it starts it
 var _grid: GridContainer
 var _info: VBoxContainer
 var _pager: HBoxContainer
@@ -20,6 +22,14 @@ var _pager: HBoxContainer
 static func page_of(index: int) -> int:
 	@warning_ignore("integer_division")
 	return index / PER_PAGE
+
+## first level below `open` not won yet (a veteran may have skipped inserted levels); `open` when all are won
+static func first_unwon(lv: Array, open: int) -> int:
+	for i in mini(open, lv.size()):
+		var def: Dictionary = lv[i]
+		if not Store.is_done(str(def.id)):
+			return i
+	return open
 
 static func tier_of(def: Dictionary) -> String:
 	var t: String = def.get("tier", "mid")
@@ -77,24 +87,37 @@ func _build() -> void:
 		cell.locked = i > open_index
 		cell.stars = Store.stars_of(str(def.id))
 		cell.done = Store.is_done(str(def.id))
-		cell.next = i == open_index
+		cell.next = i == first_unwon(levels, open_index)
 		cell.mouse_entered.connect(
 			func() -> void:
-				_show_info(i),
+				_select(i),
 		)
 		cell.picked.connect(_pick)
 		_grid.add_child(cell)
-	_show_info(mini(open_index, levels.size() - 1))
+	var want := mini(first_unwon(levels, open_index), levels.size() - 1)
+	_select(want if page_of(want) == page else first) # never show a level from another page
 
 func _turn(d: int) -> void:
 	page += d
 	_build()
 
+## tap / click: on another cell = select it (info); on the selected one = start it (if open)
 func _pick(i: int) -> void:
-	_show_info(i)
+	if i != sel:
+		_select(i)
+		return
 	if i <= open_index:
 		var def: Dictionary = levels[i]
 		level_picked.emit(str(def.id))
+
+func _select(i: int) -> void:
+	sel = i
+	for c in _grid.get_children():
+		var cell := c as Cell
+		if cell != null:
+			cell.selected = cell.index == i
+			cell.queue_redraw()
+	_show_info(i)
 
 ## title, tier, goal, the 3 star goals of level i (+ best stars), and the play button
 func _show_info(i: int) -> void:
@@ -146,6 +169,7 @@ class Cell extends Control:
 	var locked := false
 	var done := false
 	var next := false
+	var selected := false
 	var stars := 0
 
 	func _init() -> void:
@@ -164,7 +188,7 @@ class Cell extends Control:
 			accept_event()
 
 	func _draw() -> void:
-		var hot := get_global_rect().has_point(get_global_mouse_position()) and not locked
+		var hot := (selected or get_global_rect().has_point(get_global_mouse_position())) and not locked
 		var col: Color = LevelSelect.TIER_COL[tier]
 		var bg := Style.LACQUER_2 if not locked else Color(0.08, 0.05, 0.035, 0.85)
 		var border := Style.GOLD if (next or hot) else Color(col, 0.55 if not locked else 0.2)

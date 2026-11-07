@@ -165,6 +165,36 @@ func duel_tests() -> void:
 			check(not Store.fits_content(gone), "unknown level id does not fit"),
 	)
 	run(
+		"level grid: first tap selects (info), second tap on the same cell starts; ring = first level not won",
+		func() -> void:
+			Store.use_profile("unit_tests")
+			var lv := Content.levels()
+			var ids: Array = lv.map(
+				func(m: Dictionary) -> String:
+					return m.id,
+			)
+			Store.set_v("campaign_done", [ids[0], ids[2]])
+			eq(Store.unlocked_index(), 3, "open up to the furthest win + 1")
+			eq(LevelSelect.first_unwon(lv, 3), 1, "level 2 skipped -> it is next")
+			var ls := LevelSelect.new()
+			ls.setup(lv, Store.unlocked_index(), 0)
+			eq(ls.sel, 1, "starts on the first level not won")
+			var got := []
+			ls.level_picked.connect(
+				func(id: String) -> void:
+					got.append(id),
+			)
+			ls._pick(0)
+			eq(got, [], "tap on another cell: select only")
+			eq(ls.sel, 0)
+			ls._pick(0)
+			eq(got, [ids[0]], "second tap on it: start")
+			ls._pick(5)
+			eq(got, [ids[0]], "locked cell never starts")
+			ls.free()
+			Store.set_v("campaign_done", []),
+	)
+	run(
 		"unlock: furthest win opens everything before it",
 		func() -> void:
 			Store.use_profile("unit_tests")

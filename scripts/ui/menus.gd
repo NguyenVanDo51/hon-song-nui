@@ -218,9 +218,10 @@ func show_title() -> void:
 	var camp := Content.levels()
 	var ui := Store.unlocked_index()
 	var prog := "Đã thắng mọi thử thách"
-	if ui < camp.size():
-		var cm: Dictionary = camp[ui]
-		prog = "Thử thách %d/%d: %s" % [ui + 1, camp.size(), cm.title]
+	var nx := LevelSelect.first_unwon(camp, ui)
+	if nx < camp.size():
+		var cm: Dictionary = camp[nx]
+		prog = "Thử thách %d/%d: %s" % [nx + 1, camp.size(), cm.title]
 	var sv: Variant = Store.load_game()
 	if sv != null:
 		var svd: Dictionary = sv
@@ -373,7 +374,7 @@ func show_levels(pg := -1) -> void:
 		)
 	)
 	var ls := LevelSelect.new()
-	ls.setup(all, open, LevelSelect.page_of(mini(open, all.size() - 1)) if pg < 0 else pg)
+	ls.setup(all, open, LevelSelect.page_of(mini(LevelSelect.first_unwon(all, open), all.size() - 1)) if pg < 0 else pg)
 	ls.level_picked.connect(
 		func(id: String) -> void:
 			_sfx("ui")

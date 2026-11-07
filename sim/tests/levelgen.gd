@@ -16,7 +16,7 @@ const RECIPE := {
 	"river": "v",
 	"bridges": 2,
 	"rough": 0.3,
-	"temples": 1,
+	"temples": 2,
 	"sym": true,
 	"win": { "type": "castles" },
 	"allowed": { "p": ["soldier", "archer"], "e": ["soldier", "archer"] },
@@ -47,6 +47,10 @@ func levelgen_tests() -> void:
 			sc.source_code = LevelGen.to_source(a)
 			eq(sc.reload(), OK, "source parses")
 			eq(sc.get_script_constant_map().DEF, a, "source round-trip")
+			var temples := 0
+			for r: String in rows:
+				temples += r.count("t")
+			eq(temples, 2, "recipe temples kept through relayout")
 			var m := LevelGen.metrics(a)
 			var bal: float = m.balance
 			check(absf(bal - 0.5) <= 0.1, "villages balanced (%.2f)" % bal),

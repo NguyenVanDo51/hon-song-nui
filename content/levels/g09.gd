@@ -1,5 +1,5 @@
 extends RefCounted
-## level g09: drawn by sim/levelgen.gd (recipe g09, seed 1). Format: docs/content.md
+## level g09: drawn by sim/levelgen.gd (recipe g09, seed 4). Format: docs/content.md
 
 const DEF := {
 	"id": "g09",
@@ -18,29 +18,29 @@ const DEF := {
 	"night": false,
 	"map": {
 		"rows": [
-			".vrrrvrrvrrr.",
-			".rfmhffr...r.",
-			".rfh..hr.f.c.",
-			".r...fmv.h.r.",
-			".r.f.fhf...rf",
-			".c.h.......rf",
-			"...h.......rf",
-			"...mfvrrrrrvh",
-			".......fffhmh",
+			"...f.ffhhmf..",
+			"...h.ft......",
+			"...mf.....c..",
+			".crrrvrrrrrrv",
+			"..rf.rf...r..",
+			"..rmfrh...v..",
+			"..rf.vhmh.r..",
+			"..rmhf.fm.r..",
+			"..vhhhf.f.v..",
 		],
 	},
-	"owner": [[1, 5, "p"], [11, 2, "e"], [5, 7, "p"], [8, 0, "e"]],
+	"owner": [[1, 3, "p"], [10, 2, "e"], [5, 3, "p"], [12, 3, "e"]],
 	"units": [
-		["p", "hero", 1, 5],
-		["p", "soldier", 0, 6],
-		["p", "soldier", 2, 5],
-		["p", "archer", 2, 6],
-		["e", "hero", 11, 3],
-		["e", "soldier", 10, 3],
-		["e", "archer", 12, 3],
-		["e", "archer", 12, 2],
-		["e", "elephant", 10, 2],
+		["p", "hero", 1, 3],
+		["p", "soldier", 2, 4],
+		["p", "soldier", 2, 3],
+		["p", "archer", 0, 3],
+		["e", "hero", 10, 2],
+		["e", "soldier", 9, 3],
+		["e", "archer", 10, 3],
+		["e", "archer", 11, 3],
+		["e", "elephant", 9, 2],
 	],
 	"waves": [],
-	"gen": { "recipe": "g09", "seed": 1 },
+	"gen": { "recipe": "g09", "seed": 4 },
 }

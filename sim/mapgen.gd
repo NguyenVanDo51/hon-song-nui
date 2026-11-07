@@ -3,7 +3,7 @@ extends SceneTree
 ##  - paths (r) link castles and villages as one network (shortest spanning tree, straight runs, bridges over rivers)
 ##  - rough ground (forest / hill / mountain) comes in clumps: mountain core, hills around, forest on the rim —
 ##    the same number of rough tiles as before (balance), just grouped instead of sprinkled one by one
-##  - kept as is: castles, villages, water, bridges, and every tile a unit starts / spawns / is aimed at
+##  - kept as is: castles, villages, temples, water, bridges, and every tile a unit starts / spawns / is aimed at
 ##  - a free ring around castles; heavy units (no mountains) must still connect every castle
 ##  - 180°-symmetric maps stay symmetric
 ## prints one line per map: MAP <id> <json rows>. run: godot --headless --path . -s sim/mapgen.gd [-- only=m03,m05]
@@ -54,7 +54,7 @@ static func relayout(id: String, m: Dictionary) -> Array:
 	for y in h:
 		for x in w:
 			var t: String = g[y][x]
-			if t in ["c", "v", "x", "~", "="]:
+			if t in ["c", "v", "x", "~", "=", "t"]: # temples too (levelgen places them before relayout)
 				fixed[Vector2i(x, y)] = true
 			if t == "c":
 				castles.append(Vector2i(x, y))

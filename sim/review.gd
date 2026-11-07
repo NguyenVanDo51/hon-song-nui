@@ -1,6 +1,6 @@
 extends SceneTree
 ## headless match review (README "Ghi trận / phân tích"): replay + analyze recorded matches (scripts/ui/match_rec.gd).
-## <godot> --headless --path . -s sim/review.gd -- [what=latest|all-new|<file.replay>] [profile=default]
+## <godot> --headless --path . -s sim/review.gd -- [what=latest|all-new|<file.replay>] [profile=default] [dir=<abs dir>]
 ##     [lessons=res://docs/review/match_lessons.md | lessons=off] [lessons_bot] [scen=res://sim/scenarios] [noscen]
 ## Writes <id>.review.md / .json beside the replay, appends docs/review/match_lessons.md, prints the md. Wrapper:
 ## tools/review_match.sh.
@@ -14,7 +14,7 @@ func _init() -> void:
 		var kv := a.split("=", true, 1)
 		args[kv[0]] = kv[1] if kv.size() > 1 else ""
 	var what := str(args.get("what", "latest"))
-	var dir := MatchRec.dir_for(str(args.get("profile", "")))
+	var dir := str(args.get("dir", MatchRec.dir_for(str(args.get("profile", ""))))) # dir= : replays copied off a phone
 	var lessons := str(args.get("lessons", "res://docs/review/match_lessons.md"))
 	var files := pick(what, dir)
 	if files.is_empty():
@@ -32,6 +32,9 @@ func _init() -> void:
 			print("review: %s is not a replay" % p)
 			fails += 1
 			continue
+		var build := str(head.get("build", ""))
+		if build != "" and build != _build():
+			print("review: %s recorded on build %s, this checkout is %s -> hash may diverge (checkout tag ios-%s)" % [p, build, _build(), build])
 		var r := lib.review(rep)
 		ReviewOut.write(r, p.trim_suffix(Replay.EXT))
 		if lessons != "off" and (not head.get("bot", false) or args.has("lessons_bot")):
@@ -46,6 +49,9 @@ func _init() -> void:
 	quit(1 if fails else 0)
 
 ## replay paths for what: latest | all-new (no .review.json yet) | a file path
+static func _build() -> String:
+	return str(ProjectSettings.get_setting("application/config/version", ""))
+
 static func pick(what: String, dir: String) -> Array:
 	if what != "latest" and what != "all-new":
 		return [what] if FileAccess.file_exists(what) else []

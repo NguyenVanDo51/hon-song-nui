@@ -1,7 +1,7 @@
 class_name Replay
 extends RefCounted
 ## match replay format (recorder: scripts/ui/match_rec.gd, reader / analyzer: sim/review.gd). One JSON object per line:
-##   head   {t, format, date, kind, id, profile, bot, ctx, ctrl, ai, turn, side, prev, state (var_to_str), h}
+##   head   {t, format, date, kind, id, profile, bot, build, platform, ctx, ctrl, ai, turn, side, prev, state (var_to_str), h}
 ##   step   {t, turn, side, who: human|ai, step: {kind: act|buy|unbuy|end, ...}, h}   h = state_hash after the step
 ##   resume {t, date, turn, side, h}   continued from a save into the same file
 ##   finish {t, winner, reason, turns, h}

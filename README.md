@@ -69,6 +69,7 @@ Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy 
 - Kết quả: `<id>.review.md` (gọn: kết quả, bước ngoặt + lượt + toạ độ (x,y) + nước tốt hơn, lỗi người chơi, điểm yếu bot, file scenario) + `<id>.review.json` (cùng dữ liệu) cạnh file `.replay`; `docs/review/match_lessons.md` thêm 1 mục / trận + mục "Mẫu lặp lại" dựng lại mỗi lần chạy. `all-new` = các replay chưa có `.review.json`.
 - Thử (không đụng save thật): `godot --path . -- mission=g03 fresh bot profile=test speed=8 quit_at=450` rồi `tools/review_match.sh latest PROFILE=test LESSONS=off`.
 - Đường dẫn macOS: `~/Library/Application Support/Godot/app_userdata/Công Thành Chiến/replays/`.
+- **iPhone** (từ build 1.0.4, preset iOS `user_data/accessible_from_files_app`): app Tệp (Files) > Trên iPhone > Công Thành Chiến > `replays/default/` -> chọn file `.replay` (hoặc cả thư mục) -> AirDrop sang Mac -> `tools/review_match.sh ~/Downloads/<file hoặc thư mục>` (thư mục = phân tích mọi replay chưa có `.review.json`, kết quả ghi cạnh file). Head replay có `build` (= `application/config/version`, tăng cùng `application/version` iOS) + `platform`; build khác checkout -> review báo, `git checkout ios-<build>` rồi chạy lại (bảng luật lấy từ code hiện tại, TODO "Replay lưu cả state đầu"). Log phiên cũng ở `logs/game/`.
 
 ### Lint
 - Cài 1 lần: `pipx install "gdtoolkit==4.*"` (macOS: `brew install pipx` trước), rồi `tools/install_hooks.sh` -> git pre-commit chạy `tools/lint.sh --staged` (bỏ qua 1 lần: `git commit --no-verify`).

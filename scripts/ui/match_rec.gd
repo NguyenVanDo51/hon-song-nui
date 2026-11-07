@@ -83,6 +83,8 @@ static func open_in(dir: String, s: Dictionary, ctx: Dictionary) -> String:
 		"id": id,
 		"profile": profile,
 		"bot": bot,
+		"build": str(ProjectSettings.get_setting("application/config/version", "")),
+		"platform": OS.get_name(),
 		"ctx": head_ctx,
 		"ai": ai,
 		"turn": s.turn,

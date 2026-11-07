@@ -115,7 +115,7 @@ static func check_previous(dir: String) -> Dictionary:
 	var last_file: String = files[-1]
 	var p := dir.path_join(last_file)
 	res.file = last_file
-	var lines := tail_lines(p, 4096)
+	var lines := tail_lines(p, 65536) # shutdown output (leaks) can follow the clean-exit marker
 	var last := ""
 	for l in lines:
 		var i := l.find(MARK)

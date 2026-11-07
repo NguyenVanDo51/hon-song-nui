@@ -16,6 +16,7 @@ const DEF := {
 	"ai": "normal",
 	"win": { "type": "survive", "turns": 10 },
 	"stars": { "lost": 0 },
+	"quests": [{ "do": "heal_on", "what": "v" }],
 	"map": {
 		"rows": [
 			"~~~~~~~~~~~~",

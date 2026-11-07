@@ -78,3 +78,11 @@ naive 0 e castlesLost t9 n88 8ba34b21
 naive 1 e castlesLost t6 n48 e2f0f69
 naive 2 e castlesLost t9 n85 45e359c9
 naive 3 e castlesLost t11 n108 dc0eda1
+t01 0 p routed t4 n9 33300097
+t01 1 p routed t4 n9 81d734c6
+t01 2 p routed t4 n9 fd8751fa
+t01 3 p routed t4 n9 9266733e
+t02 0 p castlesLost t2 n5 1f512df9
+t02 1 p castlesLost t2 n5 287b2027
+t02 2 p castlesLost t2 n5 1f512df9
+t02 3 p castlesLost t2 n5 1f512df9

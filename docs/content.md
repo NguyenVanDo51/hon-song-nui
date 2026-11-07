@@ -66,8 +66,22 @@ const DEF := {
 	"owner": [[x, y, "p"], ...],          # làng/thành có chủ lúc đầu
 	"units": [["p", "hero", x, y], ["e", "soldier", x, y, { "guard": true, "hp": 70, "rank": 1 }], ...],
 	"waves": [{ "turn": 3, "units": [["soldier", x, y], ...] }],   # địch kéo đến đầu lượt địch
+	"quests": [{ "do": "capture", "what": "v" }, ...],   # nhiệm vụ tay (tuỳ chọn), verb = Quests.VERBS; + DEBUT của newUnits tự thêm
+	"tutorial": [{ "q": 0, "point": [x, y], "allow": [[x, y], "end_turn", "buy:soldier"], "say": "Chọn tướng" }, ...],  # chỉ t01/t02
 }
 ```
+
+### Nhiệm vụ (`quests`, 2026-11-07)
+- Mỗi mục `{ "do": verb, "what": loại quân | ký tự ô | null, "n": 1 }`; verb + điều kiện xong + "làm được không" ở `scripts/core/quests.gd` `VERBS`. Chữ từ `content/theme.gd` `text.quest_<verb>`.
+- `Quests.for_level(def)` = `quests` + nhiệm vụ "lần đầu" (`content/guide.gd` `DEBUT`) của mỗi loại trong `newUnits` (màn có `tutorial`: không thêm DEBUT). Dòng thắng không tính.
+- Thắng mà còn nhiệm vụ chưa xong -> −1 sao (sàn 1). Test: mọi nhiệm vụ của mọi màn `Quests.feasible == ""`.
+- Có nhiệm vụ tay: m01–m04, m10 (+ t01/t02). Màn khác chỉ có DEBUT (nếu `newUnits`).
+- **Sim cân bằng coi nhiệm vụ đã xong**: bot phe ta không cố làm nhiệm vụ -> mốc sao (`stars`) đo như cũ, không trừ sao nhiệm vụ.
+
+### Hướng dẫn (`tutorial`, chỉ t01 / t02)
+- Mỗi bước: `q` = chỉ số trong `quests` (bước xong khi nhiệm vụ đó xong), `point` = ô `[x, y]` | `"end_turn"` | `"buy:<loại>"` (vòng sáng + tay chỉ), `allow` = ô / nút bấm được trong bước (phải chứa `point` và mọi ô cần bấm, vd ô quân + ô đích), `say` = 1 dòng ngắn (tuỳ chọn).
+- Test (`sim/tests/quests.gd` `quest_content_tests`): `point` ∈ `allow`, `q` tăng dần + phủ mọi nhiệm vụ, đi hết các bước trên bản đồ thật với bot thật (t01: 8 seed).
+- t01: địch = vệ binh `guard` máu thấp; chỉ 1 ô cạnh rừng (5,2) trong tầm địch -> địch thức dậy đánh từ đó, bước 5 chỉ vào ô đó. t02: không quân địch (lính bị thương không chết giữa bước hồi máu), địch chỉ giữ thành, `gold.e 0`, `allowed.e []`.
 
 Vào màn: thẳng bàn cờ, rồi thẻ giới thiệu quân mới (nếu có). Không thoại / sử tích (bỏ 2026-11-07).
 
@@ -86,42 +100,44 @@ Thứ tự = `order`. Màn `mNN` = làm tay (giữ nhịp thấy -> cầm -> mua
 
 | # | id | Tên | Khó | Bot | Thắng | Mới |
 |---|---|---|---|---|---|---|
-| 1 | m01 | Lời Thề Hát Môn | Dễ | normal | rout | bộ binh, tướng |
-| 2 | m02 | Về Lại Mê Linh | Dễ | normal | castles | nỏ thủ (mua), chiếm thành |
-| 3 | m03 | Giữ Làng Hạ Lôi | Dễ | normal | survive | trống đồng (cầm), giữ vững |
-| 4 | m04 | Phá Đồn Cổ Loa | TB | normal | hero | trống (mua), voi (thấy), hạ tướng |
-| 5 | g01 | Bến Đò | TB | normal | castles | — |
-| 6 | m05 | Đêm Hồ Tây | Dễ | normal | castles | voi (mua), đêm |
-| 7 | g02 | Đồi Sim | Dễ | normal | rout | — |
-| 8 | m06 | Trận Bãi Sông | Dễ | normal | hero | — |
-| 9 | g03 | Ngã Ba Sông | Khó | normal | castles | — |
-| 10 | g04 | Giữ Đồn | Dễ | normal | survive | — |
-| 11 | m07 | Vây Thành Long Biên | Dễ | normal | castles | máy bắn đá (cầm) |
-| 12 | g05 | Rừng Lim | TB | normal | hero | — |
-| 13 | m08 | Trị Sở Luy Lâu | Dễ | normal | castles | máy bắn đá (mua) |
-| 14 | g06 | Bãi Bồi | TB | normal | rout | — |
-| 15 | m09 | Tin Dữ Hợp Phố | Dễ | normal | survive | thủy binh (thấy) |
-| 16 | g07 | Cửa Sông | TB | normal | hero | — |
-| 17 | m10 | Sóng An Biên | Dễ | normal | hero | thủy binh (mua), làng hỏng |
-| 18 | g08 | Sông Đáy | TB | normal | castles | — |
-| 19 | g09 | Làng Ven Đê | TB | normal | hero | — |
-| 20 | m11 | Bát Nàn Giữ Ải | Dễ | normal | castles | sói (thấy) |
-| 21 | g10 | Rừng Đêm | Dễ | normal | rout · đêm | — |
-| 22 | m12 | Trận Lãng Bạc | Dễ | normal | castles | sói (mua) |
-| 23 | g11 | Thành Đá | Khó | hard | castles | — |
-| 24 | g12 | Bãi Lau | Dễ | normal | rout | — |
-| 25 | m13 | Địu Con Phá Vây | Dễ | normal | reach | thầy mo + âm binh (cầm), tới ô đích |
-| 26 | g13 | Miếu Cổ | Dễ | normal | castles | — |
-| 27 | m14 | Rút Về Cấm Khê | Dễ | normal | reach | thầy mo (mua) |
-| 28 | g14 | Đầm Lầy | Dễ | normal | survive | — |
-| 29 | g15 | Thành Mới | Dễ | normal | castles | — |
-| 30 | m15 | Thành Cấm Khê | Dễ | normal | survive | rồng (1 con) |
-| 31 | g16 | Núi Rồng | Dễ | normal | hero | — |
-| 32 | m16 | Đêm Sông Hát | TB | normal | survive | — |
-| 33 | g17 | Lũy Tre | Khó | hard | castles | — |
-| 34 | g18 | Trăng Khuyết | Dễ | normal | rout · đêm | — |
-| 35 | g19 | Giữ Thành | Dễ | normal | survive | — |
-| 36 | g20 | Trận Cuối | Khó | hard | castles | — |
+| 1 | t01 | Bài Học Đầu | Dễ | normal | rout | tướng; hướng dẫn: chọn quân, chiếm làng, hết lượt, rừng, đánh |
+| 2 | t02 | Chiêu Binh | Dễ | normal | castles | bộ binh (mua); hướng dẫn: mua quân, hồi máu ở làng |
+| 3 | m01 | Lời Thề Hát Môn | Dễ | normal | rout | — (bộ binh, tướng ra mắt ở t01 / t02) |
+| 4 | m02 | Về Lại Mê Linh | Dễ | normal | castles | nỏ thủ (mua), chiếm thành |
+| 5 | m03 | Giữ Làng Hạ Lôi | Dễ | normal | survive | trống đồng (cầm), giữ vững |
+| 6 | m04 | Phá Đồn Cổ Loa | TB | normal | hero | trống (mua), voi (thấy), hạ tướng |
+| 7 | g01 | Bến Đò | TB | normal | castles | — |
+| 8 | m05 | Đêm Hồ Tây | Dễ | normal | castles | voi (mua), đêm |
+| 9 | g02 | Đồi Sim | Dễ | normal | rout | — |
+| 10 | m06 | Trận Bãi Sông | Dễ | normal | hero | — |
+| 11 | g03 | Ngã Ba Sông | Khó | normal | castles | — |
+| 12 | g04 | Giữ Đồn | Dễ | normal | survive | — |
+| 13 | m07 | Vây Thành Long Biên | Dễ | normal | castles | máy bắn đá (cầm) |
+| 14 | g05 | Rừng Lim | TB | normal | hero | — |
+| 15 | m08 | Trị Sở Luy Lâu | Dễ | normal | castles | máy bắn đá (mua) |
+| 16 | g06 | Bãi Bồi | TB | normal | rout | — |
+| 17 | m09 | Tin Dữ Hợp Phố | Dễ | normal | survive | thủy binh (thấy) |
+| 18 | g07 | Cửa Sông | TB | normal | hero | — |
+| 19 | m10 | Sóng An Biên | Dễ | normal | hero | thủy binh (mua), làng hỏng |
+| 20 | g08 | Sông Đáy | TB | normal | castles | — |
+| 21 | g09 | Làng Ven Đê | TB | normal | hero | — |
+| 22 | m11 | Bát Nàn Giữ Ải | Dễ | normal | castles | sói (thấy) |
+| 23 | g10 | Rừng Đêm | Dễ | normal | rout · đêm | — |
+| 24 | m12 | Trận Lãng Bạc | Dễ | normal | castles | sói (mua) |
+| 25 | g11 | Thành Đá | Khó | hard | castles | — |
+| 26 | g12 | Bãi Lau | Dễ | normal | rout | — |
+| 27 | m13 | Địu Con Phá Vây | Dễ | normal | reach | thầy mo + âm binh (cầm), tới ô đích |
+| 28 | g13 | Miếu Cổ | Dễ | normal | castles | — |
+| 29 | m14 | Rút Về Cấm Khê | Dễ | normal | reach | thầy mo (mua) |
+| 30 | g14 | Đầm Lầy | Dễ | normal | survive | — |
+| 31 | g15 | Thành Mới | Dễ | normal | castles | — |
+| 32 | m15 | Thành Cấm Khê | Dễ | normal | survive | rồng (1 con) |
+| 33 | g16 | Núi Rồng | Dễ | normal | hero | — |
+| 34 | m16 | Đêm Sông Hát | TB | normal | survive | — |
+| 35 | g17 | Lũy Tre | Khó | hard | castles | — |
+| 36 | g18 | Trăng Khuyết | Dễ | normal | rout · đêm | — |
+| 37 | g19 | Giữ Thành | Dễ | normal | survive | — |
+| 38 | g20 | Trận Cuối | Khó | hard | castles | — |
 
 ## Sao màn (2026-11-06)
 - 3 sao / màn chiến dịch (`scripts/core/stars.gd`): thắng · tướng ta không ngã lần nào (`heroDeaths.p == 0`) · mốc riêng `stars` của màn: `turns` (thắng trong ≤ N lượt) hoặc `lost` (mất ≤ K lính; không tính tướng, âm binh; đếm ở `s.lost`).

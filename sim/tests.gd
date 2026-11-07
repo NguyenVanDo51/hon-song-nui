@@ -28,6 +28,7 @@ func _init() -> void:
 	_add(LevelgenTests.new(), "levelgen_tests")
 	_add(AudioTests.new(), "audio_tests")
 	_add(QuestTests.new(), "quest_tests")
+	_add(QuestTests.new(), "quest_content_tests")
 	print("tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 

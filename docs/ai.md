@@ -300,6 +300,11 @@ Tiếp (nếu muốn "siêu khó" / khôn hơn):
 - Tìm sâu thật ở lượt quyết định: lượt sau của ta phải có địch đáp (ply 4) hoặc dùng dồn đòn giết làm lượt sau, không phải tham lam ply3.
 - Người thật chơi thử Khó v3 trước khi đầu tư thêm (AI-vs-AI ≠ người).
 
+### Đội hình linh hoạt = Khó v5 (2026-11-07, phiên 5)
+Mục tiêu: AI mua loại quân theo tình huống + dùng đúng việc từng quân hỗ trợ (thầy mo gọi ma, thuyền đi sông, trống, sói, máy bắn đá, voi, chim), không chỉ lính + cung; chỉ ship nếu không yếu đi. Mốc = spec cố định `hard_v3`. Mã: `scripts/core/ai_buy.gd` (`AIBuy`, tách từ `ai.gd`, y nguyên hành vi: trace không đổi).
+
+**Seed giữ riêng (ghi trước khi xem kết quả)**: `hard_v5` vs `hard_v3` salt 9700000–007 `games=16` (768 ván); vs `hard_v2_0` / Khó v1 / Thường salt 9700100–107 / 9700200–207 / 9700300–307 `games=9` (432 ván), cùng seed cho hàng `hard_v3`; thử spam: `hard_v3+_spam:1` (chỉ được mua lính + cung) vs `hard_v5` và vs `hard_v3`, salt 9700400–407 `games=4` (192 ván). Luật ship: `AI.PRESETS.hard` = v5 chỉ khi (v5 vs `hard_v3`) ≥ 0,50 trên 768 ván **và** v5 vs `hard_v2_0` / Khó v1 / Thường không kém hàng `hard_v3` quá ~1 SE **và** đội hình đa dạng hơn rõ (quân hỗ trợ được mua + làm việc thật) **và** thời gian trong ngân sách (lượt TB ≤ ~0,3 s, tệ nhất ≤ 1,5 s). Không thì giữ v3, knob v5 để 0, `hard_v5` cố định để so.
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

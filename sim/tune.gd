@@ -13,7 +13,8 @@ extends SceneTree
 ## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned file) | hard_n2 (tuned, noise 2)
 ##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard)
 ##       | hard_v2_0 (hard v2 as first shipped, frozen) | hard_v3 (hard_v2_0 + V3_TACTICS, frozen)
-##       | hard_v4 (hard_v3 + V4_TACTICS, frozen) | hard_v5 (hard_v3 + V5_ARMY, frozen) | file:<path> (tuned file)
+##       | hard_v5 (hard_v3 + V5_ARMY, frozen) | file:<path> (tuned file)
+##       (hard_v4 = v3 + internet tactics: code removed, results in docs/ai.md; rerun at 5aac2ee)
 ##       + optional overrides: <spec>+key:value+key:value (e.g. hard_v2+pl_cands:4); +_spam:1 = that side buys only
 ##       soldier / archer (spam test)
 ## seeds: game k of salt -> 1000 + (salt * 64 + k) * 7919 (evolve salts < 9e6; held-out / presets >= 9e6)
@@ -65,21 +66,11 @@ const V3_TACTICS := {
 	"escort_w": 0.0, # tip 1: lost vs hard_v1 (docs/ai.md), off
 	"hero_cgoal": 0.0,
 }
-## hard v4 = hard_v3 + internet tactics (docs/ai.md "Mẹo người chơi trên mạng"), frozen; every new knob explicit
-const V4_TACTICS := {
-	"buy_threat": 1.0, # T1: foe castle buys in the threat map (dev 0.518 vs hard_v3, within noise; units in buy reach -9%)
-	"promo_w": 0.0, # T2: dev 0.477, off
-	"pl_chain": 0.0, # T5: drum / wolf never bought in self-play, test only, off
-	"pl_dp": 0.0, # T6-T8 decision-point ply3 + snipe: dev 0.495, off
-	"ret_terr": 0.0, # T9: dev 0.516, off
-	"buy_sup": 0.0, # T12 save up for drum / wolf: dev 0.224, off (added after held-out; 0 = held-out spec unchanged)
-}
-
 ## hard v5 = hard_v3 + flexible army (docs/ai.md "Đội hình linh hoạt = Khó v5"), frozen; the most varied dev candidate
 const V5_ARMY := {
 	"role_w": 1.0, # unit jobs: shaman last + by graves, drum first, wolf bite first, boats on water
 	"mix_w": 1.0, # situational buys, affordable now
-	"pl_chain": 1.0, # drum / wolf first in kill chains
+	"pl_chain": 1.0, # drum / wolf first in kill chains (added in v4, kept)
 	"mix_save": 0.1, # lead >= 10%: save one income for a called-for unit >= 500
 	"sham_save": 1.0, # ... or a shaman with graves in reach
 }
@@ -143,8 +134,6 @@ static func frozen(sp: String) -> Dictionary:
 		return HARD_V2_0
 	if sp == "hard_v3":
 		return HARD_V2_0.merged(V3_TACTICS)
-	if sp == "hard_v4":
-		return HARD_V2_0.merged(V3_TACTICS).merged(V4_TACTICS)
 	if sp == "hard_v5":
 		return HARD_V2_0.merged(V3_TACTICS).merged(V5_ARMY)
 	return { }

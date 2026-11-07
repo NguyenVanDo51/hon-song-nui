@@ -228,6 +228,7 @@ Ví dụ (`tactics_probe.gd -- games=1 salt=9200000 base=v3 opp=v2_0 examples=4`
 Bài học: phiên 2 kết luận "nút thắt là hàm điểm" — sai một nửa: mọi ứng viên của planner đều do v1 tham lam sinh ra, nên lỗi chung của v1 (đưa quân lẻ vào tầm địch từng con một) có trong mọi ứng viên, hàm điểm không có gì tốt hơn để chọn. Sửa chỗ **sinh ứng viên** (`lone_w`) cho +0,13 một mình. Thận trọng theo từng quân + tình huống (quân lẻ có thể bị dồn chết) ≠ thận trọng cả đội (tướng nấp, phạt nguy cơ cố định — đều thua).
 
 ### Mẹo người chơi trên mạng = Khó v4 (2026-11-07, phiên 4)
+**Code v4 đã xoá (2026-11-07, commit "ai: remove hard v4 code")**: knob `buy_threat` / `promo_w` / `pl_dp` / `ret_terr` / `buy_sup`, `AIBuy.buy_threats`, `AI.promo_gain`, `AIPlan.decision_point`, `_support_want`, spec `hard_v4` / `V4_TACTICS`, `v4_tests`, chỉ số `in_buy_reach` / `pl_dp` / `exk=buy` của `tactics_probe`. Giữ `pl_chain` (v5 `V5_ARMY` dùng; test chuyển sang `v5_tests`). Mục dưới = lịch sử (kết quả còn giá trị); lệnh `hard_v4` / `base=v4` / `exk=buy` không chạy được nữa (về commit `5aac2ee` để chạy lại).
 Mẹo của người chơi giỏi trên mạng (Advance Wars, Wesnoth, Wargroove, Fire Emblem) + mẹo suy từ luật AE2 đã xác minh (`docs/review/ae2_research.md`; hướng dẫn chiến thuật riêng cho AE2: không có nguồn dùng được). Mỗi mẹo = 1 knob, mặc định 0 = tắt -> Dễ / Thường / chiến dịch / đấu tự do / golden y nguyên. Làm như bài học v3: sửa **sinh ứng viên** (điểm AI tham lam v1 mà mọi ứng viên planner thừa hưởng) hoặc thêm tiền tố ứng viên có điều kiện cho 2 ply chấm, không phạt cố định trong hàm điểm. Mốc = spec cố định `hard_v3`.
 
 Nguồn (đọc 2026-11-07):
@@ -264,7 +265,7 @@ Nguồn (đọc 2026-11-07):
 
 - `pl_dp`: điểm quyết định ở 30% lần lập (snipe 3,65 / ván, giết 1,30, cả hai 0,44); ứng viên snipe được chọn 0,75 lần / ván; chiếm thành / giết tướng không đổi -> 0,495.
 - `promo_w`: lên cấp nhiều hơn (+18%) nhưng đổi lỗ nhiều hơn, chết nhiều hơn -> 0,477.
-- `pl_chain`: chỉ kiểm bằng test (`sim/tests/planner.gd` "pl_chain"): AI gần như không mua trống / sói -> không đo được bằng tự đấu.
+- `pl_chain`: chỉ kiểm bằng test (`sim/tests/planner.gd` "pl_chain", nay trong `v5_tests`): AI gần như không mua trống / sói -> không đo được bằng tự đấu.
 
 Chỉnh lại v3 (không phải mẹo trên mạng; dev cùng salt 1000–1007, 192 ván vs `hard_v3`): `lone_w` 0,6: 0,518; `lone_n` 2: **0,414** (thua); `hero_cgoal` 1 (bản đã sửa thành trung lập): 0,492; `escort_w` 10: 0,539 (tướng đứng một mình 42,8% -> 34,9%; < 0,57 = ~2 SE, luật chọn ghi trước -> không đưa vào v4).
 
@@ -282,9 +283,9 @@ Kết quả seed giữ riêng (`tools/match_par.sh`, 8 tiến trình; cùng seed
 - v4 vs v3 theo map (v4 ghế p / e, / 128): đồng bằng 81,5 / 43; cửa biển 56,5 / 67,5; núi rừng 25 / 108 -> lệch ghế rất mạnh, tổng = hòa.
 - `pl_ms` (phanh 4 s) chạm 2 lần ở v4 vs Thường (máy tải ~10–20: phiên khác chạy song song) -> vài ván không tất định tuyệt đối, không đổi kết luận. Hàng khác: 0 lần.
 - Thời gian (`tune.gd -- time a=<spec> b=hard_v1 games=4 salt=9100000`, 24 ván, v4 và v3 chạy cùng lúc, tải 5–10): **v4 lượt TB 302 ms, p95 573 ms, tệ nhất 1,06 s**; bước TB 32 ms, tệ nhất 696 ms. v3 cùng lúc: lượt 310 / 599 / 1130 ms -> v4 không chậm hơn (lượt TB ~0,3 s là do tải máy; v3 đo lúc tải 3–7: 176 ms).
-- **Kết luận: không ship.** v4 vs v3 = 0,497 (cần ≥ 0,55); vs `hard_v2_0` / Khó v1 / Thường trong ~1 SE của v3 (+0,005 / −0,011 / +0,007). `AI.PRESETS.hard` giữ = Khó v3; knob v4 để 0; `hard_v4` vẫn cố định để so. Mạnh nhất + khôn nhất vẫn là **Khó v3** (v4 ngang v3, không hơn).
+- **Kết luận: không ship.** v4 vs v3 = 0,497 (cần ≥ 0,55); vs `hard_v2_0` / Khó v1 / Thường trong ~1 SE của v3 (+0,005 / −0,011 / +0,007). `AI.PRESETS.hard` giữ = Khó v3; knob v4 để 0; `hard_v4` vẫn cố định để so (code xoá sau, xem đầu mục). Mạnh nhất + khôn nhất vẫn là **Khó v3** (v4 ngang v3, không hơn).
 
-Ví dụ (`tactics_probe.gd -- games=4 salt=9200001 base=v4 opp=v3 ref=v3 exk=buy examples=6`; cùng thế cờ đầu lượt, `hard_v3` vs `hard_v4`; "chết được nhờ quân mua" = tổng đòn (roll giữa) của quân địch + quân địch mua được lượt sau ≥ máu, không tính quân mua thì < máu):
+Ví dụ (lịch sử, code đã xoá: `tactics_probe.gd -- games=4 salt=9200001 base=v4 opp=v3 ref=v3 exk=buy examples=6` ở `5aac2ee`; cùng thế cờ đầu lượt, `hard_v3` vs `hard_v4`; "chết được nhờ quân mua" = tổng đòn (roll giữa) của quân địch + quân địch mua được lượt sau ≥ máu, không tính quân mua thì < máu):
 - Đồng bằng lượt 14 (ghế p): v3 để 3 lính (#2 53 máu ở (2,6), #7 (2,8), #10 (3,6)) chỉ chết được khi tính quân địch mua lượt sau; v4: lính #10 đánh từ (3,8), #7 đứng (2,7) đánh cùng -> 0 quân như vậy.
 - Cửa biển lượt 16 (ghế p): v3 cho lính #16 còn 46 máu đánh từ (10,4) rồi đứng đó; v4 cho #16 lùi về (7,5), các quân khác đánh như cũ.
 - Đồng bằng lượt 8 (ghế p): cả 2 dồn đánh tướng địch; v3 cho lính #12 (78 máu) đánh từ (10,4) (chết được nếu địch mua thêm), v4 cho #12 đánh từ (11,3), #13 (đầy máu) vào (10,4).
@@ -293,7 +294,7 @@ Vì sao không lên (khác v3):
 - v3 sửa 1 lỗi chung của v1 (quân lẻ vào tầm địch) -> +0,13. Mẹo v4 nhắm tình huống hiếm trong tự đấu: quân địch vừa mua đánh ngay chỉ ~2,8 đòn / ván, giết 0,4 quân / ván; điểm quyết định (cướp thành / giết tướng) 30% lần lập nhưng tìm thêm 1 lượt (ply3 tham lam, không địch đáp sau) không chọn khác đi đáng kể; XP / thứ tự trống-sói gần như không xảy ra (AI chỉ mua lính / cung / thuyền: tự đấu v3 6 ván = 121 lính, 40 cung, 15 thuyền, 3 thầy mo, 0 trống / sói / voi / máy bắn đá / chim — đo của phiên chính).
 - Lệch ghế theo map (25 / 128 vs 108 / 128 ở núi rừng) lớn hơn mọi hiệu ứng knob: 192 ván dev chỉ thấy được chênh ≥ ~0,07.
 
-Thêm sau khi chốt held-out (T12, phiên chính báo: tự đấu v3 không mua trống / sói / voi / chim lần nào): `buy_sup` = n (`AI.DEFAULT`, `AI._support_want`): quân thường ≥ n mà chưa có trống / sói -> chỉ mua loại đó, để dành nếu vàng + 2 lượt thu nhập đủ. Dev vs `hard_v3` (salt 1000–1007, 192 ván): `buy_sup` 4: **0,224**; + `pl_chain` 1: **0,214** (mua trống / sói 0 -> ~1 / ván, mua tổng 14 -> 12,8 / ván, quân ta chết 9,7 -> 12 / ván, giết 10 -> 8,5). -> **để dành = mất nhịp, thua đậm**: với kinh tế này (300 vàng đầu, ~100–200 / lượt) quân rẻ ra ngay đáng hơn quân hỗ trợ ra muộn 2 lượt. Knob để 0 (test: `sim/tests/planner.gd` "buy_sup").
+Thêm sau khi chốt held-out (T12, phiên chính báo: tự đấu v3 không mua trống / sói / voi / chim lần nào): `buy_sup` = n (`AI.DEFAULT`, `AI._support_want`): quân thường ≥ n mà chưa có trống / sói -> chỉ mua loại đó, để dành nếu vàng + 2 lượt thu nhập đủ. Dev vs `hard_v3` (salt 1000–1007, 192 ván): `buy_sup` 4: **0,224**; + `pl_chain` 1: **0,214** (mua trống / sói 0 -> ~1 / ván, mua tổng 14 -> 12,8 / ván, quân ta chết 9,7 -> 12 / ván, giết 10 -> 8,5). -> **để dành = mất nhịp, thua đậm**: với kinh tế này (300 vàng đầu, ~100–200 / lượt) quân rẻ ra ngay đáng hơn quân hỗ trợ ra muộn 2 lượt. Knob để 0 (test `sim/tests/planner.gd` "buy_sup"; knob + test đã xoá cùng code v4).
 
 Tiếp (nếu muốn "siêu khó" / khôn hơn):
 - Đội hình: AI mua theo `aiWeight` + `buy_cost_exp` và mua ngay khi đủ tiền -> trống / sói / chim không xuất hiện, mẹo T4 / T5 / T13 không có đất dùng. Để dành (`buy_sup`) thua đậm (0,22) -> nếu muốn AI dùng quân hỗ trợ "cho vui / cho người chơi thấy", chỉ mua khi đã dư vàng (không để dành), đo riêng hành vi; sức thắng tự đấu khó lên bằng đường này.

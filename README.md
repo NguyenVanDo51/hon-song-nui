@@ -48,6 +48,8 @@ bash tools/sim_many.sh "m09 m10 m11" 12 4                                       
 python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70                           # chạy bản web trong Edge headless, in console + chụp
 powershell -File tools/run_guarded.ps1 -Log p.log -GArgs "--headless --path . -s sim/path_check.gd"   # mọi đường đi vẽ trên bàn cờ liền mạch (2365 đường)
 powershell -File tools/run_guarded.ps1 -Log g.log -GArgs "--headless --path . -s sim/mapgen.gd -- only=m03"  # sinh lại bố cục bản đồ (in ra, không ghi file)
+godot --headless --path . -s sim/levelgen.gd -- recipe=g05 seeds=12 out=/tmp/lg                   # vẽ level mới từ công thức (sim/level_recipes.gd), in ứng viên tốt nhất trước
+godot --headless --path . -s sim/levelgen.gd -- install=/tmp/lg/g05_s3.gd                         # chép ứng viên vào content/levels/ (rồi formatter + --import + tests)
 ```
 Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
 

@@ -580,6 +580,11 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 		var best_act: Dictionary = best.act
 		_claim_nearest(s, best_act, claims)
 		return { "kind": "act", "act": best.act }
+	return buy_step(s, mem)
+
+## v1's buy: the next unit to buy (commander first, else choose_buy per castle) or null (none / saving for the commander)
+static func buy_step(s: Dictionary, mem: Dictionary) -> Variant:
+	var side: String = s.side
 	if Game.cap_count(s, side) >= s.unitCap:
 		return null
 	# AE2: a castle with one unit on it (ours or theirs) still sells; buy_options folds in gold, cap and step-off room

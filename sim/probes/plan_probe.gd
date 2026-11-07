@@ -1,7 +1,7 @@
 extends SceneTree
 ## hard v2 planner at work: which candidate wins each plan, replans per turn, and examples where v2's turn differs
 ## from what hard v1 would do from the same state.
-## <godot> --headless --path . -s sim/probes/plan_probe.gd -- [games=1] [salt=9200000] [examples=4]
+## <godot> --headless --path . -s sim/probes/plan_probe.gd -- [games=1] [salt=9200000] [examples=4] [over=k:v+k:v]
 const HARD_V1 := { "hp_cap": 81.2937, "kill_hero": 552.335 }
 
 var seed_v := 1.0
@@ -17,6 +17,11 @@ func _init() -> void:
 	var games := int(a_games)
 	var salt := int(a_salt)
 	var want := int(a_want)
+	var hard: Dictionary = AI.PRESETS.hard.duplicate()
+	var a_over: String = args.get("over", "")
+	for kv: String in a_over.split("+", false): # over=pl_buy:2+pl_kill:4 -> v2 knob overrides
+		var p := kv.split(":", true, 1)
+		hard[p[0]] = float(p[1])
 	AI.rng = rng
 	var tags := { }
 	var plans := 0
@@ -29,7 +34,7 @@ func _init() -> void:
 				seed_v = 1000.0 + (salt * 64.0 + k) * 7919.0
 				var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false))
 				s.rng = int(seed_v)
-				s.aiParams = { v2_side: AI.PRESETS.hard, Game.other(v2_side): HARD_V1 }
+				s.aiParams = { v2_side: hard, Game.other(v2_side): HARD_V1 }
 				var mem := { }
 				var turn_start: Dictionary = s.duplicate(true)
 				var turn_steps := []

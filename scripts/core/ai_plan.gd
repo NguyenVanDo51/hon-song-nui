@@ -26,6 +26,7 @@ const DEFAULT := {
 	"pl_herosafe": 0.0, # 1 = also try: our commander to the least-threatened tile first
 	"pl_hero_risk": 0.0, # x smooth death risk of each commander where it ends (enemy threat map)
 	"pl_ply3": 0.0, # 1 = also play our next turn (greedy) before scoring
+	"pl_buy": 0.0, # >= 1: also try v1's buys first (AE2: bought units act this turn); >= 2: + buys then n-1 kill prefixes
 	"pl_ms": 4000.0, # emergency wall-clock cap per plan
 }
 ## knob sets for the greedy turn (merged over the side's own knobs); first = as is
@@ -44,6 +45,8 @@ const WIN := 1000000.0
 
 ## planner stats of the last plan (probes / tests): rollouts, ms, capped
 static var last := { }
+## plans cut by pl_ms since start (sims: non-zero = wall clock leaked into results)
+static var capped_n := 0
 
 static func knob(P: Dictionary, k: String) -> float:
 	var v: float = P.get(k, DEFAULT[k])
@@ -166,6 +169,14 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 	var guard := guard_prefix(s, side) if knob(P, "pl_guard") > 0.0 else []
 	if not guard.is_empty():
 		cands.append({ "pre": guard, "over": own, "tag": "guard" })
+	var nbuy := int(knob(P, "pl_buy"))
+	if nbuy > 0 and not mid:
+		var bc: Dictionary = s.duplicate(true)
+		var buys := buy_prefix(bc)
+		if not buys.is_empty():
+			cands.append({ "pre": buys, "over": own, "tag": "buy" })
+			for pre: Array in kill_prefixes(bc, side, nbuy - 1):
+				cands.append({ "pre": buys + pre, "over": own, "tag": "buy+kill%d" % pre.size() })
 	var safe := hero_safe_prefix(s, side) if knob(P, "pl_herosafe") > 0.0 else []
 	if not safe.is_empty():
 		cands.append({ "pre": safe, "over": own, "tag": "herosafe" })
@@ -176,6 +187,7 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 	for c: Dictionary in cands:
 		if runs > 0 and Time.get_ticks_msec() - t0 > ms:
 			capped = true
+			capped_n += 1
 			break
 		var pre: Array = c.pre
 		var over: Dictionary = c.over
@@ -332,6 +344,20 @@ static func guard_prefix(s: Dictionary, side: String) -> Array:
 			var st := { "kind": "act", "act": { "id": best.id, "to": [key.x, key.y], "kind": "wait" } }
 			AI.apply_step(c, st)
 			steps.append(st)
+	return steps
+
+## AE2: a bought unit acts this turn, v1 buys only after every unit acted. The buys v1 would make, made now on c
+## (mutated), so the new units can join the turn
+static func buy_prefix(c: Dictionary) -> Array:
+	var steps := []
+	var m := { }
+	for k in 8:
+		var stv: Variant = AI.buy_step(c, m)
+		if stv == null:
+			break
+		var st: Dictionary = stv
+		AI.apply_step(c, st)
+		steps.append(st)
 	return steps
 
 ## our commander to the reachable tile with the least expected enemy damage next turn (heal tile, cover break ties)

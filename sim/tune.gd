@@ -8,14 +8,45 @@ extends SceneTree
 ##   presets [games=8] [salt=9000000] [tuned=<file>] [names=a,b,..] -> round robin of the presets (row score vs column)
 ##   any mode: log=1 -> one line per game (winner, reason, turn, commander deaths)
 ##   time a=<spec> b=<spec> [games=2] [salt=9100000] -> A's AI wall time per step / per turn (avg, worst)
+##   evaldata a= b= [games=2] [salt=500] out=<csv>   -> per turn start: eval features (side to move) + final result
+##                                                      (Texel-style fit: tools/texel_fit.py)
 ## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned file) | hard_n2 (tuned, noise 2)
-##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard) | file:<path> (tuned file)
+##       | hard_v1 (AI.PRESETS.hard before the planner, frozen) | hard_v2 (AI.PRESETS.hard)
+##       | hard_v2_0 (hard v2 as first shipped, frozen) | file:<path> (tuned file)
 ##       + optional overrides: <spec>+key:value+key:value (e.g. hard_v2+pl_cands:4)
 ## seeds: game k of salt -> 1000 + (salt * 64 + k) * 7919 (evolve salts < 9e6; held-out / presets >= 9e6)
 const FROZEN := ["noise", "cap_last"] # not tuned: noise = difficulty knob, last-castle capture = instant win
 const HELD_OUT := 9000000
+## evaldata columns (features())
+const FEATS := ["val", "dmg_cap", "dmg_unit", "dmg_hero", "hero", "gold", "inc", "castles", "adv", "adv_hero", "units", "risk_me", "risk_foe"]
 ## AI.PRESETS.hard as it was before hard v2 (planner): the fixed yardstick
 const HARD_V1 := { "hp_cap": 81.2937, "kill_hero": 552.335 }
+## AI.PRESETS.hard + AIPlan.DEFAULT at hard v2's first ship (20fae2e), frozen: the yardstick for later planner changes
+const HARD_V2_0 := {
+	"hp_cap": 81.2937,
+	"kill_hero": 552.335,
+	"planner": 2.0,
+	"pl_alpha": 0.3,
+	"pl_hp_cap": 200.0,
+	"pl_gold": 1.0,
+	"pl_inc": 4.0,
+	"pl_castle": 300.0,
+	"pl_adv": 4.0,
+	"pl_adv_hero": 12.0,
+	"pl_cands": 3.0,
+	"pl_replan": 3.0,
+	"pl_kill": 3.0,
+	"pl_kcombo": 0.0,
+	"pl_opp_roll": 0.5,
+	"pl_opp_kill": 0.0,
+	"pl_hero": 0.0,
+	"pl_guard": 1.0,
+	"pl_herosafe": 0.0,
+	"pl_hero_risk": 0.0,
+	"pl_ply3": 0.0,
+	"pl_buy": 0.0,
+	"pl_ms": 4000.0,
+}
 
 var seed_v := 1.0
 var args := { }
@@ -40,6 +71,10 @@ func _init() -> void:
 		presets()
 	elif mode == "time":
 		time_ai()
+	elif mode == "evaldata":
+		eval_data()
+	if AIPlan.capped_n > 0:
+		print("WARNING planner capped %d times (pl_ms): not deterministic" % AIPlan.capped_n)
 	var sec := (Time.get_ticks_msec() - t0) / 1000.0
 	printerr("wall %.1fs, %d games, %.2f games/s" % [sec, games_played, games_played / maxf(sec, 0.001)])
 	quit()
@@ -67,6 +102,8 @@ func base_spec(sp: String) -> Dictionary:
 		return HARD_V1
 	if sp == "hard_v2":
 		return AI.PRESETS.hard
+	if sp == "hard_v2_0":
+		return HARD_V2_0
 	if sp == "easy" or sp == "easy_gold":
 		# reckless: no death fear, no walk home, no heal stop, coarse picks; _gold = start gold factor (not an AI knob)
 		var e := { "noise": 60.0, "caution": 0.0, "caution_hero": 0.3, "home_hp": 0.0, "heal_hp": 0.0, "maydie_w": 0.1 }
@@ -137,6 +174,10 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 			turn_us = 0
 			Game.end_turn(s)
 			mem = { }
+			if timing.has("rec") and s.winner == null:
+				var rec: Array = timing.rec
+				var me: String = s.side
+				rec.append([map_id, me, s.turn] + features(s, me))
 			continue
 		var st: Dictionary = step
 		AI.apply_step(s, st)
@@ -265,3 +306,95 @@ func time_ai() -> void:
 			"%s %s: n %d  avg %.1f ms  p95 %.1f ms  worst %.1f ms"
 			% [arg("a", "hard_v2"), key, xs.size(), sum / 1000.0 / maxi(1, xs.size()), p95 / 1000.0, worst / 1000.0]
 		)
+
+## Texel-style data: every turn start (the position the planner scores), side to move = "me": features me - foe
+## (+ both commanders' exposure) and the final result for me -> csv rows for an offline logistic fit
+func eval_data() -> void:
+	var a := spec(arg("a", "hard_v2_0"))
+	var b := spec(arg("b", "hard_v2_0"))
+	var games := int(arg("games", "2"))
+	var salt := int(arg("salt", "500"))
+	var f := FileAccess.open(arg("out", "user://evaldata.csv"), FileAccess.WRITE)
+	f.store_line("game,map,me,turn,seat_p,%s,result" % ",".join(FEATS))
+	var gi := 0
+	for map_id: String in Content.SKIRMISH.MAPS:
+		for a_side: String in ["p", "e"]:
+			for k in games:
+				var timing := { "rec": [] }
+				var w := play_one(map_id, a if a_side == "p" else b, b if a_side == "p" else a, salt, k, timing)
+				var rec: Array = timing.rec
+				for row: Array in rec:
+					var me: String = row[1]
+					var res := 0.5 if w == "draw" else (1.0 if w == me else 0.0)
+					var cells := ["%d_%d" % [salt, gi], row[0], me, str(row[2]), "1" if me == "p" else "0"]
+					for x: float in row.slice(3):
+						cells.append("%.4f" % x)
+					cells.append(str(res))
+					f.store_line(",".join(cells))
+				gi += 1
+	f.close()
+
+## FEATS for side me (me - foe; risk_*: each commander's expected damage taken next turn / its hp, 0 if dead)
+func features(s: Dictionary, me: String) -> Array:
+	var shared := { "tm": { }, "rc": { }, "df": { } }
+	var out := []
+	out.resize(FEATS.size())
+	out.fill(0.0)
+	var owner: Dictionary = s.owner
+	for sd: String in ["p", "e"]:
+		var sgn := 1.0 if sd == me else -1.0
+		var tgt := []
+		var cas := []
+		for y: int in s.h:
+			for x: int in s.w:
+				if Game.cap_flag(s.tiles[y][x]) != "" and owner.get(Vector2i(x, y)) != sd:
+					tgt.append([x, y])
+					if Game.sells(Game.tile_at(s, x, y)):
+						cas.append([x, y])
+		var v := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+		for u: Dictionary in s.units:
+			if u.side != sd:
+				continue
+			var hp: float = u.hp
+			var val := AI.value(s, u)
+			var hero: bool = u.type == "hero"
+			v[0] += val
+			v[1] += minf(val * 0.7, 200.0) * (1.0 - hp / 100.0)
+			if hero:
+				v[3] += 1.0 - hp / 100.0
+				v[4] += 1.0
+			else:
+				v[2] += val * (1.0 - hp / 100.0)
+				v[10] += 1.0
+			var goals: Array = cas if hero else tgt
+			var d := 30.0
+			if not goals.is_empty():
+				var st := Game.stat(s, u)
+				var mc: String = st.move if st.move in ["fly", "water"] else "foot"
+				var df := AI._dist_cached(s, mc, goals, shared)
+				var ux: int = u.x
+				var uy: int = u.y
+				var d0: float = df.get(Vector2i(ux, uy), 30.0)
+				d = minf(d0, 30.0)
+			if hero:
+				v[9] += d
+			else:
+				v[8] += d
+		var gold: int = s.gold[sd]
+		v[5] = gold
+		v[6] = Game.income(s, sd)
+		v[7] = Game.castles(s, sd)
+		for i in v.size():
+			var vi: float = v[i]
+			var oi: float = out[i]
+			out[i] = oi + sgn * vi
+		var risk := 0.0
+		for h: Dictionary in s.units:
+			if h.side == sd and h.type == "hero":
+				var threat := AI.threat_map(s, sd)
+				var hx: int = h.x
+				var hy: int = h.y
+				var hhp: float = h.hp
+				risk = minf(AI.expected_hit(s, h, hx, hy, threat.get(Vector2i(hx, hy)), 1.0) / hhp, 1.0)
+		out[11 if sd == me else 12] = risk
+	return out

@@ -11,7 +11,7 @@
 - `evolve out=<file> games=8 minutes=20 island=k thr=0.55`: đột biến ~3 khóa của best (×exp(N(0, 0.3)), `noise` + `cap_last` giữ nguyên), đấu con vs best; giữ con khi > thr trên 2 bộ seed (2·48 ván). Ghi `var_to_str({gen, best, history})` sau mỗi thế hệ -> chạy lại cùng file = tiếp tục.
 - `tools/tune.sh [islands] [minutes] [games] [held_games]`: các đảo chạy song song (mỗi đảo 1 tiến trình, `run_guarded`), rồi mỗi best vs `DEFAULT` trên seed giữ riêng (salt 9000000, `held_games`·6 ván); đảo tốt nhất (nếu > 0.5) -> `sim/tuned_params.txt`. Không đổi AI mặc định của game.
 - `presets games=N [names=easy,normal,hard_v1,hard_v2]`: vòng tròn các mức độ khó (bên dưới).
-- Spec: `hard_v1` = Khó trước planner (cố định, thước đo), `hard_v2` = `AI.PRESETS.hard`; ghi đè `<spec>+khóa:giá trị` (vd `hard_v2+pl_kill:2`). `time a= b= games=` = ms mỗi bước / lượt của A. `log=1` = 1 dòng mỗi ván (thắng, lý do, lượt, số lần tướng chết).
+- Spec: `hard_v1` = Khó trước planner (cố định, thước đo), `hard_v2` = `AI.PRESETS.hard` (nay = Khó v3), `hard_v2_0` / `hard_v3` = Khó v2 / v3 lúc ship (cố định); ghi đè `<spec>+khóa:giá trị` (vd `hard_v2+pl_kill:2`). `time a= b= games=` = ms mỗi bước / lượt của A. `log=1` = 1 dòng mỗi ván (thắng, lý do, lượt, số lần tướng chết).
 
 ### Phiên tune 2026-11-06 (AI `5a75b2a` = `fe83a5d` + bảng tham số, Mac 10 nhân, chạy chung máy với việc khác)
 - `tools/tune.sh 6 25 8 16`: 6 đảo × 25 phút, 12–13 thế hệ / đảo (48 ván / thế hệ, 96 khi xác nhận; 576–624 ván / đảo), 2 lần nhận.
@@ -21,7 +21,7 @@
 - Ghi vào `sim/tuned_params.txt`; AI mặc định của game **không đổi**.
 
 ## Khó v2: lập kế hoạch cả lượt (`scripts/core/ai_plan.gd`, 2026-11-07)
-`AI.PRESETS.hard` = knob v1 (`hp_cap`, `kill_hero`) + `"planner": 2` -> `AI.next_step` chuyển sang `AIPlan.next_step`. Không có `planner` (chiến dịch, đấu tự do, Thường, Dễ, gợi ý, golden) = `AI.greedy_step` = AI cũ y nguyên.
+`AI.PRESETS.hard` = knob v1 (`hp_cap`, `kill_hero`) + `"planner": 2` -> `AI.next_step` chuyển sang `AIPlan.next_step` (từ Khó v3 thêm knob kinh nghiệm người chơi, mục dưới). Không có `planner` (chiến dịch, đấu tự do, Thường, Dễ, gợi ý, golden) = `AI.greedy_step` = AI cũ y nguyên.
 
 ### Cách chạy
 - Đầu lượt: tạo vài **lượt ứng viên** (portfolio), mỗi cái = tiền tố bắt buộc + AI tham lam v1 đi nốt lượt:
@@ -124,6 +124,108 @@ Seed dev: bộ A salt 100–107, bộ B 200–207 (`games=3` -> 144 ván / lần
 - Thời gian (hành vi không đổi): đo lại `tune.gd -- time a=hard_v2_0 b=hard_v1 games=4 salt=9100000` (24 ván, chạy song song 3 gate, tải ~3–7): lượt TB 255 ms, p95 658 ms, tệ nhất 1,58 s; bước TB 28 ms, tệ nhất 1,18 s (cũ: 202 ms / 1,19 s ở tải ~5,7) -> tệ nhất nhạy với tải máy, cần đo trên điện thoại thật. `pl_opp_kill` 1 lúc tải ~10: +18% thời gian / lượt so với `hard_v2_0` cùng lúc.
 - Vì sao không lên: hàm điểm 7 trọng số tay đã ở gần đỉnh cục bộ (mọi bước 2× đều ≤ hòa); lợi thế ghế theo map rất mạnh (v2 vs v2 seed giữ riêng: núi rừng ghế e thắng ~75%, cửa biển ghế e ~64%, đồng bằng ghế p ~63%) -> 144 ván chỉ phân biệt được chênh ≥ ~0,08; ứng viên cấu trúc (mua trước, địch đáp dồn đòn) tăng ≤ ~0,02 thật.
 - Muốn "siêu khó" tiếp, thử theo thứ tự: (1) đổi nguồn mạnh chứ không chỉnh trọng số — tìm kiếm sâu hơn ở chỗ quyết định (2 lượt của ta khi có thể giết tướng / mất thành), (2) đánh giá học từ nhiều dữ liệu hơn (≥ 2000 ván, đặc trưng theo loại quân / vị trí tướng so với thành), dùng làm thứ tự ứng viên chứ không thay hàm điểm, (3) thưởng / chấp vàng cho "Siêu khó" (rẻ, chắc chắn mạnh hơn), (4) mỗi đánh giá ≥ 400 ván (paired, cả 2 ghế) — dưới mức đó chênh 0,05 không thấy.
+
+### Kinh nghiệm người chơi = Khó v3 (2026-11-07, phiên 3)
+Mẹo của user (người chơi AE2 lâu năm) + vài mẹo thêm (8–10), mỗi mẹo = 1 knob trong `AI.DEFAULT` (mặc định 0 = tắt -> Dễ / Thường / chiến dịch / golden y nguyên). Đều là **điểm của AI tham lam v1** (chọn nước từng quân) -> mọi lượt ứng viên của planner (style, dồn đòn, giữ thành) thừa hưởng; mô hình địch (`OPP`) không có. Không đụng hàm điểm 2 ply.
+
+| Mẹo | Knob (v3) | Cách làm |
+|---|---|---|
+| 3 + 8: không sang lẻ, tập kết rồi ập vào | `lone_w` 0,3, `lone_n` 1 | ô cuối trong tầm địch + < `lone_n` quân ta trong bán kính 2 -> − `lone_w` × giá quân × khả năng bị dồn chết (tổng đòn mọi địch với tới / máu: 0,6 -> 0, ≥ 1 -> 1). Cả nước đánh không giết (máu còn lại sau phản đòn). Bỏ qua tướng. Bản đồ "quân ta quanh ô" dựng 1 lần / bước (`AI.support_map`) |
+| 5 + 9: giết quân hỗ trợ phiền, giết theo độ nguy hiểm | `tgt_sup` 0,5, `tgt_thr` 2 | `AI.tvalue`: giá mục tiêu × 1,5 cho thầy mo / sói / trống, + 2 × đòn của nó (atk giữa + cấp + trống) × máu / 100. Dùng ở điểm đánh v1 + thứ tự / chấm đòn của dồn đòn giết (`kill_prefixes`, `focus`) |
+| 6: đổi 1:1 chỉ khi lời | `trade_w` 1 | đòn không giết: − (phản đòn × giá ta − sát thương × giá địch) / 100 nếu lỗ |
+| 4: cung bắn trước, cận chiến sau (cả đòn không giết) | `order_w` 1 | đòn cận chiến không giết bị phản, mà còn quân tầm xa chưa đi đánh tới được mục tiêu -> − phản đòn × giá / 100 (để cung bắn trước, địch yếu đi, phản đòn nhỏ lại) |
+| 10: không nuôi địch lên cấp | `feed_w` 1 | AE2 không có thưởng giết: XP = sát thương × chất lượng nạn nhân mỗi đòn, cả phản đòn -> đòn không giết mà phản đòn đủ cho địch lên cấp: − 0,2 × giá địch |
+| 1: tướng đi chiếm thành, có hộ tống | `escort_w` 30, `hero_cgoal` 1 (v3: **tắt**, thua Khó v1) | tướng chỉ nhắm thành chưa của mình (làng để lính); quân thường đứng trong bán kính 2 quanh tướng (tướng có < 3 quân cạnh) +30 |
+| 2 + 7: quân cấp cao / đắt sợ chết, về hồi máu sớm, đứng công trình | `home_val`, `home_rank`, `home_cap` 80, `bld_w` (v3: **tắt**) | ngưỡng về nhà = 50 + `home_val` × (giá − 150) / 100 + `home_rank` × cấp (≤ 80, trừ tướng); quân bị thương đứng ô hồi máu ta + `bld_w` × (giá trị − 150) / 100 |
+
+Đo hành vi: `sim/probes/tactics_probe.gd` (+ `tools/tactics_par.sh`, 8 tiến trình): A vs B mọi map, 2 ghế; đếm ở cuối mỗi lượt A / sau lượt đáp. "Lẻ bị dồn chết được" = quân thường (không tướng) trong tầm địch, tổng đòn (roll giữa) mọi địch với tới ≥ máu, không quân ta trong bán kính 2. `examples=N` in lượt mà `hard_v2_0` (cùng thế cờ đầu lượt) để quân lẻ còn A thì không.
+
+Hành vi vs `hard_v2_0` (A vs `hard_v2_0`, 96 ván, salt 600–607, cùng ván đầu):
+
+| Chỉ số | v2_0 | `lone_w` | `tgt_*` | `trade/order/feed` | `escort/hero_cgoal` | `home_val` 10 + `bld_w` 20 | v3 bản 1 (tất cả, dev) |
+|---|---|---|---|---|---|---|---|
+| điểm (96 ván) | 0,500 | 0,625 | 0,562 | 0,552 | 0,573 | 0,542 | 0,802 |
+| quân lẻ bị dồn chết được / 100 lượt-quân | 8,43 | **4,45** | 6,41 | 6,74 | 6,76 | 7,28 | **3,91** |
+| quân bị dồn chết được (kể cả có bạn) / 100 | 18,55 | 14,62 | 14,55 | 15,56 | 16,35 | | 10,88 |
+| quân ta chết / ván | 10,78 | 8,75 | 9,68 | 9,77 | 9,58 | 10,92 | **7,08** |
+| quân quý chết / ván (cấp ≥ 1 hoặc giá ≥ 400) | 4,10 | 3,31 | 3,62 | 3,67 | 4,06 | 4,21 | 3,18 |
+| tướng ta chết / ván | 0,60 | 0,36 | 0,48 | 0,58 | 0,61 | 0,44 | 0,45 |
+| giết tướng địch / ván | 0,70 | 0,74 | 0,71 | 0,74 | 0,83 | 0,66 | 0,94 |
+| chiếm thành / ván | 1,83 | 2,05 | 1,88 | 2,00 | 1,86 | 1,97 | 2,33 |
+| quân ta cách tướng ≤ 2 (TB) | 0,99 | 1,10 | 1,12 | 1,08 | **1,45** | 1,08 | **1,61** |
+| tướng đứng một mình % | 45,4 | 42,0 | 44,0 | 44,6 | **29,5** | 45,0 | **27,4** |
+| đòn không giết, lỗ giá trị % | 3,16 | 2,89 | 3,49 | **2,08** | 4,39 | 3,46 | 2,69 |
+| đòn không giết từ ô thủ thấp hơn địch % | 31,3 | 28,1 | 27,2 | **24,9** | 27,9 | 30,9 | 23,0 |
+| cung bắn sau cận chiến cùng mục tiêu / 100 đòn | 4,38 | 4,02 | 5,15 | **2,21** | 4,13 | 4,25 | 2,18 |
+| địch lên cấp nhờ đòn ta / ván | 3,82 | 3,04 | 3,42 | **1,68** | 3,28 | 3,79 | 1,32 |
+| quân quý < 50 máu cuối lượt / ván ; % trên ô hồi | 4,99 ; 58 | 4,84 ; 51 | 4,92 ; 53 | 4,78 ; 61 | 6,29 ; 58 | 5,23 ; 57 | 4,93 ; 54 |
+
+- Quân hỗ trợ (thầy mo / sói / trống): AI gần như không mua (`aiWeight` 0,5–1,2) -> 0 lần gặp trong 96 ván, chỉ số không đo được bằng tự đấu; kiểm bằng test (`sim/tests/planner.gd` "tgt_sup / tgt_thr"). Với người chơi hay mua sói / trống thì có tác dụng.
+- `home_val` 10 + `home_rank` 8 + `bld_w` 40 (bản 2, chỉ thưởng ô hồi khi bị thương): quân quý < 50 máu 4,99 -> 4,06 / ván (về sớm hơn), quân quý chết 4,10 -> 3,93 (= nhiễu), điểm 0,500 (192 ván) -> hành vi đổi ít, không mạnh hơn. Ghép vào bộ v3: 0,747 vs 0,775 không có nó (cùng 384 ván) -> **để tắt**. Lý do đoán: hàm điểm 2 ply tính máu rẻ (`pl_hp_cap`), lính hồi 20 / lượt; ngưỡng về nhà 50 vốn đủ.
+
+Đo sức (dev, vs `hard_v2_0`, 192 ván / thử, salt 600–607; ± SE):
+
+| Thử | Điểm |
+|---|---|
+| `lone_w` 0,3 | **0,630 ± 0,035** |
+| `tgt_sup` 0,5 + `tgt_thr` 2 | 0,521 ± 0,036 |
+| `trade_w` 1 + `order_w` 1 + `feed_w` 1 | 0,562 ± 0,036 |
+| `escort_w` 30 + `hero_cgoal` 1 | 0,557 ± 0,036 |
+| `home_val` 10 + `bld_w` 20 / bản 2 (`home_rank` 8, `bld_w` 40) | 0,510 / 0,500 |
+| tất cả (bản 1 `home_*`), 384 ván salt 700–707 | **0,775 ± 0,021** (đồng bằng 126/128) |
+| tất cả (bản 2 `home_*`), 384 ván salt 700–707 | 0,747 ± 0,022 |
+
+**Seed giữ riêng lần 1** (v3 bản 1 = mọi knob trừ `home_*` / `bld_w`; salt 9400000–007 vs `hard_v2_0` 768 ván, 9400008–015 vs Khó v1 432 ván, 9400016–023 vs Thường 432 ván; cùng seed cho `hard_v2_0` -> so cặp):
+
+| A | vs `hard_v2_0` | vs Khó v1 | vs Thường |
+|---|---|---|---|
+| v3 bản 1 | **0,743 ± 0,016** | 0,843 ± 0,018 | 0,909 ± 0,014 |
+| `hard_v2_0` | 0,500 | 0,910 ± 0,014 | 0,880 ± 0,016 |
+
+- Thắng v2 đậm (đồng bằng 246,5/256; cửa biển ghế e 108/128; núi rừng ghế p 64/128 = hòa), hơn v2 vs Thường (+0,029), nhưng **thua v2 vs Khó v1 (−0,067, ~2,9 SE)**: trượt điều kiện ship. Mất ở núi rừng (v3 109/144 vs v2 138/144).
+- Tách lỗi (dev salt 800–807, 192 ván / thử, vs Khó v1; `hard_v2_0` = 0,885, v3 bản 1 = 0,857): bỏ `lone_w` 0,844, bỏ `tgt_*` 0,885, bỏ `trade/order/feed` 0,828, **bỏ `escort_w` + `hero_cgoal` 0,958**, chỉ bỏ `hero_cgoal` 0,885, chỉ bỏ `escort_w` 0,932 -> thủ phạm = mẹo 1 (tướng chỉ nhắm thành + kéo quân hộ tống), các knob khác giúp cả vs Khó v1.
+- Lỗi tìm ra sau đó: `hero_cgoal` quét `s.owner`, mà thành trung lập không có trong `s.owner` -> tướng bỏ qua thành trung lập, chỉ nhắm thành địch (lao sâu). Đã sửa (quét bản đồ), bản sửa **chưa đo**, để tắt.
+
+**Seed giữ riêng lần 2** (salt 9410000+, chưa dùng; ghi trước khi xem kết quả): B = v3 bản 1 − `hero_cgoal` (giữ hộ tống), A = B − `escort_w`. Luật chọn: ship B nếu (B vs `hard_v2_0`) ≥ 0,50 và (B vs Khó v1) − (`hard_v2_0` vs Khó v1) ≥ −0,03 và (B vs Thường) − (`hard_v2_0` vs Thường) ≥ −0,03 (cùng seed; SE hiệu ~0,023); không thì A cùng luật; không cái nào qua -> không ship.
+
+Kết quả lần 2 (cùng seed cho mọi hàng; 768 ván vs `hard_v2_0` salt 9410000–007, 432 ván vs Khó v1 salt 9410008–015, 432 ván vs Thường salt 9410016–023):
+
+| A | vs `hard_v2_0` | vs Khó v1 | vs Thường |
+|---|---|---|---|
+| B (giữ hộ tống) | (dừng) | 0,860 ± 0,017 (−0,032: **trượt**) | (dừng) |
+| **A = Khó v3** | **0,744 ± 0,016** | **0,949 ± 0,011** (+0,057) | **0,925 ± 0,013** (+0,038) |
+| `hard_v2_0` | 0,500 | 0,892 ± 0,015 | 0,887 ± 0,015 |
+
+- B trượt luật Khó v1 sát nút (−0,032) -> dừng chuỗi B, đo A. **A qua cả 3 -> ship**: `AI.PRESETS.hard` = v2 + `lone_w` 0,3, `tgt_sup` 0,5, `tgt_thr` 2, `trade_w` 1, `order_w` 1, `feed_w` 1. Spec cố định `hard_v3` (`sim/tune.gd`, `V3_TACTICS`) = đúng bộ đó (kiểm: `hard_v3`, `hard_v3+hero_cgoal:0+escort_w:0`, `hard_v2` ra cùng 6 ván, salt 9410003).
+- v3 vs v2 theo map: đồng bằng 224/256, núi rừng ghế e 126/128 (ghế p 62,5/128 = hòa), cửa biển 159/256. Không lần nào chạm `pl_ms`.
+- Mạnh nhất + khôn nhất hiện tại = Khó v3: hơn v2 cả vs bot planner (0,744), vs Khó v1 (+0,057) lẫn Thường (+0,038).
+
+Hành vi Khó v3 (bản ship) vs `hard_v2_0`, seed giữ riêng salt 9400100–107 (96 ván, A vs `hard_v2_0`, cùng ván đầu):
+
+| Chỉ số | v2_0 | **v3** |
+|---|---|---|
+| quân lẻ bị dồn chết được / 100 lượt-quân | 6,69 | **4,04** (−40%) |
+| quân bị dồn chết được (kể cả có bạn) / 100 | 16,36 | 13,28 |
+| quân ta chết / ván | 10,81 | **7,12** (−34%) |
+| quân quý chết / ván | 3,92 | 3,14 |
+| tướng ta chết / ván ; giết tướng địch / ván | 0,53 ; 0,64 | 0,35 ; 0,81 |
+| chiếm thành / ván | 1,85 | 2,10 |
+| đòn không giết từ ô thủ thấp hơn địch % | 30,7 | 24,3 |
+| đòn không giết, lỗ giá trị % | 3,45 | 3,18 |
+| cung bắn sau cận chiến cùng mục tiêu / 100 đòn | 3,57 | 2,61 |
+| địch lên cấp nhờ đòn ta / ván | 4,15 | **1,47** (−65%) |
+| tướng đứng một mình % (mẹo 1 tắt) | 46,8 | 40,7 |
+
+- Thời gian (`tune.gd -- time a=<spec> b=hard_v1 games=4 salt=9100000`, 24 ván, v3 và v2_0 chạy song song cùng tải ~3–7): **v3 lượt TB 176 ms, p95 362 ms, tệ nhất 562 ms**; bước TB 18 ms, tệ nhất 498 ms. v2_0 cùng lúc: lượt 208 / 575 / 1291 ms. v3 không chậm hơn (ván ngắn hơn, ít quân chết -> ít lập lại). `tvalue` cache theo mục tiêu trong 1 lần `best_for_unit`.
+- Mẹo chưa làm: 11 giữ điểm hẹp (đầu cầu) bằng quân thủ cao, 12 đua làng sớm (v1 đã chia làng gần nhất qua `claims`).
+- Tiếp (v4): user chơi thử Khó v3 trước; thử lại mẹo 1 từng knob (`escort_w` riêng ít hơn, `hero_cgoal` đã sửa), `lone_w` 0,6 / `lone_n` 2; threat map tính cả quân địch mua ngay lượt sau (đánh luôn được, trừ máy bắn đá).
+
+Ví dụ (`tactics_probe.gd -- games=1 salt=9200000 base=v3 opp=v2_0 examples=4`; cùng thế cờ đầu lượt, v2_0 vs v3):
+- Cửa biển lượt 5 (ghế p): v2_0 để lính #2 31 máu đứng một mình ở (10,5) trong tầm địch; v3 rút nó về (5,5) cạnh đội hình, các quân khác đánh như cũ.
+- Đồng bằng lượt 2 (ghế e): v2_0 cho cung #6 lên tận cầu (6,5) bắn tướng địch rồi kẹt lại một mình (bị dồn chết được); v3 bắn cung địch từ (9,5) bên bờ mình, chờ quân tới.
+- Cửa biển lượt 5 (ghế e): v2_0 tách lính đi chiếm làng xa + 1 lính đánh tướng một mình + thuyền lẻ; v3: 2 lính cùng dồn 1 lính địch, thuyền lùi về (12,6) cạnh tướng.
+
+Bài học: phiên 2 kết luận "nút thắt là hàm điểm" — sai một nửa: mọi ứng viên của planner đều do v1 tham lam sinh ra, nên lỗi chung của v1 (đưa quân lẻ vào tầm địch từng con một) có trong mọi ứng viên, hàm điểm không có gì tốt hơn để chọn. Sửa chỗ **sinh ứng viên** (`lone_w`) cho +0,13 một mình. Thận trọng theo từng quân + tình huống (quân lẻ có thể bị dồn chết) ≠ thận trọng cả đội (tướng nấp, phạt nguy cơ cố định — đều thua).
 
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).

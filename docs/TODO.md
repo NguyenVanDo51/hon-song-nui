@@ -2,12 +2,7 @@
 
 ## Đang dở (dừng 2026-11-07, user ngắt mạng)
 - Giao diện: phiên khác của user có spec `docs/superpowers/specs/2026-11-07-fantasy-reskin-design.md` (F1 Truyện Kỵ Sĩ, bỏ bối cảnh lịch sử; chờ duyệt, chưa track) -> không làm hướng B; hỏi user ai làm reskin.
-- Đang làm (user "làm tiếp" 2026-11-07): cài kinh nghiệm chơi của user vào Khó v2, mỗi điểm = 1 knob bật/tắt, đo ≥ 400 ván seed mới vs `hard_v2_0` + user chơi thử. Thứ tự đề xuất:
-  1. tập kết, không sang lẻ (không vào vùng địch đánh tới trừ khi đủ quân cùng vào / cùng đánh lượt đó; đứng ngoài tầm rồi ập vào)
-  2. giá trị mục tiêu cao cho quân hỗ trợ phiền (thầy mo, sói, trống) + ưu tiên giết theo sát thương nó gây lượt sau (hiện chỉ tướng có `aiValue`, quân khác = giá tiền)
-  3. ngưỡng rút về hồi máu theo cấp + giá (hiện `home_hp` 50 cho mọi quân); cẩn thận theo từng quân, không cả đội (bản "tướng về chỗ an toàn" từng làm bot rụt rè, thua)
-  4. tướng đi chiếm thành có hộ vệ
-  5. cung đánh trước cả khi không nhằm giết; phạt đòn đổi máu lỗ 1:1; giữ điểm hẹp (đầu cầu); không nuôi quân địch lên cấp; đua làng sớm
+- Kinh nghiệm chơi của user -> **Khó v3** (2026-11-07, docs/ai.md "Kinh nghiệm người chơi"): mỗi mẹo = 1 knob `AI.DEFAULT` (tắt mặc định). Ship vào `AI.PRESETS.hard`: không sang lẻ (`lone_w`), giết quân hỗ trợ / quân nguy hiểm trước (`tgt_*`), không đổi lỗ (`trade_w`), cung trước (`order_w`), không nuôi địch lên cấp (`feed_w`). Seed giữ riêng: 0,744 vs Khó v2 (768 ván), 0,949 vs Khó v1, 0,925 vs Thường. Để tắt: tướng có hộ tống / chỉ nhắm thành (`escort_w`, `hero_cgoal`: thua Khó v1 ở núi rừng; `hero_cgoal` có lỗi bỏ qua thành trung lập, đã sửa, chưa đo lại), về hồi máu theo cấp / giá (`home_*`, `bld_w`: không đổi sức, hành vi đổi ít). Chưa làm: giữ điểm hẹp (đầu cầu), đua làng sớm. Chờ: **user chơi thử Khó v3**.
 - Câu hỏi chờ user: mẹo màn (`def.tips`) hiện ở đâu (màn chuẩn bị đã bỏ)? Đoạn kết màn có đổi sang hội thoại như mở màn không?
 - File lạ chưa track, không phải của Claude, để nguyên: `docs/review/genre_hooks.html` (sửa), `docs/review/ui_direction_fantasy.html`, `docs/superpowers/`.
 
@@ -21,7 +16,8 @@
 - [x] **Chế độ 1 đấu 1** (`docs/1v1.md`, 2026-11-06): người–người chung máy (màn chuyển tay) + người–máy; bước 1–3 xong.
   - [x] Bước 4: Dễ / Thường / Khó = `AI.PRESETS` -> `s.aiParams` (docs/1v1.md "Độ khó"; tỉ lệ thắng docs/ai.md). Khó v1 chỉ hơn Thường ~55% -> xong bằng Khó v2.
   - [x] **Khó v2** (2026-11-07, `scripts/core/ai_plan.gd`, docs/ai.md "Khó v2"): lập kế hoạch cả lượt (portfolio style + dồn đòn giết + giữ thành, địch đáp 1 lượt, chấm thế cờ). Seed giữ riêng: 0,896 vs Khó v1 (396 ván).
-  - [ ] Khó v2 tiếp: người thật chơi thử (AI-vs-AI ≠ người); đo thời gian trên điện thoại thật (Mac: lượt TB ~0,15 s, tệ nhất ~0,45 s); chọn loại lính theo đội hình địch. Đã thử 2026-11-07 (docs/ai.md "Luyện thêm"): tune trọng số hàm điểm (quét 2×, Texel), "mua trước" (`pl_buy`), địch đáp dồn đòn (`pl_opp_kill`) -> seed giữ riêng 0,517 ± 0,026 vs `hard_v2_0` = **không khôn hơn**, không ship. Tiếp cho "Siêu khó": tìm sâu hơn ở lượt quyết định / đánh giá học từ ≥ 2000 ván / chấp vàng; mỗi lần đo ≥ 400 ván.
+  - [x] **Khó v3** (2026-11-07): Khó v2 + kinh nghiệm người chơi (docs/ai.md "Kinh nghiệm người chơi"): 0,744 vs Khó v2 seed giữ riêng (768 ván).
+  - [ ] Khó v3 tiếp (v4): người thật chơi thử (AI-vs-AI ≠ người); thử lại tướng có hộ tống (`escort_w` riêng, `hero_cgoal` đã sửa), `lone_w` mạnh hơn (0,6 / `lone_n` 2), giữ đầu cầu, đua làng; threat map chưa tính quân địch mua ngay lượt sau. Cũ (Khó v2 tiếp): đo thời gian trên điện thoại thật (Mac: lượt TB ~0,15 s, tệ nhất ~0,45 s); chọn loại lính theo đội hình địch. Đã thử 2026-11-07 (docs/ai.md "Luyện thêm"): tune trọng số hàm điểm (quét 2×, Texel), "mua trước" (`pl_buy`), địch đáp dồn đòn (`pl_opp_kill`) -> seed giữ riêng 0,517 ± 0,026 vs `hard_v2_0` = **không khôn hơn**, không ship. Tiếp cho "Siêu khó": tìm sâu hơn ở lượt quyết định / đánh giá học từ ≥ 2000 ván / chấp vàng; mỗi lần đo ≥ 400 ván.
   - [ ] Điện thoại ngang: màn thiết lập phải cuộn mới thấy "Xuất quân"; popup mua 9 loại quân tràn ~844x390 (có từ đấu tự do). Nút "Đánh tiếp ván đang dở" chưa ghi rõ 1 đấu 1 hay đấu tự do.
   - [ ] Online: relay chuỗi step + hash.
 - [x] **AI luyện bằng tự đấu** (2026-11-06): `AI.DEFAULT` + `sim/tune.gd` + `tools/tune.sh` (docs/ai.md); lính ít máu về hồi máu (hết nằm góc). Theo dõi: m08 hòa 1 -> 4/24 sau sửa.

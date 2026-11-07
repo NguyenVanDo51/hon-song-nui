@@ -218,14 +218,17 @@ static func _replan(s: Dictionary, mem: Dictionary) -> void:
 static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 	if n <= 0:
 		return []
+	var P := AI.params(s, side)
+	var sup: float = P.tgt_sup
+	var thr: float = P.tgt_thr
 	var foes := []
 	for u: Dictionary in s.units:
 		if u.side != side:
 			foes.append(u)
 	foes.sort_custom(
 		func(a: Dictionary, b: Dictionary) -> bool:
-			var va := AI.value(s, a)
-			var vb := AI.value(s, b)
+			var va := AI.tvalue(s, a, sup, thr)
+			var vb := AI.tvalue(s, b, sup, thr)
 			return va > vb or (va == vb and a.id < b.id),
 	)
 	var out := []
@@ -234,7 +237,7 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 			break
 		var c: Dictionary = s.duplicate(true)
 		var fid: int = f.id
-		var pre := focus(c, side, fid)
+		var pre := focus(c, side, fid, sup, thr)
 		if pre.is_empty():
 			continue
 		if out.is_empty() and c.winner == null: # chain a second kill onto the best one (c is past the first)
@@ -242,7 +245,7 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 			for g: Dictionary in foes:
 				var gid: int = g.id
 				if gid != fid and Game.unit_by_id(c, gid) != null:
-					more = focus(c.duplicate(true), side, gid)
+					more = focus(c.duplicate(true), side, gid, sup, thr)
 					if not more.is_empty():
 						break
 			out.append(pre)
@@ -254,7 +257,7 @@ static func kill_prefixes(s: Dictionary, side: String, n: int) -> Array:
 
 ## attacks on c (mutated, mid rolls) by our unacted units until target tid dies; [] if it survives them all.
 ## Order: a kill now by the cheapest unit that can; else the hit with the best damage-for-counter (ranged first)
-static func focus(c: Dictionary, side: String, tid: int) -> Array:
+static func focus(c: Dictionary, side: String, tid: int, sup := 0.0, thr := 0.0) -> Array:
 	var steps := []
 	for k in 6:
 		var tv: Variant = Game.unit_by_id(c, tid)
@@ -262,7 +265,7 @@ static func focus(c: Dictionary, side: String, tid: int) -> Array:
 			return steps
 		var t: Dictionary = tv
 		var thp: int = t.hp
-		var tval := AI.value(c, t)
+		var tval := AI.tvalue(c, t, sup, thr)
 		var best: Dictionary = { }
 		for u: Dictionary in c.units:
 			if u.side != side or u.acted:

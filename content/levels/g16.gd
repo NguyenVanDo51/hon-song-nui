@@ -14,7 +14,7 @@ const DEF := {
 		"p": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"],
 		"e": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"],
 	},
-	"gold": { "p": 700, "e": 650 },
+	"gold": { "p": 900, "e": 500 },
 	"win": { "type": "hero" },
 	"stars": { "turns": 9 },
 	"unitCap": 15,

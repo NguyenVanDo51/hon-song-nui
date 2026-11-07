@@ -11,7 +11,7 @@ const DEF := {
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "boat"], "e": ["soldier", "archer", "drum", "elephant"] },
-	"gold": { "p": 600, "e": 250 },
+	"gold": { "p": 1000, "e": 100 },
 	"win": { "type": "hero" },
 	"stars": { "turns": 10 },
 	"unitCap": 15,

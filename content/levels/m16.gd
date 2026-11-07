@@ -9,7 +9,7 @@ const DEF := {
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "boat", "drum", "shaman", "wolf", "elephant"], "e": [] },
-	"gold": { "p": 200, "e": 0 },
+	"gold": { "p": 0, "e": 0 },
 	"tier": "mid",
 	"ai": "normal",
 	"win": { "type": "survive", "turns": 8 },

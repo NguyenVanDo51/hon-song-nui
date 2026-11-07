@@ -41,7 +41,7 @@ const DEF := {
 		["e", "soldier", 5, 4],
 		["e", "soldier", 11, 5, { "hp": 80 }],
 		["e", "archer", 10, 1],
-		["e", "elephant", 10, 6],
+		["e", "elephant", 10, 6, { "hp": 50 }],
 		["e", "soldier", 11, 1, { "guard": true, "hp": 70 }],
 		["e", "archer", 13, 2, { "guard": true, "hp": 70 }],
 	],

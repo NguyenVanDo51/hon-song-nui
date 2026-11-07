@@ -9,10 +9,10 @@ const DEF := {
 	"enemyHero": "tuonggiac",
 	"newUnits": ["bird"],
 	"allowed": { "p": ["soldier", "archer", "drum", "shaman", "wolf", "elephant"], "e": [] },
-	"gold": { "p": 1000, "e": 0 },
+	"gold": { "p": 450, "e": 0 },
 	"tier": "easy",
 	"ai": "normal",
-	"win": { "type": "survive", "turns": 10 },
+	"win": { "type": "survive", "turns": 11 },
 	"stars": { "lost": 12 },
 	"map": {
 		"rows": [

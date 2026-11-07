@@ -227,6 +227,52 @@ Ví dụ (`tactics_probe.gd -- games=1 salt=9200000 base=v3 opp=v2_0 examples=4`
 
 Bài học: phiên 2 kết luận "nút thắt là hàm điểm" — sai một nửa: mọi ứng viên của planner đều do v1 tham lam sinh ra, nên lỗi chung của v1 (đưa quân lẻ vào tầm địch từng con một) có trong mọi ứng viên, hàm điểm không có gì tốt hơn để chọn. Sửa chỗ **sinh ứng viên** (`lone_w`) cho +0,13 một mình. Thận trọng theo từng quân + tình huống (quân lẻ có thể bị dồn chết) ≠ thận trọng cả đội (tướng nấp, phạt nguy cơ cố định — đều thua).
 
+### Mẹo người chơi trên mạng = Khó v4 (2026-11-07, phiên 4)
+Mẹo của người chơi giỏi trên mạng (Advance Wars, Wesnoth, Wargroove, Fire Emblem) + mẹo suy từ luật AE2 đã xác minh (`docs/review/ae2_research.md`; hướng dẫn chiến thuật riêng cho AE2: không có nguồn dùng được). Mỗi mẹo = 1 knob, mặc định 0 = tắt -> Dễ / Thường / chiến dịch / đấu tự do / golden y nguyên. Làm như bài học v3: sửa **sinh ứng viên** (điểm AI tham lam v1 mà mọi ứng viên planner thừa hưởng) hoặc thêm tiền tố ứng viên có điều kiện cho 2 ply chấm, không phạt cố định trong hàm điểm. Mốc = spec cố định `hard_v3`.
+
+Nguồn (đọc 2026-11-07):
+- Advance Wars: Taz's strategy guide https://isndev.forumotion.co.uk/t671-taz-s-strategy-guide , LP https://lparchive.org/Advance-Wars/Update%2005 — lính mới mua ra đánh ngay, dồn hỏa lực, giữ / cướp nhà máy.
+- Wesnoth: https://wiki.wesnoth.org/BasicStrategy — XP, rút lui, xoay vòng, không phơi quân lẻ; code AI rút lui https://raw.githubusercontent.com/wesnoth/wesnoth/master/data/ai/lua/retreat.lua + `ca_retreat_injured.lua` — ngưỡng rút theo địa hình / máu.
+- Wargroove: https://news.xbox.com/en-us/2019/02/08/wargroove-tips-and-tricks/ — tướng mạnh nhưng chết = thua, thứ tự đòn (buff trước).
+- Fire Emblem zoning AI: https://feuniverse.us/t/zoning-ai/8431 — vùng đe dọa, đứng ngoài tầm rồi ập vào.
+
+| Mẹo | Knob | Cách làm |
+|---|---|---|
+| T1 tầm quân địch mua (AW: lính mua ra đánh ngay; AE2 cũng vậy) | `buy_threat` (`AI.DEFAULT`) | `AI.buy_threats`: mỗi thành địch còn chỗ (≤ 1 quân đứng trên) = 1 quân ảo: quân đánh mạnh nhất địch mua được bằng vàng + thu nhập lượt sau (chia ngân sách theo thứ tự thành; bỏ máy bắn đá: không đi + bắn cùng lượt; tướng nếu đã chết + đủ tiền chuộc), máu = `buy_threat` × 100, id < 0, không vào `s.units`. Cộng vào `AI.threat_map` -> rủi ro / `lone_w` của v1. Lời đáp 2 ply đã có sẵn (v1 mua rồi cho quân mới đi ngay) |
+| T2 XP: quân ta lên cấp | `promo_w` (`AI.DEFAULT`, cả `focus`) | đòn làm quân ta lên cấp (XP = sát thương × chất lượng nạn nhân, +1 cấp = +2 công / +2 thủ) + `promo_w` × 0,2 × giá gốc. Phần "không nuôi địch" đã có ở v3 (`feed_w`) |
+| T5 thứ tự chuỗi đòn: trống / sói trước | `pl_chain` (`AIPlan`) | trong `focus` (dồn đòn giết): đòn không giết của quân có `aura` (trống, +10 công cho quân cạnh) / `poison` (sói, −10 thủ mục tiêu) + `pl_chain` × buff × số quân ta còn đánh tới mục tiêu (trống: trong bán kính 2) × giá mục tiêu / 100 |
+| T6–T8 tìm sâu ở lượt quyết định (cướp thành / giết tướng khi địch hết tiền chuộc) | `pl_dp` (`AIPlan`) | `AIPlan.decision_point`: (a) tướng ta tới được thành địch trống ở lượt sau (khoảng cách > mv, ≤ 2·mv) -> thêm ứng viên "snipe" (tướng tới ô gần thành nhất trước); (b) tổng đòn 2 lượt của quân ta lên tướng địch ≥ máu nó và địch không đủ vàng + thu nhập chuộc tướng. Có (a) hoặc (b) -> mọi ứng viên của lần lập đó chơi thêm lượt sau của ta (= `pl_ply3` có điều kiện) |
+| T9 ngưỡng rút theo giáp + địa hình (Wesnoth retreat) | `ret_terr` (`AI.DEFAULT`) | quân thường: ngưỡng về nhà `home_hp` × lerp(1, clamp((40 − thủ − 2·cấp − thủ ô) / 20, 0,5; 1,5), `ret_terr`) -> lính giáp mỏng trên đất trống về sớm (75), voi / trong rừng về muộn |
+| T3, T4, T10–T14 | — | không làm: ma / thầy mo / trống / sói gần như không được mua trong tự đấu (v3: 0 lần gặp / 96 ván) -> T3 (lá chắn ma), T4 (giẫm mộ) không đo được; T10 xoay vòng, T11 tập kết trùng `lone_w` (v3); T12 mua trước = `pl_buy` (phiên 2: 0,514); T13 phá làng đã có (`raze`) |
+
+Đo (dev, A vs `hard_v3`, salt 1000–1007, 192 ván / thử, ± 0,036 SE; hành vi: `tactics_probe.gd` + `tools/tactics_par.sh`, mốc = `hard_v3` vs chính nó, 96 ván (k = 0, 1) cùng salt):
+
+| Chỉ số (A vs `hard_v3`) | v3 (mốc) | `buy_threat` 0,5 | `buy_threat` 1 | `pl_dp` 1 | `promo_w` 1 | `ret_terr` 1 |
+|---|---|---|---|---|---|---|
+| điểm | 0,500 | 0,526 | 0,518 | 0,495 | 0,477 | 0,516 |
+| quân ở trong tầm quân địch mua / 100 lượt-quân | 8,46 | 8,57 | **7,71** | 9,50 | 8,65 | 9,42 |
+| đòn của quân địch vừa mua / ván ; sát thương | 2,83 ; 86,8 | 2,88 ; 89,9 | **2,70 ; 82,8** | 2,93 ; 88,9 | 2,96 ; 90,0 | 3,26 ; 100,8 |
+| quân ta chết vì quân vừa mua / ván | 0,38 | 0,42 | 0,41 | 0,45 | 0,53 | 0,47 |
+| quân lẻ bị dồn chết được / 100 lượt-quân | 5,86 | 5,59 | 5,35 | 6,21 | 6,13 | 5,37 |
+| quân ta chết / ván ; quân quý chết | 9,70 ; 3,84 | 9,97 ; 4,04 | 10,18 ; 4,01 | 10,25 ; 4,12 | 10,96 ; 4,51 | 10,14 ; 4,37 |
+| tướng ta chết / ván ; giết tướng địch | 0,73 ; 0,80 | 0,63 ; 0,78 | 0,68 ; 0,75 | 0,73 ; 0,74 | 0,66 ; 0,73 | 0,66 ; 0,72 |
+| chiếm thành / ván | 1,68 | 1,80 | 1,77 | 1,79 | 1,73 | 1,77 |
+| quân ta lên cấp / ván | 11,38 | 12,42 | 12,59 | 11,54 | **13,45** | 12,92 |
+| đòn không giết, lỗ giá trị % | 4,05 | 3,37 | 3,10 | 3,86 | **5,35** | 3,34 |
+| quân quý < 50 máu cuối lượt / ván ; % trên ô hồi | 5,15 ; 54 | 5,72 ; 53 | 5,67 ; 57 | 5,56 ; 52 | 5,83 ; 53 | 5,35 ; 53 |
+
+- `pl_dp`: điểm quyết định ở 30% lần lập (snipe 3,65 / ván, giết 1,30, cả hai 0,44); ứng viên snipe được chọn 0,75 lần / ván; chiếm thành / giết tướng không đổi -> 0,495.
+- `promo_w`: lên cấp nhiều hơn (+18%) nhưng đổi lỗ nhiều hơn, chết nhiều hơn -> 0,477.
+- `pl_chain`: chỉ kiểm bằng test (`sim/tests/planner.gd` "pl_chain"): AI gần như không mua trống / sói -> không đo được bằng tự đấu.
+
+Chỉnh lại v3 (không phải mẹo trên mạng; dev cùng salt 1000–1007, 192 ván vs `hard_v3`): `lone_w` 0,6: 0,518; `lone_n` 2: **0,414** (thua); `hero_cgoal` 1 (bản đã sửa thành trung lập): 0,492; `escort_w` 10: 0,539 (tướng đứng một mình 42,8% -> 34,9%; < 0,57 = ~2 SE, luật chọn ghi trước -> không đưa vào v4).
+
+- Kết quả dev: 7 thử, cao nhất 0,526 < mức nhiễu kỳ vọng của số lớn nhất trong 7 lần rút (~0,55) -> **không có tín hiệu**. Chọn v4 = v3 + `buy_threat` 1 (knob duy nhất đổi đúng hành vi muốn: quân trong tầm quân địch mua −9%, sát thương quân vừa mua −5%), knob khác để 0. Spec cố định `hard_v4` (`sim/tune.gd`, `V4_TACTICS`, ghi rõ mọi knob mới). Kiểm: `hard_v3` ra đúng cùng ván ở code cũ (`3ef121a`) và code mới; `hard_v4` = `hard_v3+buy_threat:1` cùng ván.
+
+**Seed giữ riêng (ghi trước khi xem kết quả)**: salt 9500000–007 `games=16` (768 ván) `hard_v4` vs `hard_v3`; 9500100–107 / 9500200–207 / 9500300–307 `games=9` (432 ván) vs `hard_v2_0` / Khó v1 / Thường, cùng seed cho hàng `hard_v3`. Luật ship: `AI.PRESETS.hard` = v4 chỉ khi (v4 vs `hard_v3`) ≥ 0,55 **và** v4 vs `hard_v2_0` / Khó v1 / Thường không kém hàng `hard_v3` quá ~1 SE **và** thời gian trong ngân sách (lượt TB ≤ ~0,3 s, tệ nhất ≤ 1,5 s trên Mac này). Không thì giữ v3, knob v4 để tắt, `hard_v4` vẫn cố định để so.
+
+HELDOUT
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

@@ -2,8 +2,8 @@ extends SceneTree
 ## human-tactics metrics of a hard AI (docs/ai.md "Kinh nghiệm người chơi"): A (AI.PRESETS.hard + over) vs B, every
 ## skirmish map, both seats. Counted at each of A's turn ends / over the foe's reply.
 ## <godot> --headless --path . -s sim/probes/tactics_probe.gd -- [games=2] [salt=9200000] [base=hard] [over=k:v+k:v]
-##     [opp=v1|v2_0|v3|normal]
-## base=v2_0 / v3 -> tune.gd's frozen hard_v2_0 / hard_v3 instead of AI.PRESETS.hard
+##     [opp=v1|v2_0|v3|v4|normal]
+## base=v2_0 / v3 / v4 -> tune.gd's frozen hard_v2_0 / hard_v3 / hard_v4 instead of AI.PRESETS.hard
 ## examples=N -> print N turns where ref (hard_v2_0, ref=v3: hard_v3) from the same start leaves a lone killable unit and A
 ##     does not (exk=buy: a unit killable only once the foe's next-turn buys count, AI.buy_threats)
 const Tune := preload("res://sim/tune.gd")
@@ -28,6 +28,8 @@ func _init() -> void:
 		A = Tune.HARD_V2_0.duplicate()
 	elif base == "v3":
 		A = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
+	elif base == "v4":
+		A = Tune.HARD_V2_0.merged(Tune.V3_TACTICS).merged(Tune.V4_TACTICS)
 	var a_over: String = args.get("over", "")
 	for kv: String in a_over.split("+", false):
 		var p := kv.split(":", true, 1)
@@ -42,6 +44,8 @@ func _init() -> void:
 		B = Tune.HARD_V2_0
 	elif opp == "v3":
 		B = Tune.HARD_V2_0.merged(Tune.V3_TACTICS)
+	elif opp == "v4":
+		B = Tune.HARD_V2_0.merged(Tune.V3_TACTICS).merged(Tune.V4_TACTICS)
 	elif opp == "normal":
 		B = { }
 	var sum_of: String = args.get("sum", "")

@@ -3,6 +3,7 @@ extends SceneTree
 ## mission=t01 / t02 fresh: walks the tutorial steps instead (intro cards on, guide lock, ⚙ skip)
 
 const LayoutStorm := preload("res://sim/layout_storm.gd")
+const HudChecks := preload("res://sim/hud_checks.gd")
 
 var main: Main
 var fails := 0
@@ -387,6 +388,8 @@ func _run() -> void:
 	ok(not g.hud.hud_tr.visible, "terrain card took the ⏩ ⚙ corner (card at %s)" % g.hud.card.position)
 	ok(storm.peak <= 4, "⏩ ⚙ + quest slip hidden: no layout storm (peak %d minimum_size_changed/frame)" % storm.peak)
 	g._on_tile(plain.x, plain.y)
+	for r: Array in await HudChecks.layout_queue(self, g):
+		okv(r[0], str(r[1]))
 	root.size = old_size
 	await process_frame
 	g._on_tile(pos(hero).x, pos(hero).y)

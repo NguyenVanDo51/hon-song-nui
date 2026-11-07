@@ -202,8 +202,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 			gs.hud.card_box.add_child(_note(Content.text("graveNote"), Style.MUTED, 13))
 	gs.hud.card.visible = show_card
 	gs.hud.card.reset_size()
-	gs.hud.place_hud() # swap HUD vs card now, so a click this frame finds the right buttons
-	gs.hud.place_hud.call_deferred() # wrapped text knows its height after one layout pass
+	gs.hud.place_hud() # swap HUD vs card now, so a click this frame finds the right buttons; wrap height -> queue_place
 
 func _owner_txt(own: String) -> String:
 	if gs._hotseat():

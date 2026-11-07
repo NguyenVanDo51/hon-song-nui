@@ -24,6 +24,7 @@ var card_box: VBoxContainer
 var map_wrap: Control
 var btn_end: Button
 var quests: QuestPanel
+var queued_runs := 0 # deferred place_hud runs (driver: at most 1 per frame)
 
 var _gold_box: HBoxContainer
 var _income: Label
@@ -39,6 +40,8 @@ var _safe := Rect2() # map area (in _wrap) left free by the HUD
 var _frame: Panel
 var _banner: HudWidgets.Banner
 var _end_pulse: Tween = null
+var _place_queued := false
+var _placed_frame := -1
 
 func _init(screen: GameScreen) -> void:
 	gs = screen
@@ -95,10 +98,7 @@ func build_hud() -> void:
 	# top-right: ⏩ (enemy turn) + ⚙
 	var top_r := Style.hbox(8)
 	top_r.z_index = 40
-	top_r.minimum_size_changed.connect(
-		func() -> void:
-			place_hud.call_deferred(),
-	) # ⏩ shown / hidden
+	top_r.minimum_size_changed.connect(queue_place) # ⏩ shown / hidden
 	gs.add_child(top_r)
 	hud_tr = top_r
 	btn_ff = _ibtn(
@@ -126,10 +126,7 @@ func build_hud() -> void:
 	quests = QuestPanel.new()
 	quests.sfx = func() -> void:
 		gs.main.audio.play("ui")
-	quests.minimum_size_changed.connect(
-		func() -> void:
-			place_hud.call_deferred(),
-	)
+	quests.minimum_size_changed.connect(queue_place)
 	gs.add_child(quests)
 	_build_menu()
 	# bottom-left: what is selected
@@ -141,6 +138,7 @@ func build_hud() -> void:
 	card_box = Style.vbox(5)
 	card_box.custom_minimum_size.x = 270
 	card.add_child(card_box)
+	card.minimum_size_changed.connect(queue_place) # wrapped text settles after a pass: size shrinks back with it
 	# bottom-right: Hết lượt
 	btn_end = Style.menu_button("Hết lượt", "Còn 0 quân chưa đi", true)
 	var end_title: Label = btn_end.get_meta("title")
@@ -337,6 +335,22 @@ func show_menu(on: bool) -> void:
 ## Terrain picked: HUD stays; card prefers the free bottom-left corner, else takes a top corner from its HUD panel.
 func _side_w() -> float:
 	return maxf(card.get_combined_minimum_size().x, 210.0)
+
+## layout from a minimum_size_changed: never more than 1 queued, and at most 1 per frame -> no emit pattern can loop
+func queue_place() -> void:
+	if _place_queued:
+		return
+	_place_queued = true
+	if Engine.get_process_frames() == _placed_frame:
+		gs.get_tree().process_frame.connect(_queued_place, CONNECT_ONE_SHOT)
+	else:
+		_queued_place.call_deferred()
+
+func _queued_place() -> void:
+	_place_queued = false
+	_placed_frame = Engine.get_process_frames()
+	queued_runs += 1
+	place_hud()
 
 func place_hud() -> void:
 	if btn_end == null:

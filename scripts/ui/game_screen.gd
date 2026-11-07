@@ -131,6 +131,9 @@ func start(state: Dictionary, c: Dictionary) -> void:
 	hud.fit.call_deferred()
 	board.refresh_terrain()
 	ctx.erase("story") # old saves / old ctx may carry it
+	if ctx.kind == "campaign" and not s.has("quests"): # new game, or a save from before quests
+		Quests.init_state(s, def)
+	hud.quests.bind(s, "")
 	save()
 	refresh()
 	turns.begin()
@@ -513,6 +516,8 @@ func _on_tile(x: int, y: int) -> void:
 			refresh()
 			return
 		ui.sel = clicked.id
+		if clicked.side == me:
+			hud.quests.celebrate(Quests.note(s, "select", clicked.type))
 		# standing on a village/castle to take (or a ruin to repair): orders open on the first click
 		if my_turn and clicked.side == me and not clicked.acted \
 				and (Game.can_capture(s, cd, x, y) or Game.can_repair(s, cd, x, y)):
@@ -623,6 +628,7 @@ func select_next() -> void:
 	ui.sel = mine[i].id
 	main.audio.play("select")
 	refresh()
+	hud.quests.celebrate(Quests.note(s, "select", mine[i].type))
 
 func _unhandled_input(ev: InputEvent) -> void:
 	var key := ev as InputEventKey # null for mouse / touch events
@@ -692,12 +698,15 @@ func commit(extra: Dictionary) -> void:
 	refresh()
 	var before := player.snapshot()
 	var ev := Game.do_action(s, act)
+	var done := Quests.observe(s, ev) # before save: progress persists; stamp after playback
+	hud.quests.hold(done)
 	save()
 	await player.play(ev, before)
 	if gen != my:
 		return
 	ui.busy = false
 	refresh()
+	hud.quests.celebrate(done)
 	if s.winner != null:
 		turns.finish()
 
@@ -712,8 +721,10 @@ func buy_unit(type: String) -> void:
 	_clear_sel()
 	ui.sel = nu.id # AE2: the new unit moves / attacks right away (must step off if the castle was occupied)
 	_stack_hint()
+	var done := Quests.note(s, "buy", type)
 	save()
 	refresh()
+	hud.quests.celebrate(done)
 
 ## our unit that shares a tile (bought onto an occupied castle) and still has to step off
 func _stuck_unit() -> Variant:

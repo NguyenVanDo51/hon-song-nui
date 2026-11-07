@@ -41,3 +41,8 @@
 - [x] Code review 2026-11-06 backlog: hiệu năng P1–P8 (trừ P9), mở rộng E2/E3/E4/E7, tái sử dụng R1–R5 — merged e5a3520.
 - [ ] Còn lại từ review (`docs/review/code_review_2026-11-06.md`): E1 nhiều phe / đồng minh, E6 i18n (E5 tách `game_screen.gd` xong 2026-11-07); P9 vẽ lại khi idle; spike ~18 ms khi rig đánh lần đầu (raster phần rig); test UI phá/sửa làng/gọi hồn qua click, phím tắt, save giữa ván; đo hiệu năng trên điện thoại thật (web/iOS).
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
+
+## Nợ kỹ thuật
+- [ ] 2026-11-07 `sim/tests/quests.gd` (7eca24a) chưa qua gdscript-formatter -> `tools/lint.sh` báo "not formatted" trên nhánh feat/tutorial-quests (chạy formatter lên file đó).
+- [ ] 2026-11-07 `scripts/ui/game_hud.gd:326` `_side_w()` không ai gọi -> code chết (xoá).
+- [ ] 2026-11-07 `scripts/ui/quest_panel.gd` bảng nhiệm vụ chặn chuột (khi không mờ) -> ô trống nằm trọn dưới bảng không rê / bấm được bằng chuột (chỉ mờ khi ô rê lấn mép bảng / có quân dưới); cân nhắc mờ khi chuột vào bảng từ phía bàn cờ.

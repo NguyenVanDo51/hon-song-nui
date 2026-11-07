@@ -176,7 +176,8 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	layer.queue_free()
 	intro_layer = null
 
-func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], best_before := 0) -> void:
+## stars = Stars.final (quest penalty applied), drawn over the goal rows
+func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], best_before := 0, stars := 0) -> void:
 	for c in end_layer.get_children():
 		c.queue_free()
 	var dim := ColorRect.new()
@@ -208,7 +209,7 @@ func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], b
 	v.add_child(title)
 	var star_row: HudWidgets.StarRow = null
 	if star_goals.size():
-		star_row = HudWidgets.end_stars(v, star_goals, best_before)
+		star_row = HudWidgets.end_stars(v, star_goals, best_before, stars)
 	if text != "":
 		var t := Style.lbl(text, 16, Style.INK, null, true)
 		t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

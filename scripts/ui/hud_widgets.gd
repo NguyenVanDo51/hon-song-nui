@@ -204,13 +204,11 @@ class StarIcon extends Control:
 		else:
 			Draw.star(self, c, r, Style.PAPER_2, Style.INK_D, 1.2)
 
-## win card: 3 stars popping in + each goal ticked / missed with the number it was judged on (+ best, if better before)
-static func end_stars(v: VBoxContainer, goals: Array, best_before: int) -> StarRow:
+## win card: `got` stars popping in + each goal ticked / missed with the number it was judged on (+ best, if better before).
+## A penalty goal (quests) earns no star: ✓ when met, red "−1 ★" when not.
+static func end_stars(v: VBoxContainer, goals: Array, best_before: int, got: int) -> StarRow:
 	var row := StarRow.new()
-	row.got = goals.filter(
-		func(g: Dictionary) -> bool:
-			return g.ok,
-	).size()
+	row.got = got
 	row.custom_minimum_size = Vector2(240, 54)
 	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(row)
@@ -228,12 +226,18 @@ static func end_stars(v: VBoxContainer, goals: Array, best_before: int) -> StarR
 			"hero":
 				note = "" if ok else " (ngã %d lần)" % have
 		var line := Style.hbox(8)
-		var icon := StarIcon.new()
-		icon.on = ok
-		icon.custom_minimum_size = Vector2(16, 16)
-		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		line.add_child(icon)
-		line.add_child(Style.lbl(str(g.text) + note, 15, Style.GOOD if ok else Style.MUTED))
+		var col := Style.GOOD if ok else Style.MUTED
+		if g.get("penalty", false):
+			line.add_child(QuestPanel.Mark.new("done" if ok else "miss"))
+			col = Style.GOOD if ok else Style.BAD
+			note = "" if ok else "  −1 ★"
+		else:
+			var icon := StarIcon.new()
+			icon.on = ok
+			icon.custom_minimum_size = Vector2(16, 16)
+			icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			line.add_child(icon)
+		line.add_child(Style.lbl(str(g.text) + note, 15, col))
 		list.add_child(line)
 	v.add_child(list)
 	if best_before > row.got:

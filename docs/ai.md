@@ -142,7 +142,7 @@ Mẹo của user (người chơi AE2 lâu năm) + vài mẹo thêm (8–10), m�
 
 Hành vi vs `hard_v2_0` (A vs `hard_v2_0`, 96 ván, salt 600–607, cùng ván đầu):
 
-| Chỉ số | v2_0 | `lone_w` | `tgt_*` | `trade/order/feed` | `escort/hero_cgoal` | `home_val` 10 + `bld_w` 20 | v3 bản 1 (tất cả, dev) |
+| Chỉ số | v2_0 | `lone_w` | `tgt_*` | `trade/order/feed` | `escort/hero_cgoal` | `home_val` 10 + `bld_w` 20 (bản 1) | v3 bản 1 (tất cả, dev) |
 |---|---|---|---|---|---|---|---|
 | điểm (96 ván) | 0,500 | 0,625 | 0,562 | 0,552 | 0,573 | 0,542 | 0,802 |
 | quân lẻ bị dồn chết được / 100 lượt-quân | 8,43 | **4,45** | 6,41 | 6,74 | 6,76 | 7,28 | **3,91** |
@@ -172,7 +172,7 @@ Hành vi vs `hard_v2_0` (A vs `hard_v2_0`, 96 ván, salt 600–607, cùng ván �
 | `trade_w` 1 + `order_w` 1 + `feed_w` 1 | 0,562 ± 0,036 |
 | `escort_w` 30 + `hero_cgoal` 1 | 0,557 ± 0,036 |
 | `home_val` 10 + `bld_w` 20 / bản 2 (`home_rank` 8, `bld_w` 40) | 0,510 / 0,500 |
-| tất cả (bản 1 `home_*`), 384 ván salt 700–707 | **0,775 ± 0,021** (đồng bằng 126/128) |
+| tất cả (bản 1 `home_*`: `home_val` theo giá trị kể cả cấp, `bld_w` cả khi đầy máu), 384 ván salt 700–707 | **0,775 ± 0,021** (đồng bằng 126/128) |
 | tất cả (bản 2 `home_*`), 384 ván salt 700–707 | 0,747 ± 0,022 |
 
 **Seed giữ riêng lần 1** (v3 bản 1 = mọi knob trừ `home_*` / `bld_w`; salt 9400000–007 vs `hard_v2_0` 768 ván, 9400008–015 vs Khó v1 432 ván, 9400016–023 vs Thường 432 ván; cùng seed cho `hard_v2_0` -> so cặp):
@@ -220,10 +220,10 @@ Hành vi Khó v3 (bản ship) vs `hard_v2_0`, seed giữ riêng salt 9400100–1
 - Mẹo chưa làm: 11 giữ điểm hẹp (đầu cầu) bằng quân thủ cao, 12 đua làng sớm (v1 đã chia làng gần nhất qua `claims`).
 - Tiếp (v4): user chơi thử Khó v3 trước; thử lại mẹo 1 từng knob (`escort_w` riêng ít hơn, `hero_cgoal` đã sửa), `lone_w` 0,6 / `lone_n` 2; threat map tính cả quân địch mua ngay lượt sau (đánh luôn được, trừ máy bắn đá).
 
-Ví dụ (`tactics_probe.gd -- games=1 salt=9200000 base=v3 opp=v2_0 examples=4`; cùng thế cờ đầu lượt, v2_0 vs v3):
-- Cửa biển lượt 5 (ghế p): v2_0 để lính #2 31 máu đứng một mình ở (10,5) trong tầm địch; v3 rút nó về (5,5) cạnh đội hình, các quân khác đánh như cũ.
-- Đồng bằng lượt 2 (ghế e): v2_0 cho cung #6 lên tận cầu (6,5) bắn tướng địch rồi kẹt lại một mình (bị dồn chết được); v3 bắn cung địch từ (9,5) bên bờ mình, chờ quân tới.
-- Cửa biển lượt 5 (ghế e): v2_0 tách lính đi chiếm làng xa + 1 lính đánh tướng một mình + thuyền lẻ; v3: 2 lính cùng dồn 1 lính địch, thuyền lùi về (12,6) cạnh tướng.
+Ví dụ (`tactics_probe.gd -- games=1 salt=9200000 base=v3 opp=v2_0 examples=4`, bản ship; cùng thế cờ đầu lượt, v2_0 vs v3):
+- Đồng bằng lượt 2 (ghế e): v2_0 cho cung #6 lên tận cầu (6,5) bắn tướng địch rồi đứng một mình (bị dồn chết được); v3 bắn cung địch từ (8,4) bên bờ mình, lính #4 đứng sát cạnh (8,3) (mẹo 3).
+- Đồng bằng lượt 6 (ghế e): v2_0 cho lính #9 còn 18 máu chạy sang (3,8) đánh lẻ 1 cung; v3: tướng + lính + cung dồn đánh tướng địch, lính #9 rút về (6,5) cạnh lính #13 (7,5) (mẹo 3 + 7).
+- Núi rừng lượt 4 (ghế p): v2_0 cho lính #6 còn 8 máu một mình đánh tướng địch từ (13,7); v3: 2 lính khỏe #9, #2 cùng đánh tướng, lính #6 yếu đánh lính địch từ (12,10) gần đồng đội (mẹo 3 + 6).
 
 Bài học: phiên 2 kết luận "nút thắt là hàm điểm" — sai một nửa: mọi ứng viên của planner đều do v1 tham lam sinh ra, nên lỗi chung của v1 (đưa quân lẻ vào tầm địch từng con một) có trong mọi ứng viên, hàm điểm không có gì tốt hơn để chọn. Sửa chỗ **sinh ứng viên** (`lone_w`) cho +0,13 một mình. Thận trọng theo từng quân + tình huống (quân lẻ có thể bị dồn chết) ≠ thận trọng cả đội (tướng nấp, phạt nguy cơ cố định — đều thua).
 

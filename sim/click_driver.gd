@@ -384,7 +384,8 @@ func _run() -> void:
 		await process_frame
 		storm.tick()
 	storm.stop()
-	ok(not g.hud.hud_tr.visible and storm.peak <= 4, "terrain card in the ⏩ ⚙ corner: no layout storm (peak %d/frame)" % storm.peak)
+	ok(not g.hud.hud_tr.visible, "terrain card took the ⏩ ⚙ corner (card at %s)" % g.hud.card.position)
+	ok(storm.peak <= 4, "⏩ ⚙ + quest slip hidden: no layout storm (peak %d minimum_size_changed/frame)" % storm.peak)
 	g._on_tile(plain.x, plain.y)
 	root.size = old_size
 	await process_frame

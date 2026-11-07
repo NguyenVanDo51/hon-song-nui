@@ -78,6 +78,53 @@
 - Cửa biển lượt 6 (v2 = p): tướng địch đứng sát thành ta (8,7). v1 cho lính trên thành đi chỗ khác -> thành trống. v2 đưa cung vào đứng thành (điểm 2 ply thấy tướng địch chiếm thành ở lượt đáp).
 - Thống kê 1 lượt chạy (80 lượt v2): lần lập đầu lượt chọn style 58 lần, dồn đòn giết 28 lần; lập lại giữa lượt 10 lần (roll thật khác dự đoán).
 
+### Luyện thêm (2026-11-07, phiên 2): có khôn hơn không?
+Thước đo cố định: spec `hard_v2_0` (`sim/tune.gd`) = `AI.PRESETS.hard` + `AIPlan.DEFAULT` lúc ship v2 (`20fae2e`), đổi default sau này không làm trôi mốc. Mọi số dưới: điểm ứng viên vs `hard_v2_0`, cả 2 ghế, 3 map.
+
+Công cụ mới:
+- `tools/match_par.sh <a> <b> [games] [salt0] [nproc]`: 8 tiến trình, salt `salt0..salt0+7`, cộng điểm, ± SE (nhị thức). Cảnh báo nếu `pl_ms` cắt plan (mất tất định).
+- `tune.gd -- evaldata` + `tools/texel_fit.py`: kiểu Texel (cờ vua) — mỗi đầu lượt (đúng thế cờ planner chấm) ghi đặc trưng (giá quân, máu mất, vàng, thu nhập, thành, khoảng cách, tướng sống, độ phơi tướng 2 bên) + kết quả ván -> hồi quy logistic -> trọng số "đúng" theo dữ liệu.
+- `pl_buy` (mặc định 0): ứng viên mua trước (lính mua đi ngay lượt đó, AE2), + mua rồi dồn đòn giết. `AI.buy_step` tách từ `greedy_step` (y nguyên).
+- `plan_probe.gd over=k:v+k:v`: đếm ứng viên thắng với knob khác.
+
+Seed dev: bộ A salt 100–107, bộ B 200–207 (`games=3` -> 144 ván / lần, SE ~0,042). Tốc độ thật: v2 vs v2 ~0,3 ván/s cả 8 tiến trình (144 ván ~8–10 phút), chậm hơn ước tính 3×.
+
+| Thử (vs `hard_v2_0`) | Bộ A | Bộ B |
+|---|---|---|
+| `pl_buy` 2 (mua trước + mua rồi giết) | 0,514 | |
+| `pl_hp_cap` 300 / 140 | **0,434** / 0,493 | |
+| `pl_castle` 550 | 0,493 | |
+| `pl_inc` 8 / 2 | **0,406** / 0,500 | |
+| `pl_adv_hero` 24 | 0,486 | |
+| `pl_adv` 8 / 2 / 0 | **0,354** / 0,531 / 0,542 | – / – / 0,538 |
+| `pl_opp_roll` 0,65 (địch đáp gặp may) | 0,528 | |
+| `pl_alpha` 0,5 | 0,514 | |
+| `pl_gold` 0,6 | 0,521 | |
+| **`pl_opp_kill` 1** (địch đáp thêm bằng dồn đòn giết quân giá trị nhất = tướng ta) | **0,556** | **0,569** |
+| `pl_opp_kill` 1 + `pl_adv` 2 / + `pl_adv` 0 | 0,535 | 0,580 / 0,521 |
+| (vs Khó v1, salt 300–307) `pl_opp_kill` 1 + `pl_adv` 2 / `hard_v2_0` | 0,854 / 0,872 | |
+
+- Mua trước: được chọn 17 / 97 lần lập đầu lượt (`plan_probe over=pl_buy:2`, salt 300) nhưng không thắng hơn -> hàm điểm coi vàng = giá quân (mua là trung tính), lợi 1 lượt đi sớm nhỏ.
+- Hàm điểm hiện tại gần đỉnh cục bộ: đổi trọng số 2× theo hướng nào cũng hòa hoặc thua; `pl_adv` cao (đẩy quân lên) thua đậm, thấp hơn hơi tốt (0,54, chưa chắc).
+- Texel (192 ván v2 tự đấu, 7384 thế cờ, salt 500–507): hàm điểm hiện tại đã dự đoán gần bằng hồi quy tự do (log-loss kiểm tra 0,250 vs 0,245–0,251); thêm độ phơi tướng không dự đoán tốt hơn (0,2500). Hệ số học được **không ổn định** giữa 2 nửa dữ liệu (thành: +217 / −98; tướng sống: +44 / −258; máu mất ×0,2 / ×2,8) -> 192 ván quá ít, và trọng số dự đoán tốt ≠ chọn nước tốt (Texel gợi ý thu nhập cao hơn; đo: `pl_inc` 8 thua 0,406).
+- `pl_opp_kill` 1: ý tưởng — địch v2 dồn đòn giết có kế hoạch, mô hình địch hiện tại (v1 tham lam từng đòn) đánh giá thấp nguy cơ tướng ta; thêm lời đáp "địch dồn đòn giết quân giá trị nhất của ta" (+ giết đôi), lấy lời đáp tệ nhất = cẩn thận đúng chỗ thay vì phạt nguy cơ cố định. Chi phí: tối đa 3 lời đáp / ứng viên (~+18% thời gian / lượt, đo lúc máy tải nặng).
+
+**Kết quả seed giữ riêng** (salt 9300000–9300007 mới, `games=8` × 8 tiến trình = 384 ván / cặp, cả 2 ghế, 3 map; ± SE):
+
+| A vs B | Điểm A |
+|---|---|
+| `hard_v2_0` + `pl_opp_kill` 1 vs `hard_v2_0` | **0,517 ± 0,026** (cần ≥ 0,55) |
+| `hard_v2_0` + `pl_opp_kill` 1 vs Khó v1 | 0,895 ± 0,016 |
+| `hard_v2_0` vs Khó v1 | 0,919 ± 0,014 |
+| `hard_v2_0` + `pl_opp_kill` 1 vs Thường | 0,849 ± 0,018 |
+| `hard_v2_0` vs Thường | 0,878 ± 0,017 |
+
+- **Kết luận: luyện thêm không làm máy khôn hơn rõ** — ứng viên tốt nhất dev (0,563 / 288 ván, bộ A+B) chỉ còn 0,517 trên seed mới (= nhiễu + chọn lọc), lại yếu hơn chút vs Khó v1 / Thường (−0,024 / −0,029, ~1 SE): mô hình địch bi quan hợp với địch mạnh, thừa thận trọng với địch yếu. **Không đổi `AI.PRESETS.hard` / `AIPlan.DEFAULT`** (chỉ thêm công cụ + knob tắt).
+- `pl_ms` (phanh 4 s) bị chạm vài lần khi 8 sim song song + game người dùng (tải ~10–12), chỉ ở ứng viên có `pl_opp_kill` (lời đáp đắt): held-out 5 lần / 384 ván; dev: 1–8 tiến trình mỗi lần chạy có `pl_opp_kill`. Các ván đó không tất định tuyệt đối (không đổi kết luận). `hard_v2_0` và các knob trọng số: không chạm lần nào.
+- Thời gian (hành vi không đổi): đo lại `tune.gd -- time a=hard_v2_0 b=hard_v1 games=4 salt=9100000` (24 ván, chạy song song 3 gate, tải ~3–7): lượt TB 255 ms, p95 658 ms, tệ nhất 1,58 s; bước TB 28 ms, tệ nhất 1,18 s (cũ: 202 ms / 1,19 s ở tải ~5,7) -> tệ nhất nhạy với tải máy, cần đo trên điện thoại thật. `pl_opp_kill` 1 lúc tải ~10: +18% thời gian / lượt so với `hard_v2_0` cùng lúc.
+- Vì sao không lên: hàm điểm 7 trọng số tay đã ở gần đỉnh cục bộ (mọi bước 2× đều ≤ hòa); lợi thế ghế theo map rất mạnh (v2 vs v2 seed giữ riêng: núi rừng ghế e thắng ~75%, cửa biển ghế e ~64%, đồng bằng ghế p ~63%) -> 144 ván chỉ phân biệt được chênh ≥ ~0,08; ứng viên cấu trúc (mua trước, địch đáp dồn đòn) tăng ≤ ~0,02 thật.
+- Muốn "siêu khó" tiếp, thử theo thứ tự: (1) đổi nguồn mạnh chứ không chỉnh trọng số — tìm kiếm sâu hơn ở chỗ quyết định (2 lượt của ta khi có thể giết tướng / mất thành), (2) đánh giá học từ nhiều dữ liệu hơn (≥ 2000 ván, đặc trưng theo loại quân / vị trí tướng so với thành), dùng làm thứ tự ứng viên chứ không thay hàm điểm, (3) thưởng / chấp vàng cho "Siêu khó" (rẻ, chắc chắn mạnh hơn), (4) mỗi đánh giá ≥ 400 ván (paired, cả 2 ghế) — dưới mức đó chênh 0,05 không thấy.
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

@@ -19,6 +19,23 @@ func planner_tests() -> void:
 			AI.rng = prev,
 	)
 	run(
+		"hard v2 extra candidates (buy first, opponent kill replies): legal, state untouched",
+		func() -> void:
+			for mid: String in Content.SKIRMISH.MAPS:
+				var s := hard_duel(mid)
+				for sd: String in ["p", "e"]:
+					s.aiParams[sd] = AI.PRESETS.hard.merged({ "pl_buy": 2.0, "pl_opp_kill": 1.0 }, true)
+				var steps := planner_game(mid, 4, s)
+				check(steps.size() > 10, "%s: game went on (%d steps)" % [mid, steps.size()])
+			var c := hard_duel("dong_bang")
+			var g0: int = c.gold.p
+			var buys := AIPlan.buy_prefix(c)
+			var g1: int = c.gold.p
+			check(buys.size() > 0 and g1 < g0, "turn 1: buy prefix spends gold (%d buys)" % buys.size())
+			for st: Dictionary in buys:
+				eq(st.kind, "buy", "buy prefix holds only buys"),
+	)
+	run(
 		"hard v2: deterministic (same state -> same game)",
 		func() -> void:
 			var a := planner_game("cua_bien", 5, hard_duel("cua_bien"))

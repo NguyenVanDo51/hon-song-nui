@@ -9,6 +9,8 @@ const TYPES := ["soldier", "archer", "boat", "shaman", "drum", "wolf", "elephant
 
 var seed_v := 1.0
 var m := { }
+var ex_left := 0 # examples=N: print N support jobs (raise, drum aura on >= 3 attackers, bitten target killed)
+var bitten := { } # target id -> wolf tile, this A turn
 
 func _init() -> void:
 	var args := { }
@@ -28,6 +30,7 @@ func _init() -> void:
 		quit()
 		return
 	var games := int(str(args.get("games", "2")))
+	ex_left = int(str(args.get("examples", "0")))
 	var salt := int(str(args.get("salt", "9200000")))
 	var A := Tune.spec_of(str(args.get("a", "hard_v3")))
 	var B := Tune.spec_of(str(args.get("b", "hard_v3")))
@@ -69,6 +72,7 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 		var stv: Variant = AI.next_step(s, mem)
 		if stv == null:
 			if s.side == me:
+				bitten = { }
 				add("turns")
 				if Game.cap_count(s, me) >= s.unitCap:
 					add("at_cap")
@@ -115,6 +119,7 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 		var ev := AI.apply_step(s, st)
 		steps += 1
 		var work := kind != "wait"
+		var cover := 0
 		for e: Dictionary in ev:
 			if e.t == "aura":
 				var ids: Array = e.ids
@@ -122,11 +127,22 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 					var o: Variant = Game.unit_by_id(s, oid)
 					if o != null and not o.acted:
 						work = true
+						cover += 1
 						add("aura_on_unacted")
 			if e.t == "raise":
 				add("raised")
+				_ex("%s t%d (A=%s): shaman #%d -> (%d,%d) raises ghost on grave (%d,%d)" % [map_id, s.turn, me, aid, tx, tyy, e.x, e.y])
 			if e.t == "poison":
 				add("poison_bites")
+				bitten[e.id] = [tx, tyy, aid]
+			if e.t == "die" and bitten.has(e.id) and e.side != me:
+				var bw: Array = bitten[e.id]
+				_ex(
+					"%s t%d (A=%s): wolf #%d bit %s #%d from (%d,%d), then %s #%d killed it"
+					% [map_id, s.turn, me, bw[2], e.type, e.id, bw[0], bw[1], ty, aid]
+				)
+		if cover >= 3:
+			_ex("%s t%d (A=%s): drum #%d -> (%d,%d) first, aura on %d unacted allies" % [map_id, s.turn, me, aid, tx, tyy, cover])
 		var tt: Dictionary = Game.TERRAIN[Game.tile_at(s, tx, tyy)]
 		if ty == "boat" and tt.get("water", false):
 			add("boat_on_water")
@@ -140,6 +156,11 @@ func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, 
 		add("wins")
 	elif s.winner == null:
 		add("wins", 0.5)
+
+func _ex(line: String) -> void:
+	if ex_left > 0:
+		ex_left -= 1
+		print("  ex " + line)
 
 func _report() -> void:
 	var n := maxf(gm("games"), 1.0)

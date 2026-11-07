@@ -335,15 +335,12 @@ func _hover_attack() -> Variant:
 		return null
 	return { "target": e, "from": from }
 
-## where the selected unit attacks `e` from: the chosen tile if e is in range from it, else the best reachable tile
+## where the selected unit attacks `e` from: the chosen tile if e is in range from it, else AttackPick (own tile first)
 func _attack_from(u: Dictionary, e: Dictionary) -> Variant:
 	if ui.mode != M_IDLE and ui.dest != null:
 		var dx: int = ui.dest[0]
 		var dy: int = ui.dest[1]
-		if Game.targets_from(s, u, dx, dy).any(
-			func(o: Dictionary) -> bool:
-				return o.id == e.id,
-		):
+		if AttackPick.hits(s, u, dx, dy, e):
 			return ui.dest
 	return _best_attack_tile(u, e)
 
@@ -367,24 +364,9 @@ func _best_attack_tile(u: Dictionary, target: Dictionary) -> Variant:
 	)
 
 func _best_attack_tile_now(u: Dictionary, target: Dictionary) -> Variant:
-	var best: Variant = null
-	for r: Dictionary in _reach(u).values():
-		var rx: int = r.x
-		var ry: int = r.y
-		if not Game.targets_from(s, u, rx, ry).any(
-			func(o: Dictionary) -> bool:
-				return o.id == target.id,
-		):
-			continue
-		var p := Game.preview(s, u, rx, ry, target)
-		var sc: float = _attack_score(p) + Game.terrain_def(s, u, rx, ry) * 0.3 - r.cost * 0.1
-		if best == null or sc > best.sc:
-			best = { "sc": sc, "x": r.x, "y": r.y }
-	if best == null:
-		return null
-	return [best.x, best.y]
+	return AttackPick.tile(s, u, target, _reach(u))
 
-## one yardstick for "which attack is best" (hover tile choice and the ⚔ Đánh button): a kill beats any trade
+## ⚔ Đánh (N): which target to aim at from the chosen tile; a kill beats any trade. Tile choice: AttackPick
 func _attack_score(p: Dictionary) -> float:
 	return p.dmg - p.counter * 1.1 + (50.0 if p.kill else (20.0 if p.mayKill else 0.0)) - (50.0 if p.die else (20.0 if p.mayDie else 0.0))
 

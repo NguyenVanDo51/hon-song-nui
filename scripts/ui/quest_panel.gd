@@ -150,6 +150,10 @@ func celebrate(indexes: Array) -> void:
 	else:
 		refresh()
 
+## a ✓ stamp is queued or in the air (the tutorial guide waits for it)
+func celebrating() -> bool:
+	return _flying >= 0 or not _queue.is_empty()
+
 ## done while its action is still playing: keep them open until celebrate()
 func hold(indexes: Array) -> void:
 	_held.append_array(indexes)

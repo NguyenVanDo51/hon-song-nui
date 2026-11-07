@@ -616,6 +616,22 @@ func _tap(g: GameScreen, p: Vector2) -> void:
 		await process_frame
 	await process_frame
 
+## the guide is up (after banners, intro cards, ✓ stamps)
+func _live(tut: Tutorial) -> bool:
+	for i in 600:
+		if tut.visible and tut.get_child(0).get("visible"):
+			return true
+		await process_frame
+	return false
+
+## orders popup button carrying meta act = kind (null when none)
+static func _act_btn(g: GameScreen, kind: String) -> Button:
+	for c: Node in g.panel.actions.get_children():
+		var b := c as Button
+		if b != null and str(b.get_meta("act", "")) == kind:
+			return b
+	return null
+
 ## control the GUI picks under p (GameScreen coords), via a real mouse motion
 func _hover_at(g: GameScreen, p: Vector2) -> Control:
 	var e := InputEventMouseMotion.new()
@@ -723,7 +739,19 @@ func _tut_t01(g: GameScreen) -> void:
 	g._on_tile_clicked(1, 1)
 	g.commit({ "kind": "wait" }) # the orders popup's ⏳ Chờ would burn the hero without the village
 	okv(not hero.acted and g.ui.sel == hid, "t01 step 2: wait refused (capture only)")
-	g._on_tile_clicked(1, 1)
+	ok(await _live(tut), "t01 step 2: guide up with the orders popup")
+	await wait(0.2)
+	var cap := _act_btn(g, "capture")
+	var wt := _act_btn(g, "wait")
+	var cap_c := cap.get_global_rect().get_center() - tut.global_position if cap != null else Vector2(-1, -1)
+	var wt_c := wt.get_global_rect().get_center() - tut.global_position if wt != null else Vector2(-1, -1)
+	ok(cap != null and not tut._has_point(cap_c), "t01 step 2: 🏠 Chiếm in the popup is holed")
+	ok(wt != null and tut._has_point(wt_c), "t01 step 2: ⏳ Chờ stays under the dim")
+	await main.shot("tut_t01_popup")
+	if wt != null:
+		await _tap(g, wt_c)
+		okv(not hero.acted, "t01 step 2: real click on ⏳ Chờ swallowed")
+	await _tap(g, cap_c)
 	await idle(g)
 	okv(s.quests[1].done and tut.step == 2, "t01 step 2 done: village taken -> step 3")
 	# step 3: end turn only
@@ -749,14 +777,47 @@ func _tut_t01(g: GameScreen) -> void:
 	var foe: Variant = Game.unit_at(s, 5, 2)
 	okv(foe != null and foe.side == "e", "t01 step 5: a guard stands on the pointed tile")
 	await process_frame
+	await process_frame
 	ok(_near(tut.target_rect(), _tile_r(g, 4, 2)), "t01 step 5: nothing picked -> hole on the hero")
+	# the AI may not bring a guard to (5,2): none in reach -> Hết lượt only; one in reach elsewhere -> aim at it
+	var guards: Array = units_of(s).filter(
+		func(u: Dictionary) -> bool:
+			return u.side == "e",
+	)
+	var far := [Vector2i(7, 6), Vector2i(8, 6)]
+	for k in guards.size():
+		var gd: Dictionary = guards[k]
+		gd.x = far[k].x
+		gd.y = far[k].y
+	g.refresh()
+	await process_frame
+	await process_frame
+	var spent_ok: bool = tut.allows("end_turn") and not tut.allows(Vector2i(4, 2)) and not tut.allows(Vector2i(5, 2))
+	ok(spent_ok and _near(tut.target_rect(), Rect2(g.hud.btn_end.position, g.hud.btn_end.size)), "t01 step 5: no guard in reach -> only Hết lượt")
+	var g0: Dictionary = guards[0]
+	g0.x = 6
+	g0.y = 3
+	g.refresh()
+	await process_frame
+	await process_frame
+	okv(not tut.allows("end_turn") and tut.allows(Vector2i(4, 2)), "t01 step 5: guard back in reach -> hero again")
 	g._on_tile_clicked(pos(hero).x, pos(hero).y)
 	await process_frame
-	ok(_near(tut.target_rect(), _tile_r(g, 5, 2)), "t01 step 5: hero picked -> hole on the guard")
-	g._on_tile_clicked(5, 2)
-	g._on_tile_clicked(5, 2)
-	await idle(g)
 	await process_frame
+	var aim_ok: bool = tut.allows(Vector2i(6, 3)) and not tut.allows(Vector2i(5, 2))
+	ok(aim_ok and _near(tut.target_rect(), _tile_r(g, 6, 3)), "t01 step 5: hero picked -> hole on the guard in reach (6,3)")
+	g._on_tile_clicked(6, 3)
+	ok(await _live(tut), "t01 step 5: guide up with the aim popup")
+	await wait(0.2)
+	var atk := _act_btn(g, "attack")
+	var atk_c := atk.get_global_rect().get_center() - tut.global_position if atk != null else Vector2(-1, -1)
+	ok(atk != null and not tut._has_point(atk_c), "t01 step 5: ⚔ Đánh in the popup is holed")
+	await _tap(g, atk_c)
+	await idle(g)
+	for i in 200:
+		if not tut.visible:
+			break
+		await process_frame
 	okv(s.quests[4].done and not tut.active() and tut.step == 5 and not tut.visible, "t01 step 5 done: guide gone")
 	# free play
 	g._on_tile_clicked(3, 5)

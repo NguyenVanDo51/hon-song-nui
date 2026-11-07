@@ -375,6 +375,8 @@ func place_hud() -> void:
 		var cands: Array[Vector2] = [Vector2(M, M), Vector2(gs.size.x - cs.x - M, M), Vector2(M, gs.size.y - cs.y - M), gs.size - cs - Vector2(M, M)]
 		if card_terrain: # bottom-right = end turn button, never covered
 			cands = [cands[2], cands[0], cands[1]]
+		elif gs.tutorial != null and gs.tutorial.active(): # ⚙ (Bỏ qua hướng dẫn) stays reachable: no top-right card
+			cands.remove_at(1)
 		card.position = cands[0]
 		var avoid: Array[Rect2] = []
 		for k: Vector2i in card_avoid:

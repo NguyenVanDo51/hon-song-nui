@@ -21,7 +21,10 @@ const ACTS := {
 	"raze": ["raze"],
 	"raise": ["raise"],
 }
+## attack quests: the pointed enemy may not come (AI noise) -> aim at one in reach, or wait turns for one
+const ATTACKS := ["attack_with", "hit_type", "kill_with", "kill_type"]
 const SHOW_DELAY := 0.9 # s after entering: the turn banner goes first
+const CELEBRATE_MAX := 3.0 # s the guide waits for a quest stamp before showing anyway
 const TOAST_S := 2.6
 const HAND_UP := preload("res://assets/emoji/emoji_u1f446.png")
 const HAND_DOWN := preload("res://assets/emoji/emoji_u1f447.png")
@@ -43,6 +46,9 @@ var _toast_say := ""
 var _target := Rect2()
 var _round := true
 var _holes: Array[Rect2] = [] # other allowed tiles: lit, smaller, no ring
+var _btn_holes: Array[Rect2] = [] # orders popup buttons that finish the step (🏠 Chiếm, ⚔ Đánh…)
+var _cel_t := 0.0
+var _ring_sb: StyleBoxFlat
 var _pass: Array[Rect2] = [] # clicks go through here (target, holes, ⚙)
 var _dim: ColorRect
 var _mat: ShaderMaterial
@@ -68,6 +74,10 @@ func _init() -> void:
 	_ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_ring.draw.connect(_draw_ring)
+	_ring_sb = StyleBoxFlat.new()
+	_ring_sb.draw_center = false
+	_ring_sb.corner_detail = 16
+	_ring_sb.anti_aliasing = true
 	add_child(_ring)
 	_hand = TextureRect.new()
 	_hand.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -117,6 +127,8 @@ func advance() -> void:
 		if _passive(_st()):
 			_pop_line(_st())
 		step += 1
+	if active() and gs.ui.sel != null and _allowed() == ["end_turn"]: # a unit card would hide Hết lượt
+		gs._clear_sel()
 	if step == was:
 		return
 	gs.s.tut_step = step
@@ -177,8 +189,52 @@ func _picked(st: Dictionary) -> bool:
 	var su: Dictionary = sel if sel != null else { }
 	return sel != null and su.side == gs._me() and not su.acted and _tiles(st).has(_at(su))
 
-## no unit of the step can act this turn (e.g. t01 step 5 before the enemy came): only Hết lượt
+## the step's unit: the picked one, else the first that can act on an allowed tile; {} = none
+func _step_unit(st: Dictionary) -> Dictionary:
+	if _picked(st):
+		var su: Dictionary = gs._sel_unit()
+		return su
+	var tiles := _unit_tiles(st)
+	if tiles.is_empty():
+		return { }
+	var u: Dictionary = Game.unit_at(gs.s, tiles[0].x, tiles[0].y)
+	return u
+
+## the step as it stands now: an attack step whose pointed enemy the unit cannot hit this turn aims at the nearest
+## enemy it can hit (tile swapped in allow); none in reach -> { spent } so Hết lượt passes turns until one comes
+func _eff(st: Dictionary) -> Dictionary:
+	if not ATTACKS.has(_quest(st).do):
+		return st
+	var u := _step_unit(st)
+	if u.is_empty():
+		return st
+	var foes: Array = gs._attackable_anywhere(u, gs._reach(u))
+	if foes.is_empty():
+		return st.merged({ "spent": true }, true)
+	var p: Variant = st.get("point")
+	var pt := _xy(p) if p is Array else _at(u)
+	var best: Dictionary = { }
+	for f: Dictionary in foes:
+		if _at(f) == pt:
+			return st
+		if best.is_empty() or _dist(_at(f), pt) < _dist(_at(best), pt):
+			best = f
+	var allow0: Array = st.get("allow", [])
+	var allow: Array = allow0.filter(
+		func(a: Variant) -> bool:
+			return not (a is Array and _xy(a) == pt),
+	)
+	var to := [_at(best).x, _at(best).y]
+	allow.append(to)
+	return st.merged({ "point": to, "allow": allow }, true)
+
+static func _dist(a: Vector2i, b: Vector2i) -> int:
+	return absi(a.x - b.x) + absi(a.y - b.y)
+
+## no unit of the step can act this turn (e.g. t01 step 5 before the enemy came, or no enemy in reach): only Hết lượt
 func _spent(st: Dictionary) -> bool:
+	if _eff(st).get("spent", false):
+		return true
 	var allow: Array = st.get("allow", [])
 	var tokens := allow.any(
 		func(a: Variant) -> bool:
@@ -187,9 +243,9 @@ func _spent(st: Dictionary) -> bool:
 	return not tokens and _unit_tiles(st).is_empty() and not _picked(st)
 
 func _allowed() -> Array:
-	var st := _st()
-	if _spent(st):
+	if _spent(_st()):
 		return ["end_turn"]
+	var st := _eff(_st())
 	var units := _unit_tiles(st)
 	var picked := _picked(st)
 	var out: Array = []
@@ -215,20 +271,20 @@ func _process(dt: float) -> void:
 	_since += dt
 	_flash = maxf(0.0, _flash - dt * 2.5)
 	_toast = maxf(0.0, _toast - dt)
+	_cel_t = _cel_t + dt if gs.hud.quests.celebrating() else 0.0
+	if active() and not gs.s.is_empty():
+		_aim()
 	var live := _live()
 	visible = live or _toast > 0.0
 	if not visible:
 		modulate.a = 0.0
-		_pass.clear()
 		return
 	modulate.a = minf(1.0, modulate.a + dt * 5.0)
 	mouse_filter = Control.MOUSE_FILTER_STOP if live else Control.MOUSE_FILTER_IGNORE
 	_dim.visible = live
 	_ring.visible = live
 	_hand.visible = live
-	if live:
-		_aim()
-	else:
+	if not live:
 		_target = _toast_at
 		_say.text = _toast_say
 	_place()
@@ -239,8 +295,9 @@ func _live() -> bool:
 	if not active() or _since < SHOW_DELAY or not gs.visible or gs.s.is_empty():
 		return false
 	return (
-		gs.s.winner == null and gs._human_turn() and not gs.ui.busy and not gs._intro_on and gs.turns.handoff_layer == null
-		and not gs.hud.menu.visible and not gs.cards.end_layer.visible and not gs.main.menus.is_codex_open()
+		gs.s.winner == null and gs._human_turn() and not gs.ui.busy and not gs._intro_on
+		and gs.turns.handoff_layer == null and not gs.hud.menu.visible and not gs.cards.end_layer.visible
+		and not gs.main.menus.is_codex_open() and (_cel_t == 0.0 or _cel_t > CELEBRATE_MAX) # the quest ✓ stamp plays undimmed first
 	)
 
 func _tile_r(t: Vector2i) -> Rect2:
@@ -253,7 +310,7 @@ func _ctrl_r(c: Control) -> Rect2:
 
 ## target / holes / click-through rects for the step and the current selection, then the shader holes
 func _aim() -> void:
-	var st := _st()
+	var st := _eff(_st())
 	var allowed := _allowed()
 	var say: String = st.get("say", "")
 	var tiles: Array[Vector2i] = []
@@ -262,12 +319,9 @@ func _aim() -> void:
 			tiles.append(a)
 	var aim_tile := Vector2i(-1, -1)
 	_round = true
-	if allowed == ["end_turn"] and not gs.hud.btn_end.is_visible_in_tree(): # a unit card hides Hết lượt: drop the pick
-		gs._clear_sel()
-		gs.refresh()
 	if allowed.has("end_turn") and gs.hud.btn_end.is_visible_in_tree():
 		_target = _ctrl_r(gs.hud.btn_end)
-		if _spent(st):
+		if _spent(_st()):
 			say = Content.text("tutEndTurn")
 	else:
 		var btn := _buy_button(allowed)
@@ -285,8 +339,12 @@ func _aim() -> void:
 	for t: Vector2i in tiles:
 		if t != aim_tile:
 			_holes.append(_tile_r(t))
+	_btn_holes.clear()
+	for b: Button in _act_buttons(allowed):
+		_btn_holes.append(_ctrl_r(b))
 	_pass = [_target]
 	_pass.append_array(_holes)
+	_pass.append_array(_btn_holes)
 	var gear := _ctrl_r(gs.hud.gear) if gs.hud.gear.is_visible_in_tree() else Rect2()
 	if gear.has_area():
 		_pass.append(gear)
@@ -297,6 +355,8 @@ func _aim() -> void:
 	for h: Rect2 in _holes:
 		var hr := h.grow(-h.size.x * 0.06)
 		_add_box(boxes, radii, hr, hr.size.x / 2.0)
+	for h: Rect2 in _btn_holes:
+		_add_box(boxes, radii, h.grow(3.0), 9.0)
 	if gear.has_area():
 		var gr := gear.grow(4.0)
 		_add_box(boxes, radii, gr, minf(gr.size.x, gr.size.y) / 2.0)
@@ -322,6 +382,17 @@ func _buy_button(allowed: Array) -> Button:
 			if b != null and b.is_visible_in_tree() and b.size.x > 0.0:
 				return b
 	return null
+
+## orders popup buttons (meta "act") whose order is allowed in this step
+func _act_buttons(allowed: Array) -> Array[Button]:
+	var out: Array[Button] = []
+	if gs.ui.buyAt != null or not gs.panel.pop.visible or gs.panel.pop.modulate.a < 1.0:
+		return out
+	for c: Node in gs.panel.actions.get_children():
+		var b := c as Button
+		if b != null and b.has_meta("act") and allowed.has("act:" + str(b.get_meta("act"))) and b.size.x > 0.0:
+			out.append(b)
+	return out
 
 static func _find_buy(n: Node, type: String) -> Button:
 	var b := n as Button
@@ -392,15 +463,10 @@ func _draw_ring() -> void:
 		return
 	var pulse := 0.5 + 0.5 * sin(_t * TAU / 1.1)
 	var r := _ring_r(_target, _round, 2.0 + pulse * 5.0 + _flash * 8.0)
-	var sb := StyleBoxFlat.new()
-	sb.draw_center = false
-	var w := int(4.0 + _flash * 4.0)
-	sb.set_border_width_all(w)
-	sb.set_corner_radius_all(int(r.size.x / 2.0) if _round else 12)
-	sb.corner_detail = 16
-	sb.anti_aliasing = true
-	sb.border_color = Color(Style.LEAF.lerp(Color.WHITE, _flash * 0.6), 1.0 - pulse * 0.4 + _flash * 0.4)
-	_ring.draw_style_box(sb, r)
+	_ring_sb.set_border_width_all(int(4.0 + _flash * 4.0))
+	_ring_sb.set_corner_radius_all(int(r.size.x / 2.0) if _round else 12)
+	_ring_sb.border_color = Color(Style.LEAF.lerp(Color.WHITE, _flash * 0.6), 1.0 - pulse * 0.4 + _flash * 0.4)
+	_ring.draw_style_box(_ring_sb, r)
 
 ## a passive step done (heal at turn start): its line over the target for a moment, no dim
 func _pop_line(st: Dictionary) -> void:

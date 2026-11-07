@@ -1,5 +1,5 @@
 extends "res://sim/probes/probe_base.gd"
-## tutorial guide shots: t01 step 1 (hero), step 2 (village), step 3 (Hết lượt), ⚙ menu with Bỏ qua; t02 castle, buy button,
+## tutorial guide shots: t01 step 1 (hero), ✓ stamp undimmed, step 2 (village, then orders popup), step 3 (Hết lượt), ⚙ menu; t02 castle, buy button,
 ## hurt soldier. Prints the hole / hand / bubble rects so overlaps show in the log too.
 ##   tools/run_guarded.sh /tmp/tut.log -- --path . -s sim/probes/tut_shot.gd -- mission=t01 fresh nointro profile=test shots=<dir> [win=WxH]
 
@@ -37,6 +37,9 @@ func _run(g: GameScreen) -> void:
 	)[0]
 	await _shot(g, "t01_s1")
 	g._on_tile_clicked(pos(hero).x, pos(hero).y)
+	await create_timer(0.3).timeout
+	print("[tut] stamp: guide visible=", g.tutorial.visible, " celebrating=", g.hud.quests.celebrating())
+	await main.shot(str(args.get("tag", "tut")) + "_t01_s2_stamp")
 	await _shot(g, "t01_s2")
 	g._on_tile_clicked(1, 1)
 	await _shot(g, "t01_s2b")

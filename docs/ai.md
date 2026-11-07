@@ -300,6 +300,80 @@ Tiếp (nếu muốn "siêu khó" / khôn hơn):
 - Tìm sâu thật ở lượt quyết định: lượt sau của ta phải có địch đáp (ply 4) hoặc dùng dồn đòn giết làm lượt sau, không phải tham lam ply3.
 - Người thật chơi thử Khó v3 trước khi đầu tư thêm (AI-vs-AI ≠ người).
 
+### Đội hình linh hoạt = Khó v5 (2026-11-07, phiên 5)
+Mục tiêu: AI mua loại quân theo tình huống + dùng đúng việc từng quân hỗ trợ (thầy mo gọi ma, thuyền đi sông, trống, sói, máy bắn đá, voi, chim), không chỉ lính + cung; chỉ ship nếu không yếu đi. Mốc = spec cố định `hard_v3`. Mã: `scripts/core/ai_buy.gd` (`AIBuy`, tách từ `ai.gd`, y nguyên hành vi: trace không đổi).
+
+**Seed giữ riêng (ghi trước khi xem kết quả)**: `hard_v5` vs `hard_v3` salt 9700000–007 `games=16` (768 ván); vs `hard_v2_0` / Khó v1 / Thường salt 9700100–107 / 9700200–207 / 9700300–307 `games=9` (432 ván), cùng seed cho hàng `hard_v3`; thử spam: `hard_v3+_spam:1` (chỉ được mua lính + cung) vs `hard_v5` và vs `hard_v3`, salt 9700400–407 `games=4` (192 ván). Luật ship: `AI.PRESETS.hard` = v5 chỉ khi (v5 vs `hard_v3`) ≥ 0,50 trên 768 ván **và** v5 vs `hard_v2_0` / Khó v1 / Thường không kém hàng `hard_v3` quá ~1 SE **và** đội hình đa dạng hơn rõ (quân hỗ trợ được mua + làm việc thật) **và** thời gian trong ngân sách (lượt TB ≤ ~0,3 s, tệ nhất ≤ 1,5 s). Không thì giữ v3, knob v5 để 0, `hard_v5` cố định để so.
+
+"Đa dạng hơn rõ" (ghi trước lượt dev cuối, đo bằng `sim/probes/army_probe.gd`, A vs `hard_v3`): ≥ 3 loại trong {thầy mo, trống, sói, voi, máy bắn đá, chim} được mua ≥ 0,2 / ván với tỉ lệ việc thật ≥ 30% **và** ma được gọi ≥ 2× v3 **và** thuyền kết thúc trên nước ≥ 2× v3.
+
+Đo v3 trước (`army_probe.gd`, v3 vs v3, 96 ván, salt 2000–2007): mua / ván lính 9,1, cung 3,5, thuyền 1,2, thầy mo 0,4, sói / voi 0,02, trống / máy bắn đá / chim 0. Thầy mo: 19% lượt làm việc (gọi ma / đánh), 26% đứng yên; gọi ma 0,33 / ván; thuyền chỉ 15% lượt kết thúc trên nước. **Vàng lúc mua đầu lượt TB 264, ≥ 400 chỉ 7% số lượt, ≥ 600 0,2%** -> quân ≥ 600 gần như không bao giờ mua được nếu không để dành.
+
+Bảng sát thương (ô trống, roll giữa) -> hiệu quả mỗi vàng kiểu Lanchester tuyến tính (sát thương / đòn × giá địch × số đòn chịu được / giá mình) khi địch toàn lính: lính 1,0, voi 0,81, cung 0,6 (×~1,5 vì bắn xa không bị phản), chim 0,44, sói 0,41, máy bắn đá 0,29; địch toàn voi: lính 1,24 (vẫn nhất). Chỉ khi địch có chim thì cung > lính (đã có `buy_aa`). -> **với bảng quân hiện tại, lính + cung là mua tốt nhất mỗi vàng trước mọi đội hình**: "mua khắc chế" không thể trừng phạt người dồn quân rẻ; cần đổi cân bằng (giá / chỉ số, việc của nội dung), không phải AI.
+
+Knob (`AI.DEFAULT`, mặc định 0 = tắt -> Dễ / Thường / chiến dịch / golden y nguyên; trace 160 dòng không đổi):
+
+| Knob | Cách làm |
+|---|---|
+| `role_w` (dùng đúng việc) | thầy mo không gọi được ma thì **đi sau cùng** (`greedy_step`: chờ đòn của quân khác tạo mộ), ô đứng cạnh mộ mới (còn gọi được lượt sau) + `role_w` × `raise` × 0,5; trống phủ ≥ 2 quân chưa đi còn đánh tới địch -> **đi trước**; sói: đòn không giết + `role_w` × 10 × số quân ta còn đánh tới mục tiêu × giá trị mục tiêu / 100 (cắn trước); thuyền: ô nước tính thêm `waterDef` 15 vào thủ ô (trước đây điểm vị trí bỏ qua -> thuyền đứng trên cạn) |
+| `mix_w` (mua theo tình huống, chỉ loại mua được ngay) | `AIBuy._mix_bonus` cộng vào trọng số mua: thầy mo +2 / mộ trong tầm (mv + 1) từ thành mua (mua xong đi + gọi ma ngay lượt đó), +1,5 nếu chưa có thầy mo và có mộ / đang giáp trận; thuyền +1 nếu đường sông tới thành địch ngắn hơn đi bộ ≥ 2; trống +1,5 khi ≥ 4 quân ta trong bán kính 2 đang giáp trận; sói +1 khi địch có quân thủ ≥ 15 / cấp ≥ 2; voi +1 khi địch ≥ 3 quân bắn xa; máy bắn đá +1 khi ≥ 2 địch đứng trên công trình; chim +0,5 khi địch không có quân chống chim |
+| `mix_save` k | vật chất ta (giá × máu + vàng) ≥ (1 + k) × địch -> để dành **1 lượt** thu nhập cho loại ≥ 500 vàng đang được gọi (thưởng lớn nhất, rồi rẻ nhất). Không bao giờ để dành khi đang thua (bài học v4 `buy_sup`) |
+| `sham_save` 1 | `mix_save` cũng để dành cho thầy mo khi có mộ trong tầm từ thành |
+| `pl_chain` 1 (có từ v4) | trống / sói đánh trước trong chuỗi dồn đòn giết |
+
+Đo dev (A vs `hard_v3`, 192 ván / thử, ± 0,036 SE; mốc cùng chỉ số = v3 vs v3 ở trên):
+
+| Thử (salt) | điểm | mua / ván: thầy mo · trống · sói · voi · máy bắn đá · chim | ma gọi / ván | thuyền trên nước | trống phủ quân chưa đi / ván | sói cắn / ván |
+|---|---|---|---|---|---|---|
+| v3 (mốc, 2000–007, 96 ván) | 0,500 | 0,40 · 0 · 0,02 · 0,02 · 0 · 0 | 0,33 | 15% | 0 | 0 |
+| `role_w` 1 + `mix_w` 1 + `pl_chain` 1 (3000–007) | 0,518 | 0,51 · 0,01 · 0,01 · 0,01 · 0 · 0 | 0,35 | 31% | 0,80 | 0,01 |
+| + `mix_save` 0,25 (3000–007) | 0,505 | 0,38 · 0,21 · 0,18 · 0,02 · 0,08 · 0,04 | 0,43 | 36% | 2,69 | 0,29 |
+| như dòng 2, thầy mo +1,5 khi chưa có + sói cắn trước (3000–007) | 0,521 | 0,52 · 0,01 · 0 · 0 · 0 · 0,01 | 0,40 | 31% | 0,37 | 0 |
+| + `mix_save` 0,1 (3100–107) | 0,487 | 0,41 · 0,21 · 0,11 · 0,05 · 0,05 · 0,07 | 0,44 | 31% | 3,59 | 0,20 |
+| + `mix_save` 0,1 + `sham_save` 1 = **`hard_v5`** (3100–107) | 0,458 | **0,71 · 0,27** · 0,14 · 0,02 · 0,05 · 0,06 | **1,60** (4,8×) | 30% (2×) | 4,28 | 0,35 |
+
+- Code đổi giữa các dòng (dòng 2: thầy mo bản đầu; dòng 3: chưa có sói cắn trước; từ dòng 4: bản cuối) -> không phải tách lỗi sạch; 3 dòng cuối cùng code.
+- Tỉ lệ lượt làm việc thật (`hard_v5`, dev 3100): thầy mo 44% (v3 19%), ma 37% (v3 11%), trống 64%, sói 42%, chim 33%, máy bắn đá 23%, voi 22%.
+- Không để dành: mạnh ngang v3 (0,52) nhưng đội hình gần như không đổi (quân ≥ 400 vàng không mua được ngay). Có để dành: đa dạng hơn, nhưng điểm tụt dần theo mức để dành (0,505 -> 0,487 -> 0,458).
+- Luật "đa dạng hơn rõ" với `hard_v5` (dev): ma 4,8× ✓, thuyền trên nước 2× ✓, nhưng chỉ 2 loại hỗ trợ ≥ 0,2 / ván (thầy mo, trống; sói 0,14) ✗ -> **trượt ngay ở dev**. Vẫn chạy held-out để có số (`hard_v5` cố định = ứng viên đa dạng nhất).
+- Thời gian (`tune.gd -- time a=<spec> b=hard_v1 games=4 salt=9100000`, 24 ván, v5 và v3 chạy cùng lúc, tải ~4–5): **v5 lượt TB 211 ms, p95 503 ms, tệ nhất 848 ms**; bước TB 21 ms, tệ nhất 834 ms. v3 cùng lúc: lượt 193 / 399 / 632 ms -> trong ngân sách (+9% TB).
+
+**Kết quả seed giữ riêng** (`tools/match_par.sh`, 8 tiến trình, chạy từ bản chụp code `0d21793` (riêng `hard_v3` vs `hard_v2_0`: `3e66a9b`); kiểm: `hard_v3` ra đúng cùng 6 ván ở code master `a127c25` và code mới, `hard_v5` = `hard_v3+role_w:1+mix_w:1+pl_chain:1+mix_save:0,1+sham_save:1` cùng ván (salt 9410003); cùng seed cho 2 hàng ở mỗi cột; ± SE nhị thức; không lần nào chạm `pl_ms`):
+
+| A | vs `hard_v3` (768, 9700000–007) | vs `hard_v2_0` (432, 9700100–107) | vs Khó v1 (432, 9700200–207) | vs Thường (432, 9700300–307) |
+|---|---|---|---|---|
+| `hard_v5` | **0,431 ± 0,018** | 0,734 ± 0,021 | 0,934 ± 0,012 | 0,909 ± 0,014 |
+| `hard_v3` | 0,500 | 0,766 ± 0,020 | 0,935 ± 0,012 | 0,917 ± 0,013 |
+
+- v5 vs v3 theo map (v5 ghế p / e, / 128): đồng bằng 75,5 / 53; cửa biển 57 / 56; núi rừng **17** / 72,5 -> thua nặng nhất ở núi rừng ghế p.
+- Vs bot yếu hơn: ngang v3 (−0,001 Khó v1, −0,008 Thường, trong 1 SE); vs `hard_v2_0` −0,032 (~1,5 SE).
+
+**Thử spam** (salt 9700400–407, 192 ván / dòng; A = `hard_v3+_spam:1` = Khó v3 chỉ được mua lính + cung):
+
+| A (chỉ lính + cung) vs | điểm A |
+|---|---|
+| `hard_v5` | 0,607 ± 0,035 |
+| `hard_v3` (đủ loại) | **0,586 ± 0,036** |
+
+- Dồn quân rẻ không bị trừng phạt — còn **mạnh hơn** chính nó khi được mua đủ loại (+0,09, ~2,4 SE): Khó v3 phí vàng cho thuyền / thầy mo. v5 không đổi điều đó (0,607 vs 0,586: trong nhiễu). Khớp bảng sát thương ở trên: với chỉ số / giá hiện tại, lính + cung là tối ưu mỗi vàng -> trừng phạt spam là việc **cân bằng nội dung** (ghi `docs/TODO.md`).
+
+**Kết luận: không ship.** Trượt cả 2 luật: v5 vs v3 = 0,431 (cần ≥ 0,50) và "đa dạng hơn rõ" (dev: 2 / 3 loại hỗ trợ ≥ 0,2 / ván). `AI.PRESETS.hard` giữ = Khó v3; knob v5 để 0; `hard_v5` (`sim/tune.gd` `V5_ARMY`) cố định để so. Màn g11 / g17 / g20 (`"ai": "hard"`) không đổi -> không cần đo lại.
+
+Vì sao:
+- Vàng lúc mua TB ~270: quân ≥ 400 chỉ mua được ngay ở 7–12% lượt. Đa dạng thật cần để dành, và mỗi lượt để dành = 1–2 lính ra trận muộn 1 lượt; AE2 tính sát thương × máu / 100 + dồn đòn -> số quân (Lanchester bậc 2) thắng chất lượng. Cùng bài học v4 `buy_sup` (0,22), nhẹ hơn vì chỉ để dành 1 lượt và chỉ khi đang hơn.
+- Sau held-out (không ghi trước, chỉ để hiểu): v5 **không để dành** (`hard_v3+role_w:1+mix_w:1+pl_chain:1`) cùng seed 9700000–007: **0,497 ± 0,018** vs v3 (768 ván; núi rừng ghế e 108 / 128, ghế p 21,5 / 128) = hòa. -> dùng đúng việc + mua theo tình huống (mua được ngay) trung tính; phần làm yếu là để dành (`mix_save` / `sham_save`): ~−0,07.
+- Phần "dùng đúng việc" (`role_w`) có tác dụng rõ (ma gọi 0,33 -> 1,60 / ván, thầy mo làm việc 19% -> 44%, ma 11% -> 37%, thuyền trên nước 15% -> 30%, trống phủ ~4 quân chưa đi / ván) nhưng quân hỗ trợ hiếm nên không đổi được kết quả ván.
+
+Ví dụ (`army_probe.gd -- a=hard_v5 b=hard_v3 games=1 salt=<s> examples=12`, v5 dùng quân hỗ trợ):
+- Núi rừng, salt 9200000 (v5 ghế e): thầy mo #21 (400 vàng) gọi 5 ma ở lượt 8, 10, 11, 16, 17 — lượt 8: tới (9,0), gọi ma trên mộ (10,0); v3 cả ván 96 ván chỉ gọi 0,33 ma / ván.
+- Đồng bằng lượt 31, salt 9200001 (v5 ghế e): trống #39 đi trước tới (2,3), +10 công cho 8 quân chưa đi rồi cả nhóm mới đánh (lượt 25–30: mỗi lượt phủ 3–4 quân).
+- Núi rừng lượt 5–11, salt 9200001 (v5 ghế e): thầy mo #15 gọi ma ở lượt 5 (mộ (10,3)), 7, 9, 10, 11 -> 5 quân miễn phí, không tính vào giới hạn quân.
+
+Tiếp (nếu muốn đội hình đa dạng mà không yếu):
+- Cân bằng nội dung trước (phiên nội dung): giá / chỉ số để quân đắt đáng tiền mỗi vàng (vd voi 450, sói 450, trống 350; hoặc lính yếu đi). Rồi đo lại `hard_v5` + bản không để dành — AI đã sẵn mua theo tình huống + dùng đúng việc.
+- Ship riêng `role_w` (không mua thêm) như "chơi đúng việc" cho màn có sẵn quân hỗ trợ / đấu với người hay mua trống, sói, thầy mo: cần held-out riêng (≥ 768 ván) + test màn.
+- Tò mò: Khó v3 chỉ mua lính + cung thắng Khó v3 đủ loại 0,586 -> bỏ thuyền / thầy mo khỏi danh sách mua của Khó có thể **mạnh hơn** (ngược mục tiêu đa dạng; chỉ ghi lại).
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

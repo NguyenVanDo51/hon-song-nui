@@ -85,6 +85,11 @@ const DEFAULT := {
 	"promo_w": 0.0, # hit that levels our attacker up: + this x the rank's worth (0.2 x base value); also in AIPlan.focus
 	"ret_terr": 0.0, # non-commander walk-home hp x lerp(1, clamp((40 - unit def - rank - tile def) / 20, 0.5, 1.5), this)
 	"buy_sup": 0.0, # n > 0: army >= n without a drum / wolf -> save up for one (_support_want)
+	# flexible army (docs/ai.md "Đội hình linh hoạt = Khó v5"), 0 = off
+	"role_w": 0.0, # unit jobs: shaman acts last + waits by fresh graves, drum acts first, boats count waterDef as cover
+	"mix_w": 0.0, # situational buys, affordable now only (AIBuy._mix_bonus)
+	"mix_save": 0.0, # > 0: material lead >= 1 + this -> save one turn of income for a called-for unit costing >= 500
+	"sham_save": 0.0, # 1 = mix_save also saves for a shaman when graves are within its reach from the castle
 }
 const SUPPORT := ["shaman", "wolf", "drum"]
 
@@ -247,51 +252,9 @@ static func threat_map(s: Dictionary, side: String, reach_of := { }, mem := { },
 			on_key.append(e)
 	return m
 
-## AE2: a unit bought at a castle moves + attacks that turn. Per foe castle with room (<= 1 unit on it), the best
-## attacker its gold + next income buys (budget shared in castle order; siege cannot move + attack): virtual units, ids < 0
+## foe castles' next-turn buys as virtual attackers (AIBuy.buy_threats)
 static func buy_threats(s: Dictionary, side: String, buy_hp: float) -> Array:
-	var foe := Game.other(side)
-	var out := []
-	if Game.cap_count(s, foe) >= s.unitCap:
-		return out
-	var g: int = s.gold[foe]
-	var budget: int = g + Game.income(s, foe)
-	var allowed: Array = s.allowed[foe]
-	var hero_ok: bool = s.heroDead[foe] and s.heroKey[foe] != null
-	var hp := clampi(roundi(buy_hp * 100.0), 1, 100)
-	var i := 0
-	for key: Vector2i in Game.castle_tiles(s, foe):
-		var on := 0
-		for o: Dictionary in s.units:
-			if o.x == key.x and o.y == key.y:
-				on += 1
-		if on > 1:
-			continue
-		var best := ""
-		var best_q := -1
-		var best_c := 0
-		for t: String in allowed + (["hero"] if hero_ok else []):
-			var st: Dictionary = Game.UNITS[t]
-			var c: int = Game.hero_cost(s, foe) if t == "hero" else st.cost
-			if c > budget or st.get("siege", false):
-				continue
-			var a: int = st.atk
-			var amax: int = st.get("atkMax", a)
-			var mv: int = st.mv
-			var rmax: int = st.rmax
-			var q: int = (a + amax) * 100 + mv + rmax
-			if q > best_q:
-				best = t
-				best_q = q
-				best_c = c
-		if best == "":
-			break
-		budget -= best_c
-		if best == "hero":
-			hero_ok = false
-		i += 1
-		out.append({ "id": -100 - i, "side": foe, "type": best, "x": key.x, "y": key.y, "hp": hp, "xp": 0, "rank": 0, "acted": false })
-	return out
+	return AIBuy.buy_threats(s, side, buy_hp)
 
 ## everything Game.reachable(s, u) reads: u, the terrain, and the units within its move range (costs are >= 1)
 static func _local_key(s: Dictionary, u: Dictionary, mem: Dictionary) -> Array:
@@ -529,6 +492,11 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var feed_w: float = P.feed_w
 	var promo_w: float = P.promo_w
 	var escort_w: float = 0.0 if is_hero else P.escort_w
+	var role_w: float = P.role_w
+	var wdef: int = st.get("waterDef", 0)
+	var wet_def: int = roundi(role_w * wdef)
+	var bite: int = st.get("poison", 0) if role_w > 0.0 else 0
+	var fresh: Array = _fresh_graves(s) if role_w > 0.0 and st.get("raise", "") != "" else []
 	var sup: Dictionary = mem.get("sup", { }) if lone_w > 0.0 else { }
 	var hero_at: Vector2i = mem.get("hero_at", Vector2i(-99, -99))
 	var u0x: int = u.x
@@ -549,6 +517,9 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 		var t: String = s.tiles[ry][rx]
 		var gd: float = df.get(key, 30.0) if has_df else 0.0
 		var tdef: int = Game.TERRAIN[t].def
+		var tt: Dictionary = Game.TERRAIN[t]
+		if wet_def > 0 and tt.get("water", false):
+			tdef += wet_def # boats: river cover the terrain table does not show
 		var pos := -gd * goal_w + tdef * def_w
 		var hurt := expected_hit(s, u, rx, ry, threat.get(key), reach_w)
 		var uhp: int = u.hp
@@ -587,6 +558,10 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 			pos += guard_castle # block the capture
 		if has_goal_tile:
 			pos += goal_tile.call(s, u, rx, ry)
+		for g: Vector2i in fresh: # raisable next turn from here (a grave made this turn lasts one more of ours)
+			if Game.dist(g.x, g.y, rx, ry) == 1:
+				pos += role_w * raise_w * 0.5
+				break
 		consider.call(pos, { "id": u.id, "to": [rx, ry], "kind": "wait" })
 
 		if Game.can_capture(s, u, rx, ry):
@@ -646,96 +621,15 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 						sc -= feed_w * 0.2 * value(s, d)
 				if lone_full > 0.0 and left > 0:
 					exposure += lone_w * val * clampf((minf(lone_full, left) / left - 0.6) / 0.4, 0.0, 1.0)
+				if bite > 0: # wolf first: every follow-up hit on the bitten target lands +bite
+					sc += role_w * bite * AIPlan._followers(s, u, d, rx, ry) * dv / 100.0
 			var atk_sc := sc + (-gd * goal_w + tdef * def_w) * atk_pos_w - exposure + atk_bias
 			consider.call(atk_sc, { "id": u.id, "to": [rx, ry], "kind": "attack", "target": d.id })
 	return best[0]
 
-## ok: types buy_options allows at the chosen castle (gold, cap, step-off); null = any allowed type within gold
-static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := { }) -> Variant:
-	var P := params(s, side, mem)
-	var buy_aa: float = P.buy_aa
-	var buy_takes: float = P.buy_takes
-	var buy_takes_per: float = P.buy_takes_per
-	var buy_raise: float = P.buy_raise
-	var buy_sea: float = P.buy_sea
-	var buy_cost_exp: float = P.buy_cost_exp
-	var counts := { }
-	var enemy_fly := false
-	for u: Dictionary in s.units:
-		if u.side == side:
-			counts[u.type] = counts.get(u.type, 0) + 1
-		elif Game.UNITS[u.type].move == "fly":
-			enemy_fly = true
-	var open := { } # cap flag -> buildings needing it that are not ours
-	var water := 0
-	var owner: Dictionary = s.owner
-	for y: int in s.h:
-		for x: int in s.w:
-			var t: String = s.tiles[y][x]
-			var f := Game.cap_flag(t)
-			if f != "" and owner.get(Vector2i(x, y)) != side:
-				open[f] = open.get(f, 0) + 1
-			else:
-				var tt: Dictionary = Game.TERRAIN[t]
-				if tt.get("water", false):
-					water += 1
-	var ok_types: Dictionary = { }
-	if ok != null:
-		ok_types = ok
-	var want := _support_want(s, side, counts, P)
-	if want != "": # T12: a support unit for the army, saved up for within 2 turns of income
-		if ok == null or ok_types.has(want):
-			return want
-		return null
-	var graves: Array = s.graves
-	var best: Variant = null
-	for type: String in s.allowed[side]:
-		var st: Dictionary = Game.UNITS[type]
-		var cost: int = st.cost
-		if cost > s.gold[side] or (ok != null and not ok_types.has(type)):
-			continue
-		var swims: bool = st.move == "water"
-		if swims and water == 0:
-			continue # no river: a boat is a soldier at twice the price
-		var w := weight(type)
-		if st.get("antiAir", 0) and enemy_fly:
-			w += buy_aa
-		var takes := 0
-		for f: String in open:
-			if st.get(f, false):
-				takes += open[f]
-		var n: int = counts.get(type, 0)
-		if takes > n * buy_takes_per:
-			w += buy_takes
-		if st.get("raise", "") and graves.size():
-			w += buy_raise
-		if swims and water * 8 > s.w * s.h:
-			w += buy_sea
-		var sc: float = (w / (1 + n)) * pow(cost / 300.0, buy_cost_exp)
-		if best == null or sc > best.sc:
-			best = { "type": type, "sc": sc }
-	return best.type if best != null else null
-
-## buy_sup = n > 0: army of >= n non-commanders without a drum (+10 atk aura) / wolf (-10 def bite) -> that type,
-## while gold + 2 turns of income reach it ("" = buy as usual)
-static func _support_want(s: Dictionary, side: String, counts: Dictionary, P: Dictionary) -> String:
-	var n_sup: float = P.buy_sup
-	if n_sup <= 0.0:
-		return ""
-	var army := 0
-	for t: String in counts:
-		if t != "hero":
-			var c: int = counts[t]
-			army += c
-	if army < n_sup:
-		return ""
-	var gold: int = s.gold[side]
-	var allowed: Array = s.allowed[side]
-	for t: String in ["drum", "wolf"]:
-		var cost: int = Game.UNITS[t].cost
-		if allowed.has(t) and counts.get(t, 0) == 0 and gold + 2 * Game.income(s, side) >= cost:
-			return t
-	return ""
+## AIBuy.choose_buy
+static func choose_buy(s: Dictionary, side: String, ok: Variant = null, mem := { }, at: Variant = null) -> Variant:
+	return AIBuy.choose_buy(s, side, ok, mem, at)
 
 static func _claim_nearest(s: Dictionary, act: Dictionary, claims: Dictionary) -> void:
 	var aid: int = act.id
@@ -815,16 +709,70 @@ static func greedy_step(s: Dictionary, mem: Dictionary) -> Variant:
 			_hero_near(s, side, mem)
 		var best: Variant = null
 		var claims: Dictionary = mem.claims
+		var role_w: float = P.role_w
+		var first: Variant = null # role_w: a drum covering >= 2 attackers acts before them
+		var late: Variant = null # role_w: a shaman with no raise waits for this turn's graves
 		for u: Dictionary in mine:
 			var b: Variant = best_for_unit(s, u, threat, claims, danger, mem)
-			if b != null and (best == null or b.score > best.score):
+			if b == null:
+				continue
+			if role_w > 0.0:
+				var ust := Game.stat(s, u)
+				var bact: Dictionary = b.act
+				if ust.get("raise", "") != "" and bact.kind != "raise":
+					if late == null or b.score > late.score:
+						late = b
+					continue
+				var bto: Array = bact.to
+				if ust.get("aura", 0) > 0 and _aura_cover(s, u, bto) >= 2 and (first == null or b.score > first.score):
+					first = b
+			if best == null or b.score > best.score:
 				best = b
+		if first != null:
+			best = first
+		if best == null:
+			best = late
 		if best == null:
 			return null # nothing legal left (boxed in): end the turn
 		var best_act: Dictionary = best.act
 		_claim_nearest(s, best_act, claims)
 		return { "kind": "act", "act": best.act }
 	return buy_step(s, mem)
+
+## graves made this turn (ttl untouched): still raisable on our next turn
+static func _fresh_graves(s: Dictionary) -> Array:
+	var out := []
+	var full: int = Game.RULES.graveRounds
+	for g: Dictionary in s.graves:
+		var ttl: int = g.ttl
+		var gx: int = g.x
+		var gy: int = g.y
+		if ttl >= full and Game.unit_at(s, gx, gy) == null:
+			out.append(Vector2i(gx, gy))
+	return out
+
+## unacted allies of u within 2 of tile `to` that can still reach an enemy this turn (drum aura worth)
+static func _aura_cover(s: Dictionary, u: Dictionary, to: Array) -> int:
+	var tx: int = to[0]
+	var ty: int = to[1]
+	var n := 0
+	for o: Dictionary in s.units:
+		if o.side != u.side or o.acted or o.id == u.id:
+			continue
+		var ox: int = o.x
+		var oy: int = o.y
+		if Game.dist(ox, oy, tx, ty) > 2:
+			continue
+		var st := Game.stat(s, o)
+		var mv: int = 0 if st.get("siege", false) else st.mv
+		var rmax: int = st.rmax
+		for e: Dictionary in s.units:
+			var ex: int = e.x
+			var ey: int = e.y
+			if e.side != u.side and Game.dist(ox, oy, ex, ey) <= mv + rmax:
+				n += 1
+				break
+	return n
 
 ## escort_w: own commander's tile + allies within 2 of it (mem.hero_at / hero_near)
 static func _hero_near(s: Dictionary, side: String, mem: Dictionary) -> void:
@@ -845,29 +793,9 @@ static func _hero_near(s: Dictionary, side: String, mem: Dictionary) -> void:
 		mem.hero_near = n
 		return
 
-## v1's buy: the next unit to buy (commander first, else choose_buy per castle) or null (none / saving for the commander)
+## v1's buy (AIBuy.buy_step)
 static func buy_step(s: Dictionary, mem: Dictionary) -> Variant:
-	var side: String = s.side
-	if Game.cap_count(s, side) >= s.unitCap:
-		return null
-	# AE2: a castle with one unit on it (ours or theirs) still sells; buy_options folds in gold, cap and step-off room
-	for key: Vector2i in Game.castle_tiles(s, side):
-		var ok := { }
-		for o: Dictionary in Game.buy_options(s, side, key.x, key.y):
-			if o.ok:
-				ok[o.type] = true
-		if ok.is_empty():
-			continue
-		if ok.has("hero"):
-			return { "kind": "buy", "x": key.x, "y": key.y, "type": "hero" }
-		var want_hero: bool = s.heroDead[side] and s.heroKey[side] != null
-		var save_units: float = params(s, side, mem).save_hero_units
-		if want_hero and s.gold[side] < Game.hero_cost(s, side) and Game.unit_count(s, side) >= save_units:
-			return null # save up: the commander is the only castle taker
-		var type: Variant = choose_buy(s, side, ok, mem)
-		if type != null:
-			return { "kind": "buy", "x": key.x, "y": key.y, "type": type }
-	return null
+	return AIBuy.buy_step(s, mem)
 
 ## naive bot for sim baseline: random legal action
 static func random_step(s: Dictionary, r: Callable) -> Variant:

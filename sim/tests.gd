@@ -9,6 +9,7 @@ const Rules2Tests := preload("res://sim/tests/rules_2.gd")
 const MissionsTests := preload("res://sim/tests/missions.gd")
 const DuelTests := preload("res://sim/tests/duel.gd")
 const PlannerTests := preload("res://sim/tests/planner.gd")
+const LevelgenTests := preload("res://sim/tests/levelgen.gd")
 
 var failed := 0
 var passed := 0
@@ -22,6 +23,7 @@ func _init() -> void:
 	_add(DuelTests.new(), "duel_tests")
 	_add(PlannerTests.new(), "planner_tests")
 	_add(PlannerTests.new(), "tactics_tests")
+	_add(LevelgenTests.new(), "levelgen_tests")
 	print("tests: %d passed, %d failed" % [passed, failed])
 	quit(1 if failed else 0)
 

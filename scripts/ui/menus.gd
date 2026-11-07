@@ -19,10 +19,10 @@ var codex: Control = null
 var codex_side := "p"
 var hero_choice := ""
 var easy := true
-var sk_gold := 300 # AE2 skirmish options: starting gold, unit cap
-var sk_cap := 15
+var sk_gold := 500 # AE2 skirmish defaults: starting gold 500, unit cap 10
+var sk_cap := 10
 var map_choice := "dong_bang"
-var duel_opts := { "map": "dong_bang", "gold": 300, "cap": 15, "hero": "", "heroE": "", "ctrlE": "human" }
+var duel_opts := { "map": "dong_bang", "gold": 500, "cap": 10, "hero": "", "heroE": "", "ctrlE": "human" }
 var _codex_card: Control
 var _codex_grid: GridContainer
 var _codex_seg: Array = []
@@ -526,7 +526,7 @@ func _map_cards(cur: String, on_pick: Callable) -> HBoxContainer:
 ## AE2 options: starting gold + unit cap; on_set("gold" | "cap", value)
 func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HBoxContainer:
 	var opts := Style.hbox(10)
-	for spec: Array in [["Vàng khởi đầu", [300, 500, 1000, 2000], "gold"], ["Giới hạn quân", [10, 15, 20, 30], "cap"]]:
+	for spec: Array in [["Vàng khởi đầu", [500, 1000, 2000], "gold"], ["Giới hạn quân", [10, 20, 25], "cap"]]:
 		var spec_name: String = spec[0]
 		opts.add_child(Style.lbl(spec_name, 14, Style.MUTED))
 		var sg := Style.hbox(0)

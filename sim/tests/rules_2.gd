@@ -298,8 +298,8 @@ func rule_tests_2() -> void:
 		func() -> void:
 			for m: Dictionary in Content.levels():
 				eq(Game.new_game(m).unitCap, m.get("unitCap", 100), str(m.id))
-			eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false)).unitCap, 15, "skirmish default")
-			eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false, 300, 30)).unitCap, 30, "skirmish chosen")
+			eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false)).unitCap, 10, "skirmish default")
+			eq(Game.new_game(Content.skirmish_def("dong_bang", "anhhung", false, 500, 25)).unitCap, 25, "skirmish chosen")
 			var d: Dictionary = mission("m02").duplicate()
 			d.unitCap = 12
 			eq(Game.new_game(d).unitCap, 12, "mission override"),

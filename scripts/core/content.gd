@@ -69,7 +69,7 @@ static func next_level(id: String) -> Variant:
 
 ## free-play def: any hero vs the map's enemy hero (default: the first enemy hero in the theme)
 ## AE2 lets the player set starting gold and the unit cap; easy = the enemy starts with half the gold
-static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 300, cap := 15) -> Dictionary:
+static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 500, cap := 10) -> Dictionary:
 	var m: Dictionary = SKIRMISH.MAPS.get(map_id, SKIRMISH.MAPS.dong_bang)
 	@warning_ignore("integer_division")
 	var e_gold := gold / 2 if easy else gold

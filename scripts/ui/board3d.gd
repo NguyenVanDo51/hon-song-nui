@@ -794,7 +794,7 @@ func _paint_overlay(ci: CanvasItem) -> void:
 	for at: Array in Objectives.marks(s):
 		var ax: float = at[0]
 		var ay: float = at[1]
-		_flat._draw_goal(ci, ax * OT, ay * OT, time)
+		_flat.paint.draw_goal(ci, ax * OT, ay * OT, time)
 	fx.draw_under(ci, OT, time)
 	if view.sel != null:
 		var at: Array = view.dest if view.dest != null else [view.sel.x, view.sel.y]

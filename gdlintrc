@@ -23,7 +23,7 @@ function-preload-variable-name: ([A-Z][a-z0-9]*)+
 function-variable-name: ([a-z][a-z0-9]*(_[a-z0-9]+)*|[A-Z][A-Z0-9]?)
 load-constant-name: (([A-Z][a-z0-9]*)+|_?[A-Z][A-Z0-9]*(_[A-Z0-9]+)*)
 loop-variable-name: _?[a-z][a-z0-9]*(_[a-z0-9]+)*
-max-file-lines: 2650 # loosened from 1000: game_screen.gd ~2610 after gdscript-formatter (split = backlog E5), tests.gd ~1780, board.gd ~1270
+max-file-lines: 1000
 max-line-length: 150 # loosened from 100 (tabs count 1); 120 would wrap ~385 more lines for no real gain
 max-public-methods: 80 # loosened from 20: Game / Board are static-helper hubs
 max-returns: 14 # loosened from 6: game_screen._on_tile click router (early-return per click case)

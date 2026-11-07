@@ -17,7 +17,7 @@ Never edit `docs/anim_demo/*` or `assets/units/styles/*`.
 | Canvas2D look-alike | `scripts/ui/rig/rig_ctx.gd` (`RigCtx` = the JS `ctx`) |
 | per-unit functions | `scripts/ui/rig/specs/<unit>.gd` (extends `RigSpec`) |
 | registry | `scripts/ui/rig/rigs.gd` (`Rigs.SPECS`) |
-| game hook | `FX.rig_attack` (fx.gd), `Board._draw_units` / `_pose` (board.gd), `GameScreen.play` "hit" |
+| game hook | `FX.rig_attack` (fx.gd), `Board._draw_units` / `_pose` (board.gd), `EventPlayer.play` "hit" (event_player.gd) |
 
 ## Steps per unit
 1. Re-export only if the spec changed: `node tools/rig_export.mjs <unit>` (or `--all`).

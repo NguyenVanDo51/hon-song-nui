@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hướng giao diện game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@700;800&family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&family=Phudu:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ================= page chrome ================= */
+:root{
+  --bg:#0e0a08; --panel:#18120f; --panel2:#211915; --line:#3a2c22; --txt:#efe4cf; --mut:#a8977d; --acc:#e0b85c; --good:#8fd16a; --bad:#ff7a66;
+  --ink:#231a15;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--txt);font:15px/1.6 "Be Vietnam Pro",system-ui,sans-serif}
+a{color:var(--acc)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 16px 96px}
+header.top h1{font:800 clamp(26px,4.4vw,44px)/1.15 "Alegreya SC",serif;margin:0 0 6px;color:var(--acc)}
+header.top p{margin:0;color:var(--mut);max-width:880px}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 14px;margin:18px 0 8px;font-size:14px}
+nav.toc a{text-decoration:none;color:var(--txt);border-bottom:1px dashed var(--line)}
+section{margin-top:56px}
+h2{font:800 clamp(22px,3vw,30px)/1.2 "Alegreya SC",serif;color:var(--acc);margin:0 0 12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+h2 small{font:600 13px "Be Vietnam Pro";color:var(--mut);margin-left:8px}
+h3{font:700 18px/1.3 "Be Vietnam Pro";margin:28px 0 10px}
+.note{color:var(--mut);font-size:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+ul.tight{margin:6px 0;padding-left:20px} ul.tight li{margin:3px 0}
+code{font:13px ui-monospace,Menlo,monospace;background:#241b16;border:1px solid #33261e;border-radius:4px;padding:0 4px;word-break:break-word}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 8px;text-align:left;vertical-align:top}
+table.t th{color:var(--acc);font-weight:700;white-space:nowrap}
+@media (max-width:700px){
+  table.t, table.t tbody, table.t tr, table.t td{display:block;width:100%}
+  table.t thead{display:none}
+  table.t tr{border:1px solid var(--line);border-radius:8px;margin:0 0 10px;padding:6px 8px;background:var(--panel)}
+  table.t td{border:0;padding:3px 0}
+  table.t td::before{content:attr(data-l);display:block;color:var(--acc);font-size:12px;font-weight:700}
+}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:1px 9px;border:1px solid var(--line);color:var(--mut)}
+.tag.good{color:var(--good);border-color:#3d5a2b}.tag.bad{color:var(--bad);border-color:#6a3128}
+/* gallery */
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.gal figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.gal img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;object-position:top}
+.gal figcaption{padding:6px 10px;font-size:13px;color:var(--mut)}
+.gal figure.wide img{aspect-ratio:auto}
+/* sound toggle */
+.sbar{position:sticky;top:0;z-index:20;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:rgba(14,10,8,.92);border-bottom:1px solid var(--line);padding:8px 16px;margin:0 -16px;font-size:13px}
+.sbar button{font:700 13px "Be Vietnam Pro";color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 10px;cursor:pointer}
+.sbar button[aria-pressed="true"]{border-color:var(--acc);color:var(--acc)}
+@media (max-width:700px){.sbar .note,.sbar > span:first-child{display:none}}
+
+/* ================= direction summary ================= */
+.dcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px}
+.dcard h3{margin:0 0 2px;font:800 24px/1.2 "Alegreya SC",serif}
+.dcard .vibe{color:var(--mut);margin:0 0 10px;font-style:italic}
+.dcard dl{margin:0;display:grid;grid-template-columns:96px 1fr;gap:4px 10px}
+.dcard dt{color:var(--acc);font-weight:700;font-size:13px}
+.dcard dd{margin:0}
+.sw{display:flex;flex-wrap:wrap;gap:4px}
+.sw span{display:inline-flex;align-items:center;gap:5px;font-size:12px;border:1px solid var(--line);border-radius:6px;padding:1px 6px 1px 2px}
+.sw i{display:inline-block;width:18px;height:18px;border-radius:4px;border:1.5px solid #000}
+.dcard.recommended{border:2px solid var(--acc);box-shadow:0 0 0 4px rgba(224,184,92,.12)}
+.dcard .pill{float:right;font:800 11px "Be Vietnam Pro";color:#1a120c;background:var(--acc);border-radius:99px;padding:2px 8px}
+
+/* ================= comparison rows ================= */
+.cmp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.cmp{grid-template-columns:1fr}}
+.cell{border-radius:10px;overflow:hidden;border:1px solid var(--line);position:relative;min-width:0;display:flex;flex-direction:column}
+.cell > .stage{flex:1}
+.cmp.hudrow{grid-template-columns:repeat(auto-fit,minmax(min(100%,560px),1fr))}
+.hudrow .cell > .clab{top:auto;bottom:6px;left:8px}
+.cell > .clab{position:absolute;top:6px;left:8px;z-index:5;font:800 11px "Be Vietnam Pro";letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:rgba(0,0,0,.55);color:#fff}
+.stage{padding:34px 14px 18px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.states{display:flex;flex-wrap:wrap;gap:12px 10px;justify-content:center;align-items:flex-end}
+.st{display:flex;flex-direction:column;align-items:center;gap:6px}
+.st small{font:600 11px "Be Vietnam Pro";opacity:.75}
+.hint{font-size:12px;opacity:.7;text-align:center}
+.current-strip{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:#140b08;border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.current-strip .lab{font:700 12px "Be Vietnam Pro";color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.cur-btn{font:700 19px "Alegreya SC",serif;color:#fff6e3;background:#b1412d;border:1px solid #f08a63;border-radius:12px;padding:12px 22px;box-shadow:0 4px 8px rgba(0,0,0,.4)}
+.cur-btn.m{background:rgba(43,26,20,.94);border-color:#8a6a35;color:#f0c96c}
+
+/* shared SVG icon */
+.ico{width:20px;height:20px;flex:none;fill:var(--icf,currentColor);stroke:var(--ics,none);stroke-width:var(--icw,0);paint-order:stroke;stroke-linejoin:round;overflow:visible}
+
+/* generic component skeletons (each direction restyles) */
+button{font-family:inherit}
+.btn{position:relative;cursor:pointer;user-select:none;-webkit-user-select:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn:disabled,.btn.is-disabled{cursor:not-allowed}
+.btn .lbl{position:relative;z-index:2;display:inline-flex;align-items:center;gap:7px}
+.pop{animation:pop .22s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{scale:.94}60%{scale:1.06}100%{scale:1}}
+.hudwrap{width:100%;position:relative;overflow:hidden;aspect-ratio:2/1}
+.hud{position:absolute;left:0;top:0;width:640px;height:320px;transform-origin:0 0;background:url(ui_direction/board_crop.jpg) 0 0/640px 320px}
+.hud > *{position:absolute}
+.selbox{left:140px;top:0;width:80px;height:80px}
+
+/* =====================================================================
+   A · TRỐNG ĐỒNG  (cast bronze, chamfered plates, drum rings)
+   ===================================================================== */
+.A{--ink:#1c130b;--b1:#f6dc98;--b2:#d4a75a;--b3:#a2753a;--b4:#6b4a1f;--lip:#4a3114;--pat:#5aa492;--pat2:#2f6b5f;--txt:#f5ead0;--dark:#2a1907;--red:#b5402c;
+  --cham:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  --cham7:polygon(7px 0,calc(100% - 7px) 0,100% 7px,100% calc(100% - 7px),calc(100% - 7px) 100%,7px 100%,0 calc(100% - 7px),0 7px);
+  --icf:var(--b2);--ics:var(--ink);--icw:2.2;
+  color:var(--txt);font-family:"Be Vietnam Pro";
+}
+.A .stage{background:
+  radial-gradient(circle at 50% 120%, rgba(212,167,90,.16) 0 20%, transparent 21% 24%, rgba(212,167,90,.10) 25% 26%, transparent 27% 34%, rgba(212,167,90,.08) 35% 36%, transparent 37%),
+  radial-gradient(120% 90% at 50% 0%, #3a2c1d 0%, #1b140d 62%, #110c07 100%)}
+.A .btn{border:0;padding:13px 26px 18px;min-width:150px;font:800 19px/1 "Alegreya SC",serif;color:var(--dark);background:var(--ink);clip-path:var(--cham);isolation:isolate;transition:filter .12s}
+.A .btn::after{content:"";position:absolute;inset:3px;clip-path:var(--cham7);background:linear-gradient(180deg,#8a6129,var(--lip));z-index:0}
+.A .btn::before{content:"";position:absolute;inset:3px 3px 8px;clip-path:var(--cham7);z-index:1;transition:inset .07s;
+  background:
+    linear-gradient(105deg,transparent 35%,rgba(255,252,230,.75) 47%,transparent 58%) -220% 0/260% 100% no-repeat,
+    radial-gradient(circle at 12px 50%, #fff3c8 0 2px, #5d3f17 2.5px 3.5px, transparent 4px),
+    radial-gradient(circle at calc(100% - 12px) 50%, #fff3c8 0 2px, #5d3f17 2.5px 3.5px, transparent 4px),
+    linear-gradient(180deg,var(--b1) 0%,var(--b2) 38%,var(--b3) 55%,#c39550 80%,var(--b2) 100%);
+  box-shadow:inset 0 2px 0 rgba(255,248,215,.85), inset 0 -2px 0 rgba(70,45,12,.7)}
+.A .btn .lbl{top:-2px;text-shadow:0 1px 0 rgba(255,244,205,.75),0 -1px 0 rgba(60,35,5,.35);transition:top .07s}
+.A .btn:hover:not(:disabled)::before,.A .btn.is-hover::before{background-position:220% 0,0 0,0 0,0 0;transition:background-position .55s ease, inset .07s}
+.A .btn:hover:not(:disabled),.A .btn.is-hover{filter:brightness(1.1)}
+.A .btn:active:not(:disabled)::before,.A .btn.is-pressed::before{inset:6px 3px 4px}
+.A .btn:active:not(:disabled) .lbl,.A .btn.is-pressed .lbl{top:1px}
+.A .btn:disabled::before,.A .btn.is-disabled::before{background:
+    radial-gradient(circle, rgba(220,250,240,.28) 0 1px, transparent 1.5px) 0 0/9px 7px,
+    linear-gradient(180deg,#86b8a6,#4f8a7a 50%,#3d6e61)}
+.A .btn:disabled .lbl,.A .btn.is-disabled .lbl{color:#203b33;text-shadow:0 1px 0 rgba(200,240,225,.5)}
+.A .btn.sec{color:var(--b1)}
+.A .btn.sec::before{background:
+    linear-gradient(105deg,transparent 35%,rgba(255,240,200,.25) 47%,transparent 58%) -220% 0/260% 100% no-repeat,
+    radial-gradient(circle at 12px 50%, #d9b46a 0 2px, #1a120a 2.5px 3.5px, transparent 4px),
+    radial-gradient(circle at calc(100% - 12px) 50%, #d9b46a 0 2px, #1a120a 2.5px 3.5px, transparent 4px),
+    linear-gradient(180deg,#5a4630,#3a2b1b 50%,#2c2014)}
+.A .btn.sec .lbl{text-shadow:0 -1px 0 rgba(0,0,0,.6)}
+.A .btn.ic{min-width:0;padding:11px 13px 16px}
+.A .btn.sm:not(:disabled)::before,.A .popup .btn:not(.ic)::before{background:linear-gradient(105deg,transparent 35%,rgba(255,252,230,.75) 47%,transparent 58%) -220% 0/260% 100% no-repeat,linear-gradient(180deg,var(--b1) 0%,var(--b2) 38%,var(--b3) 55%,#c39550 80%,var(--b2) 100%)}
+.A .btn.sec.sm::before,.A .popup .btn.sec:not(.ic)::before{background:linear-gradient(105deg,transparent 35%,rgba(255,240,200,.25) 47%,transparent 58%) -220% 0/260% 100% no-repeat,linear-gradient(180deg,#5a4630,#3a2b1b 50%,#2c2014)}
+.A .btn.sm:hover::before,.A .popup .btn:hover::before{background-position:220% 0,0 0}
+.A .btn.ic::before{background:linear-gradient(105deg,transparent 35%,rgba(255,252,230,.75) 47%,transparent 58%) -220% 0/260% 100% no-repeat,linear-gradient(180deg,var(--b1) 0%,var(--b2) 38%,var(--b3) 55%,#c39550 80%,var(--b2) 100%)}
+.A .btn.ic .ico{--icf:#3a2408;--ics:#f6dc98;--icw:1.2}
+.A .btn.sec.ic::before{background:linear-gradient(180deg,#5a4630,#3a2b1b 50%,#2c2014)}
+.A .btn.sec.ic .ico{--icf:var(--b2);--ics:var(--ink);--icw:2.2}
+.A .btn.ic .ico{width:22px;height:22px}
+/* end turn: drum face */
+.A .endturn{width:128px;height:128px;border-radius:50%;border:3px solid var(--ink);padding:0;cursor:pointer;position:relative;
+  background:
+    radial-gradient(circle, transparent 0 40px, var(--ink) 40.5px 41.5px, transparent 42px 47px, var(--ink) 47.5px 48.5px, transparent 49px),
+    repeating-conic-gradient(from 0deg, rgba(90,60,20,.55) 0 2deg, transparent 2deg 9deg),
+    radial-gradient(circle at 40% 30%, var(--b1), var(--b2) 45%, var(--b3) 80%, var(--b4));
+  box-shadow:0 6px 0 var(--lip),0 6px 0 3px var(--ink), inset 0 3px 0 rgba(255,245,210,.7);
+  transition:transform .08s, box-shadow .08s}
+.A .endturn .star{position:absolute;inset:26px;fill:#fbe7b0;stroke:var(--ink);stroke-width:2.5;paint-order:stroke}
+.A .endturn .et{position:absolute;left:50%;top:50%;translate:-50% -50%;z-index:2;background:var(--ink);color:var(--b1);clip-path:var(--cham7);padding:5px 12px;font:800 16px/1.05 "Alegreya SC";white-space:nowrap;text-align:center}
+.A .endturn .et small{display:block;font:600 10px "Be Vietnam Pro";color:#c8b48c}
+.A .endturn:hover,.A .endturn.is-hover{filter:brightness(1.08)}
+.A .endturn:active,.A .endturn.is-pressed{transform:translateY(5px);box-shadow:0 1px 0 var(--lip),0 1px 0 3px var(--ink), inset 0 3px 0 rgba(255,245,210,.7)}
+.A .endturn.ready::after{content:"";position:absolute;inset:-10px;border-radius:50%;border:3px solid rgba(246,220,152,.8);animation:ripple 1.6s ease-out infinite}
+@keyframes ripple{0%{transform:scale(.85);opacity:1}100%{transform:scale(1.25);opacity:0}}
+/* resource bar */
+.A .res{display:flex;gap:14px;align-items:center}
+.A .rplate{display:flex;align-items:center;gap:8px;background:var(--ink);clip-path:var(--cham7);padding:3px}
+.A .rplate > div{display:flex;align-items:center;gap:8px;padding:5px 14px 5px 6px;clip-path:var(--cham7);background:linear-gradient(180deg,#4a3826,#2a1e12)}
+.A .medal{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;border:2.5px solid var(--ink);background:radial-gradient(circle at 40% 35%,var(--b1),var(--b2) 50%,var(--b3));box-shadow:inset 0 0 0 3px rgba(255,240,200,.35)}
+.A .medal .ico{width:22px;height:22px;--icf:#fbe7b0}
+.A .num{font:800 24px/1 "Phudu",sans-serif;color:var(--b1);text-shadow:0 2px 0 #000}
+.A .plus{font:800 15px "Phudu";color:var(--pat)}
+.A .lab{font:700 11px "Be Vietnam Pro";color:#c8b48c;text-transform:uppercase;letter-spacing:.08em}
+.A .goal{font-size:12px;color:#d9c8a6;display:flex;gap:6px;align-items:center}
+/* panels */
+.A .panel{position:relative;background:var(--ink);clip-path:var(--cham);padding:3px}
+.A .panel > .in{clip-path:var(--cham7);background:
+   radial-gradient(circle at 20% 0%, rgba(90,164,146,.10), transparent 40%),
+   linear-gradient(180deg,#2e2317,#1d150d);padding:12px 14px;position:relative}
+.A .panel > .in::before{content:"";position:absolute;inset:4px;clip-path:var(--cham7);border:0;box-shadow:inset 0 0 0 1.5px rgba(212,167,90,.55);pointer-events:none}
+.A .ptitle{font:800 20px "Alegreya SC";color:var(--b1);text-shadow:0 2px 0 #000;display:flex;align-items:center;gap:8px}
+.A .ring{border-radius:50%;border:3px solid var(--ink);background:
+    radial-gradient(circle, #3a2b1c 0 62%, transparent 63%),
+    repeating-conic-gradient(var(--b2) 0 6deg, var(--b4) 6deg 12deg);
+  box-shadow:0 0 0 2px var(--b3)}
+.A .portrait{width:68px;height:68px;display:grid;place-items:center;overflow:hidden}
+.A .portrait img{width:64px;height:64px;margin-top:6px}
+.A .uname{font:800 21px/1 "Alegreya SC";color:var(--b1);text-shadow:0 2px 0 #000}
+.A .usub{font-size:12px;color:#c8b48c}
+.A .hp{height:12px;background:#120c07;border:2px solid var(--ink);box-shadow:0 0 0 1.5px var(--b3);display:flex;gap:2px;padding:1px}
+.A .hp i{flex:1;background:linear-gradient(#ffb38a,var(--red))}
+.A .hp i.off{background:#2a1d14}
+.A .stats{display:flex;gap:6px;flex-wrap:wrap}
+.A .chip{display:flex;align-items:center;gap:4px;background:#130d08;border:1.5px solid var(--b4);padding:2px 8px 2px 4px;clip-path:var(--cham7);font:800 15px "Phudu";color:var(--txt)}
+.A .chip .ico{width:16px;height:16px}
+.A .chip em{font:600 11px "Be Vietnam Pro";color:#c8b48c;font-style:normal}
+.A .shoprow{display:flex;align-items:center;gap:10px;padding:6px 10px 6px 6px;background:var(--ink);clip-path:var(--cham7);cursor:pointer;margin-top:6px;position:relative}
+.A .shoprow::before{content:"";position:absolute;inset:2px;clip-path:var(--cham7);background:linear-gradient(180deg,#4a3826,#2c2015);z-index:0}
+.A .shoprow > *{position:relative;z-index:1}
+.A .shoprow:hover::before{background:linear-gradient(180deg,#5d4630,#382817)}
+.A .shoprow:active{translate:0 2px}
+.A .shoprow .pimg{width:42px;height:42px}
+.A .shoprow .pimg img{width:40px;height:40px;margin-top:4px}
+.A .shoprow .nm{flex:1;font:800 16px "Alegreya SC";color:var(--b1)}
+.A .shoprow .nm small{display:block;font:600 11px "Be Vietnam Pro";color:#c8b48c}
+.A .price{display:flex;align-items:center;gap:4px;font:800 18px "Phudu";color:var(--dark);background:linear-gradient(var(--b1),var(--b2));border:2px solid var(--ink);padding:1px 8px 1px 4px;clip-path:var(--cham7)}
+.A .price .ico{width:16px;height:16px;--icf:#fff2c8}
+.A .shoprow.off{cursor:not-allowed}
+.A .shoprow.off::before{background:linear-gradient(180deg,#2a3a33,#1b2622)}
+.A .shoprow.off .nm{color:#7fb3a5}.A .shoprow.off .price{background:linear-gradient(#86b8a6,#4f8a7a);color:#1d332c}
+.A .frieze{height:18px;margin:-12px -14px 8px;background:#140e08 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='18'%3E%3Cpath d='M0 1h56M0 17h56' stroke='%23a2753a' stroke-width='1.5'/%3E%3Cpath d='M6 10 L16 8 L20 4 L23 8 L34 7 L27 10 L44 11 L26 12 L22 15 L19 11 Z' fill='%23d4a75a'/%3E%3Ccircle cx='50' cy='9' r='2' fill='%23a2753a'/%3E%3C/svg%3E") repeat-x}
+.A .dlg{display:flex;gap:12px;align-items:flex-start}
+.A .who{font:800 17px "Alegreya SC";color:var(--b1)}
+.A .say{font-size:15px;line-height:1.5;color:var(--txt)}
+.A .mini{font:700 12px "Be Vietnam Pro";color:#c8b48c}
+.A .title-art{position:relative;text-align:center;padding:10px 0}
+.A .title-art .bg{position:absolute;left:50%;top:50%;width:250px;height:250px;translate:-50% -50%;opacity:.35}
+.A .ttl{position:relative;font:800 clamp(30px,4.2vw,44px)/1 "Alegreya SC";color:var(--b2);
+  background:linear-gradient(180deg,#fff0c0 0%,#e9c477 40%,#b4843f 60%,#e2b867 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 0 #3d2a10) drop-shadow(0 0 1px #1c130b) drop-shadow(0 4px 0 #1c130b)}
+.A .kick{position:relative;font:700 12px "Be Vietnam Pro";letter-spacing:.18em;text-transform:uppercase;color:var(--pat)}
+.A .sel{border:3px solid #f6dc98;box-shadow:0 0 0 2px var(--ink), inset 0 0 0 2px var(--ink), 0 0 16px rgba(246,220,152,.7)}
+
+/* =====================================================================
+   B · SƠN MÀI  (black + cinnabar lacquer, gold leaf, eggshell inlay, seals)
+   ===================================================================== */
+.B{--ink:#120a07;--lac:#1c110c;--lac2:#2b1912;--son:#b93a29;--son-hi:#e2664b;--son-d:#7c1f14;--gold:#f2d27e;--gold2:#cf9f45;--gold3:#8d6420;--egg:#efe5cf;--jade:#7cc58a;--txt:#f6ead2;--mut:#bba78a;
+  --icf:var(--gold);--ics:var(--ink);--icw:2.4;
+  --egg-tex:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Crect width='40' height='40' fill='%23271611'/%3E%3Cg fill='%23efe5cf'%3E%3Cpath d='M1 1l11 1-2 9-9-1z'/%3E%3Cpath d='M14 1l10 2-1 8-11-1z'/%3E%3Cpath d='M26 2l13-1-1 10-11 0z'/%3E%3Cpath d='M1 13l8-1 3 11-10 1z'/%3E%3Cpath d='M11 13l13 0-2 9-8 1z'/%3E%3Cpath d='M26 13l12 1 1 9-12 0z'/%3E%3Cpath d='M1 26l12 0-1 13-10-1z'/%3E%3Cpath d='M15 25l9-1 2 15-12 0z'/%3E%3Cpath d='M28 26l11-1-1 14-9 0z'/%3E%3C/g%3E%3C/svg%3E");
+  --leaf:repeating-linear-gradient(0deg,rgba(120,80,20,.18) 0 1px,transparent 1px 14px),repeating-linear-gradient(90deg,rgba(120,80,20,.18) 0 1px,transparent 1px 14px);
+  color:var(--txt);font-family:"Be Vietnam Pro";
+}
+.B .stage{background:
+  radial-gradient(70% 60% at 85% 10%, rgba(185,58,41,.25), transparent 70%),
+  radial-gradient(60% 50% at 10% 100%, rgba(242,210,126,.08), transparent 70%),
+  linear-gradient(180deg,#1b0f0a,#0e0806)}
+.B .btn{border:3px solid var(--ink);border-radius:12px;padding:12px 26px 16px;min-width:150px;font:700 19px/1 "Alegreya SC",serif;color:#fff6e3;
+  background:linear-gradient(180deg,var(--son-hi) 0%,var(--son) 42%,#a12f20 100%);
+  box-shadow:inset 0 0 0 2px var(--gold2), inset 0 -6px 0 2px var(--son-d), 0 5px 0 0 var(--ink), 0 9px 14px rgba(0,0,0,.5);
+  transition:transform .07s, box-shadow .07s, filter .12s;overflow:hidden}
+.B .btn::before{content:"";position:absolute;left:6px;right:6px;top:4px;height:42%;border-radius:8px 8px 14px 14px;background:linear-gradient(rgba(255,255,255,.38),rgba(255,255,255,.04));z-index:1;pointer-events:none}
+.B .btn::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,236,170,.7),transparent);transform:skewX(-18deg);z-index:1;pointer-events:none}
+.B .btn .lbl{top:-1px;text-shadow:0 2px 0 rgba(60,8,2,.75)}
+.B .btn:hover:not(:disabled),.B .btn.is-hover{filter:brightness(1.08);box-shadow:inset 0 0 0 2px var(--gold), inset 0 -6px 0 2px var(--son-d), 0 5px 0 0 var(--ink), 0 0 0 3px rgba(242,210,126,.35), 0 9px 16px rgba(0,0,0,.5)}
+.B .btn:hover:not(:disabled)::after,.B .btn.is-hover::after{left:130%;transition:left .6s ease}
+.B .btn:active:not(:disabled),.B .btn.is-pressed{transform:translateY(5px);box-shadow:inset 0 0 0 2px var(--gold2), inset 0 -2px 0 2px var(--son-d), 0 0 0 0 var(--ink), 0 3px 6px rgba(0,0,0,.5)}
+.B .btn:disabled,.B .btn.is-disabled{background:linear-gradient(180deg,#4a3a33,#33261f);color:#9c8b78;box-shadow:inset 0 0 0 2px #5d4c3c, inset 0 -6px 0 2px #241913, 0 5px 0 0 var(--ink)}
+.B .btn:disabled .lbl,.B .btn.is-disabled .lbl{text-shadow:none}
+.B .btn:disabled::before,.B .btn.is-disabled::before{opacity:.3}
+.B .btn.sec{color:var(--gold);background:linear-gradient(180deg,#3b261c 0%,#22140e 50%,#1a0f0a 100%);box-shadow:inset 0 0 0 2px var(--gold3), inset 0 -6px 0 2px #0d0705, 0 5px 0 0 var(--ink), 0 9px 14px rgba(0,0,0,.5)}
+.B .btn.sec .lbl{text-shadow:0 2px 0 #000}
+.B .btn.sec:hover{box-shadow:inset 0 0 0 2px var(--gold), inset 0 -6px 0 2px #0d0705, 0 5px 0 0 var(--ink), 0 0 0 3px rgba(242,210,126,.3)}
+.B .btn.sec:active{box-shadow:inset 0 0 0 2px var(--gold3), inset 0 -2px 0 2px #0d0705, 0 0 0 0 var(--ink)}
+.B .btn.ic{min-width:0;padding:10px 12px 14px}
+.B .btn.ic .ico{width:22px;height:22px}
+/* end turn */
+.B .endturn{display:flex;align-items:center;gap:12px;border:3px solid var(--ink);border-radius:14px;padding:10px 20px 14px 12px;cursor:pointer;color:#fff6e3;text-align:left;
+  background:linear-gradient(180deg,var(--son-hi) 0%,var(--son) 42%,#a12f20 100%);
+  box-shadow:inset 0 0 0 2px var(--gold2), inset 0 -6px 0 2px var(--son-d), 0 5px 0 0 var(--ink), 0 9px 14px rgba(0,0,0,.5);transition:transform .07s, box-shadow .07s;position:relative}
+.B .endturn .seal{width:46px;height:46px;flex:none;border:2.5px solid var(--ink);border-radius:6px;background:var(--gold);display:grid;place-items:center;box-shadow:inset 0 0 0 3px var(--son-d), inset 0 0 0 5px var(--gold);rotate:-4deg}
+.B .endturn .seal svg{width:34px;height:34px;fill:var(--son-d)}
+.B .endturn b{display:block;font:700 22px/1.05 "Alegreya SC";text-shadow:0 2px 0 rgba(60,8,2,.75)}
+.B .endturn small{font:600 12px "Be Vietnam Pro";color:#ffd9c4}
+.B .endturn:hover,.B .endturn.is-hover{filter:brightness(1.07)}
+.B .endturn:active,.B .endturn.is-pressed{transform:translateY(5px);box-shadow:inset 0 0 0 2px var(--gold2), inset 0 -2px 0 2px var(--son-d), 0 0 0 0 var(--ink)}
+.B .endturn.ready{animation:glowB 1.4s ease-in-out infinite}
+@keyframes glowB{50%{box-shadow:inset 0 0 0 2px var(--gold), inset 0 -6px 0 2px var(--son-d), 0 5px 0 0 var(--ink), 0 0 0 5px rgba(242,210,126,.45), 0 0 22px rgba(242,210,126,.55)}}
+/* resource */
+.B .res{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.B .rcap{display:flex;align-items:center;gap:8px;border:3px solid var(--ink);border-radius:99px;padding:3px 14px 3px 4px;background:linear-gradient(180deg,#2e1b13,#160c08);box-shadow:inset 0 0 0 1.5px var(--gold3), 0 3px 0 var(--ink)}
+.B .coin{width:32px;height:32px}
+.B .num{font:800 23px/1 "Be Vietnam Pro";color:var(--gold);text-shadow:0 2px 0 #000;letter-spacing:-.01em}
+.B .plus{font:800 14px "Be Vietnam Pro";color:var(--jade)}
+.B .seal-s{display:grid;place-items:center;text-align:center;width:52px;height:52px;border:2.5px solid var(--ink);border-radius:5px;background:var(--son);box-shadow:inset 0 0 0 2px var(--egg), inset 0 0 0 3.5px var(--son);rotate:-5deg;color:var(--egg);font:700 11px/1.05 "Alegreya SC"}
+.B .seal-s b{display:block;font:800 22px/1 "Be Vietnam Pro"}
+.B .goal{font-size:12px;color:var(--mut);display:flex;gap:6px;align-items:center}
+.B .lab{font:700 11px "Be Vietnam Pro";color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+/* panels: lacquer with double frame + gold cloud corners */
+.B .panel{position:relative;border:3px solid var(--ink);border-radius:14px;padding:14px 16px;background:linear-gradient(180deg,#26160f,#160c08);box-shadow:inset 0 0 0 2px var(--gold3), inset 0 0 0 5px #160c08, inset 0 0 0 6px rgba(242,210,126,.35), 0 6px 0 var(--ink), 0 10px 20px rgba(0,0,0,.5)}
+.B .panel::before,.B .panel::after{content:"";position:absolute;width:26px;height:26px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 26'%3E%3Cpath d='M3 23 V12 C3 6 7 3 13 3 C18 3 21 6 21 10 C21 13 19 15 16 15 C13 15 12 13 12 11 C12 9.5 13 8.5 14.5 8.5' fill='none' stroke='%23120a07' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M3 23 V12 C3 6 7 3 13 3 C18 3 21 6 21 10 C21 13 19 15 16 15 C13 15 12 13 12 11 C12 9.5 13 8.5 14.5 8.5' fill='none' stroke='%23f2d27e' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat;top:4px;left:4px}
+.B .panel::after{left:auto;right:4px;transform:scaleX(-1)}
+.B .ptitle{font:700 20px "Alegreya SC";color:var(--gold);text-shadow:0 2px 0 #000;display:flex;align-items:center;gap:8px;padding-left:18px}
+.B .portrait{width:70px;height:78px;flex:none;border:3px solid var(--ink);border-radius:36px 36px 8px 8px;background:var(--egg-tex);background-size:30px;box-shadow:inset 0 0 0 2px var(--gold2), 0 3px 0 var(--ink);overflow:hidden;display:grid;place-items:end center}
+.B .portrait img{width:76px;height:76px;margin-bottom:-6px}
+.B .uname{font:700 22px/1 "Alegreya SC";color:var(--gold);text-shadow:0 2px 0 #000}
+.B .usub{font-size:12px;color:var(--mut)}
+.B .hp{height:12px;border:2.5px solid var(--ink);border-radius:99px;background:#0b0604;box-shadow:0 0 0 1.5px var(--gold3);overflow:hidden}
+.B .hp i{display:block;height:100%;width:var(--w);background:linear-gradient(#b6f0a8,var(--jade) 50%,#4c9a5a);border-radius:99px}
+.B .stats{display:flex;gap:6px;flex-wrap:wrap}
+.B .chip{display:flex;align-items:center;gap:4px;border:2px solid var(--ink);border-radius:8px;background:#0f0805;box-shadow:inset 0 0 0 1px var(--gold3);padding:2px 8px 2px 4px;font:800 15px "Be Vietnam Pro";color:var(--txt)}
+.B .chip .ico{width:17px;height:17px}
+.B .chip em{font:600 11px "Be Vietnam Pro";color:var(--mut);font-style:normal}
+.B .shoprow{display:flex;align-items:center;gap:10px;padding:6px 8px 6px 6px;border:2.5px solid var(--ink);border-radius:10px;background:linear-gradient(180deg,#301d15,#1d110b);box-shadow:inset 0 0 0 1.5px var(--gold3), 0 3px 0 var(--ink);margin-top:8px;cursor:pointer;transition:transform .07s}
+.B .shoprow:hover{box-shadow:inset 0 0 0 1.5px var(--gold), 0 3px 0 var(--ink), 0 0 0 2px rgba(242,210,126,.3)}
+.B .shoprow:active{transform:translateY(3px);box-shadow:inset 0 0 0 1.5px var(--gold), 0 0 0 var(--ink)}
+.B .shoprow .pimg{width:44px;height:44px;flex:none;border:2px solid var(--ink);border-radius:50%;background:radial-gradient(#3a2219,#1a0f0a);box-shadow:inset 0 0 0 1.5px var(--gold2);overflow:hidden;display:grid;place-items:center}
+.B .shoprow .pimg img{width:44px;height:44px;margin-top:6px}
+.B .shoprow .nm{flex:1;font:700 17px/1.1 "Alegreya SC";color:var(--gold)}
+.B .shoprow .nm small{display:block;font:600 11px "Be Vietnam Pro";color:var(--mut)}
+.B .price{display:flex;align-items:center;gap:4px;border:2px solid var(--ink);border-radius:7px;padding:2px 8px 2px 4px;background:linear-gradient(rgba(239,229,207,.88),rgba(239,229,207,.88)),var(--egg-tex);font:800 17px "Be Vietnam Pro";color:#3a1f12}
+.B .price .coin{width:20px;height:20px}
+.B .shoprow.off{cursor:not-allowed;filter:saturate(.25) brightness(.75)}
+.B .shoprow.off .price{color:#7c1f14}
+.B .dlg{display:flex;gap:12px;align-items:flex-start}
+.B .dlg .portrait{width:66px;height:72px}
+.B .nameplate{display:inline-block;font:700 15px "Alegreya SC";color:var(--egg);background:var(--son);border:2px solid var(--ink);border-radius:5px;padding:1px 10px;box-shadow:inset 0 0 0 1px var(--gold2);margin-bottom:4px}
+.B .say{font-size:15px;line-height:1.5}
+.B .mini{font:700 12px "Be Vietnam Pro";color:var(--mut)}
+.B .title-art{position:relative;text-align:center;padding:6px 0 0}
+.B .ttl{position:relative;display:inline-block;font:800 clamp(30px,4.2vw,44px)/1.05 "Alegreya SC";
+  background:var(--leaf),linear-gradient(180deg,#fff2c4 0%,#f2d27e 35%,#c9973e 60%,#f0cd78 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 0 #120a07) drop-shadow(2px 0 0 #120a07) drop-shadow(-2px 0 0 #120a07) drop-shadow(0 2px 0 #120a07) drop-shadow(0 -2px 0 #120a07) drop-shadow(0 4px 0 #5a1810)}
+.B .title-art .seal-s{flex:none;width:46px;height:46px;font-size:12px;line-height:1.05;margin-top:-10px}
+.ttlrow{display:inline-flex;align-items:flex-start;gap:4px;margin-top:8px;max-width:100%}
+.ttlrow .ttl{font-size:clamp(26px,7.4vw,44px)!important}
+.B .kick{font:700 12px "Be Vietnam Pro";letter-spacing:.18em;text-transform:uppercase;color:var(--gold2);display:flex;align-items:center;justify-content:center;gap:10px}
+.B .kick::before,.B .kick::after{content:"";height:2px;width:34px;background:linear-gradient(90deg,transparent,var(--gold2))}
+.B .kick::after{transform:scaleX(-1)}
+.B .sel{border:3px solid var(--gold);border-radius:6px;box-shadow:0 0 0 2px var(--ink), inset 0 0 0 2px var(--ink), 0 0 18px rgba(242,210,126,.7)}
+
+/* =====================================================================
+   C · ĐÔNG HỒ  (dó paper, woodblock ink, flat natural pigments, stamps)
+   ===================================================================== */
+.C{--ink:#231a15;--paper:#f4e7c7;--paper2:#e6d3a8;--son:#cf4a30;--son-d:#9b2f1f;--hoe:#efb52f;--cham:#2f5d82;--la:#5f8f3c;--vang:#d97a6c;--txt:#231a15;
+  --icf:var(--hoe);--ics:var(--ink);--icw:2.6;
+  --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fiber:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .2' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .3 0 0 0 0 .15 0 0 0 .16 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23f)'/%3E%3C/svg%3E");
+  --shine:linear-gradient(118deg,transparent 20%,rgba(255,252,240,.38) 42%,rgba(230,240,255,.18) 50%,transparent 66%);
+  --r1:13px 9px 15px 8px / 8px 14px 9px 15px;
+  --r2:18px 12px 20px 11px / 11px 19px 12px 20px;
+  color:var(--txt);font-family:"Be Vietnam Pro";
+}
+.C .stage{background:var(--shine),var(--grain),var(--fiber),linear-gradient(180deg,#f6ead0,#ead7ae)}
+.C .btn{border:3px solid var(--ink);border-radius:var(--r1);padding:11px 24px 12px;min-width:150px;font:400 20px/1 "Paytone One",sans-serif;color:var(--paper);
+  background:var(--grain),var(--son);box-shadow:inset 0 0 0 2px var(--son), inset 0 0 0 3.5px rgba(244,231,199,.75), 4px 4px 0 var(--ink);
+  transition:transform .08s, box-shadow .08s, rotate .12s}
+.C .btn .lbl{text-shadow:2px 2px 0 var(--ink)}
+.C .btn:hover:not(:disabled),.C .btn.is-hover{rotate:-1.5deg;transform:translate(-1px,-1px);box-shadow:inset 0 0 0 2px var(--son), inset 0 0 0 3.5px rgba(244,231,199,.75), 6px 6px 0 var(--ink)}
+.C .btn:active:not(:disabled),.C .btn.is-pressed{rotate:0deg;transform:translate(4px,4px);box-shadow:inset 0 0 0 2px var(--son), inset 0 0 0 3.5px rgba(244,231,199,.75), 0 0 0 var(--ink)}
+.C .btn:disabled,.C .btn.is-disabled{color:#8d7c63;background:repeating-linear-gradient(135deg,rgba(35,26,21,.14) 0 2px,transparent 2px 7px),var(--paper2);border-color:#8d7c63;box-shadow:3px 3px 0 #8d7c63}
+.C .btn:disabled .lbl,.C .btn.is-disabled .lbl{text-shadow:none}
+.C .btn.sec{background:var(--grain),var(--paper);color:var(--ink);box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px rgba(35,26,21,.5), 4px 4px 0 var(--ink)}
+.C .btn.sec .lbl{text-shadow:none}
+.C .btn.sec:hover{box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px rgba(35,26,21,.5), 6px 6px 0 var(--ink)}
+.C .btn.sec:active{box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3.5px rgba(35,26,21,.5), 0 0 0 var(--ink)}
+.C .btn.ic{min-width:0;padding:9px 10px;background:var(--grain),var(--cham)}
+.C .btn.ic .ico{width:24px;height:24px;--icf:var(--paper)}
+/* end turn: big seal */
+.C .endturn{width:122px;height:122px;border-radius:50% 47% 52% 49%;border:3px solid var(--ink);cursor:pointer;rotate:-5deg;padding:0;position:relative;
+  background:var(--grain),radial-gradient(circle, var(--hoe) 0 47%, var(--ink) 47.5% 49.5%, var(--son) 50% 100%);box-shadow:5px 5px 0 var(--ink);transition:transform .08s, box-shadow .08s, rotate .12s}
+.C .endturn b{display:block;font:400 21px/1 "Paytone One";color:var(--son-d)}
+.C .endturn small{display:block;font:700 10px/1.2 "Be Vietnam Pro";color:var(--ink);margin-top:3px}
+.C .endturn:hover,.C .endturn.is-hover{rotate:-9deg;box-shadow:7px 7px 0 var(--ink)}
+.C .endturn:active,.C .endturn.is-pressed{transform:translate(5px,5px);box-shadow:0 0 0 var(--ink)}
+.C .endturn.ready{animation:wob 1.2s ease-in-out infinite}
+@keyframes wob{0%,100%{rotate:-5deg}50%{rotate:3deg;scale:1.05}}
+/* resource */
+.C .res{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center}
+.C .rtag{display:flex;align-items:center;gap:7px;border:3px solid var(--ink);border-radius:var(--r1);padding:3px 12px 3px 4px;background:var(--grain),var(--paper);box-shadow:3px 3px 0 var(--ink)}
+.C .coin{width:32px;height:32px}
+.C .num{font:400 25px/1 "Paytone One";color:var(--ink)}
+.C .plus{font:400 15px "Paytone One";color:var(--la)}
+.C .turn{border:3px solid var(--ink);background:var(--grain),var(--son);color:var(--paper);font:400 17px/1 "Paytone One";padding:6px 12px;rotate:-3deg;border-radius:var(--r1);box-shadow:3px 3px 0 var(--ink);text-shadow:2px 2px 0 var(--ink)}
+.C .goal{font-size:12px;color:#5a4636;display:flex;gap:6px;align-items:center;font-weight:600}
+.C .lab{font:800 11px "Be Vietnam Pro";color:#6d5643;text-transform:uppercase;letter-spacing:.08em}
+/* panels: paper sheet with woodblock double frame */
+.C .panel{position:relative;border:3px solid var(--ink);border-radius:var(--r2);padding:14px 16px;background:var(--shine),var(--grain),var(--fiber),var(--paper);box-shadow:inset 0 0 0 4px var(--paper), inset 0 0 0 5.5px var(--ink), 5px 5px 0 var(--ink)}
+.C .panel::before{content:"";position:absolute;inset:9px;border-radius:var(--r1);pointer-events:none;background:
+  linear-gradient(var(--ink),var(--ink)) 0 0/8px 8px no-repeat,linear-gradient(var(--ink),var(--ink)) 100% 0/8px 8px no-repeat,
+  linear-gradient(var(--ink),var(--ink)) 0 100%/8px 8px no-repeat,linear-gradient(var(--ink),var(--ink)) 100% 100%/8px 8px no-repeat}
+.C .ptitle{font:400 21px "Paytone One";color:var(--son-d);display:flex;align-items:center;gap:8px}
+.C .portrait{width:70px;height:70px;flex:none;border:3px solid var(--ink);border-radius:var(--r1);background:var(--grain),var(--son);box-shadow:inset 0 0 0 3px var(--hoe), 3px 3px 0 var(--ink);overflow:hidden;display:grid;place-items:end center}
+.C .portrait img{width:76px;height:76px;margin-bottom:-8px}
+.C .uname{font:400 22px/1 "Paytone One";color:var(--ink)}
+.C .usub{font-size:12px;color:#6d5643;font-weight:600}
+.C .hp{height:14px;border:2.5px solid var(--ink);border-radius:4px 7px 5px 8px;background:var(--paper2);overflow:hidden}
+.C .hp i{display:block;height:100%;width:var(--w);background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(35,26,21,.35) 9px 10px),var(--la);border-right:2.5px solid var(--ink)}
+.C .stats{display:flex;gap:6px;flex-wrap:wrap}
+.C .chip{display:flex;align-items:center;gap:4px;border:2.5px solid var(--ink);border-radius:var(--r1);background:#fbf3df;padding:1px 8px 1px 3px;font:400 15px "Paytone One";color:var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.C .chip .ico{width:18px;height:18px}
+.C .chip em{font:700 11px "Be Vietnam Pro";color:#6d5643;font-style:normal}
+.C .shoprow{display:flex;align-items:center;gap:10px;padding:5px 8px 5px 5px;border:2.5px solid var(--ink);border-radius:var(--r1);background:#fbf3df;margin-top:8px;cursor:pointer;box-shadow:3px 3px 0 var(--ink);transition:transform .07s, box-shadow .07s}
+.C .shoprow:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--ink);background:#fff8e6}
+.C .shoprow:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.C .shoprow .pimg{width:44px;height:44px;flex:none;border:2.5px solid var(--ink);border-radius:var(--r1);background:var(--cham);overflow:hidden;display:grid;place-items:end center}
+.C .shoprow .pimg img{width:46px;height:46px;margin-bottom:-6px}
+.C .shoprow .nm{flex:1;font:400 17px/1.1 "Paytone One";color:var(--ink)}
+.C .shoprow .nm small{display:block;font:700 11px "Be Vietnam Pro";color:#6d5643}
+.C .price{display:flex;align-items:center;gap:4px;border:2.5px solid var(--ink);border-radius:var(--r1);padding:1px 8px 1px 3px;background:var(--hoe);font:400 17px "Paytone One";color:var(--ink);rotate:2deg}
+.C .price .coin{width:20px;height:20px}
+.C .shoprow.off{cursor:not-allowed;background:repeating-linear-gradient(135deg,rgba(35,26,21,.12) 0 2px,transparent 2px 7px),var(--paper2);box-shadow:2px 2px 0 #8d7c63;border-color:#8d7c63}
+.C .shoprow.off .nm,.C .shoprow.off .price{color:#8d7c63}.C .shoprow.off .price{background:var(--paper2);border-color:#8d7c63}
+.C .shoprow.off .pimg{filter:grayscale(1);opacity:.6}
+.C .dlg{display:flex;gap:12px;align-items:flex-start}
+.C .ribbon{display:inline-block;font:400 15px "Paytone One";color:var(--paper);background:var(--son);border:2.5px solid var(--ink);padding:1px 14px 2px 10px;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 50%,100% 100%,0 100%);margin-bottom:4px;text-shadow:1px 1px 0 var(--ink)}
+.C .say{font-size:15px;line-height:1.5;font-weight:600;color:var(--ink)}
+.C .mini{font:700 12px "Be Vietnam Pro";color:#6d5643}
+.C .title-art{position:relative;text-align:center}
+.C .ttl{position:relative;display:inline-block;font:400 clamp(32px,4.6vw,48px)/1.05 "Paytone One";color:var(--hoe);-webkit-text-stroke:2.5px var(--ink);paint-order:stroke fill;text-shadow:4px 4px 0 var(--ink);rotate:-2deg}
+.C .title-art .stamp{flex:none;margin-top:-10px;width:50px;height:50px;display:grid;place-items:center;text-align:center;background:var(--son);color:var(--paper);border:2.5px solid var(--ink);border-radius:4px 7px 3px 6px;font:400 11px/1.05 "Paytone One";rotate:8deg;box-shadow:inset 0 0 0 2px var(--paper), inset 0 0 0 3px var(--son)}
+.C .kick{font:800 12px "Be Vietnam Pro";letter-spacing:.18em;text-transform:uppercase;color:var(--son-d)}
+.C .sel{border:3px dashed var(--ink);border-radius:var(--r1);background:rgba(239,181,47,.25);box-shadow:0 0 0 3px var(--hoe)}
+
+/* HUD composite tweaks (shared) */
+.hud .res{transform:scale(.8);transform-origin:0 0;left:8px;top:8px;flex-wrap:nowrap}
+.hud .ucardmini{right:8px;top:8px;width:250px;transform:scale(.82);transform-origin:100% 0}
+.hud .popup{left:178px;top:96px;transform:scale(.8);transform-origin:0 0}
+.hud .et-pos{right:12px;bottom:10px;transform:scale(.72);transform-origin:100% 100%}
+.popup .row{display:flex;gap:8px}
+.popup .btn{min-width:0;font-size:16px;padding-left:14px;padding-right:14px}
+.A .popup .btn{padding:10px 14px 15px}
+.C .popup .btn{padding:8px 13px 9px}
+
+/* style-guide token table swatches */
+.tok{display:inline-block;width:14px;height:14px;border:1.5px solid #000;border-radius:3px;vertical-align:-2px;margin-right:6px}
+.phase{border-left:3px solid var(--acc);padding:4px 0 4px 12px;margin:10px 0}
+.phase b{color:var(--acc)}
+.verdict{background:linear-gradient(180deg,#2a1a12,#1a110c);border:2px solid var(--acc);border-radius:12px;padding:16px 18px}
+.verdict h3{margin-top:0;font:800 24px "Alegreya SC";color:var(--acc)}
+footer{margin-top:60px;color:var(--mut);font-size:13px}
+</style>
+</head>
+<body>
+<!-- SVG sprite: icons drawn for fill + outline (style comes from each direction's --icf/--ics/--icw) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-coin" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.5a9.5 9.5 0 1 1 0 19a9.5 9.5 0 1 1 0-19Z M9.2 9.2h5.6v5.6H9.2Z"/></symbol>
+    <symbol id="i-sword" viewBox="0 0 24 24"><path d="M20.5 2 22 3.5 11.5 14l-1.5-1.5Z M5.2 12.2l1.6-1.6 6.6 6.6-1.6 1.6-1.6-1.6-3 3 .9.9-1.6 1.6-3.4-3.4 1.6-1.6.9.9 3-3Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 20 5v6c0 5.3-3.4 9.2-8 11-4.6-1.8-8-5.7-8-11V5Z"/></symbol>
+    <symbol id="i-foot" viewBox="0 0 24 24"><path d="M6 2.5h7.5v9.2l5.6 2.6c1.5.7 2.4 2 2.4 3.6V21H3.5v-4.2L6 14.5Z"/></symbol>
+    <symbol id="i-range" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.5a9.5 9.5 0 1 1 0 19a9.5 9.5 0 1 1 0-19Z M12 6.5a5.5 5.5 0 1 0 0 11a5.5 5.5 0 1 0 0-11Z M12 9.8a2.2 2.2 0 1 1 0 4.4a2.2 2.2 0 1 1 0-4.4Z"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21 3.6 12.8C1.2 10.4 1.6 6.3 4.6 4.8c2.2-1.1 4.9-.4 6.2 1.6L12 8l1.2-1.6c1.3-2 4-2.7 6.2-1.6 3 1.5 3.4 5.6 1 8Z"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 2h2.4v20H5Z M7.4 3H20l-3.2 4.5L20 12H7.4Z"/></symbol>
+    <symbol id="i-wait" viewBox="0 0 24 24"><path d="M6 2h12v2.5l-4.6 7.5 4.6 7.5V22H6v-2.5l4.6-7.5L6 4.5Z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M4.6 7.4 7.4 4.6 12 9.2l4.6-4.6 2.8 2.8-4.6 4.6 4.6 4.6-2.8 2.8-4.6-4.6-4.6 4.6-2.8-2.8 4.6-4.6Z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><path d="M12 2.5 14.6 9.4 21.5 12l-6.9 2.6L12 21.5l-2.6-6.9L2.5 12l6.9-2.6Z"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><path fill-rule="evenodd" id="gearpath" d=""/></symbol>
+    <symbol id="i-sun" viewBox="0 0 100 100"><path id="sunpath" d=""/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+<div class="sbar" role="toolbar" aria-label="Điều khiển trang">
+  <span>Bấm thử mọi nút trong mockup (rê chuột / nhấn giữ).</span>
+  <button id="snd" aria-pressed="false">Âm thanh mẫu: tắt</button>
+  <span class="note">Âm thanh tổng hợp bằng WebAudio, chỉ để cảm nhận "cue", không phải âm thật.</span>
+</div>
+
+<header class="top" style="margin-top:22px">
+  <h1>Công Thành Chiến · Hướng giao diện "chất game"</h1>
+  <p>Nghiên cứu + mockup, chưa đổi code game. Mục tiêu: nút / thẻ / icon có cảm giác "đồ vật trong game" (dày, bấm lún, có viền, có hoa văn), thống nhất 1 phong cách cho mọi màn, mang chất Việt riêng. Ảnh chụp từ build hiện tại (2026-11-07, master <code>20fae2e</code>, profile=test).</p>
+  <nav class="toc">
+    <a href="#s1">1. Hiện trạng</a><a href="#s2">2. Nghiên cứu</a><a href="#s3">3. Ba hướng + mockup</a><a href="#s4">4. Đề xuất</a><a href="#s5">5. Style guide</a><a href="#s6">6. Kế hoạch Godot</a><a href="#s7">7. Tài sản cần duyệt</a>
+  </nav>
+</header>
+
+<!-- ============================ 1 ============================ -->
+<section id="s1">
+<h2>1. Hiện trạng <small>ảnh chụp thật, cửa sổ 1280x720 + điện thoại 844x390</small></h2>
+<div class="gal">
+  <figure><a href="ui_direction/title.jpg" target="_blank"><img src="ui_direction/title.jpg" alt="Màn tiêu đề" loading="lazy"></a><figcaption>Tiêu đề: tên game viền vàng (tốt) · nút menu = thẻ bo tròn viền 1 px</figcaption></figure>
+  <figure><a href="ui_direction/campaign.jpg" target="_blank"><img src="ui_direction/campaign.jpg" alt="Bản đồ chiến dịch" loading="lazy"></a><figcaption>Bản đồ chiến dịch: nút tròn số, khung bản đồ mỏng</figcaption></figure>
+  <figure><a href="ui_direction/duel_setup.jpg" target="_blank"><img src="ui_direction/duel_setup.jpg" alt="Thiết lập 1 đấu 1" loading="lazy"></a><figcaption>Thiết lập 1 đấu 1: chip / segment kiểu web form</figcaption></figure>
+  <figure><a href="ui_direction/codex.jpg" target="_blank"><img src="ui_direction/codex.jpg" alt="Sách lính" loading="lazy"></a><figcaption>Sách lính: thẻ + thanh chỉ số mỏng = dashboard</figcaption></figure>
+  <figure><a href="ui_direction/hud_idle.jpg" target="_blank"><img src="ui_direction/hud_idle.jpg" alt="HUD trong trận" loading="lazy"></a><figcaption>Trong trận: thanh lượt/vàng góc trái, Hết lượt góc phải</figcaption></figure>
+  <figure><a href="ui_direction/hud_pick.jpg" target="_blank"><img src="ui_direction/hud_pick.jpg" alt="Chọn quân" loading="lazy"></a><figcaption>Chọn quân: thẻ quân góc phải, chỉ số = chữ</figcaption></figure>
+  <figure><a href="ui_direction/shop.jpg" target="_blank"><img src="ui_direction/shop.jpg" alt="Popup mua quân" loading="lazy"></a><figcaption>Mộ quân: hàng nút giống list item web</figcaption></figure>
+  <figure><a href="ui_direction/story.jpg" target="_blank"><img src="ui_direction/story.jpg" alt="Thoại mở màn" loading="lazy"></a><figcaption>Thoại: chân dung = emoji 📜 trong vòng tròn</figcaption></figure>
+  <figure><a href="ui_direction/end.jpg" target="_blank"><img src="ui_direction/end.jpg" alt="Màn kết thúc" loading="lazy"></a><figcaption>Đại thắng: tia sáng (tốt), icon vương miện emoji</figcaption></figure>
+  <figure><a href="ui_direction/phone_action.jpg" target="_blank"><img src="ui_direction/phone_action.jpg" alt="Điện thoại: popup lệnh" loading="lazy"></a><figcaption>Điện thoại 844x390: popup lệnh, icon emoji 🏠 ⏳ ✖</figcaption></figure>
+  <figure><a href="ui_direction/phone_shop.jpg" target="_blank"><img src="ui_direction/phone_shop.jpg" alt="Điện thoại: mua quân" loading="lazy"></a><figcaption>Điện thoại: Mộ quân (2 loại vừa; 9 loại tràn - đã có trong TODO)</figcaption></figure>
+  <figure class="wide"><a href="ui_direction/roster.jpg" target="_blank"><img src="ui_direction/roster.jpg" alt="Toàn bộ quân chibi" loading="lazy"></a><figcaption>Quân chibi: nét viền nâu đậm dày (<code>#2b2220</code>), màu phẳng. UI hiện chưa dùng ngôn ngữ này.</figcaption></figure>
+</div>
+
+<h3>Nhận xét thẳng</h3>
+<div class="grid2">
+<div class="box">
+<b>Vì sao đang thấy "giống app"</b>
+<ul class="tight">
+  <li><b>Viền 1 px + nền mờ trong suốt + bo 12 px</b> = ngôn ngữ dashboard web / glassmorphism. Không có độ dày, không có "mép" để bấm.</li>
+  <li><b>Trạng thái nhấn gần như không thấy</b>: <code>_btn()</code> chỉ tối nền 15%. Không lún, không nảy, không tiếng riêng.</li>
+  <li><b>Icon = emoji</b> (🎯 📜 👑 🏠 ⏳ ✖) - mỗi cái 1 phong cách khác, khác hẳn quân chibi tự vẽ. Đây là chỗ "lệch chất" rõ nhất.</li>
+  <li><b>Chỉ số = chữ + thanh mảnh 6 px</b> (Sách lính, thẻ quân): đọc như bảng số liệu, không như thẻ bài.</li>
+  <li><b>Chip / segment (Vàng khởi đầu, Máy Dễ/Thường/Khó)</b> = pill của form web.</li>
+  <li><b>Không có hoa văn riêng</b>: bỏ chữ Việt đi thì không nhận ra bối cảnh Việt (chỉ có màu sơn mài).</li>
+</ul>
+</div>
+<div class="box">
+<b>Không nhất quán giữa các màn</b>
+<ul class="tight">
+  <li>Bo góc: menu 12, nút lệnh 10, icon 8, chip 99, ô bản đồ chiến dịch tròn, popup thoại góc trái 4 → 5 kiểu bo.</li>
+  <li>Viền: 1 px (nút), 2 px (nút "hot"), 0 (HUD) - không có quy tắc.</li>
+  <li>Font: tiêu đề Alegreya SC, số vàng Be Vietnam Pro, "Hết lượt" Alegreya; nút lệnh ở điện thoại dùng bold sans → 2 giọng chữ trộn.</li>
+  <li>Nút đỏ (Xuất quân / Hết lượt / Màn tiếp) đúng ý "nút chính", nhưng chỉ khác màu, không khác hình.</li>
+</ul>
+<b>Giữ lại (đã có chất game)</b>
+<ul class="tight">
+  <li>Tên game chữ vàng viền đậm · tia sáng "Đại thắng" · số vàng đếm lên + "+80" · quân chibi + bàn cờ tươi.</li>
+  <li>Bảng màu sơn mài (LACQUER / BRONZE / GOLD / CINNABAR) - đúng hướng, chỉ thiếu "vật liệu".</li>
+  <li>Kiến trúc: <code>style.gd</code> đã là nơi duy nhất định nghĩa theme → đổi phong cách tập trung được.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================ 2 ============================ -->
+<section id="s2">
+<h2>2. Nghiên cứu <small>nguyên tắc · game tham khảo · di sản Việt · kỹ thuật Godot</small></h2>
+
+<h3>2.1 Thứ làm UI "ra chất game" (vs app)</h3>
+<div class="grid3">
+  <div class="box"><b>1. Đồ vật có độ dày</b><br>Nút có mép dưới (lip) + highlight trên + viền đậm → đọc như vật thật. Nhấn = mép biến mất, mặt nút lún xuống 3–5 px. Đây là "signature" của Clash Royale / Kingdom Rush / Wargroove.</div>
+  <div class="box"><b>2. Viền đậm chung với art</b><br>UI dùng cùng độ dày + màu nét với nhân vật → UI và quân là 1 thế giới. Ở game này: nét <code>#2b2220</code> của chibi.</div>
+  <div class="box"><b>3. Icon thay chữ</b><br>Kiếm / khiên / bàn chân / bia = Công / Thủ / Đi / Tầm. Silhouette đậm, đọc được ở 16 px trên điện thoại. Chữ chỉ là phụ.</div>
+  <div class="box"><b>4. Juice</b><br>Mọi tương tác có phản hồi: nảy (scale 0.94 → 1.06 → 1), lóe sáng, rung nhẹ, hạt, tiếng riêng. Nhỏ, nhanh (&lt; 250 ms), không chặn thao tác.</div>
+  <div class="box"><b>5. Vật liệu theo bối cảnh</b><br>Khung = vật liệu có thật trong thế giới game (đồng, gỗ sơn, giấy, đá) thay vì "panel trong suốt". Ornament ở góc, không ở giữa nội dung.</div>
+  <div class="box"><b>6. Ngôn ngữ hình thống nhất</b><br>1 kiểu góc, 1 độ dày viền, 1 kiểu bóng cho MỌI màn. Khác biệt chính/phụ bằng màu + kích thước, không bằng hình khác hẳn.</div>
+</div>
+
+<h3>2.2 Game tham khảo · lấy gì (không copy)</h3>
+<table class="t" id="refs">
+<thead><tr><th>Game</th><th>Học gì cụ thể</th><th>Nguồn</th></tr></thead>
+<tbody>
+<tr><td data-l="Game">Wargroove</td><td data-l="Học gì">Thể loại gần nhất. Khung panel viền dày + nét đen giống sprite; thẻ quân có chân dung lớn + icon chỉ số; dự báo sát thương ngay cạnh mục tiêu.</td><td data-l="Nguồn" class="src" data-k="wargroove"></td></tr>
+<tr><td data-l="Game">Advance Wars 1+2 Re-Boot Camp</td><td data-l="Học gì">Đồ chơi / "toy-like": nút tròn dày, màu phe bão hòa, chữ to tròn; mọi thứ đọc được trên Switch handheld (≈ điện thoại).</td><td data-l="Nguồn" class="src" data-k="aw"></td></tr>
+<tr><td data-l="Game">Into the Breach</td><td data-l="Học gì">Thông tin trước hết: icon hành động + preview trên ô; panel tối đơn giản để bàn cờ nổi. Ornament ít nhưng nhất quán.</td><td data-l="Nguồn" class="src" data-k="itb"></td></tr>
+<tr><td data-l="Game">Kingdom Rush</td><td data-l="Học gì">Khung gỗ / đá viền đậm + đinh tán; nút tròn huy hiệu; nét vẽ tay cùng chất với nhân vật. Rất gần art chibi của ta.</td><td data-l="Nguồn" class="src" data-k="kr"></td></tr>
+<tr><td data-l="Game">Clash Royale / Clash of Clans</td><td data-l="Học gì">Chuẩn mực "nút bấm có mép": lip dưới, highlight trên, chữ viền đen + bóng, nảy khi nhấn. Số tài nguyên chữ to viền đen.</td><td data-l="Nguồn" class="src" data-k="clash"></td></tr>
+<tr><td data-l="Game">Hades</td><td data-l="Học gì">Ornament chỉ ở khung / góc, nội dung sạch; mỗi vật phẩm có icon riêng vẽ tay; hiệu ứng lóe khi chọn.</td><td data-l="Nguồn" class="src" data-k="hades"></td></tr>
+<tr><td data-l="Game">Slay the Spire</td><td data-l="Học gì">Thẻ có khung theo loại (hình khung = thông tin), icon số lớn ở góc; tooltip từ khóa.</td><td data-l="Nguồn" class="src" data-k="sts"></td></tr>
+<tr><td data-l="Game">Northgard</td><td data-l="Học gì">Chất liệu văn hóa (khắc rune Bắc Âu, gỗ, da) dùng làm khung; palette giới hạn; icon khắc.</td><td data-l="Nguồn" class="src" data-k="northgard"></td></tr>
+<tr><td data-l="Game">Total War: Three Kingdoms</td><td data-l="Học gì">UI Đông Á: giấy, mực, triện đỏ, tranh cuộn; màu ngũ hành theo phe. Bài học: dùng triện / con dấu làm huy hiệu trạng thái.</td><td data-l="Nguồn" class="src" data-k="tw3k"></td></tr>
+<tr><td data-l="Game">Ghost of Tsushima</td><td data-l="Học gì">Tối giản kiểu Nhật: chữ thư pháp lớn cho khoảnh khắc (bắt đầu trận, kết thúc), còn lại gần như vô hình. Bài học: "Đại thắng" / thẻ tên màn = khoảnh khắc lớn.</td><td data-l="Nguồn" class="src" data-k="got"></td></tr>
+<tr><td data-l="Game">Okami</td><td data-l="Học gì">Cả game là tranh mực sumi-e: chứng minh 1 kỹ thuật in / vẽ truyền thống đủ làm toàn bộ bản sắc → Đông Hồ / sơn mài làm được điều tương tự cho ta.</td><td data-l="Nguồn" class="src" data-k="okami"></td></tr>
+</tbody>
+</table>
+<p class="note" id="refnote">Nguồn chung: Game UI Database (gameuidatabase.com) để xem ảnh UI thật của từng game.</p>
+
+<h3>2.3 Di sản thị giác Việt có thể dùng</h3>
+<div class="grid3">
+  <div class="box"><svg viewBox="0 0 100 100" width="64" height="64" style="float:right;margin-left:8px"><circle cx="50" cy="50" r="47" fill="#b8924f" stroke="#2b2220" stroke-width="3"/><circle cx="50" cy="50" r="38" fill="none" stroke="#2b2220" stroke-width="1.5" stroke-dasharray="2 3"/><circle cx="50" cy="50" r="30" fill="none" stroke="#2b2220" stroke-width="1.5"/><use href="#i-sun" x="22" y="22" width="56" height="56" fill="#f6dc98" stroke="#2b2220" stroke-width="3" style="paint-order:stroke"/></svg><b>Trống đồng Đông Sơn</b> (Ngọc Lũ, Hoàng Hạ)<br>Mặt trời 14 tia ở tâm, các vành đồng tâm, chim Lạc bay, thuyền, người cầm vũ khí. → <i>huy hiệu lượt, nút Hết lượt, khung tròn chân dung, dải trang trí</i>. Cùng thời kỳ với Hai Bà Trưng (thế kỷ 1) → hợp bối cảnh nhất.<div class="src" data-k="dongson"></div></div>
+  <div class="box"><svg viewBox="0 0 64 64" width="60" height="60" style="float:right;margin-left:8px"><rect x="2" y="2" width="60" height="60" rx="8" fill="#1c110c" stroke="#120a07" stroke-width="3"/><rect x="8" y="8" width="48" height="48" rx="4" fill="none" stroke="#f2d27e" stroke-width="2"/><path d="M14 40l8-2 2 8-9 1z M26 38l9 1-1 8-8 0z M37 40l10-1 0 7-9 1z" fill="#efe5cf"/><rect x="18" y="14" width="16" height="16" rx="2" fill="#b93a29" stroke="#120a07" stroke-width="2"/></svg><b>Sơn mài</b><br>Nền đen then / đỏ son / cánh gián, vàng quỳ & bạc thếp (dán từng lá vuông), khảm vỏ trứng, mài bóng. → <i>vật liệu khung + nút; lá vàng vuông = hoa văn mặt nút; vỏ trứng = thẻ giá</i>.<div class="src" data-k="sonmai"></div></div>
+  <div class="box"><svg viewBox="0 0 64 64" width="60" height="60" style="float:right;margin-left:8px"><rect x="2" y="2" width="60" height="60" rx="3" fill="#f4e7c7" stroke="#231a15" stroke-width="3"/><rect x="7" y="7" width="50" height="50" fill="none" stroke="#231a15" stroke-width="1.5"/><circle cx="32" cy="34" r="14" fill="#cf4a30" stroke="#231a15" stroke-width="3"/><circle cx="32" cy="34" r="6" fill="#efb52f" stroke="#231a15" stroke-width="2.5"/></svg><b>Tranh Đông Hồ / Hàng Trống</b><br>Giấy dó + bột điệp (óng ánh vỏ sò), màu tự nhiên: đen than lá tre, đỏ sỏi son, vàng hoa hòe (Wikipedia EN ghi "senna" - chưa thống nhất), xanh lá chàm / gỉ đồng, trắng vỏ trứng; nét khắc gỗ đen dày, màu phẳng. → <i>nét viền đậm + màu phẳng, khớp 100% với chibi</i>.<div class="src" data-k="dongho"></div></div>
+  <div class="box"><b>Ấn triện / con dấu đỏ</b><br>Ô vuông, chữ triện khắc, đóng lệch nhẹ. → <i>huy hiệu "Lượt 3", nhãn trạng thái, nhãn màn mới, xác nhận "Đã chiếm"</i>.<div class="src" data-k="seal"></div></div>
+  <div class="box"><b>Chạm khắc đình làng</b><br>Rồng, mây cuộn, sóng nước, lá đề. → <i>góc khung (mây cuộn), viền tiêu đề</i>; dùng tiết chế, chỉ ở góc.<div class="src" data-k="dinh"></div></div>
+  <div class="box"><b>Gốm Chu Đậu · cờ hiệu · trống / chiêng</b><br>Lam - trắng cho phe Đông Hán (đối lập đỏ - vàng phe ta); cờ đuôi nheo cho nhãn phe; tiếng trống đồng / chiêng = cue âm thanh. Cổng đền Hai Bà (Mê Linh) vẽ Hai Bà cưỡi voi → voi = biểu tượng tướng ta.<div class="src" data-k="chudau"></div></div>
+</div>
+
+<h3>2.4 Kỹ thuật Godot 4 (làm được, nhẹ cho web/điện thoại)</h3>
+<table class="t">
+<thead><tr><th>Cần</th><th>Cách làm trong Godot 4.7</th><th>Ghi chú</th></tr></thead>
+<tbody>
+<tr><td data-l="Cần">Viền đậm + mép dày</td><td data-l="Cách">StyleBoxFlat: <code>border_width</code> 3, <code>shadow_offset</code> (0,5) + <code>shadow_size</code> 1 (bóng cứng), pressed: shadow 0 + <code>content_margin_top</code> +4 / bottom −4.</td><td data-l="Ghi chú">Rẻ nhất. StyleBoxFlat chỉ có 1 màu viền → viền vàng trong (double frame) cần lớp 2.</td></tr>
+<tr><td data-l="Cần">Khung có hoa văn / double frame</td><td data-l="Cách">StyleBoxTexture (nine-patch, <code>texture_margin_*</code>, <code>axis_stretch</code> tile cho dải hoa văn). Texture tạo lúc boot từ SVG: <code>Image.load_svg_from_string(src, scale)</code> → <code>ImageTexture</code>.</td><td data-l="Ghi chú">Đã dùng <code>load_svg_from_string</code> trong <code>roster_sheet.gd</code>. Bake theo <code>Baked.screen_scale()</code> → nét không mờ trên điện thoại.</td></tr>
+<tr><td data-l="Cần">Biến thể nút</td><td data-l="Cách">Theme type variation (<code>MenuBtn</code>, <code>PrimaryBtn</code>, <code>ActBtn</code>… đã có) → chỉ đổi stylebox, không đổi call site.</td><td data-l="Ghi chú">Giữ tên variation → click driver / probe không phải sửa.</td></tr>
+<tr><td data-l="Cần">Nảy / lún / lóe</td><td data-l="Cách"><code>create_tween()</code> scale 0.94 → 1.06 → 1 (<code>pivot_offset = size/2</code>); lóe = shader CanvasItem 1 uniform <code>sweep</code> tween 0 → 1.</td><td data-l="Ghi chú">Container không reset <code>scale</code> → nảy được trong VBox/HBox.</td></tr>
+<tr><td data-l="Cần">Giấy / hạt / vỏ trứng</td><td data-l="Cách">Texture nhỏ lặp (tile) bake sẵn, hoặc shader noise rẻ. Compatibility renderer (web) chạy được shader 2D đơn giản.</td><td data-l="Ghi chú">Tránh shader trên mọi nút cùng lúc; bake 1 lần.</td></tr>
+<tr><td data-l="Cần">Icon</td><td data-l="Cách">SVG 24x24 viền + fill → atlas ảnh lúc boot (như quân chibi) → <code>TextureRect</code> / <code>Button.icon</code>. Thay emoji.</td><td data-l="Ghi chú"><code>hud_widgets.gd</code> đã tự vẽ đồng xu + bánh răng → chung 1 bộ.</td></tr>
+<tr><td data-l="Cần">Âm thanh</td><td data-l="Cách"><code>audio.gd</code> + <code>tools/bake_sfx.gd</code> (wav dựng sẵn) → thêm cue: ui_hover, ui_press, ui_deny, end_turn_drum, seal_stamp.</td><td data-l="Ghi chú">Hạ tầng đã có, chỉ thêm cue.</td></tr>
+</tbody>
+</table>
+<div class="note" id="godotsrc"></div>
+</section>
+
+<!-- ============================ 3 ============================ -->
+<section id="s3">
+<h2>3. Ba hướng <small>cùng 1 bộ component, so sánh song song</small></h2>
+<div class="grid3" id="dcards">
+  <div class="dcard">
+    <h3 style="color:#e2bd72">A · Trống Đồng</h3>
+    <p class="vibe">"Đúc từ đồng 2000 năm trước" - nặng, trang nghiêm, sử thi.</p>
+    <dl>
+      <dt>Bảng màu</dt><dd><div class="sw"><span><i style="background:#d4a75a"></i>đồng</span><span><i style="background:#6b4a1f"></i>đồng tối</span><span><i style="background:#5aa492"></i>gỉ đồng</span><span><i style="background:#1b140d"></i>đá đen</span><span><i style="background:#b5402c"></i>son</span></div></dd>
+      <dt>Chữ</dt><dd>Alegreya SC 800 (khắc nổi) · số: Phudu 800 · thân: Be Vietnam Pro</dd>
+      <dt>Hình</dt><dd>Tấm bát giác vát góc + hình tròn (mặt trống). Không bo mềm.</dd>
+      <dt>Vật liệu</dt><dd>Đồng đánh bóng (gradient 3 nấc), đinh tán, gỉ xanh = trạng thái khóa.</dd>
+      <dt>Hoa văn</dt><dd>Mặt trời 14 tia, vành đồng tâm có vạch, dải chim Lạc.</dd>
+      <dt>Nút / panel</dt><dd>Tấm đồng có mép, lún khi nhấn; Hết lượt = mặt trống tròn.</dd>
+      <dt>Icon</dt><dd>Khắc nổi trong huy chương tròn, 1 màu đồng + viền đen.</dd>
+      <dt>Chuyển động / âm</dt><dd>Lóe kim loại khi rê; Hết lượt = sóng vòng tròn + tiếng trống đồng trầm; nhấn = "keng" ngắn.</dd>
+    </dl>
+  </div>
+  <div class="dcard recommended">
+    <span class="pill">ĐỀ XUẤT</span>
+    <h3 style="color:#f2d27e">B · Sơn Mài</h3>
+    <p class="vibe">"Hộp sơn mài khảm vàng" - sang, ấm, bóng; nét mực của tranh chibi.</p>
+    <dl>
+      <dt>Bảng màu</dt><dd><div class="sw"><span><i style="background:#1c110c"></i>sơn then</span><span><i style="background:#b93a29"></i>son</span><span><i style="background:#f2d27e"></i>vàng quỳ</span><span><i style="background:#efe5cf"></i>vỏ trứng</span><span><i style="background:#7cc58a"></i>ngọc</span></div></dd>
+      <dt>Chữ</dt><dd>Alegreya SC 700/800 (giữ) · số: Be Vietnam Pro 800 (giữ) → <b>không cần font mới</b></dd>
+      <dt>Hình</dt><dd>Chữ nhật bo 12 + viền mực 3 px + chỉ vàng trong (khung kép). Triện vuông cho huy hiệu.</dd>
+      <dt>Vật liệu</dt><dd>Sơn bóng (dải bóng nửa trên), lá vàng (lưới ô vuông mờ), khảm vỏ trứng (thẻ giá, nền chân dung).</dd>
+      <dt>Hoa văn</dt><dd>Mây cuộn vàng ở góc panel, triện đỏ, mặt trời Đông Sơn trong triện Hết lượt.</dd>
+      <dt>Nút / panel</dt><dd>Phiến sơn son có mép đậm, lún 5 px; panel đen then khung kép.</dd>
+      <dt>Icon</dt><dd>Vàng quỳ viền mực 2.4 px, silhouette đặc.</dd>
+      <dt>Chuyển động / âm</dt><dd>Vệt bóng vàng quét khi rê; nảy khi thả; Hết lượt sẵn sàng = viền vàng thở; nhấn = "cốc" gỗ sơn; triện = tiếng đóng dấu.</dd>
+    </dl>
+  </div>
+  <div class="dcard">
+    <h3 style="color:#efb52f">C · Đông Hồ</h3>
+    <p class="vibe">"Tranh làng in mộc bản" - tươi, dân gian, vui tay, giống đồ chơi.</p>
+    <dl>
+      <dt>Bảng màu</dt><dd><div class="sw"><span><i style="background:#f4e7c7"></i>giấy dó</span><span><i style="background:#231a15"></i>mực</span><span><i style="background:#cf4a30"></i>sỏi son</span><span><i style="background:#efb52f"></i>hoa hòe</span><span><i style="background:#2f5d82"></i>chàm</span></div></dd>
+      <dt>Chữ</dt><dd>Paytone One (to, tròn, chunky) · thân: Be Vietnam Pro 600</dd>
+      <dt>Hình</dt><dd>Chữ nhật "khắc tay" méo nhẹ (bo không đều), bóng in lệch xuống phải.</dd>
+      <dt>Vật liệu</dt><dd>Giấy dó có thớ + hạt, ánh điệp; màu phẳng, không gradient.</dd>
+      <dt>Hoa văn</dt><dd>Khung đôi kiểu tranh in, ô vuông góc, dải cờ đuôi nheo, con dấu đỏ.</dd>
+      <dt>Nút / panel</dt><dd>Nút = con dấu: nhấn là "đóng dấu" (lệch về đúng chỗ bóng). Hết lượt = dấu tròn lớn.</dd>
+      <dt>Icon</dt><dd>Màu phẳng + nét mực dày 2.6 px - giống hệt cách vẽ quân.</dd>
+      <dt>Chuyển động / âm</dt><dd>Rê = nghiêng nhẹ; nhấn = đóng dấu; tiếng mõ gỗ / sột soạt giấy.</dd>
+    </dl>
+  </div>
+</div>
+
+<div id="rows"></div>
+</section>
+
+<!-- ============================ 4 ============================ -->
+<section id="s4">
+<h2>4. Đề xuất</h2>
+<div class="verdict">
+<h3>Chọn B · Sơn Mài (mượn mặt trời Đông Sơn làm biểu tượng)</h3>
+<ul class="tight">
+  <li><b>Hợp art chibi</b>: dùng đúng nét mực dày <code>#2b2220</code>-ish của quân cho viền UI (3 px) → UI và quân chung 1 thế giới. Bề mặt là màu + 1 dải bóng, không phải kim loại nhiều nấc → không "đè" art phẳng (điểm yếu của A).</li>
+  <li><b>Đọc tốt trên bàn cờ xanh tươi</b>: panel tối trên cỏ sáng = tương phản cao nhất (xem mockup HUD). C (giấy sáng) bị chìm vào đường đất / làng màu kem trên bàn cờ.</li>
+  <li><b>Chất Việt rõ</b>: sơn mài là chất liệu hội họa Việt tiêu biểu; triện đỏ + mây cuộn + khảm vỏ trứng + mặt trời trống đồng (Đông Sơn, cùng thời Hai Bà) → nhận ra bối cảnh mà không cần đọc chữ.</li>
+  <li><b>Liên tục với hiện tại</b>: palette LACQUER / GOLD / CINNABAR + 2 font đang dùng giữ nguyên → không tải font, người chơi cũ không thấy "game khác". Đổi là đổi <i>vật liệu + độ dày + phản hồi</i>.</li>
+  <li><b>Điện thoại 844x390</b>: chữ số Be Vietnam Pro 800 viền đen đọc tốt ở cỡ nhỏ; mép nút 5 px, viền 3 px vẫn rõ khi UI scale ~0.7.</li>
+  <li><b>Chi phí Godot thấp nhất</b>: phần lớn làm được bằng StyleBoxFlat (viền + bóng cứng + mép); chỉ khung kép / mây cuộn cần nine-patch SVG bake lúc boot.</li>
+</ul>
+<p style="margin:10px 0 0"><b>Lấy từ hướng khác (vẫn 1 chất):</b> từ A - mặt trời 14 tia trong triện Hết lượt + vòng sóng khi Hết lượt, tiếng trống đồng; từ C - quy tắc "icon = màu phẳng + nét mực dày" và hiệu ứng "đóng dấu" cho triện. <b>Không lấy:</b> gradient kim loại nhiều nấc (A), nền giấy sáng cho panel (C).</p>
+<p class="note" style="margin:8px 0 0">Nếu muốn game vui / trẻ hơn (hướng gia đình) → C là lựa chọn thay thế hợp lý, nhưng cần panel đặt ngoài bàn cờ hoặc thêm bóng tối quanh panel. A đẹp nhất trên màn tiêu đề nhưng khó giữ nhất quán cho popup nhỏ.</p>
+</div>
+</section>
+
+<!-- ============================ 5 ============================ -->
+<section id="s5">
+<h2>5. Style guide (phác) · B Sơn Mài</h2>
+<div class="grid2">
+<div class="box">
+<b>Màu (token → hằng trong <code>style.gd</code>)</b>
+<table class="t" style="margin-top:6px">
+<thead><tr><th>Token</th><th>Giá trị</th><th>Dùng</th></tr></thead>
+<tbody>
+<tr><td data-l="Token"><span class="tok" style="background:#120a07"></span>INK</td><td data-l="Giá trị"><code>#120a07</code></td><td data-l="Dùng">mọi viền ngoài, bóng cứng, viền chữ</td></tr>
+<tr><td data-l="Token"><span class="tok" style="background:#1c110c"></span>LACQUER (giữ)</td><td data-l="Giá trị"><code>#1c110c</code> → <code>#26160f</code></td><td data-l="Dùng">nền panel, nút phụ</td></tr>
+<tr><td data-l="Token"><span class="tok" style="background:#b93a29"></span>CINNABAR</td><td data-l="Giá trị"><code>#e2664b / #b93a29 / #7c1f14</code></td><td data-l="Dùng">nút chính: sáng / mặt / mép</td></tr>
+<tr><td data-l="Token"><span class="tok" style="background:#f2d27e"></span>GOLD</td><td data-l="Giá trị"><code>#f2d27e / #cf9f45 / #8d6420</code></td><td data-l="Dùng">chữ tiêu đề, chỉ khung, icon</td></tr>
+<tr><td data-l="Token"><span class="tok" style="background:#efe5cf"></span>EGGSHELL</td><td data-l="Giá trị"><code>#efe5cf</code></td><td data-l="Dùng">thẻ giá, nền chân dung, chữ trên triện</td></tr>
+<tr><td data-l="Token"><span class="tok" style="background:#7cc58a"></span>JADE / AMBER / BAD</td><td data-l="Giá trị"><code>#7cc58a / #ffd166 / #ff6b57</code></td><td data-l="Dùng">máu, +vàng, cảnh báo (giữ ngữ nghĩa cũ)</td></tr>
+<tr><td data-l="Token"><span class="tok" style="background:#6fd6cf"></span>SEA (phe địch)</td><td data-l="Giá trị"><code>#2c8c8a / #6fd6cf</code></td><td data-l="Dùng">tên / khung địch (lam - ngọc)</td></tr>
+</tbody></table>
+</div>
+<div class="box">
+<b>Hình, viền, bóng (đơn vị = px ở 1280x720)</b>
+<ul class="tight">
+  <li><b>Viền ngoài</b> 3 (nút, panel) · 2 (chip, hàng mua, icon frame) · chỉ vàng trong 1.5–2.</li>
+  <li><b>Bo</b>: R_BTN 12 · R_PANEL 14 · R_CHIP 8 · triện 5 · chân dung vòm 36/8. Bỏ pill 99 (trừ thanh tài nguyên).</li>
+  <li><b>Mép (lip)</b>: nút lớn 5 · hàng mua / chip 3 · nhấn = 0 + nội dung dịch xuống bằng đúng độ mép.</li>
+  <li><b>Bóng</b>: chỉ bóng cứng INK (0, mép); thêm 1 bóng mờ đen 40% cho panel nổi trên bàn cờ.</li>
+  <li><b>Bóng sơn</b>: dải trắng 38% → 4% ở 42% trên của mặt nút.</li>
+</ul>
+<b>Chữ (giữ 2 font)</b>
+<ul class="tight">
+  <li>Tiêu đề màn 44 / panel 20 / nút lớn 19–22: Alegreya SC 700–800, bóng 0 2 INK.</li>
+  <li>Số (vàng, máu, giá, chỉ số) 15–24: Be Vietnam Pro 800, bóng 0 2 #000.</li>
+  <li>Thân 14–15 / nhãn 11–12 (in hoa, giãn 0.08em): Be Vietnam Pro 400–700.</li>
+  <li>Kiểm tra dấu chồng: "Ầ Ặ Ỗ Ữ" không bị cắt đỉnh (line_spacing ≥ 1.05 cho Alegreya).</li>
+</ul>
+</div>
+<div class="box">
+<b>Quy tắc component</b>
+<ul class="tight">
+  <li>1 nút chính (son) mỗi màn / popup; còn lại sơn then chữ vàng.</li>
+  <li>Disabled = xỉn màu + mất mép (không mờ trong suốt) → vẫn đọc được chữ.</li>
+  <li>Panel = sơn then + khung kép + mây cuộn ở 2 góc trên (chỉ panel ≥ 240 px rộng).</li>
+  <li>Trạng thái / số lượt / "Màn mới" = triện đỏ nghiêng −4° ~ −6°.</li>
+  <li>Chỉ số = chip icon + số; chữ "Công/Thủ" chỉ trong tooltip / Sách lính.</li>
+  <li>Phe ta = son / vàng; phe Hán = lam ngọc (SEA) - dùng cho tên, viền chân dung.</li>
+</ul>
+<b>Icon</b>
+<ul class="tight">
+  <li>Lưới 24, silhouette đặc, fill GOLD, viền INK 2.4 (paint-order stroke), không chi tiết &lt; 2 px.</li>
+  <li>Bộ tối thiểu (12): vàng (tiền lỗ vuông), kiếm, khiên, chân, tầm, máu, cờ chiếm, đồng hồ cát (chờ), X, mục tiêu, bánh răng, mặt trời Đông Sơn.</li>
+</ul>
+</div>
+<div class="box">
+<b>Chuyển động</b>
+<table class="t" style="margin-top:6px">
+<thead><tr><th>Sự kiện</th><th>Hiệu ứng</th><th>Thời gian</th></tr></thead>
+<tbody>
+<tr><td data-l="Sự kiện">Rê / focus</td><td data-l="Hiệu ứng">sáng 8% + vệt bóng quét</td><td data-l="Thời gian">vào 80 ms · quét 600 ms</td></tr>
+<tr><td data-l="Sự kiện">Nhấn</td><td data-l="Hiệu ứng">lún = độ mép, mất bóng</td><td data-l="Thời gian">tức thì (≤ 50 ms)</td></tr>
+<tr><td data-l="Sự kiện">Thả</td><td data-l="Hiệu ứng">nảy 0.94 → 1.06 → 1</td><td data-l="Thời gian">220 ms, back-out</td></tr>
+<tr><td data-l="Sự kiện">Popup mở</td><td data-l="Hiệu ứng">scale 0.9 → 1 + alpha</td><td data-l="Thời gian">160 ms</td></tr>
+<tr><td data-l="Sự kiện">Triện xuất hiện</td><td data-l="Hiệu ứng">scale 1.4 → 1, xoay −12° → −5°</td><td data-l="Thời gian">180 ms + rung 2 px</td></tr>
+<tr><td data-l="Sự kiện">Hết lượt sẵn sàng</td><td data-l="Hiệu ứng">viền vàng thở</td><td data-l="Thời gian">chu kỳ 1.4 s</td></tr>
+<tr><td data-l="Sự kiện">Số vàng</td><td data-l="Hiệu ứng">đếm lên (đã có) + nảy số</td><td data-l="Thời gian">giữ như cũ</td></tr>
+</tbody></table>
+<b>Âm thanh (cue mới cho <code>audio.gd</code>)</b>
+<ul class="tight">
+  <li><code>ui_hover</code> tick gỗ rất nhỏ (−18 dB) · <code>ui_press</code> "cốc" gỗ sơn · <code>ui_deny</code> cốc trầm 2 nhịp (thiếu vàng).</li>
+  <li><code>seal</code> tiếng đóng dấu (triện, mua quân) · <code>end_turn</code> trống đồng 1 tiếng · <code>victory</code> trống + chiêng.</li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- ============================ 6 ============================ -->
+<section id="s6">
+<h2>6. Kế hoạch triển khai trong Godot</h2>
+<p class="note"><b>Điều kiện:</b> làm SAU khi việc tách <code>scripts/ui/game_screen.gd</code> thành nhiều file (agent khác đang làm) đã merge - tránh xung đột trên popup lệnh / thẻ quân / Hết lượt. <code>style.gd</code> = nguồn duy nhất cho token + theme; file màn hình chỉ gọi builder.</p>
+<div class="phase"><b>P0 · Token + "Skin" (0.5 ngày)</b> - <code>style.gd</code>: thêm INK, CINNABAR_HI/D, GOLD_2/3, EGGSHELL, JADE, hằng viền / bo / mép / thời gian. Thêm helper bake SVG → <code>StyleBoxTexture</code> nine-patch (cache, scale = <code>Baked.screen_scale()</code>). Probe ảnh mới: <code>sim/probes/ui_kit_shot.gd</code> chụp bảng mọi biến thể nút (dùng để so trước / sau).</div>
+<div class="phase"><b>P1 · Nút (1–1.5 ngày)</b> - viết lại <code>_btn()</code> + mọi variation (MenuBtn, PrimaryBtn, ActBtn/ActGo/ActHot, IconBtn, ChipBtn/ChipOn, SegBtn/SegOn, BackBtn, CardBtn): viền 3 INK, mép 5, pressed dịch nội dung, disabled xỉn. Tween nảy + cue âm thanh gắn 1 chỗ trong <code>Style.button()</code>. Nút Hết lượt + triện mặt trời.</div>
+<div class="phase"><b>P2 · Panel / thẻ (1.5–2 ngày)</b> - PanelContainer theme (khung kép + mây cuộn nine-patch), thanh lượt/vàng (<code>hud_widgets.gd</code>), thẻ quân, popup lệnh, popup Mộ quân (sửa luôn tràn 844x390: lưới 2 cột + cuộn), thoại (<code>story_overlay.gd</code>, <code>Style.dialogue</code>: chân dung = quân chibi trong khung vòm thay emoji), màn kết thúc, thẻ Sách lính.</div>
+<div class="phase"><b>P3 · Icon (1–1.5 ngày)</b> - 12 icon SVG trong <code>assets/ui/icons/</code> (tự vẽ, không tải) → atlas lúc boot; thay emoji trong nút lệnh, mục tiêu, thoại, kết thúc; đồng xu + bánh răng trong <code>hud_widgets.gd</code> theo cùng quy tắc. Chỉ số trên thẻ quân → chip icon.</div>
+<div class="phase"><b>P4 · Màn hình + juice (1.5–2 ngày)</b> - tiêu đề (chữ lá vàng + triện), <code>menu_bg.gd</code> (mặt trời / vành trống mờ), <code>camp_map.gd</code> (nút màn = huy hiệu mặt trời / triện), thiết lập 1v1 / đấu tự do (chip → phiến sơn), Sách lính. Juice: hạt vàng khi mua, sóng vòng khi Hết lượt, triện "Đã chiếm".</div>
+<div class="phase"><b>P5 · Kiểm (0.5–1 ngày)</b> - probe chụp desktop + 844x390 (<code>hud_shot</code>, <code>income_shot</code>, ui_kit_shot), <code>click_driver</code> 0 fail, <code>tools/lint.sh</code>, build web đo FPS / thời gian boot (bake SVG) trên điện thoại thật.</div>
+<p><b>Tổng ~6–8.5 ngày</b> công. Có thể dừng sau P1+P2 (≈ 3–3.5 ngày) là đã thấy khác biệt lớn nhất.</p>
+<b>Rủi ro</b>
+<ul class="tight">
+  <li><b>844x390</b>: viền 3 + mép 5 + padding ăn chỗ → token có hệ số "compact" khi <code>content_scale_factor</code> &gt; 1; popup lệnh / Mộ quân phải đo lại bằng probe.</li>
+  <li><b>Nine-patch mờ</b> nếu bake 1x rồi phóng → bake theo scale màn hình, bake lại khi đổi kích thước cửa sổ (đã có cơ chế ở <code>Baked</code>).</li>
+  <li><b>Web perf</b>: Compatibility renderer - ít shader (chỉ vệt bóng khi rê, 1 nút 1 lúc), texture bake 1 lần lúc boot; đo thời gian <code>load_svg_from_string</code> trên điện thoại (cảnh báo nếu &gt; 100 ms).</li>
+  <li><b>Dấu tiếng Việt</b> với Alegreya SC cỡ lớn + line spacing chặt → dấu chồng bị cắt; kiểm tra chuỗi "Hết lượt · Mộ quân · Nỏ thủ · Đại thắng · Trống đồng · Ầ Ặ Ỗ".</li>
+  <li><b>Probe / click driver</b> tìm nút theo text → giữ nguyên text + tên variation.</li>
+  <li><b>Sa bàn 3D</b> (<code>board3d.gd</code>) dùng chung HUD → kiểm cả 2 chế độ.</li>
+</ul>
+</section>
+
+<!-- ============================ 7 ============================ -->
+<section id="s7">
+<h2>7. Tài sản cần duyệt trước khi tải</h2>
+<p><b>Hướng B (đề xuất): không cần tải gì.</b> Font giữ nguyên (Alegreya SC, Be Vietnam Pro đã có trong <code>assets/fonts</code>). Texture (vỏ trứng, lá vàng, mây cuộn, mặt trời) vẽ bằng SVG trong code / repo. Icon tự vẽ.</p>
+<table class="t">
+<thead><tr><th>Tài sản</th><th>Dùng cho</th><th>Nguồn · giấy phép</th><th>Cần?</th></tr></thead>
+<tbody>
+<tr><td data-l="Tài sản">Paytone One</td><td data-l="Dùng">Hướng C (chữ chunky)</td><td data-l="Nguồn">Google Fonts · SIL OFL 1.1 · có subset vietnamese (đã kiểm CSS API)</td><td data-l="Cần?">chỉ nếu chọn C</td></tr>
+<tr><td data-l="Tài sản">Phudu</td><td data-l="Dùng">Hướng A (số)</td><td data-l="Nguồn">Google Fonts · SIL OFL 1.1 · có subset vietnamese</td><td data-l="Cần?">chỉ nếu chọn A</td></tr>
+<tr><td data-l="Tài sản">Giấy / gỗ texture</td><td data-l="Dùng">tùy chọn, thay noise vẽ tay</td><td data-l="Nguồn" id="tex-src">ambientCG · CC0</td><td data-l="Cần?">không bắt buộc</td></tr>
+<tr><td data-l="Tài sản">Icon silhouette tham khảo</td><td data-l="Dùng">tham khảo hình, không nhúng</td><td data-l="Nguồn" id="icon-src">game-icons.net · CC BY 3.0 (phải ghi công nếu nhúng)</td><td data-l="Cần?">không (tự vẽ)</td></tr>
+</tbody></table>
+<p class="note">Trang này tải từ Google Fonts để xem trước: Alegreya SC, Be Vietnam Pro, Paytone One, Phudu. Không file nào được tải vào repo.</p>
+</section>
+
+<footer>docs/review/ui_direction.html · ảnh: docs/review/ui_direction/ · mockup HTML/CSS chỉ để so hướng, giá trị cuối sẽ chốt trong <code>style.gd</code>.</footer>
+</div>
+
+<script>
+// ---------- sources (checked 2026-11-07; [S] = only via search result, page blocked fetch) ----------
+const L=(t,u,s)=>`<a href="${u}" target="_blank" rel="noopener">${t}</a>${s?' <span class="note">[S]</span>':''}`;
+const SRC={
+  wargroove:[L('Game UI Database · Wargroove','https://www.gameuidatabase.com/gameData.php?id=574',1),L('Chucklefish dev talk (Game Developer)','https://gamedeveloper.com/design/watch-chucklefish-s-ceo-and-tech-director-discuss-i-wargroove-s-i-development',1)],
+  aw:['<span class="note">chưa tìm được nguồn đã kiểm - nhận xét từ chơi trực tiếp</span>'],
+  itb:[L('Justin Ma: "sacrifice cool ideas for clarity"','https://gamedeveloper.com/design/-i-into-the-breach-i-dev-on-ui-design-sacrifice-cool-ideas-for-the-sake-of-clarity-every-time-'),L('GDC 2019 design postmortem','https://gdcvault.com/play/1025772/-Into-the-Breach-Design'),L('Game UI Database','https://www.gameuidatabase.com/gameData.php?id=483',1)],
+  kr:[L('Wikipedia · Kingdom Rush','https://en.wikipedia.org/wiki/Kingdom_Rush',1)],
+  clash:[L('Game UI Database · Clash Royale','https://www.gameuidatabase.com/gameData.php?id=1299',1),L('6 examples of UI design (Game Developer)','https://gamedeveloper.com/audio/6-examples-of-ui-design-that-every-game-developer-should-study',1)],
+  hades:[L('MCV · Behind the art of Hades','https://mcvuk.com/business-news/behind-the-art-of-hades-we-value-artistic-integrity-and-excellence-in-artistic-craft-at-supergiant-however-were-first-and-foremost-a-game-design-lead-team/'),L('Game UI Database · Hades','https://www.gameuidatabase.com/gameData.php?id=534',1)],
+  sts:[L('GDC 2019 (talk về cân bằng; ý UI là nhận xét riêng)','https://www.gdcvault.com/browse/gdc-19/play/1025731',1)],
+  northgard:[L('Game UI Database · Northgard','https://www.gameuidatabase.com/gameData.php?id=566',1)],
+  tw3k:[L('GamesBeat · art of Three Kingdoms (UI = mực đen + giấy)','https://gamesbeat.com/how-creative-assembly-conceived-the-art-for-total-war-three-kingdoms/')],
+  got:[L('Game UI Database · Ghost of Tsushima','https://www.gameuidatabase.com/gameData.php?id=292',1)],
+  okami:[L('Wikipedia · Ōkami','https://en.wikipedia.org/wiki/%C5%8Ckami'),L('Game UI Database · Okami HD','https://www.gameuidatabase.com/gameData.php?id=410',1)],
+  dongson:[L('Bảo tàng LSQG · trống Ngọc Lũ (mặt trời 14 tia, 16 vành, 6 thuyền)','https://baotanglichsu.vn/en/Articles/1004/73640/national-treasures-the-ngoc-lu-drum.html'),L('Wikipedia · Ngọc Lũ drum','https://en.wikipedia.org/wiki/Ng%E1%BB%8Dc_L%C5%A9_drum'),L('Wikipedia · Bronze drum (đa số 12 tia; Ngọc Lũ 14)','https://en.wikipedia.org/wiki/Bronze_drum')],
+  sonmai:[L('Wikipedia · Sơn mài (vỏ trứng = màu trắng, ~10+ lớp, mài)','https://en.wikipedia.org/wiki/S%C6%A1n_m%C3%A0i'),L('Vietcetera · vàng / bạc thếp, xà cừ','https://vietcetera.com/en/anatomy-of-vietnams-most-expensive-painting-medium',1)],
+  dongho:[L('Wikipedia · Đông Hồ (giấy dó + điệp, màu tự nhiên)','https://en.wikipedia.org/wiki/%C4%90%C3%B4ng_H%E1%BB%93_painting'),L('UNESCO · cần bảo vệ khẩn cấp (2025)','https://ich.unesco.org/en/USL/craft-of-making-dong-ho-folk-woodblock-printings-01737'),L('Wikipedia · Hàng Trống','https://en.wikipedia.org/wiki/H%C3%A0ng_Tr%E1%BB%91ng_painting')],
+  seal:[L('Wikipedia · ấn triện nhà Nguyễn','https://en.wikipedia.org/wiki/Seals_of_the_Nguy%E1%BB%85n_dynasty'),'<span class="note">Lưu ý: ấn Nguyễn (1802–1945) phần lớn đóng mực đen, đỏ chỉ cho một số ấn quân sự; lệch thời kỳ với năm 40 → dùng như quy ước UI, không phải chi tiết lịch sử.</span>'],
+  dinh:[L('Nhân Dân · chạm gỗ chùa Thái Lạc (thời Trần)','https://en.nhandan.vn/in-a-lesser-known-temple-age-old-wood-carvings-are-bound-to-wow-visitors-post81954.html'),L('VietNamNet · cửa võng 300 năm (mây, rồng chầu ngọc)','https://vietnamnet.vn/en/a-300-year-old-altar-partition-stands-as-a-woodcarving-masterpiece-2397475.html',1)],
+  chudau:[L('Wikipedia · gốm Việt (Chu Đậu, lam men dưới)','https://en.wikipedia.org/wiki/Vietnamese_ceramics'),L('Lễ hội đền Hai Bà Trưng (cổng đền: Hai Bà cưỡi voi)','https://vietnamnews.vn/life-style/1650562/ha-noi-historical-festival-commemorates-trung-sisters-uprising.html')],
+};
+document.querySelectorAll('[data-k]').forEach(el=>{const s=SRC[el.dataset.k];if(s)el.innerHTML=(el.tagName==='TD'?'':'<span class="note">Nguồn: </span>')+s.join(' · ')});
+document.getElementById('refnote').innerHTML='Nguyên tắc chung: '+[L('Juice it or lose it (GDC Europe 2012)','https://gdcvault.com/play/1016789/Juice-It-or-Lose'),L('Vlambeer · The art of screenshake','https://gamedeveloper.com/design/vlambeer-co-founder-shares-advice-on-building-better-action-games')].join(' · ')+'. [S] = chỉ xác nhận qua kết quả tìm kiếm (trang chặn tải). Sekiro bỏ (không tìm được nguồn đã kiểm). Lưu ý: Game UI Database cấm dùng nội dung để sinh asset bằng AI → chỉ xem tham khảo.';
+document.getElementById('godotsrc').innerHTML='Docs: '+[L('StyleBoxFlat','https://docs.godotengine.org/en/stable/classes/class_styleboxflat.html'),L('StyleBoxTexture (axis_stretch TILE_FIT cho dải hoa văn)','https://docs.godotengine.org/en/stable/classes/class_styleboxtexture.html'),L('Theme type variations','https://docs.godotengine.org/en/stable/tutorials/ui/gui_theme_type_variations.html'),L('Tween','https://docs.godotengine.org/en/stable/classes/class_tween.html'),L('Image.load_svg_from_string','https://docs.godotengine.org/en/stable/classes/class_image.html'),L('DPITexture (thử nghiệm: SVG tự raster lại theo scale)','https://docs.godotengine.org/en/stable/classes/class_dpitexture.html'),L('Multiple resolutions','https://docs.godotengine.org/en/stable/tutorials/rendering/multiple_resolutions.html'),L('Web export (chỉ Compatibility / WebGL2)','https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html'),L('CanvasItem shader','https://docs.godotengine.org/en/stable/tutorials/shaders/shader_reference/canvas_item_shader.html'),L('Shader lóe: Simple 2D Highlight (MIT)','https://godotshaders.com/shader/simple-2d-highlight'),L('2D Controlled Shine (CC0, cú pháp Godot 3)','https://godotshaders.com/shader/2d-controlled-shine-highlight-with-angle-adjustment/'),L('Retro Parchment Paper (CC0)','https://godotshaders.com/shader/retro-parchment-paper/')].join(' · ');
+document.getElementById('tex-src').innerHTML=L('ambientCG','https://docs.ambientcg.com/license/')+' · CC0 · hoặc '+L('Kenney UI packs','https://kenney.nl/assets/ui-pack')+' CC0 (chỉ tham khảo hình nút)';
+document.getElementById('icon-src').innerHTML=L('game-icons.net','https://game-icons.net/about.html',1)+' · CC BY 3.0 (phải ghi công từng tác giả nếu nhúng)';
+// ---------- generated shapes ----------
+function starPath(n, cx, cy, r1, r2){let d='';for(let i=0;i<n*2;i++){const r=i%2?r2:r1,a=Math.PI*i/n-Math.PI/2;d+=(i?'L':'M')+(cx+r*Math.cos(a)).toFixed(2)+' '+(cy+r*Math.sin(a)).toFixed(2)}return d+'Z'}
+document.getElementById('sunpath').setAttribute('d', starPath(14,50,50,48,22)+' M50 38a12 12 0 1 1 0 24a12 12 0 1 1 0-24Z');
+document.getElementById('sunpath').setAttribute('fill-rule','evenodd');
+(function(){let d='';const n=8;for(let i=0;i<n*4;i++){const a=Math.PI*2*i/(n*4)-Math.PI/2,r=(i%4<2)?10.5:8;d+=(i?'L':'M')+(12+r*Math.cos(a)).toFixed(2)+' '+(12+r*Math.sin(a)).toFixed(2)}document.getElementById('gearpath').setAttribute('d',d+'Z M12 8.6a3.4 3.4 0 1 0 0 6.8a3.4 3.4 0 1 0 0-6.8Z')})();
+
+const U='../../assets/units/styles/chibi/';
+const ico=(id,cls='')=>`<svg class="ico ${cls}" aria-hidden="true"><use href="#${id}"/></svg>`;
+const coin=d=> d==='A' ? `<span class="medal">${ico('i-coin')}</span>` : `<svg class="ico coin" viewBox="0 0 24 24" aria-hidden="true" style="--icf:${d==='B'?'#f2d27e':'#efb52f'}"><use href="#i-coin"/></svg>`;
+const sun=(cls='')=>`<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true"><use href="#i-sun"/></svg>`;
+
+const DIRS=[{k:'A',n:'A · Trống Đồng'},{k:'B',n:'B · Sơn Mài'},{k:'C',n:'C · Đông Hồ'}];
+
+function btnStates(d){
+  const st=[['','thường'],['is-hover','rê chuột'],['is-pressed','nhấn'],['is-disabled','khóa']];
+  return `<div class="states">${st.map(([c,l])=>`<div class="st"><button class="btn ${c}" ${c==='is-disabled'?'disabled':''}><span class="lbl">Xuất quân</span></button><small>${l}</small></div>`).join('')}</div>
+  <div class="states"><button class="btn sec"><span class="lbl">Bản đồ</span></button><button class="btn ic" aria-label="Cài đặt"><span class="lbl">${ico('i-gear')}</span></button><button class="btn" disabled><span class="lbl">${ico('i-coin')} Thiếu vàng</span></button></div>
+  <div class="hint">Hàng trên: trạng thái tĩnh (để so). Bấm giữ bất kỳ nút nào để thử thật.</div>`;
+}
+function endTurn(d){
+  if(d==='A') return `<div class="states"><div class="st"><button class="endturn">${sun('star')}<span class="et">Hết lượt<small>còn 3 quân</small></span></button><small>còn quân</small></div><div class="st"><button class="endturn ready">${sun('star')}<span class="et">Hết lượt<small>xong hết</small></span></button><small>sẵn sàng (thở)</small></div></div>`;
+  if(d==='B') return `<div class="states"><div class="st"><button class="endturn"><span class="seal">${sun()}</span><span><b>Hết lượt</b><small>Còn 3 quân chưa đi</small></span></button><small>còn quân</small></div><div class="st"><button class="endturn ready"><span class="seal">${sun()}</span><span><b>Hết lượt</b><small>Xong hết · sang lượt</small></span></button><small>sẵn sàng (thở)</small></div></div>`;
+  return `<div class="states"><div class="st"><button class="endturn"><b>Hết<br>lượt</b><small>còn 3 quân</small></button><small>còn quân</small></div><div class="st"><button class="endturn ready"><b>Hết<br>lượt</b><small>xong hết</small></button><small>sẵn sàng (lắc)</small></div></div>`;
+}
+function resBar(d, compact){
+  const goal=`<div class="goal">${ico('i-target')} Chiếm 1 thành + hạ Tướng giặc</div>`;
+  if(d==='A') return `<div class="res"><div class="rplate"><div>${coin('A')}<span class="num">1200</span><span class="plus">+80</span></div></div><div class="rplate"><div><span class="medal">${sun('ico')}</span><span><span class="lab">Lượt</span><br><span class="num">3</span></span></div></div></div>${compact?'':goal}`;
+  if(d==='B') return `<div class="res"><span class="seal-s">Lượt<b>3</b></span><div class="rcap">${coin('B')}<span class="num">1200</span><span class="plus">+80</span></div></div>${compact?'':goal}`;
+  return `<div class="res"><span class="turn">Lượt 3</span><div class="rtag">${coin('C')}<span class="num">1200</span><span class="plus">+80</span></div></div>${compact?'':goal}`;
+}
+function hpBar(d,pct){
+  if(d==='A'){let s='';for(let i=0;i<10;i++)s+=`<i class="${i<pct/10?'':'off'}"></i>`;return `<div class="hp">${s}</div>`}
+  return `<div class="hp"><i style="--w:${pct}%"></i></div>`;
+}
+function stats(d){
+  return `<div class="stats"><span class="chip">${ico('i-sword')}55–64</span><span class="chip">${ico('i-shield')}20</span><span class="chip">${ico('i-foot')}5</span><span class="chip">${ico('i-range')}1</span></div>`;
+}
+function portrait(d,src,cls=''){
+  if(d==='A') return `<div class="ring portrait ${cls}"><img src="${U+src}" alt=""></div>`;
+  return `<div class="portrait ${cls}"><img src="${U+src}" alt=""></div>`;
+}
+function panel(d,inner,style=''){
+  if(d==='A') return `<div class="panel" style="${style}"><div class="in">${inner}</div></div>`;
+  return `<div class="panel" style="${style}">${inner}</div>`;
+}
+function unitCard(d, mini){
+  const inner=`<div style="display:flex;gap:12px;align-items:center">${portrait(d,'hero_p.svg')}<div style="flex:1;min-width:0"><div class="uname">Trưng Trắc</div><div class="usub">Anh hùng · quân ta · bậc 2</div><div style="display:flex;align-items:center;gap:6px;margin-top:6px">${ico('i-heart')}<div style="flex:1">${hpBar(d,70)}</div><b class="${d==='A'?'num':''}" style="font-size:15px">70</b></div></div></div><div style="margin-top:10px">${stats(d)}</div>${mini?'':`<div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn sec sm" style="min-width:0;font-size:15px;padding-left:14px;padding-right:14px"><span class="lbl">Chi tiết</span></button></div>`}`;
+  return panel(d,inner, mini?'':'width:min(320px,100%)');
+}
+function shop(d){
+  const row=(img,nm,sub,p,off)=>`<div class="shoprow ${off?'off':''}" role="button" tabindex="0">${d==='A'?`<span class="ring pimg"><img src="${U+img}" alt=""></span>`:`<span class="pimg"><img src="${U+img}" alt=""></span>`}<span class="nm">${nm}<small>${sub}</small></span><span class="price">${coin(d==='A'?'Ax':d)}${p}</span></div>`;
+  const inner=`<div class="ptitle">Mộ quân</div><div class="${d==='A'?'mini':'mini'}" style="margin:2px 0 2px;${d==='B'?'padding-left:18px':''}">Có 1200 vàng · quân 3/15</div>
+   ${row('soldier_p.svg','Bộ binh','chiếm làng, sửa làng',150)}
+   ${row('archer_p.svg','Nỏ thủ','bắn 2–3 ô',250)}
+   ${row('elephant_p.svg','Voi chiến','thiếu 300 vàng',1500,true)}
+   <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn sec sm" style="min-width:0;font-size:15px;padding-left:14px;padding-right:14px"><span class="lbl">${ico('i-x')} Đóng</span></button></div>`;
+  return panel(d,inner,'width:min(330px,100%)');
+}
+function dialog(d){
+  const name = d==='A'?`<div class="who">Trưng Trắc</div>`: d==='B'?`<span class="nameplate">Trưng Trắc</span>`:`<span class="ribbon">Trưng Trắc</span>`;
+  const inner=`${d==='A'?'<div class="frieze"></div>':''}<div class="dlg">${portrait(d,'hero_p.svg')}<div style="flex:1;min-width:0">${name}<div class="say">Một xin rửa sạch nước thù, hai xin đem lại nghiệp xưa họ Hùng. Hỡi tướng sĩ, theo ta qua sông!</div><div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:8px;flex-wrap:wrap"><span class="mini">2/6</span><button class="btn sec sm" style="min-width:0;font-size:14px;padding-left:12px;padding-right:12px"><span class="lbl">Tua »</span></button><button class="btn sm" style="min-width:0;font-size:14px;padding-left:12px;padding-right:12px"><span class="lbl">Bỏ qua ›</span></button></div></div></div>`;
+  return panel(d,inner,'width:100%');
+}
+function hud(d){
+  const sel=`<div class="selbox sel"></div>`;
+  const pop=`<div class="popup">${panel(d,`<div class="mini" style="margin-bottom:8px;${d==='B'?'padding-left:18px':''}">Anh hùng · ô làng</div><div class="row"><button class="btn"><span class="lbl">${ico('i-flag')} Chiếm</span></button><button class="btn sec"><span class="lbl">${ico('i-wait')} Chờ</span></button><button class="btn sec ic" aria-label="Hủy"><span class="lbl">${ico('i-x')}</span></button></div>`)}</div>`;
+  return `<div class="hudwrap"><div class="hud">${sel}<div class="res-pos" style="left:8px;top:8px">${resBar(d,true)}</div><div class="ucardmini">${unitCard(d,true)}</div>${pop}<div class="et-pos">${endTurn(d).match(/<button[\s\S]*?<\/button>/)[0]}</div></div></div>`;
+}
+function title(d){
+  let art='';
+  if(d==='A') art=`<div class="title-art"><svg class="bg" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="48" fill="none" stroke="#d4a75a" stroke-width="1.2"/><circle cx="50" cy="50" r="42" fill="none" stroke="#d4a75a" stroke-width="3" stroke-dasharray="1 2.2"/><circle cx="50" cy="50" r="36" fill="none" stroke="#d4a75a" stroke-width="1"/><use href="#i-sun" x="25" y="25" width="50" height="50" fill="#d4a75a"/></svg><div class="kick">Hai Bà Trưng · chiến thuật theo lượt</div><div class="ttl">Công Thành Chiến</div></div>`;
+  if(d==='B') art=`<div class="title-art"><div class="kick">Hai Bà Trưng · chiến thuật theo lượt</div><div class="ttlrow"><div class="ttl">Công Thành Chiến</div><span class="seal-s">Năm<b style="font-size:16px">40</b></span></div></div>`;
+  if(d==='C') art=`<div class="title-art"><div class="kick">Hai Bà Trưng · chiến thuật theo lượt</div><div class="ttlrow"><div class="ttl">Công Thành Chiến</div><span class="stamp">Năm<br>40</span></div></div>`;
+  return art+`<div class="states" style="margin-top:6px"><button class="btn"><span class="lbl">Chiến dịch</span></button><button class="btn sec"><span class="lbl">1 đấu 1</span></button></div>`;
+}
+
+const ROWS=[
+  ['Nút chính · thường / rê / nhấn / khóa', btnStates, true],
+  ['Nút Hết lượt', endTurn],
+  ['Thanh tài nguyên (vàng, lượt, mục tiêu)', d=>resBar(d,false)],
+  ['Thẻ quân', d=>unitCard(d,false)],
+  ['Popup Mộ quân (1 hàng thiếu vàng)', shop],
+  ['Hộp thoại + chân dung', dialog],
+  ['HUD trên bàn cờ thật (ảnh crop 640x320 từ game, 1:1 với màn 1280x720; component thu 0.8 như máy nhỏ)', hud, false, true],
+  ['Tiêu đề menu chính', title],
+];
+const host=document.getElementById('rows');
+ROWS.forEach(([name,fn,cur,isHud])=>{
+  const h=document.createElement('h3');h.textContent=name;host.appendChild(h);
+  if(cur){const c=document.createElement('div');c.className='current-strip';c.innerHTML='<span class="lab">Hiện tại (để so)</span><span class="cur-btn">Xuất quân</span><span class="cur-btn m">Bản đồ</span><span class="note">viền 1 px, bóng mờ, nhấn chỉ tối 15%</span>';host.appendChild(c)}
+  const g=document.createElement('div');g.className='cmp'+(isHud?' hudrow':'');
+  DIRS.forEach(({k,n})=>{g.insertAdjacentHTML('beforeend',`<div class="cell ${k}"><span class="clab">${n}</span><div class="stage" ${isHud?'style="padding:0;min-height:0;display:block"':''}>${fn(k)}</div></div>`)});
+  host.appendChild(g);
+});
+// A price coin: small engraved coin without medal
+document.querySelectorAll('.A .price .medal').forEach(m=>{m.outerHTML=ico('i-coin')});
+
+// scale HUD composites to fit
+function fitHud(){document.querySelectorAll('.hudwrap').forEach(w=>{const s=w.clientWidth/640;w.querySelector('.hud').style.transform=`scale(${s})`;})}
+addEventListener('resize',fitHud);fitHud();
+
+// ---------- juice: pop on release + sound ----------
+document.addEventListener('touchstart',()=>{}, {passive:true}); // enables :active on iOS
+let AC=null, sndOn=false;
+const sb=document.getElementById('snd');
+sb.onclick=()=>{sndOn=!sndOn;sb.setAttribute('aria-pressed',sndOn);sb.textContent='Âm thanh mẫu: '+(sndOn?'bật':'tắt');if(sndOn&&!AC)AC=new (window.AudioContext||window.webkitAudioContext)();};
+function tone(f,dur,type='sine',gain=.2,when=0,f2){const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(AC.destination);o.start(t);o.stop(t+dur+.02)}
+function noise(dur,freq,q,gain=.2){const t=AC.currentTime,b=AC.createBuffer(1,AC.sampleRate*dur,AC.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);const s=AC.createBufferSource();s.buffer=b;const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.value=freq;f.Q.value=q;const g=AC.createGain();g.gain.value=gain;s.connect(f).connect(g).connect(AC.destination);s.start(t)}
+const SND={
+  A:{press(){tone(880,.35,'sine',.12);tone(1320*1.07,.25,'sine',.06);tone(2200,.12,'triangle',.03)}, deny(){tone(300,.25,'triangle',.15,0,180)}, end(){tone(90,1.1,'sine',.5,0,55);tone(180,.8,'sine',.12);tone(523,1.4,'sine',.05);tone(763,1.2,'sine',.04);noise(.15,300,1,.25)}},
+  B:{press(){tone(820,.09,'triangle',.25,0,520);noise(.04,2500,2,.15)}, deny(){tone(260,.08,'triangle',.25);tone(220,.1,'triangle',.25,.1)}, end(){tone(80,1,'sine',.5,0,50);tone(160,.6,'sine',.12);noise(.12,400,1,.3)}},
+  C:{press(){noise(.06,1200,4,.5);tone(520,.07,'square',.06,0,400)}, deny(){noise(.05,600,3,.4);noise(.05,500,3,.4)}, end(){noise(.09,700,3,.6);tone(150,.25,'sine',.3,0,90)}},
+};
+document.addEventListener('pointerup',e=>{
+  const b=e.target.closest('.btn,.endturn,.shoprow'); if(!b) return;
+  const cell=b.closest('.cell'); const k=cell?[...cell.classList].find(c=>'ABC'.includes(c)&&c.length===1):null;
+  const off=b.disabled||b.classList.contains('off');
+  if(!off){b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');}
+  if(sndOn&&AC&&k){ if(off) SND[k].deny(); else if(b.classList.contains('endturn')) SND[k].end(); else SND[k].press(); }
+});
+document.addEventListener('animationend',e=>{if(e.animationName==='pop')e.target.classList.remove('pop')});
+</script>
+</body>
+</html>

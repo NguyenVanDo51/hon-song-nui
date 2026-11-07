@@ -5,7 +5,9 @@
 cd "$(dirname "$0")/.."
 a=$1; b=$2; games=${3:-4}; salt0=${4:-100}; np=${5:-8}
 dir=${MATCH_DIR:-${TMPDIR:-/tmp}/hsn_match}; mkdir -p "$dir"
-tag=$(echo "$a-vs-$b-$salt0" | tr -c 'A-Za-z0-9_.-' '_' | cut -c1-120)
+# salt + games + spec hash first: long specs cut at 120 chars must not share a log across runs
+h=$(printf '%s|%s' "$a" "$b" | shasum | cut -c1-10)
+tag=$(echo "$salt0-g$games-$h-$a-vs-$b" | tr -c 'A-Za-z0-9_.-' '_' | cut -c1-120)
 for i in $(seq 0 $((np - 1))); do
 	MAX_MB=1500 MAX_SEC=${MAX_SEC:-7200} tools/run_guarded.sh "$dir/$tag.$i.log" -- --headless --path . -s sim/tune.gd -- \
 		match a="$a" b="$b" games="$games" salt=$((salt0 + i)) > /dev/null &

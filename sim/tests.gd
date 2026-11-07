@@ -24,6 +24,7 @@ func _init() -> void:
 	_add(DuelTests.new(), "duel_tests")
 	_add(PlannerTests.new(), "planner_tests")
 	_add(PlannerTests.new(), "tactics_tests")
+	_add(PlannerTests.new(), "v4_tests")
 	_add(LevelgenTests.new(), "levelgen_tests")
 	_add(AudioTests.new(), "audio_tests")
 	print("tests: %d passed, %d failed" % [passed, failed])

@@ -361,7 +361,18 @@ Knob (`AI.DEFAULT`, mặc định 0 = tắt -> Dễ / Thường / chiến dịch
 
 Vì sao:
 - Vàng lúc mua TB ~270: quân ≥ 400 chỉ mua được ngay ở 7–12% lượt. Đa dạng thật cần để dành, và mỗi lượt để dành = 1–2 lính ra trận muộn 1 lượt; AE2 tính sát thương × máu / 100 + dồn đòn -> số quân (Lanchester bậc 2) thắng chất lượng. Cùng bài học v4 `buy_sup` (0,22), nhẹ hơn vì chỉ để dành 1 lượt và chỉ khi đang hơn.
+- Sau held-out (không ghi trước, chỉ để hiểu): v5 **không để dành** (`hard_v3+role_w:1+mix_w:1+pl_chain:1`) cùng seed 9700000–007: **0,497 ± 0,018** vs v3 (768 ván; núi rừng ghế e 108 / 128, ghế p 21,5 / 128) = hòa. -> dùng đúng việc + mua theo tình huống (mua được ngay) trung tính; phần làm yếu là để dành (`mix_save` / `sham_save`): ~−0,07.
 - Phần "dùng đúng việc" (`role_w`) có tác dụng rõ (ma gọi 0,33 -> 1,60 / ván, thầy mo làm việc 19% -> 44%, ma 11% -> 37%, thuyền trên nước 15% -> 30%, trống phủ ~4 quân chưa đi / ván) nhưng quân hỗ trợ hiếm nên không đổi được kết quả ván.
+
+Ví dụ (`army_probe.gd -- a=hard_v5 b=hard_v3 games=1 salt=<s> examples=12`, v5 dùng quân hỗ trợ):
+- Núi rừng, salt 9200000 (v5 ghế e): thầy mo #21 (400 vàng) gọi 5 ma ở lượt 8, 10, 11, 16, 17 — lượt 8: tới (9,0), gọi ma trên mộ (10,0); v3 cả ván 96 ván chỉ gọi 0,33 ma / ván.
+- Đồng bằng lượt 31, salt 9200001 (v5 ghế e): trống #39 đi trước tới (2,3), +10 công cho 8 quân chưa đi rồi cả nhóm mới đánh (lượt 25–30: mỗi lượt phủ 3–4 quân).
+- Núi rừng lượt 5–11, salt 9200001 (v5 ghế e): thầy mo #15 gọi ma ở lượt 5 (mộ (10,3)), 7, 9, 10, 11 -> 5 quân miễn phí, không tính vào giới hạn quân.
+
+Tiếp (nếu muốn đội hình đa dạng mà không yếu):
+- Cân bằng nội dung trước (phiên nội dung): giá / chỉ số để quân đắt đáng tiền mỗi vàng (vd voi 450, sói 450, trống 350; hoặc lính yếu đi). Rồi đo lại `hard_v5` + bản không để dành — AI đã sẵn mua theo tình huống + dùng đúng việc.
+- Ship riêng `role_w` (không mua thêm) như "chơi đúng việc" cho màn có sẵn quân hỗ trợ / đấu với người hay mua trống, sói, thầy mo: cần held-out riêng (≥ 768 ván) + test màn.
+- Tò mò: Khó v3 chỉ mua lính + cung thắng Khó v3 đủ loại 0,586 -> bỏ thuyền / thầy mo khỏi danh sách mua của Khó có thể **mạnh hơn** (ngược mục tiêu đa dạng; chỉ ghi lại).
 
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).

@@ -708,6 +708,7 @@ func commit(extra: Dictionary) -> void:
 	var u: Dictionary = _sel_unit()
 	var act := { "id": u.id, "to": ui.dest }
 	act.merge(extra, true)
+	GameLog.crumb("act %s from %d,%d %s" % [u.get("type"), u.x, u.y, act])
 	_clear_sel()
 	ui.busy = true
 	refresh()
@@ -734,6 +735,7 @@ func buy_unit(type: String) -> void:
 	var nu: Variant = Game.buy(s, x, y, type)
 	if nu == null:
 		return
+	GameLog.crumb("buy %s at %d,%d" % [type, x, y])
 	fx.buy_fx(x, y)
 	hud.bump_gold()
 	_clear_sel()

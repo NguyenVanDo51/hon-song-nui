@@ -2,7 +2,7 @@ class_name Main
 extends Control
 ## app shell: theme, audio, menus (title / levels / skirmish / 1 vs 1 / codex), the game screen, debug flags.
 ## debug args (after `--`): mission=m01 (start it) bot (AI plays our side) speed=3
-##   fresh (ignore save) screen=title|levels|skirmish|duel|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60
+##   fresh (ignore save) screen=title|levels|skirmish|duel|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60 crash_at=5
 
 const BASE := Vector2(1280, 720)
 const MIN_SCALE := 0.8
@@ -30,6 +30,7 @@ func _ready() -> void:
 		flags[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	if flags.has("profile"): # profile=test: settings / progress / save kept apart from the player's
 		Store.use_profile(str(flags.profile))
+	GameLog.boot(str(flags.get("profile", "")), args) # crash / error log per session (README "Log lỗi / crash")
 	if flags.has("norig"): # norig: every attack uses the old FX.attack instead of the code-rigged animation
 		Rigs.enabled = false
 	if flags.has("safe"): # safe=l,t,r,b: preview a phone's hidden edges (notch / rounded corners) on desktop
@@ -100,6 +101,7 @@ func _build_rotate_hint() -> void:
 	add_child(_rotate)
 
 func _boot() -> void:
+	GameLog.crumb("boot flags=%s" % [flags])
 	if flags.has("mission"):
 		var mid := str(flags.mission)
 		var md: Dictionary = Content.level(mid)
@@ -121,10 +123,12 @@ func _boot() -> void:
 
 # ---------- navigation (menus and the game screen call these) ----------
 func show_title() -> void:
+	GameLog.crumb("screen title")
 	game.leave()
 	menus.show_title()
 
 func show_levels(pg := -1) -> void:
+	GameLog.crumb("screen levels")
 	game.leave()
 	menus.show_levels(pg)
 
@@ -134,17 +138,31 @@ func play_mission(m: Dictionary) -> void:
 	menus.confirm_start(Game.new_game(m), { "kind": "campaign", "id": mid })
 
 func show_skirmish() -> void:
+	GameLog.crumb("screen skirmish")
 	game.leave()
 	menus.show_skirmish()
 
 func show_duel() -> void:
+	GameLog.crumb("screen duel")
 	game.leave()
 	menus.show_duel()
 
 ## ctx = {kind:'campaign', id} | {kind:'skirmish', hero, easy, map, gold, cap} | {kind:'duel', map, hero, heroE, ctrlE, gold, cap}
 func start_game(state: Dictionary, ctx: Dictionary) -> void:
+	GameLog.crumb("game start turn=%s side=%s ctx=%s" % [state.get("turn"), state.get("side"), ctx])
 	menus.hide_all()
 	game.start(state, ctx)
+
+## clean-exit / background markers for the session log (no marker at the end = crash)
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_EXIT_TREE:
+		GameLog.mark(GameLog.CLEAN)
+	elif what == NOTIFICATION_APPLICATION_PAUSED:
+		GameLog.mark(GameLog.PAUSED)
+	elif what == NOTIFICATION_APPLICATION_RESUMED:
+		GameLog.mark(GameLog.RESUMED)
+	elif what == NOTIFICATION_CRASH:
+		GameLog.crumb("engine crash handler fired")
 
 func _unhandled_input(ev: InputEvent) -> void:
 	var k := ev as InputEventKey
@@ -165,6 +183,8 @@ func _process(dt: float) -> void:
 			_shot_n += 1
 	if flags.has("quit_at") and _t >= str(flags.quit_at).to_float():
 		get_tree().quit()
+	if flags.has("crash_at") and _t >= str(flags.crash_at).to_float(): # crash_at=5: test the crash log (README)
+		OS.crash("crash_at flag")
 
 func shot(shot_name: String) -> void:
 	if DisplayServer.get_name() == "headless":

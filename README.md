@@ -37,12 +37,12 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 - Bấm thành trống của ta để mua lính (popup cạnh thành). Nút **Hết lượt** nằm ở góc dưới bên phải bàn cờ, sáng nhịp khi mọi quân đã ra lệnh.
 - **ⓘ** ở góc mỗi quân: thẻ thông tin (chỉ số, buff đang có, đặc tính, cách dùng). Quân đứng cạnh Trống trận / tướng hào quang có chấm ⚔ cam (+10 công), cạnh tướng che chắn có chấm 🛡 xanh (+10 thủ); rê chuột lên nguồn buff để thấy 4 ô nó phủ. Lần đầu gặp một loại quân, game dừng lại giới thiệu nó.
 
-Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|levels|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt.
+Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|levels|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `crash_at=5` cố ý crash (thử log crash) · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt.
 
 ## Kiểm tra
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (macOS / Linux: `MAX_SEC=120 tools/run_guarded.sh out.log -- --headless --path . -s sim/tests.gd`) (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
 ```
-powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # sim/tests.gd = runner, test theo mảng ở sim/tests/*.gd (test_base.gd = check / eq / run + helper); 93 test: luật, 16 màn hợp lệ (kiểu thắng, đợt quân, thứ tự), tướng tới được mục tiêu, chương, lưu ván, 4 ván vàng chương 1
+powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # sim/tests.gd = runner, test theo mảng ở sim/tests/*.gd (test_base.gd = check / eq / run + helper); 150 test: luật, 16 màn hợp lệ (kiểu thắng, đợt quân, thứ tự), tướng tới được mục tiêu, chương, lưu ván, 4 ván vàng chương 1
 powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # ~55 bước bấm chuột qua UI thật (popup lệnh, ⓘ, giới thiệu quân, cảnh giao chiến 3 chế độ, thắng rồi thoát ngay vẫn giữ kết quả); dùng hồ sơ lưu riêng `driver`, không đụng ván thật
 bash tools/sim_many.sh "m09 m10 m11" 12 4                                                        # cân bằng: AI chơi cả hai phe
 python tools/web_smoke.py --query "?mission=m05&bot&speed=3" --wait 70                           # chạy bản web trong Edge headless, in console + chụp
@@ -52,6 +52,14 @@ godot --headless --path . -s sim/levelgen.gd -- recipe=g05 seeds=12 out=/tmp/lg 
 godot --headless --path . -s sim/levelgen.gd -- install=/tmp/lg/g05_s3.gd                         # chép ứng viên vào content/levels/ (rồi formatter + --import + tests)
 ```
 Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
+
+### Log lỗi / crash
+- Mỗi lần chơi thật (có cửa sổ; không headless / `-s sim/...` / web) -> 1 file `user://logs/game/<profile>/<YYYY-MM-DD_HH-MM-SS>.log` (`scripts/ui/game_log.gd`, `OS.add_logger`). Ghi + flush từng dòng -> crash vẫn giữ tới dòng cuối. Giữ 20 phiên + 10 file crash. Hồ sơ `profile=test` ghi riêng thư mục `test/`, không đẩy log của người chơi ra.
+- Dòng: `HH:MM:SS +giây_từ_lúc_mở <loại> nội dung`. Loại: `E` lỗi engine / `push_error` · `W` cảnh báo / `push_warning` · `S` lỗi script · `H` shader · `X` printerr (gồm bản dump của crash handler: C++ + GDScript backtrace) · `P` print · `B` dấu vết (màn hình, bắt đầu ván + ctx, lượt / phe, từng lệnh / mua, kết thúc) · `==` mốc phiên (`session open`, `clean exit`, `paused`, `resumed`). Lỗi kèm `@ file:dòng hàm()` + GDScript backtrace (bản xuất release: backtrace rỗng trừ khi bật `debug/settings/gdscript/always_track_call_stacks`). Cùng một nội dung: 20 dòng đầu đủ, sau đó 1 dòng / 1000 lần kèm `(xN)`; file > 8 MB chỉ còn mốc + dấu vết.
+- Crash: phiên trước không có `== clean exit` (thoát qua nút đóng cửa sổ / `get_tree().quit()` mới có) -> lần mở sau đổi tên thành `crash_<tên cũ>.log` + chép 15 dòng cuối vào log mới (`previous session CRASHED`). Tên giữ giờ mở phiên -> khớp với `~/Library/Logs/DiagnosticReports/Godot-*.ips`. Phiên kết thúc bằng `paused` (iOS cho app xuống nền rồi bị hệ thống tắt) không tính crash. Lỗi `Message queue out of memory` (ERR_PRINT) nằm trong log trước SIGBUS.
+- Thử: `godot --path . -- profile=test crash_at=3` (cố ý `OS.crash`) rồi `godot --path . -- profile=test quit_at=4` -> `PROFILE=test tools/game_logs.sh crash`.
+- Đọc (macOS): `tools/game_logs.sh` (= `ls`) · `last [N]` · `crash` · `errors [N]` · `grep MẪU` · `dir`; `PROFILE=test` cho hồ sơ test.
+- Đường dẫn: macOS `~/Library/Application Support/Godot/app_userdata/Công Thành Chiến/logs/game/` · iOS `user://` = thư mục `Documents/` của app (chưa kiểm trên máy): Xcode > Devices and Simulators > app > Download Container (preset iOS chưa bật `user_data/accessible_from_files_app`) · web: không ghi file, xem console trình duyệt. `logs/godot.log` (log Godot mặc định) vẫn có nhưng bị sim / test chạy song song ghi đè -> dùng log phiên.
 
 ### Lint
 - Cài 1 lần: `pipx install "gdtoolkit==4.*"` (macOS: `brew install pipx` trước), rồi `tools/install_hooks.sh` -> git pre-commit chạy `tools/lint.sh --staged` (bỏ qua 1 lần: `git commit --no-verify`).

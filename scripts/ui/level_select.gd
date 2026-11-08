@@ -1,7 +1,7 @@
 class_name LevelSelect
 extends RefCounted
 ## "Thử thách" helpers shared by the kingdom map (scripts/ui/world_map.gd), the title menu and the tests: next level to
-## play, tier colour / name, flames-lit line. (The 20-cell grid it used to draw was replaced by the map 2026-11-08.)
+## play, tier colour / name. (The 20-cell grid it used to draw was replaced by the map 2026-11-08.)
 
 const TIER_COL := { "easy": Color("#3f7a2e"), "mid": Color("#c98a1e"), "hard": Color("#b3262e") }
 const TIER_NAME := { "easy": "Dễ", "mid": "Trung bình", "hard": "Khó" }
@@ -18,13 +18,6 @@ static func first_unwon(lv: Array, open: int) -> int:
 		if not Store.is_done(str(def.id)):
 			return i
 	return lv.size()
-
-## "🔥 N/M ngọn lửa đã thắp": every level won relights one castle flame (premise)
-static func fires_text(lv: Array) -> String:
-	var n := 0
-	for def: Dictionary in lv:
-		n += 1 if Store.is_done(str(def.id)) else 0
-	return Content.text("firesLit").format({ "n": n, "all": lv.size() })
 
 static func tier_of(def: Dictionary) -> String:
 	var t: String = def.get("tier", "mid")

@@ -357,7 +357,7 @@ func _logo(text: String, fs := 104) -> Control:
 
 # ---------- campaign ----------
 ## "Thử thách" kingdom map (WorldMap), centred on `focus_id` or the next level; full screen (a page scroll would eat
-## the map's drag), back button + flames-lit count on top
+## the map's drag), only a back button on top (user 2026-11-08)
 func show_levels(focus_id := "") -> void:
 	visible = true
 	bg.visible = true
@@ -379,23 +379,13 @@ func show_levels(focus_id := "") -> void:
 			main.play_mission(md),
 	)
 	var e := Style.safe_insets(holder)
-	var band := PanelContainer.new() # paper strip: the header stays readable over the map
-	band.add_theme_stylebox_override("panel", Style.paper(8.0))
-	band.position = Vector2(10 + e.x, 6 + e.y)
-	holder.add_child(band)
-	var top := Style.hbox(14)
-	band.add_child(top)
-	top.add_child(
-		_on(
-			Style.button("‹ Trở lại", "BackBtn"),
-			func() -> void:
-				main.show_title(),
-		)
+	var back := _on(
+		Style.button("‹ Trở lại", "BackBtn"),
+		func() -> void:
+			main.show_title(),
 	)
-	top.add_child(_h2("Thử thách", 26))
-	var fires := Style.lbl(LevelSelect.fires_text(all), 15, Style.CRIMSON_D, Style.bold)
-	fires.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	top.add_child(fires)
+	back.position = Vector2(14 + e.x, 12 + e.y)
+	holder.add_child(back)
 
 # ---------- skirmish ----------
 func show_skirmish() -> void:

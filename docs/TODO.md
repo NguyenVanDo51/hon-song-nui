@@ -58,6 +58,7 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
+- [ ] (2026-11-08) `scripts/ui/style.gd` `make_theme` — ~20 kiểu nút (MenuBtn, PrimaryBtn, ActBtn, ActGo, ChipBtn, BackBtn, SegBtn, RoyalBtn, TileBtn…), mỗi kiểu tự gói màu + cỡ chữ + đệm, nhiều kiểu chỉ dùng 1 chỗ -> nút mỗi màn một cỡ, khó giữ thống nhất. Sửa: kiểu = màu (paper / primary / royal / hot / ghost) × cỡ (sm / md / lg) sinh trong theme, `Style.btn(text, kind, size)`, chuyển dần các màn.
 - [ ] (2026-11-08) `README.md:8` — còn "Anh hùng / Tướng giặc" (tên trước reskin; nay Hiệp Sĩ Chỉ Huy / Vorn) -> README lệch game; sửa câu theo `content/theme.gd` `heroes`.
 - [ ] (2026-11-08) `content/theme.gd` `text.skirmishTitle` — không script nào đọc -> khóa chết, sửa tên ở đó không có tác dụng (xoá hoặc dùng ở màn đấu tự do).
 - [ ] (2026-11-08) `docs/content.md` bảng "Nhịp ra mắt" cột "Mới" — còn tên quân trước reskin (nỏ thủ, trống đồng, voi, thầy mo, thủy binh, âm binh) -> lệch với tên trong game (Cung thủ, Tu sĩ ánh sáng, Golem đá…); đổi theo `content/theme.gd` `UNITS`.

@@ -96,7 +96,7 @@ Vào màn: thẳng bàn cờ, rồi thẻ giới thiệu quân mới (nếu có)
 - Mỗi lâu đài từng giữ ngọn lửa thề; Đế Quốc dập tắt; giành lại = thắp lại. Không truyện để đọc (user bỏ qua truyện; ra store toàn cầu).
 - `theme.lede` dưới logo màn tiêu đề; mỗi màn `lore` 1 câu (thẻ màn trên bản đồ); tướng địch tên **Vorn**.
 - Bàn cờ: lâu đài ta có lửa, Đế Quốc có khói, trung lập tắt; đổi chủ -> lửa bùng / khói phụt ~1 s (`BoardPaint.draw_fires`, `Draw.flame` / `Draw.smoke`). Quân đứng trên lâu đài che lửa (như che cờ).
-- Bản đồ Thử thách: "🔥 N/39 ngọn lửa đã thắp" (N = số màn đã thắng).
+- Bản đồ Thử thách: chỉ nút "‹ Trở lại" ở trên (bỏ tiêu đề + đếm "🔥 N/39" theo user 2026-11-08).
 - Tên màn: giả tưởng chung, không địa danh / sử Việt. Màn g*: sửa cả `sim/level_recipes.gd` (`title` + `lore`).
 
 Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành), `story`, `history`, `tips`, `chapter`, `region`, `pos`, `place` (bỏ cốt truyện + chương 2026-11-07).

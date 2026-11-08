@@ -115,7 +115,6 @@ const THEME := {
 		"tutSkipTip": "Tính thắng 1 sao, về lưới thử thách",
 		"tutEndTurn": "Hết lượt",
 		"tutOk": "▶ Đã hiểu",
-		"firesLit": "🔥 {n}/{all} ngọn lửa đã thắp",
 		"mapGo": "Xuất quân ›",
 		"mapLocked": "🔒 Chưa chiếm lại: thắng màn trước để mở",
 		"tutNudgeEnd": "Mọi quân đã đi (xám): bấm Hết lượt",

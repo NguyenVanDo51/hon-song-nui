@@ -181,8 +181,8 @@ static func make_theme() -> Theme:
 	for c: SkinBox in chip_on:
 		c.edge_w = 2.5
 	_btn(t, "ChipOn", "Button", chip_on[0], chip_on[1], INK, INK, semi, 13)
-	var back := skin_btn(PAPER, Vector4(12, 5, 12, 7), 2.0, Color(0, 0, 0, 0), Vector4(8, 5, 9, 5))
-	_btn(t, "BackBtn", "Button", back[0], back[1], INK, CRIMSON_D, semi, 14)
+	var back := skin_btn(PAPER, Vector4(18, 10, 18, 12), 3.0, Color(0, 0, 0, 0), Vector4(10, 7, 11, 7))
+	_btn(t, "BackBtn", "Button", back[0], back[1], INK, CRIMSON_D, bold, 18)
 	var seg := skin_btn(PAPER_HI, Vector4(16, 7, 16, 9), 3.0, Color(0, 0, 0, 0), Vector4(9, 6, 10, 6))
 	_btn(t, "SegBtn", "Button", seg[0], seg[1], MUTED, INK, body, 14)
 	var seg_on := skin_btn(CRIMSON, Vector4(16, 7, 16, 9), 3.0, light_line, Vector4(9, 6, 10, 6))

@@ -185,7 +185,7 @@ func duel_tests() -> void:
 			check(not Store.fits_content(gone), "unknown level id does not fit"),
 	)
 	run(
-		"level map: opens on the next level's card; Xuất quân starts it; a locked level shows its card but never starts",
+		"level map: opens with no card (next level pulsing); tap = card, Xuất quân starts it; locked level never starts",
 		func() -> void:
 			Store.use_profile("unit_tests")
 			var lv := Content.levels()
@@ -198,12 +198,16 @@ func duel_tests() -> void:
 			eq(LevelSelect.first_unwon(lv, 3), 3, "level 2 skipped -> still the one after the furthest win")
 			var wm := WorldMap.new()
 			wm.setup(lv, Store.unlocked_index())
-			eq(wm.sel, 3, "starts on the next level")
+			eq(wm.sel, -1, "no card before a tap")
+			eq(wm.next, 3, "next level = after the furthest win")
+			eq(wm.focus, 3, "centred on it")
 			var got := []
 			wm.level_picked.connect(
 				func(id: String) -> void:
 					got.append(id),
 			)
+			wm.go()
+			eq(got, [], "nothing selected: Xuất quân does nothing")
 			wm.select(1)
 			eq(got, [], "tap on a node: card only")
 			eq(wm.sel, 1)
@@ -214,7 +218,8 @@ func duel_tests() -> void:
 			eq(got, [ids[1]], "locked level never starts")
 			var wm2 := WorldMap.new()
 			wm2.setup(lv, Store.unlocked_index(), str(ids[2]))
-			eq(wm2.sel, 2, "focus id (back from a level) opens on it")
+			eq(wm2.focus, 2, "focus id (back from a level): centred on it")
+			eq(wm2.sel, -1, "still no card")
 			wm.free()
 			wm2.free()
 			Store.set_v("campaign_done", []),

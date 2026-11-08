@@ -82,3 +82,5 @@ Mạch: nhóm lửa (t01–m04) -> lan ra sông, biển (g01–m10) -> vùng nú
 - Thẻ: số (màu độ khó) + tên + sao tốt nhất, `lore`, mục tiêu dạng ngắn (`goals[type].short`), nút "Xuất quân ›"; chưa mở: "🔒 Chưa chiếm lại". Bỏ: dòng "THỬ THÁCH N / độ khó", 3 dòng mục tiêu sao, "Bấm để vào trận". (Claude)
 - "Xuất quân" vẫn qua `confirm_start`: đang dở ván khác -> hỏi trước khi xoá (không mất ván). (Claude)
 - Kéo để xem (≥ 6 px / đơn vị bản đồ); màn dọc phóng theo chiều cao, kéo ngang. Mở ra canh vào màn kế, hoặc màn vừa chơi khi quay về. (Claude)
+- Vòng 2 (user): mở bản đồ không hiện thẻ (chỉ khi chạm); chọn màn không được cuộn bản đồ đi (chỉ dịch tối thiểu nếu thẻ che); bản đồ đẹp + chi tiết hơn -> lâu đài thật mỗi màn (đỏ + lửa = của ta, xanh = Đế Quốc), cảnh từ ảnh địa hình bàn cờ, biển có thuyền + la bàn, mây che vùng chưa mở. (user / Claude)
+

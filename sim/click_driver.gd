@@ -657,7 +657,7 @@ func _run() -> void:
 	ok(wm != null, "level map shows")
 	var all := Content.levels()
 	var want: Dictionary = all[mini(LevelSelect.first_unwon(all, Store.unlocked_index()), all.size() - 1)]
-	ok(wm != null and wm.sel == Content.level_index(str(want.id)), "map opens on the next level's card")
+	ok(wm != null and wm.next == Content.level_index(str(want.id)), "map pulses the next level")
 	if wm != null:
 		await _map_input(wm)
 	press(Content.text("mapGo"))
@@ -671,21 +671,29 @@ func _run() -> void:
 	print("DRIVER DONE fails=%d" % fails)
 	quit(1 if fails else 0)
 
-## real mouse on the level map: tap a neighbour node = its card; drag = pan without picking; back to the next level
+## real mouse on the level map: no card at first; tap the next level = its card; drag = pan, no pick, card stays;
+## tap empty land = card closes; ends with the next level's card open
 func _map_input(wm: WorldMap) -> void:
 	var old_size := root.size
 	root.size = Vector2i(1280, 720) # headless window is 64 px: real picking needs the map inside the viewport
 	await wait(0.4)
-	var keep := wm.sel
-	var other := keep - 1 if keep > 0 else keep + 1
-	var at := wm.get_global_transform() * wm._p(wm.pos_of(other))
+	ok(wm.sel == -1 and not wm._card.visible, "map: no card before a tap")
+	var at := wm.get_global_transform() * wm._p(wm.pos_of(wm.next))
 	await _mouse(at, at)
-	ok(wm.sel == other, "map: real tap on node %d opens its card (sel %d)" % [other + 1, wm.sel])
+	await wait(0.2)
+	ok(wm.sel == wm.next and wm._card.visible, "map: real tap on the next level opens its card (sel %d)" % wm.sel)
+	var on := wm.get_global_transform() * wm._p(wm.pos_of(wm.next))
+	ok(on.y < wm.size.y - wm._card.size.y and on.y > 0.0, "map: tapped castle stays in view above the card (y %d)" % on.y)
 	var off := wm._off
 	await _mouse(at, at + Vector2(-80, -60))
-	ok(wm.sel == other and wm._off != off, "map: drag pans, picks nothing")
-	wm.select(keep)
-	await wait(0.2)
+	ok(wm.sel == wm.next and wm._off != off, "map: drag pans, picks nothing")
+	var empty := wm.get_global_transform() * wm._p(Vector2(146, 6)) # sea corner
+	empty = Vector2(clampf(empty.x, 8.0, 1270.0), clampf(empty.y, 70.0, 300.0))
+	if wm._node_at(wm.get_global_transform().affine_inverse() * empty) < 0:
+		await _mouse(empty, empty)
+		ok(wm.sel == -1 and not wm._card.visible, "map: tap on empty land closes the card")
+	wm.select(wm.next)
+	await wait(0.3)
 	root.size = old_size
 	await wait(0.2)
 

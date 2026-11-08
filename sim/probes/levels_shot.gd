@@ -2,7 +2,7 @@ extends "res://sim/probes/probe_base.gd"
 ## "Thử thách" page at several window sizes -> <shots>/levels_<WxH>.png (viewport grab, windowed):
 ##   MAX_SEC=200 tools/run_guarded.sh /tmp/l.log -- --path . -s sim/probes/levels_shot.gd --
 ##     screen=levels fresh profile=test shots=<dir> [sizes=844x390,1280x720] [tag=x] [focus=m05] [done=N]
-## done=N: the first N levels count as won (shows retaken land; profile only).
+## done=N: the first N levels count as won (shows retaken land; profile only). sel=<id>: that level's card open.
 
 func _boot() -> void:
 	args = main.flags
@@ -15,6 +15,9 @@ func _boot() -> void:
 	if args.has("done") or args.has("focus"):
 		main.menus.show_levels(str(args.get("focus", "")))
 	await create_timer(1.0).timeout
+	if args.has("sel"): # sel=<level id>: tap it (card open)
+		var wm: WorldMap = main.menus.page.get_child(0)
+		wm.select(Content.level_index(str(args.sel)))
 	var tag: String = args.get("tag", "")
 	for sz: String in str(args.get("sizes", "844x390,1500x675,1280x720,960x720")).split(","):
 		var p := sz.split("x")

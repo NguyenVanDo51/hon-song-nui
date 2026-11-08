@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g04",
 	"order": 67,
 	"title": "Giữ Đồn",
+	"lore": "Đồn gác vừa giành lại. Đế Quốc quay lại đòi nó.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

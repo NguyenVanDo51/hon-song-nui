@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g15",
 	"order": 147,
-	"title": "Thành Mới",
+	"title": "Thành Mới Xây",
+	"lore": "Đế Quốc xây thành mới để chặn đường. Đừng để nó đứng vững.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

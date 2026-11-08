@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m06: Trận Bãi Sông. Format: docs/content.md
+## m06: Bãi Sông Xám. Format: docs/content.md
 
 const DEF := {
 	"id": "m06",
 	"order": 60,
-	"title": "Trận Bãi Sông",
+	"title": "Bãi Sông Xám",
+	"lore": "Vorn đuổi tới tận bãi sông. Lần này không lùi nữa.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

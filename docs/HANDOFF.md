@@ -139,3 +139,9 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Menu dọc: lưới Thử thách xếp chi tiết dưới lưới (`BoxContainer.vertical`; HBox không đổi hướng được), Sách lính tab xuống dòng, đấu tự do / 1 đấu 1 hàng tự xuống dòng (`HFlowContainer`).
 - Kiểm: tests 189/0; click_driver có cửa sổ 540x1170 m02 / m02 intro / t01 fails=0 (headless bỏ qua --resolution); `sim/probes/portrait_shot.gd` (chọn ô khớp 100% + xoay máy giữa trận ngang <-> dọc), safe_shot dọc 15/15.
 - Còn lại: `docs/TODO.md` § Tính năng "Màn dọc" (đá máy bắn đá cong ngang, fx bay lên, màn tiêu đề).
+
+## 2026-11-08 — tiền đề "Ngọn Lửa Lâu Đài" (nhánh `feat/flame-premise`)
+- User: luôn bỏ qua truyện; ra store toàn cầu; giả tưởng chung, bỏ chất Việt; nghiêm túc, khởi nghĩa vs Đế Quốc; không làm lối đánh riêng cho tướng địch. Spec `docs/superpowers/specs/2026-11-08-flame-premise-design.md`.
+- Làm: `lede` dưới logo; `lore` 1 câu / màn ở lưới chọn màn (+ 4 câu khiêu khích của Vorn); tướng địch tên Vorn; đổi tên 36 màn m*/g* (+ `sim/level_recipes.gd`); lửa / khói trên lâu đài (bàn cờ + tranh tiêu đề); "🔥 N/39 ngọn lửa đã thắp".
+- Kiểm: tests 190/0, lint ok, golden không đổi (172 dòng), click_driver m02 0 fail, tut_driver t02 0 fail; ảnh 1280x720 + 540x1170 (bàn cờ, tiêu đề, lưới chọn màn).
+- Chưa: câu store tiếng Anh chỉ ở spec (dịch = việc riêng); tên game "Công Thành Chiến" chưa đổi.

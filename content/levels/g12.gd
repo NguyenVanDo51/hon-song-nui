@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g12",
 	"order": 127,
-	"title": "Bãi Lau",
+	"title": "Bãi Sậy",
+	"lore": "Quân Đế Quốc phục trong bãi sậy. Lôi chúng ra.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

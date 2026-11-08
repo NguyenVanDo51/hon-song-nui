@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g10",
 	"order": 115,
 	"title": "Rừng Đêm",
+	"lore": "Trong rừng tối, quân Đế Quốc lạc nhau. Săn từng toán.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

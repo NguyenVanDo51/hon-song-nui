@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m02: Về Lại Mê Linh. Format: docs/content.md
+## m02: Ngọn Lửa Đầu Tiên. Format: docs/content.md
 
 const DEF := {
 	"id": "m02",
 	"order": 20,
-	"title": "Về Lại Mê Linh",
+	"title": "Ngọn Lửa Đầu Tiên",
+	"lore": "Vorn: «Một đốm lửa con. Ta dập nó trong một đêm.»",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["archer"],

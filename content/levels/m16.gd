@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m16: Sông Hát. Format: docs/content.md
+## m16: Đêm Dài Nhất. Format: docs/content.md
 
 const DEF := {
 	"id": "m16",
 	"order": 160,
-	"title": "Đêm Sông Hát",
+	"title": "Đêm Dài Nhất",
+	"lore": "Nếu lửa còn cháy tới sáng, Đế Quốc sẽ phải lùi.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

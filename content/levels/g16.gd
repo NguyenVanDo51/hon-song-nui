@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g16",
 	"order": 155,
 	"title": "Núi Rồng",
+	"lore": "Vorn: «Leo tới đây rồi sao? Đỉnh núi này là mồ của ngươi.»",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

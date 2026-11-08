@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m11: Bát Nàn Giữ Ải. Format: docs/content.md
+## m11: Ải Sói. Format: docs/content.md
 
 const DEF := {
 	"id": "m11",
 	"order": 110,
-	"title": "Bát Nàn Giữ Ải",
+	"title": "Ải Sói",
+	"lore": "Bầy sói của Đế Quốc canh ải núi. Chiếm lâu đài sau ải.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["wolf"],

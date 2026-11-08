@@ -1,12 +1,13 @@
 extends RefCounted
 # prose / map rows: one line each reads better
 # gdlint: disable=max-line-length
-## mission m03: Giữ Làng Hạ Lôi. Format: docs/content.md
+## m03: Giữ Làng Biên Giới. Format: docs/content.md
 
 const DEF := {
 	"id": "m03",
 	"order": 30,
-	"title": "Giữ Làng Hạ Lôi",
+	"title": "Giữ Làng Biên Giới",
+	"lore": "Đế Quốc kéo quân tới đòi lại làng. Giữ vững cho tới khi chúng nản.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["drum"],

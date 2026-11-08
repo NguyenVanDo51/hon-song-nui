@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m14: Rút Về Cấm Khê. Format: docs/content.md
+## m14: Rút Lên Núi. Format: docs/content.md
 
 const DEF := {
 	"id": "m14",
 	"order": 140,
-	"title": "Rút Về Cấm Khê",
+	"title": "Rút Lên Núi",
+	"lore": "Đại quân Đế Quốc tràn tới. Rút lên pháo đài trên núi, giữ lấy ngọn lửa.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

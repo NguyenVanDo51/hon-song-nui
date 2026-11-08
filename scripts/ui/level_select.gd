@@ -42,6 +42,13 @@ static func first_unwon(lv: Array, open: int) -> int:
 			return i
 	return lv.size()
 
+## "🔥 N/M ngọn lửa đã thắp": every level won relights one castle flame (premise)
+static func fires_text(lv: Array) -> String:
+	var n := 0
+	for def: Dictionary in lv:
+		n += 1 if Store.is_done(str(def.id)) else 0
+	return Content.text("firesLit").format({ "n": n, "all": lv.size() })
+
 static func tier_of(def: Dictionary) -> String:
 	var t: String = def.get("tier", "mid")
 	return t if TIER_COL.has(t) else "mid"
@@ -63,6 +70,7 @@ func setup(lv: Array, open: int, pg: int) -> void:
 	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	side.custom_minimum_size.x = 260
 	row.add_child(side)
+	side.add_child(Style.lbl(fires_text(levels), 14, Style.CRIMSON_D, Style.bold))
 	_pager = Style.hbox(10)
 	side.add_child(_pager)
 	_info = Style.vbox(6)
@@ -178,6 +186,8 @@ func _show_info(i: int) -> void:
 	head.add_child(Style.lbl(str(TIER_NAME[tier]).to_upper(), 13, tc, Style.bold))
 	_info.add_child(head)
 	_info.add_child(Style.lbl(str(def.get("title", "")), 26, Style.GOLD if not locked else Style.MUTED, Style.display))
+	if str(def.get("lore", "")) != "": # one line of setting (premise "Ngọn Lửa Lâu Đài"); Vorn's taunts too
+		_info.add_child(Style.lbl(str(def.lore), 14, Style.MUTED, Style.semi, true))
 	_info.add_child(Style.lbl(Menus.goal_text(def), 15, Style.INK, null, true))
 	if def.has("stars"):
 		var got := Store.stars_of(str(def.id))

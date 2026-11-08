@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g19",
 	"order": 175,
-	"title": "Giữ Thành",
+	"title": "Cổng Kinh Đô",
+	"lore": "Trước cổng kinh đô, Đế Quốc dốc toàn lực phản công. Trụ vững.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

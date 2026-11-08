@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m05: Đêm Hồ Tây. Format: docs/content.md
+## m05: Đêm Hồ Gương. Format: docs/content.md
 
 const DEF := {
 	"id": "m05",
 	"order": 50,
-	"title": "Đêm Hồ Tây",
+	"title": "Đêm Hồ Gương",
+	"lore": "Trăng lặn. Đánh úp lâu đài bên hồ khi Đế Quốc còn ngủ.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

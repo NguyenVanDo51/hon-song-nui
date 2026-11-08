@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g14",
 	"order": 145,
 	"title": "Đầm Lầy",
+	"lore": "Kẹt giữa đầm lầy. Trụ vững cho tới khi địch đuối sức.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

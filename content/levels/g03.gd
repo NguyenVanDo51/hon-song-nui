@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g03",
 	"order": 63,
 	"title": "Ngã Ba Sông",
+	"lore": "Ai giữ ngã ba sông, người đó giữ cả vùng.",
 	"tier": "hard",
 	"ai": "normal",
 	"hero": "anhhung",

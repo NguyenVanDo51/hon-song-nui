@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g11",
 	"order": 125,
 	"title": "Thành Đá",
+	"lore": "Thành Đá chưa từng thất thủ. Cho tới hôm nay.",
 	"tier": "hard",
 	"ai": "hard",
 	"hero": "anhhung",

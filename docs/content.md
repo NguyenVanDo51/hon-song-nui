@@ -15,7 +15,7 @@ Mỗi level = 1 file `content/levels/*.gd` (`DEF`), xếp theo `order`; số hi�
 Theo lối bản đồ chiến thuật cổ điển: **đường mòn** (`r`) nối thành với làng thành một mạng liền, qua sông bằng cầu; rừng / đồi / núi gom thành **khối** (núi lõi, đồi quanh, rừng mép), khoảng 30% đất; chừa vòng trống quanh thành. Mọi quân lội được sông (3 bước, thủ 0) và lên được núi (3 bước), nên sông / núi là chỗ chậm chứ không phải tường. **Đền** (`t`): 1–2 ô giữa hai phe, không đặt dưới quân / thành / làng, không có chủ (không ghi vào `owner`); quân phe nào đứng đó cũng hồi máu, thủ +15. Bản đồ đấu tự do: không đền (như AE2). Vẽ tay xong có thể cho `sim/mapgen.gd` sắp lại địa hình (giữ thành, làng, sông, cầu, chỗ quân đứng / tiếp viện / ô đích): chạy nó, rồi chép các dòng `MAP` vào file màn.
 
 ## Quân và chỉ huy
-Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ khác màu). Khóa lính (tên hiển thị sau reskin fantasy 2026-11-07): `soldier` Vệ binh, `archer` Cung thủ, `boat` Hải tặc, `shaman` Pháp sư gọi hồn, `drum` Tu sĩ ánh sáng, `wolf` Sói bóng đêm, `elephant` Golem đá, `catapult` Máy bắn đá, `bird` Rồng, `ghost` Bộ xương (chỉ do pháp sư gọi hồn dựng dậy, không mua được, không đưa vào `allowed`). Trọng số AI mua = `aiWeight` trong `Rules.UNITS` (thiếu -> `AI.DEFAULT_WEIGHT` 1.0, không crash; test vẫn đòi khai báo cho quân mua được). Chỉ có 2 tướng cho mọi chiến dịch: `anhhung` (Hiệp Sĩ Chỉ Huy, phe ta) và `tuonggiac` (Hắc Hiệp Sĩ, phe địch). Hình và chỉ số không bao giờ đổi. Lối chơi từng loại quân: `content/guide.gd`.
+Hai phe dùng chung một bộ lính (`UNITS` trong `content/theme.gd`, chỉ khác màu). Khóa lính (tên hiển thị sau reskin fantasy 2026-11-07): `soldier` Vệ binh, `archer` Cung thủ, `boat` Hải tặc, `shaman` Pháp sư gọi hồn, `drum` Tu sĩ ánh sáng, `wolf` Sói bóng đêm, `elephant` Golem đá, `catapult` Máy bắn đá, `bird` Rồng, `ghost` Bộ xương (chỉ do pháp sư gọi hồn dựng dậy, không mua được, không đưa vào `allowed`). Trọng số AI mua = `aiWeight` trong `Rules.UNITS` (thiếu -> `AI.DEFAULT_WEIGHT` 1.0, không crash; test vẫn đòi khai báo cho quân mua được). Chỉ có 2 tướng cho mọi chiến dịch: `anhhung` (Hiệp Sĩ Chỉ Huy, phe ta) và `tuonggiac` (Vorn, Hắc Hiệp Sĩ, phe địch; tên đổi 2026-11-08). Hình và chỉ số không bao giờ đổi. Lối chơi từng loại quân: `content/guide.gd`.
 
 ## Thêm loại quân
 Luật + AI chỉ đọc dữ liệu (`scripts/core/rules.gd` `UNITS`), không còn danh sách tên quân trong code.
@@ -51,6 +51,7 @@ extends RefCounted
 const DEF := {
 	"id": "m09", "order": 9,
 	"title": "Tên level",
+	"lore": "1 câu bối cảnh",            # tiền đề "Ngọn Lửa Lâu Đài": hiện dưới tên ở lưới chọn màn; câu khiêu khích của Vorn = cùng khóa (`Vorn: «…»`)
 	"hero": "anhhung",                    # luôn là anhhung
 	"enemyHero": "tuonggiac",             # luôn là tuonggiac; null = địch không có tướng
 	"newUnits": ["wolf"],                 # ghi chú: màn ra mắt loại lính đó (thẻ giới thiệu quân tự bật theo quân trên bản đồ, xem dưới)
@@ -91,6 +92,13 @@ const DEF := {
 
 Vào màn: thẳng bàn cờ, rồi thẻ giới thiệu quân mới (nếu có). Không thoại / sử tích (bỏ 2026-11-07).
 
+## Tiền đề "Ngọn Lửa Lâu Đài" (2026-11-08, spec `docs/superpowers/specs/2026-11-08-flame-premise-design.md`)
+- Mỗi lâu đài từng giữ ngọn lửa thề; Đế Quốc dập tắt; giành lại = thắp lại. Không truyện để đọc (user bỏ qua truyện; ra store toàn cầu).
+- `theme.lede` dưới logo màn tiêu đề; mỗi màn `lore` 1 câu (lưới chọn màn); tướng địch tên **Vorn**.
+- Bàn cờ: lâu đài ta có lửa, Đế Quốc có khói, trung lập tắt; đổi chủ -> lửa bùng / khói phụt ~1 s (`BoardPaint.draw_fires`, `Draw.flame` / `Draw.smoke`). Quân đứng trên lâu đài che lửa (như che cờ).
+- Lưới chọn màn: "🔥 N/39 ngọn lửa đã thắp" (N = số màn đã thắng).
+- Tên màn: giả tưởng chung, không địa danh / sử Việt. Màn g*: sửa cả `sim/level_recipes.gd` (`title` + `lore`).
+
 Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành), `story`, `history`, `tips`, `chapter`, `region`, `pos`, `place` (bỏ cốt truyện + chương 2026-11-07).
 
 ## Nhịp ra quân mới (2026-11-06)
@@ -109,42 +117,42 @@ Thứ tự = `order`. Màn `mNN` = làm tay (giữ nhịp thấy -> cầm -> mua
 | 1 | t01 | Bài Học Đầu | Dễ | normal | rout | tướng + vệ binh; hướng dẫn: mục tiêu, chọn + đi quân, quân xám, hết lượt, địch tới, đánh, đánh trả, dồn quân |
 | 2 | t02 | Lâu Đài Trống | Dễ | normal | rout | hướng dẫn: tướng chiếm lâu đài (thủ + hồi máu), rừng thủ, giữ chỗ cao, hạ hết địch |
 | 3 | t03 | Chiêu Binh | Dễ | normal | castles | vệ binh (mua); hướng dẫn: lâu đài mua quân, làng (vàng + hồi máu), hết lượt sớm |
-| 4 | m01 | Lời Thề Hát Môn | Dễ | normal | rout | — (bộ binh, tướng ra mắt ở t01–t03) |
-| 5 | m02 | Về Lại Mê Linh | Dễ | normal | castles | nỏ thủ (mua), chiếm thành |
-| 6 | m03 | Giữ Làng Hạ Lôi | Dễ | normal | survive | trống đồng (cầm), giữ vững |
-| 7 | m04 | Phá Đồn Cổ Loa | TB | normal | hero | trống (mua), voi (thấy), hạ tướng |
-| 8 | g01 | Bến Đò | TB | normal | castles | — |
-| 9 | m05 | Đêm Hồ Tây | Dễ | normal | castles | voi (mua), đêm |
-| 10 | g02 | Đồi Sim | Dễ | normal | rout | — |
-| 11 | m06 | Trận Bãi Sông | Dễ | normal | hero | — |
+| 4 | m01 | Lời Thề Bên Tro Tàn | Dễ | normal | rout | — (bộ binh, tướng ra mắt ở t01–t03) |
+| 5 | m02 | Ngọn Lửa Đầu Tiên | Dễ | normal | castles | nỏ thủ (mua), chiếm thành |
+| 6 | m03 | Giữ Làng Biên Giới | Dễ | normal | survive | trống đồng (cầm), giữ vững |
+| 7 | m04 | Đồn Gác Phương Bắc | TB | normal | hero | trống (mua), voi (thấy), hạ tướng |
+| 8 | g01 | Bến Phà Cũ | TB | normal | castles | — |
+| 9 | m05 | Đêm Hồ Gương | Dễ | normal | castles | voi (mua), đêm |
+| 10 | g02 | Đồi Gió | Dễ | normal | rout | — |
+| 11 | m06 | Bãi Sông Xám | Dễ | normal | hero | — |
 | 12 | g03 | Ngã Ba Sông | Khó | normal | castles | — |
 | 13 | g04 | Giữ Đồn | Dễ | normal | survive | — |
-| 14 | m07 | Vây Thành Long Biên | Dễ | normal | castles | máy bắn đá (cầm) |
-| 15 | g05 | Rừng Lim | TB | normal | hero | — |
-| 16 | m08 | Trị Sở Luy Lâu | Dễ | normal | castles | máy bắn đá (mua) |
-| 17 | g06 | Bãi Bồi | TB | normal | rout | — |
-| 18 | m09 | Tin Dữ Hợp Phố | Dễ | normal | survive | thủy binh (thấy) |
+| 14 | m07 | Vây Lâu Đài Đá Trắng | Dễ | normal | castles | máy bắn đá (cầm) |
+| 15 | g05 | Rừng Sồi Già | TB | normal | hero | — |
+| 16 | m08 | Phủ Thành Đế Quốc | Dễ | normal | castles | máy bắn đá (mua) |
+| 17 | g06 | Bãi Cát Giữa Sông | TB | normal | rout | — |
+| 18 | m09 | Tin Dữ Từ Biển | Dễ | normal | survive | thủy binh (thấy) |
 | 19 | g07 | Cửa Sông | TB | normal | hero | — |
-| 20 | m10 | Sóng An Biên | Dễ | normal | hero | thủy binh (mua), làng hỏng |
-| 21 | g08 | Sông Đáy | TB | normal | castles | — |
-| 22 | g09 | Làng Ven Đê | TB | normal | hero | — |
-| 23 | m11 | Bát Nàn Giữ Ải | Dễ | normal | castles | sói (thấy) |
+| 20 | m10 | Vịnh Bão | Dễ | normal | hero | thủy binh (mua), làng hỏng |
+| 21 | g08 | Sông Bạc | TB | normal | castles | — |
+| 22 | g09 | Làng Cối Xay | TB | normal | hero | — |
+| 23 | m11 | Ải Sói | Dễ | normal | castles | sói (thấy) |
 | 24 | g10 | Rừng Đêm | Dễ | normal | rout · đêm | — |
-| 25 | m12 | Trận Lãng Bạc | Dễ | normal | castles | sói (mua) |
+| 25 | m12 | Hồ Sương Mù | Dễ | normal | castles | sói (mua) |
 | 26 | g11 | Thành Đá | Khó | hard | castles | — |
-| 27 | g12 | Bãi Lau | Dễ | normal | rout | — |
-| 28 | m13 | Địu Con Phá Vây | Dễ | normal | reach | thầy mo + âm binh (cầm), tới ô đích |
-| 29 | g13 | Miếu Cổ | Dễ | normal | castles | — |
-| 30 | m14 | Rút Về Cấm Khê | Dễ | normal | reach | thầy mo (mua) |
+| 27 | g12 | Bãi Sậy | Dễ | normal | rout | — |
+| 28 | m13 | Phá Vòng Vây | Dễ | normal | reach | thầy mo + âm binh (cầm), tới ô đích |
+| 29 | g13 | Đền Cổ | Dễ | normal | castles | — |
+| 30 | m14 | Rút Lên Núi | Dễ | normal | reach | thầy mo (mua) |
 | 31 | g14 | Đầm Lầy | Dễ | normal | survive | — |
-| 32 | g15 | Thành Mới | Dễ | normal | castles | — |
-| 33 | m15 | Thành Cấm Khê | Dễ | normal | survive | rồng (1 con) |
+| 32 | g15 | Thành Mới Xây | Dễ | normal | castles | — |
+| 33 | m15 | Pháo Đài Trên Núi | Dễ | normal | survive | rồng (1 con) |
 | 34 | g16 | Núi Rồng | Dễ | normal | hero | — |
-| 35 | m16 | Đêm Sông Hát | TB | normal | survive | — |
-| 36 | g17 | Lũy Tre | Khó | hard | castles | — |
+| 35 | m16 | Đêm Dài Nhất | TB | normal | survive | — |
+| 36 | g17 | Tường Gai | Khó | hard | castles | — |
 | 37 | g18 | Trăng Khuyết | Dễ | normal | rout · đêm | — |
-| 38 | g19 | Giữ Thành | Dễ | normal | survive | — |
-| 39 | g20 | Trận Cuối | Khó | hard | castles | — |
+| 38 | g19 | Cổng Kinh Đô | Dễ | normal | survive | — |
+| 39 | g20 | Ngọn Lửa Kinh Đô | Khó | hard | castles | — |
 
 ## Sao màn (2026-11-06)
 - 3 sao / màn chiến dịch (`scripts/core/stars.gd`): thắng · tướng ta không ngã lần nào (`heroDeaths.p == 0`) · mốc riêng `stars` của màn: `turns` (thắng trong ≤ N lượt) hoặc `lost` (mất ≤ K lính; không tính tướng, âm binh; đếm ở `s.lost`).

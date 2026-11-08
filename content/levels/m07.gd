@@ -1,12 +1,13 @@
 extends RefCounted
 # prose / map rows: one line each reads better
 # gdlint: disable=max-line-length
-## mission m07: Vây Thành Long Biên. Format: docs/content.md
+## m07: Vây Lâu Đài Đá Trắng. Format: docs/content.md
 
 const DEF := {
 	"id": "m07",
 	"order": 70,
-	"title": "Vây Thành Long Biên",
+	"title": "Vây Lâu Đài Đá Trắng",
+	"lore": "Tường đá quá dày cho gươm giáo. Máy bắn đá sẽ mở đường.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["catapult"],

@@ -143,6 +143,8 @@ func _layer(fn: Callable) -> Layer:
 func set_state(state: Dictionary) -> void:
 	s = state
 	_motes.clear()
+	paint.fires.clear() # a new game: no flare for castles that "changed hands" since the last one
+	paint.flare_at.clear()
 	_terrain_dirty = true
 	_night_key = -1
 
@@ -334,6 +336,7 @@ func _draw_dyn(ci: CanvasItem) -> void:
 		var own: String = b[3]
 		Draw.set_xf(ci, up_xf(Vector2(x + 0.5, y + 0.5) * T))
 		paint.draw_building(ci, t, x * T, y * T, own, time, x, y)
+	paint.draw_fires(ci, time)
 	for g: Dictionary in s.graves:
 		var gx: float = g.x
 		var gy: float = g.y

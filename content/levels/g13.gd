@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g13",
 	"order": 135,
-	"title": "Miếu Cổ",
+	"title": "Đền Cổ",
+	"lore": "Lâu đài quanh ngôi đền cổ đã tắt lửa quá lâu.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

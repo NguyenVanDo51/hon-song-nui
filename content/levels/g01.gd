@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g01",
 	"order": 45,
-	"title": "Bến Đò",
+	"title": "Bến Phà Cũ",
+	"lore": "Bến phà là đường duy nhất qua sông, và một lâu đài đang giữ nó.",
 	"tier": "mid",
 	"ai": "normal",
 	"hero": "anhhung",

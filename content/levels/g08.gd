@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g08",
 	"order": 105,
-	"title": "Sông Đáy",
+	"title": "Sông Bạc",
+	"lore": "Lâu đài bên Sông Bạc giữ đường vào vùng trong.",
 	"tier": "mid",
 	"ai": "normal",
 	"hero": "anhhung",

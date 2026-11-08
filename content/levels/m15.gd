@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m15: Thành Cấm Khê. Format: docs/content.md
+## m15: Pháo Đài Trên Núi. Format: docs/content.md
 
 const DEF := {
 	"id": "m15",
 	"order": 150,
-	"title": "Thành Cấm Khê",
+	"title": "Pháo Đài Trên Núi",
+	"lore": "Ngọn lửa cuối cùng phía tây. Giữ nó bằng mọi giá.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["bird"],

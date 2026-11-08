@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m10: Sóng An Biên. Format: docs/content.md
+## m10: Vịnh Bão. Format: docs/content.md
 
 const DEF := {
 	"id": "m10",
 	"order": 100,
-	"title": "Sóng An Biên",
+	"title": "Vịnh Bão",
+	"lore": "Đế Quốc đốt làng dọc vịnh. Dựng lại làng, rồi hạ Vorn.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

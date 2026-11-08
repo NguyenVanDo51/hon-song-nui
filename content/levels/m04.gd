@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m04: Phá Đồn Cổ Loa. Format: docs/content.md
+## m04: Đồn Gác Phương Bắc. Format: docs/content.md
 
 const DEF := {
 	"id": "m04",
 	"order": 40,
-	"title": "Phá Đồn Cổ Loa",
+	"title": "Đồn Gác Phương Bắc",
+	"lore": "Vorn đích thân trấn đồn gác. Hạ hắn, cả đồn tan rã.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["elephant"],

@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g09",
 	"order": 107,
-	"title": "Làng Ven Đê",
+	"title": "Làng Cối Xay",
+	"lore": "Vorn lấy làng cối xay làm đại bản doanh. Hạ hắn.",
 	"tier": "mid",
 	"ai": "normal",
 	"hero": "anhhung",

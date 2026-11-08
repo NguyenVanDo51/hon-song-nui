@@ -86,24 +86,24 @@ AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng / 24; "hòa" = h�
 
 | Màn | Ta thắng | Hòa | Trung vị lượt | Sao 3 | | Màn | Ta thắng | Hòa | Trung vị lượt | Sao 3 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| m01 Lời Thề Hát Môn | 24/24 | 0 | 8 | ≤ 8 lượt | | g03 Ngã Ba Sông | 10/24 | 0 | 22 | ≤ 23 lượt |
-| m02 Về Lại Mê Linh | 19/24 | 0 | 12 | ≤ 11 lượt | | g04 Giữ Đồn | 24/24 | 0 | 10 | mất ≤ 7 |
-| m03 Giữ Làng Hạ Lôi | 24/24 | 0 | 11 | mất ≤ 0 | | g05 Rừng Lim | 13/24 | 0 | 15 | ≤ 14 lượt |
-| m04 Phá Đồn Cổ Loa | 19/24 | 0 | 12 | ≤ 11 lượt | | g06 Bãi Bồi | 8/24 | 0 | 14 | ≤ 27 lượt |
-| m05 Đêm Hồ Tây | 23/24 | 0 | 12 | ≤ 12 lượt | | g07 Cửa Sông | 22/24 | 0 | 10 | ≤ 10 lượt |
-| m06 Trận Bãi Sông | 23/24 | 0 | 12 | ≤ 11 lượt | | g08 Sông Đáy | 20/24 | 0 | 21 | ≤ 20 lượt |
-| m07 Vây Thành Long Biên | 20/24 | 1 | 14 | ≤ 12 lượt | | g09 Làng Ven Đê | 22/24 | 0 | 10 | ≤ 10 lượt |
-| m08 Trị Sở Luy Lâu | 15/24 | 9 | 20 | ≤ 17 lượt | | g10 Rừng Đêm | 24/24 | 0 | 12 | ≤ 12 lượt |
-| m09 Tin Dữ Hợp Phố | 24/24 | 0 | 10 | mất ≤ 1 | | g11 Thành Đá | 7/24 | 0 | 19 | ≤ 16 lượt |
-| m10 Sóng An Biên | 17/24 | 0 | 20 | ≤ 16 lượt | | g12 Bãi Lau | 24/24 | 0 | 6 | ≤ 6 lượt |
-| m11 Bát Nàn Giữ Ải | 23/24 | 0 | 14 | ≤ 14 lượt | | g13 Miếu Cổ | 15/24 | 0 | 11 | ≤ 11 lượt |
-| m12 Trận Lãng Bạc | 23/24 | 1 | 18 | ≤ 17 lượt | | g14 Đầm Lầy | 24/24 | 0 | 8 | mất ≤ 0 |
-| m13 Địu Con Phá Vây | 20/24 | 0 | 7 | ≤ 7 lượt | | g15 Thành Mới | 20/24 | 0 | 15 | ≤ 15 lượt |
-| m14 Rút Về Cấm Khê | 20/24 | 0 | 9 | ≤ 9 lượt | | g16 Núi Rồng | 24/24 | 0 | 11 | ≤ 11 lượt |
-| m15 Thành Cấm Khê | 12/24 | 0 | 12 | mất ≤ 12 | | g17 Lũy Tre | 10/24 | 0 | 19 | ≤ 20 lượt |
-| m16 Đêm Sông Hát | 12/24 | 0 | 9 | mất ≤ 7 | | g18 Trăng Khuyết | 24/24 | 0 | 12 | ≤ 12 lượt |
-| g01 Bến Đò | 13/24 | 0 | 16 | ≤ 16 lượt | | g19 Giữ Thành | 24/24 | 0 | 11 | mất ≤ 6 |
-| g02 Đồi Sim | 23/24 | 1 | 13 | ≤ 13 lượt | | g20 Trận Cuối | 9/24 | 1 | 25 | ≤ 25 lượt |
+| m01 Lời Thề Bên Tro Tàn | 24/24 | 0 | 8 | ≤ 8 lượt | | g03 Ngã Ba Sông | 10/24 | 0 | 22 | ≤ 23 lượt |
+| m02 Ngọn Lửa Đầu Tiên | 19/24 | 0 | 12 | ≤ 11 lượt | | g04 Giữ Đồn | 24/24 | 0 | 10 | mất ≤ 7 |
+| m03 Giữ Làng Biên Giới | 24/24 | 0 | 11 | mất ≤ 0 | | g05 Rừng Sồi Già | 13/24 | 0 | 15 | ≤ 14 lượt |
+| m04 Đồn Gác Phương Bắc | 19/24 | 0 | 12 | ≤ 11 lượt | | g06 Bãi Cát Giữa Sông | 8/24 | 0 | 14 | ≤ 27 lượt |
+| m05 Đêm Hồ Gương | 23/24 | 0 | 12 | ≤ 12 lượt | | g07 Cửa Sông | 22/24 | 0 | 10 | ≤ 10 lượt |
+| m06 Bãi Sông Xám | 23/24 | 0 | 12 | ≤ 11 lượt | | g08 Sông Bạc | 20/24 | 0 | 21 | ≤ 20 lượt |
+| m07 Vây Lâu Đài Đá Trắng | 20/24 | 1 | 14 | ≤ 12 lượt | | g09 Làng Cối Xay | 22/24 | 0 | 10 | ≤ 10 lượt |
+| m08 Phủ Thành Đế Quốc | 15/24 | 9 | 20 | ≤ 17 lượt | | g10 Rừng Đêm | 24/24 | 0 | 12 | ≤ 12 lượt |
+| m09 Tin Dữ Từ Biển | 24/24 | 0 | 10 | mất ≤ 1 | | g11 Thành Đá | 7/24 | 0 | 19 | ≤ 16 lượt |
+| m10 Vịnh Bão | 17/24 | 0 | 20 | ≤ 16 lượt | | g12 Bãi Sậy | 24/24 | 0 | 6 | ≤ 6 lượt |
+| m11 Ải Sói | 23/24 | 0 | 14 | ≤ 14 lượt | | g13 Đền Cổ | 15/24 | 0 | 11 | ≤ 11 lượt |
+| m12 Hồ Sương Mù | 23/24 | 1 | 18 | ≤ 17 lượt | | g14 Đầm Lầy | 24/24 | 0 | 8 | mất ≤ 0 |
+| m13 Phá Vòng Vây | 20/24 | 0 | 7 | ≤ 7 lượt | | g15 Thành Mới Xây | 20/24 | 0 | 15 | ≤ 15 lượt |
+| m14 Rút Lên Núi | 20/24 | 0 | 9 | ≤ 9 lượt | | g16 Núi Rồng | 24/24 | 0 | 11 | ≤ 11 lượt |
+| m15 Pháo Đài Trên Núi | 12/24 | 0 | 12 | mất ≤ 12 | | g17 Tường Gai | 10/24 | 0 | 19 | ≤ 20 lượt |
+| m16 Đêm Dài Nhất | 12/24 | 0 | 9 | mất ≤ 7 | | g18 Trăng Khuyết | 24/24 | 0 | 12 | ≤ 12 lượt |
+| g01 Bến Phà Cũ | 13/24 | 0 | 16 | ≤ 16 lượt | | g19 Cổng Kinh Đô | 24/24 | 0 | 11 | mất ≤ 6 |
+| g02 Đồi Gió | 23/24 | 1 | 13 | ≤ 13 lượt | | g20 Ngọn Lửa Kinh Đô | 9/24 | 1 | 25 | ≤ 25 lượt |
 
 - Bảng cũ (2026-11-06, luật đi cũ = mv đủ, AI `fe83a5d`, 12 ván): xem git history README trước `rules/move-minus-one`.
 

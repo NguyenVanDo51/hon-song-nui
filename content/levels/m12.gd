@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m12: Trận Lãng Bạc. Format: docs/content.md
+## m12: Hồ Sương Mù. Format: docs/content.md
 
 const DEF := {
 	"id": "m12",
 	"order": 120,
-	"title": "Trận Lãng Bạc",
+	"title": "Hồ Sương Mù",
+	"lore": "Vorn: «Ngươi thắp mười ngọn, ta dập mười một.»",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

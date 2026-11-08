@@ -236,6 +236,9 @@ func show_title() -> void:
 	var logo := _logo(title, 84)
 	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	top.add_child(logo)
+	var lede := Style.lbl(str(th.lede), 16, Style.INK, Style.semi) # premise "Ngọn Lửa Lâu Đài"
+	lede.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	top.add_child(lede)
 	var list := Style.vbox(10)
 	list.position = Vector2(60, 168)
 	list.size = Vector2(340, 0)

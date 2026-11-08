@@ -9,6 +9,7 @@ const DEF := {
 	"id": "t03",
 	"order": 3,
 	"title": "Chiêu Binh",
+	"lore": "Có lâu đài, có làng: đủ để chiêu binh.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": [],

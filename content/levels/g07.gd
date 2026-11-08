@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g07",
 	"order": 95,
 	"title": "Cửa Sông",
+	"lore": "Vorn đóng quân ở cửa sông. Hạ hắn, cắt đường tiếp viện.",
 	"tier": "mid",
 	"ai": "normal",
 	"hero": "anhhung",

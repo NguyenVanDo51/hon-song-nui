@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m08: Trị Sở Luy Lâu. Format: docs/content.md
+## m08: Phủ Thành Đế Quốc. Format: docs/content.md
 
 const DEF := {
 	"id": "m08",
 	"order": 80,
-	"title": "Trị Sở Luy Lâu",
+	"title": "Phủ Thành Đế Quốc",
+	"lore": "Nơi Đế Quốc cai trị cả vùng. Chiếm nó, cả vùng sẽ thắp lửa.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

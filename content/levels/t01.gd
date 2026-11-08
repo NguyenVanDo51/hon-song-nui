@@ -9,6 +9,7 @@ const DEF := {
 	"id": "t01",
 	"order": 1,
 	"title": "Bài Học Đầu",
+	"lore": "Một làng nhỏ ngoài biên, nơi cuộc khởi nghĩa nhóm những tia lửa đầu tiên.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["hero", "soldier"],

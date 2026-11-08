@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m01: Lời Thề Hát Môn. Format: docs/content.md
+## m01: Lời Thề Bên Tro Tàn. Format: docs/content.md
 
 const DEF := {
 	"id": "m01",
 	"order": 10,
-	"title": "Lời Thề Hát Môn",
+	"title": "Lời Thề Bên Tro Tàn",
+	"lore": "Bên đống tro lâu đài cũ, những người cuối cùng thề thắp lại ngọn lửa.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": [],

@@ -1,12 +1,13 @@
 extends RefCounted
 # prose / map rows: one line each reads better
 # gdlint: disable=max-line-length
-## mission m13: Phùng Thị Chính. Format: docs/content.md
+## m13: Phá Vòng Vây. Format: docs/content.md
 
 const DEF := {
 	"id": "m13",
 	"order": 130,
-	"title": "Địu Con Phá Vây",
+	"title": "Phá Vòng Vây",
+	"lore": "Vòng vây khép lại. Mở đường tới cờ vàng trước khi quá muộn.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["shaman"],

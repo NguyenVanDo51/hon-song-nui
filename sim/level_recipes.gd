@@ -5,7 +5,8 @@ extends RefCounted
 const RECIPES := [
 	{
 		"id": "g01",
-		"title": "Bến Đò",
+		"title": "Bến Phà Cũ",
+		"lore": "Bến phà là đường duy nhất qua sông, và một lâu đài đang giữ nó.",
 		"order": 45,
 		"tier": "mid",
 		"ai": "normal",
@@ -31,7 +32,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g02",
-		"title": "Đồi Sim",
+		"title": "Đồi Gió",
+		"lore": "Một đạo quân Đế Quốc cắm trại trên đồi. Quét sạch chúng.",
 		"order": 55,
 		"tier": "easy",
 		"ai": "normal",
@@ -58,6 +60,7 @@ const RECIPES := [
 	{
 		"id": "g03",
 		"title": "Ngã Ba Sông",
+		"lore": "Ai giữ ngã ba sông, người đó giữ cả vùng.",
 		"order": 63,
 		"tier": "hard",
 		"ai": "normal",
@@ -84,6 +87,7 @@ const RECIPES := [
 	{
 		"id": "g04",
 		"title": "Giữ Đồn",
+		"lore": "Đồn gác vừa giành lại. Đế Quốc quay lại đòi nó.",
 		"order": 67,
 		"tier": "easy",
 		"ai": "normal",
@@ -113,7 +117,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g05",
-		"title": "Rừng Lim",
+		"title": "Rừng Sồi Già",
+		"lore": "Vorn ẩn trong rừng sồi. Lùng ra và hạ hắn.",
 		"order": 75,
 		"tier": "mid",
 		"ai": "normal",
@@ -139,7 +144,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g06",
-		"title": "Bãi Bồi",
+		"title": "Bãi Cát Giữa Sông",
+		"lore": "Quân Đế Quốc mắc kẹt trên bãi cát. Đừng để tên nào thoát.",
 		"order": 85,
 		"tier": "mid",
 		"ai": "normal",
@@ -166,6 +172,7 @@ const RECIPES := [
 	{
 		"id": "g07",
 		"title": "Cửa Sông",
+		"lore": "Vorn đóng quân ở cửa sông. Hạ hắn, cắt đường tiếp viện.",
 		"order": 95,
 		"tier": "mid",
 		"ai": "normal",
@@ -191,7 +198,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g08",
-		"title": "Sông Đáy",
+		"title": "Sông Bạc",
+		"lore": "Lâu đài bên Sông Bạc giữ đường vào vùng trong.",
 		"order": 105,
 		"tier": "mid",
 		"ai": "normal",
@@ -217,7 +225,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g09",
-		"title": "Làng Ven Đê",
+		"title": "Làng Cối Xay",
+		"lore": "Vorn lấy làng cối xay làm đại bản doanh. Hạ hắn.",
 		"order": 107,
 		"tier": "mid",
 		"ai": "normal",
@@ -244,6 +253,7 @@ const RECIPES := [
 	{
 		"id": "g10",
 		"title": "Rừng Đêm",
+		"lore": "Trong rừng tối, quân Đế Quốc lạc nhau. Săn từng toán.",
 		"order": 115,
 		"tier": "easy",
 		"ai": "normal",
@@ -270,6 +280,7 @@ const RECIPES := [
 	{
 		"id": "g11",
 		"title": "Thành Đá",
+		"lore": "Thành Đá chưa từng thất thủ. Cho tới hôm nay.",
 		"order": 125,
 		"tier": "hard",
 		"ai": "hard",
@@ -295,7 +306,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g12",
-		"title": "Bãi Lau",
+		"title": "Bãi Sậy",
+		"lore": "Quân Đế Quốc phục trong bãi sậy. Lôi chúng ra.",
 		"order": 127,
 		"tier": "easy",
 		"ai": "normal",
@@ -321,7 +333,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g13",
-		"title": "Miếu Cổ",
+		"title": "Đền Cổ",
+		"lore": "Lâu đài quanh ngôi đền cổ đã tắt lửa quá lâu.",
 		"order": 135,
 		"tier": "easy",
 		"ai": "normal",
@@ -348,6 +361,7 @@ const RECIPES := [
 	{
 		"id": "g14",
 		"title": "Đầm Lầy",
+		"lore": "Kẹt giữa đầm lầy. Trụ vững cho tới khi địch đuối sức.",
 		"order": 145,
 		"tier": "easy",
 		"ai": "normal",
@@ -377,7 +391,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g15",
-		"title": "Thành Mới",
+		"title": "Thành Mới Xây",
+		"lore": "Đế Quốc xây thành mới để chặn đường. Đừng để nó đứng vững.",
 		"order": 147,
 		"tier": "easy",
 		"ai": "normal",
@@ -407,6 +422,7 @@ const RECIPES := [
 	{
 		"id": "g16",
 		"title": "Núi Rồng",
+		"lore": "Vorn: «Leo tới đây rồi sao? Đỉnh núi này là mồ của ngươi.»",
 		"order": 155,
 		"tier": "easy",
 		"ai": "normal",
@@ -435,7 +451,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g17",
-		"title": "Lũy Tre",
+		"title": "Tường Gai",
+		"lore": "Bức tường cuối cùng trước kinh đô. Phá nó.",
 		"order": 165,
 		"tier": "hard",
 		"ai": "hard",
@@ -465,6 +482,7 @@ const RECIPES := [
 	{
 		"id": "g18",
 		"title": "Trăng Khuyết",
+		"lore": "Dưới trăng khuyết, cận vệ của Vorn đi tuần. Diệt sạch.",
 		"order": 170,
 		"tier": "easy",
 		"ai": "normal",
@@ -490,7 +508,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g19",
-		"title": "Giữ Thành",
+		"title": "Cổng Kinh Đô",
+		"lore": "Trước cổng kinh đô, Đế Quốc dốc toàn lực phản công. Trụ vững.",
 		"order": 175,
 		"tier": "easy",
 		"ai": "normal",
@@ -521,7 +540,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g20",
-		"title": "Trận Cuối",
+		"title": "Ngọn Lửa Kinh Đô",
+		"lore": "Vorn: «Ngọn lửa cuối cùng thuộc về Đế Quốc.»",
 		"order": 180,
 		"tier": "hard",
 		"ai": "hard",

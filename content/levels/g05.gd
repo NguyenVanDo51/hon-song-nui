@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g05",
 	"order": 75,
-	"title": "Rừng Lim",
+	"title": "Rừng Sồi Già",
+	"lore": "Vorn ẩn trong rừng sồi. Lùng ra và hạ hắn.",
 	"tier": "mid",
 	"ai": "normal",
 	"hero": "anhhung",

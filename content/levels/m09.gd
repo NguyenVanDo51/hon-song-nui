@@ -1,10 +1,11 @@
 extends RefCounted
-## mission m09: Tin Dữ Hợp Phố. Format: docs/content.md
+## m09: Tin Dữ Từ Biển. Format: docs/content.md
 
 const DEF := {
 	"id": "m09",
 	"order": 90,
-	"title": "Tin Dữ Hợp Phố",
+	"title": "Tin Dữ Từ Biển",
+	"lore": "Thuyền Đế Quốc đổ bộ từ biển. Giữ vững tới khi chúng rút.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["boat"],

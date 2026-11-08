@@ -4,7 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g17",
 	"order": 165,
-	"title": "Lũy Tre",
+	"title": "Tường Gai",
+	"lore": "Bức tường cuối cùng trước kinh đô. Phá nó.",
 	"tier": "hard",
 	"ai": "hard",
 	"hero": "anhhung",

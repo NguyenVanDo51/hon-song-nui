@@ -5,6 +5,7 @@ const DEF := {
 	"id": "g18",
 	"order": 170,
 	"title": "Trăng Khuyết",
+	"lore": "Dưới trăng khuyết, cận vệ của Vorn đi tuần. Diệt sạch.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

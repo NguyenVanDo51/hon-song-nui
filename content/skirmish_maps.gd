@@ -4,7 +4,7 @@ extends RefCounted
 
 const MAPS := {
 	"dong_bang": {
-		"name": "Cù lao sông Bạc",
+		"name": "Đảo Sông Bạc",
 		"blurb": "Sông lớn chia đôi chiến trường, lâu đài trên cù lao giữa dòng. Hai cầu gỗ hai bên.",
 		"rows": [
 			"~~~~~ffmmfh.rvf",

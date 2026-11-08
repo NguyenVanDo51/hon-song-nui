@@ -58,6 +58,8 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
+- [ ] (2026-11-08) `content/theme.gd` `text.skirmishTitle` — không script nào đọc -> khóa chết, sửa tên ở đó không có tác dụng (xoá hoặc dùng ở màn đấu tự do).
+- [ ] (2026-11-08) `docs/content.md` bảng "Nhịp ra mắt" cột "Mới" — còn tên quân trước reskin (nỏ thủ, trống đồng, voi, thầy mo, thủy binh, âm binh) -> lệch với tên trong game (Cung thủ, Tu sĩ ánh sáng, Golem đá…); đổi theo `content/theme.gd` `UNITS`.
 - [ ] (2026-11-08) `sim/sim.gd` mode `naive` — bản đồ cố định dong_bang -> random-vs-AI không kiểm 2 bản đồ còn lại (dùng chung tham số map như `skirmish`).
 - [ ] (2026-11-08) `docs/ai.md` / bảng tỉ lệ thắng bot (Khó v3 / v5, `hard_v*`) đo trên luật đi cũ + dong_bang cũ 300 vàng / trần 15 -> mọi số cũ hết hiệu lực; đo lại khi luyện bot tiếp.
 - [ ] (2026-11-08) `sim/click_driver.gd` `turn_of` (3000 frame) / `idle` (400 frame) chờ theo số frame -> cửa sổ Godot ở nền (macOS hạ fps) thì hết hạn sớm, FAIL ngẫu nhiên (gặp khi chạy tut_driver lần 2). Sửa: chờ theo đồng hồ như `sim/tut_driver.gd` `_until`.

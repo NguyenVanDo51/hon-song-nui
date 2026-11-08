@@ -258,6 +258,10 @@ func play(events: Array, before: Dictionary) -> void:
 				var castle := Game.sells(e.tile)
 				var cap_txt := Content.text("captureCastle") if castle else Content.text("captureVillage")
 				gs.fx.float_text(ex, ey - 0.3, cap_txt, "#ffe08a", 1300.0, castle)
+				if castle and eside == "p": # premise: the flame relit; drawn over the capturing unit (board flame is under it)
+					var fire := { "color": ["#ffe48a", "#ff9a3c", "#e2462c"], "kind": "glow", "vmin": 0.6, "vmax": 1.6, "up": 2.4 }
+					fire.merge({ "g": -1.2, "lmin": 500.0, "lmax": 1000.0, "smin": 0.04, "smax": 0.08 })
+					gs.fx.burst(ex, ey, 30, fire)
 				if _teach(eside):
 					_show_gains(ex, ey, str(e.tile))
 				await gs.fx.sleep(700.0 if castle else 450.0)

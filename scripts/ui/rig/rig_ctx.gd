@@ -144,7 +144,7 @@ func fill(col: Variant) -> void:
 	var c := _col(col)
 	if c.a <= 0.002:
 		return
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 	var both := _subs_now()
 	for pts: PackedVector2Array in both[0]:
 		fill_poly(ci, pts, c)
@@ -153,7 +153,7 @@ func stroke(col: Variant, width: float) -> void:
 	var c := _col(col)
 	if c.a <= 0.002:
 		return
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 	var w := maxf(0.6, width * _scale)
 	var both := _subs_now()
 	var subs: Array = both[0]
@@ -210,5 +210,5 @@ func text(x: float, y: float, s: String, size: float, col: Color, ink: Color, ou
 	c.a *= alpha
 	var o := ink
 	o.a *= alpha
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 	Draw.text_c(ci, Style.xbold, p, s, maxi(6, roundi(size * _scale)), c, maxi(1, roundi(outline * _scale)), o, scale)

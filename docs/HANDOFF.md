@@ -124,3 +124,11 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Màn: `content/levels/t01.gd` (order 1), `t02.gd` (order 2, không quân địch). Vòng "màn tiếp" = màn chưa thắng sau màn xa nhất đã thắng.
 - Kiểm: tests 156/0, lint ok, click_driver m02 (có / không intro) / t01 / t02 fails=0; ảnh probe `sim/probes/tut_shot.gd`, `intro_shot.gd`, `hud_shot.gd`.
 - Nợ mở: `docs/TODO.md` § Nợ kỹ thuật (golden cũ, tên màn m01–m16 còn sử Việt, `_eff` hết địch trong tầm, font thiếu ❤🪙…).
+
+## 2026-11-08 — màn dọc (nhánh `feat/portrait`, chưa merge)
+- Yêu cầu user: màn dọc trên mobile = xoay bàn như cờ tướng (quân đỏ tiến lên trên), không vẽ lại bản đồ.
+- Cách làm: `Board.rot` (màn cao > rộng + `auto_rotate`, chỉ bàn trận chính) -> Board `rotation = -90°`; hình học (cỏ, sông, đường, vùng tô, đường đi, mũi tên bay) xoay theo bàn; vật đứng (lính, nhà, cây / đồi / núi, chữ, huy hiệu) dựng thẳng bằng `up_xf(tâm ô)`; rig tấn công đặt trên ô màn hình (`vis_tile`) + vẽ qua `vis_xf()` (rig compose `Draw.xf`). Hướng mặt / đòn lao / knock đổi qua `scr()`. Chạm ô: Godot tự đổi toạ độ; `tile_rect` = `get_transform() * rect`.
+- HUD: `Board.place / visual_size / visual_rect`. Tỉ lệ UI dọc = như khung 720x1280 (`Main._fit_scale`). Bỏ màn "xoay ngang". `orientation=6` (sensor), PWA any.
+- Menu dọc: lưới Thử thách xếp chi tiết dưới lưới (`BoxContainer.vertical`; HBox không đổi hướng được), Sách lính tab xuống dòng, đấu tự do / 1 đấu 1 hàng tự xuống dòng (`HFlowContainer`).
+- Kiểm: tests 189/0; click_driver có cửa sổ 540x1170 m02 / m02 intro / t01 fails=0 (headless bỏ qua --resolution); `sim/probes/portrait_shot.gd` (chọn ô khớp 100% + xoay máy giữa trận ngang <-> dọc), safe_shot dọc 15/15.
+- Còn lại: `docs/TODO.md` § Tính năng "Màn dọc" (đá máy bắn đá cong ngang, fx bay lên, màn tiêu đề).

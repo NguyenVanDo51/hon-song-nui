@@ -22,6 +22,7 @@ var sel := 0 # selected level (info panel); a second tap on it starts it
 var _grid: GridContainer
 var _info: VBoxContainer
 var _pager: HBoxContainer
+var _row: BoxContainer # grid | info side by side; portrait: info under the grid
 var _tile := TILE
 
 static func page_of(index: int) -> int:
@@ -49,7 +50,9 @@ func setup(lv: Array, open: int, pg: int) -> void:
 	levels = lv
 	open_index = open
 	page = clampi(pg, 0, page_of(maxi(0, levels.size() - 1)))
-	var row := Style.hbox(18)
+	var row := BoxContainer.new() # HBox / VBox cannot flip orientation
+	row.add_theme_constant_override("separation", 18)
+	_row = row
 	add_child(row)
 	_grid = GridContainer.new()
 	_grid.columns = COLS
@@ -74,10 +77,27 @@ func _ready() -> void:
 func _fit() -> void:
 	var e := Style.safe_insets(self)
 	var rows := ceili(float(PER_PAGE) / COLS)
-	var room := get_viewport_rect().size.y - e.y - e.w - CHROME_Y - GAP * (rows - 1) - 3.0 # 3: tile hard shadow
+	var vp := get_viewport_rect().size
+	var room := vp.y - e.y - e.w - CHROME_Y - GAP * (rows - 1) - 3.0 # 3: tile hard shadow
 	_tile = clampf(floorf(room / rows), TILE_MIN, TILE)
+	var was := _row.vertical
+	_row.vertical = vp.y > vp.x
+	if was != _row.vertical:
+		_resort.call_deferred()
+	if _row.vertical: # portrait: the grid takes the page width (2x28 margins), the info sits below
+		_tile = clampf(floorf((vp.x - e.x - e.z - 56.0 - GAP * (COLS - 1) - 3.0) / COLS), TILE_MIN, TILE)
 	for c in _grid.get_children():
 		(c as Control).custom_minimum_size = Vector2(_tile, _tile)
+
+## after a flip the page's ScrollContainer keeps the old scroll range (sorted while the info labels still had the old
+## height): re-sort it once the new layout settled
+func _resort() -> void:
+	await get_tree().process_frame
+	var p := get_parent()
+	while p != null and not p is ScrollContainer:
+		p = p.get_parent()
+	if p != null:
+		(p as ScrollContainer).queue_sort()
 
 func _build() -> void:
 	for c in _grid.get_children():

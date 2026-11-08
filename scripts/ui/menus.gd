@@ -415,7 +415,7 @@ func show_skirmish() -> void:
 				show_skirmish(),
 		)
 	)
-	var row := Style.hbox(10)
+	var row := _flow(10)
 	var seg := Style.hbox(0)
 	var e_btn := Style.button("Dễ", "SegOn" if easy else "SegBtn")
 	var n_btn := Style.button("Thường", "SegBtn" if easy else "SegOn")
@@ -502,8 +502,8 @@ func _hero_card(side: String, key: String, hot: bool, on_pick: Callable, blurb :
 	return card
 
 ## battlefield cards (skirmish maps); on_pick(map_id)
-func _map_cards(cur: String, on_pick: Callable) -> HBoxContainer:
-	var maps := Style.hbox(10)
+func _map_cards(cur: String, on_pick: Callable) -> HFlowContainer:
+	var maps := _flow(10)
 	for mid: String in Content.SKIRMISH.MAPS:
 		var md: Dictionary = Content.SKIRMISH.MAPS[mid]
 		var mv := Style.vbox(2)
@@ -524,11 +524,12 @@ func _map_cards(cur: String, on_pick: Callable) -> HBoxContainer:
 	return maps
 
 ## AE2 options: starting gold + unit cap; on_set("gold" | "cap", value)
-func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HBoxContainer:
-	var opts := Style.hbox(10)
+func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HFlowContainer:
+	var opts := _flow(16)
 	for spec: Array in [["Vàng khởi đầu", [500, 1000, 2000], "gold"], ["Giới hạn quân", [10, 20, 25], "cap"]]:
 		var spec_name: String = spec[0]
-		opts.add_child(Style.lbl(spec_name, 14, Style.MUTED))
+		var pair := Style.hbox(10) # label + its buttons wrap as one piece
+		pair.add_child(Style.lbl(spec_name, 14, Style.MUTED))
 		var sg := Style.hbox(0)
 		for val: int in spec[1]:
 			var cur: int = gold if spec[2] == "gold" else cap
@@ -540,8 +541,16 @@ func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HBoxContainer:
 					on_set.call(key, val),
 			)
 			sg.add_child(b)
-		opts.add_child(sg)
+		pair.add_child(sg)
+		opts.add_child(pair)
 	return opts
+
+## row that wraps onto more lines when the page is narrow (phone held upright)
+static func _flow(sep: int) -> HFlowContainer:
+	var f := HFlowContainer.new()
+	f.add_theme_constant_override("h_separation", sep)
+	f.add_theme_constant_override("v_separation", sep)
+	return f
 
 # ---------- 1 vs 1 (docs/1v1.md) ----------
 func show_duel() -> void:
@@ -555,7 +564,7 @@ func show_duel() -> void:
 		)
 	)
 	v.add_child(Style.lbl("Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch.", 14, Style.MUTED, null, true))
-	var cols := Style.hbox(12)
+	var cols := _flow(12)
 	for side: String in ["p", "e"]:
 		cols.add_child(_duel_side(side))
 	v.add_child(cols)
@@ -568,7 +577,7 @@ func show_duel() -> void:
 				show_duel(),
 		)
 	)
-	var row := Style.hbox(10)
+	var row := _flow(10)
 	var gold: int = duel_opts.gold
 	var cap: int = duel_opts.cap
 	var opts := _gold_cap_row(
@@ -601,7 +610,8 @@ func _duel_side(side: String) -> Control:
 	if side == "p":
 		cv.add_child(Style.lbl("Người chơi 1", 14, Style.MUTED))
 	else:
-		var seg := Style.hbox(0)
+		var seg := _flow(0) # 5 choices: wraps on a phone held upright
+		seg.add_theme_constant_override("v_separation", 4)
 		for o: Array in OPPONENTS:
 			var key: String = o[0]
 			var label: String = o[1]
@@ -799,6 +809,14 @@ func add_overlays() -> void:
 		card.custom_minimum_size = Vector2(minf(1000, vs.x - 32 - e.x - e.z), vs.y - 32 - e.y - e.w)
 		# grid columns from the card width: the grid's own resize never shrinks below 4 columns (phone: card wider than screen)
 		_codex_grid.columns = clampi(int((vs.x - 32 - e.x - e.z - 60.0 + 12.0) / (260.0 + 12.0)), 1, 4)
+		# portrait: the tabs get their own row under the title (title + tabs + close is wider than a phone held upright)
+		var seg_host: Container = head
+		if vs.y > vs.x:
+			seg_host = v
+		if seg.get_parent() != seg_host:
+			seg.get_parent().remove_child(seg)
+			seg_host.add_child(seg)
+			seg_host.move_child(seg, 1)
 	mc.resized.connect(fit)
 	if main:
 		main.add_child(codex)

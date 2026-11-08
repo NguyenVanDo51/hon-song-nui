@@ -119,9 +119,9 @@ func draw_char_under(ctx: RigCtx, cam: RigCam, r: Rig) -> void:
 		var dx := RigData.sample(_x_keys, maxf(0.0, t - lag))
 		if absf(dx - px) < 4.0:
 			continue
-		ci.draw_set_transform_matrix(cam.char_xf(dx, py))
+		ci.draw_set_transform_matrix(Draw.xf * cam.char_xf(dx, py))
 		ci.draw_texture_rect(tex, Rect2(0, 0, 256, 256), false, Color(1, 1, 1, al * fade * ctx.alpha))
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 
 ## rising ghost wisps: flame-like teardrop, flat fill + INK, sways up and fades (one-shot fx, owns its state)
 static func wisps(a: Rig, x: float, y: float, n: int, o := { }) -> void:

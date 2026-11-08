@@ -534,7 +534,7 @@ func place_pop() -> void:
 	var lo := Vector2(6.0 + e.x, 6.0 + e.y)
 	var hi := Vector2(maxf(lo.x, lim.x - sz.x - 6.0 - e.z), maxf(lo.y, lim.y - sz.y - 6.0 - e.w))
 	if _pop_anchor == null:
-		pop.position = Vector2(((lim.x - sz.x) / 2.0), maxf(gs.board.position.y + 10, lo.y)).floor()
+		pop.position = Vector2(((lim.x - sz.x) / 2.0), maxf(gs.board.visual_rect().position.y + 10, lo.y)).floor()
 		return
 	var anc_x: int = _pop_anchor[0]
 	var anc_y: int = _pop_anchor[1]

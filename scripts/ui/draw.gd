@@ -218,12 +218,21 @@ static func cubic(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, n := 16) -
 	return out
 
 ## text centred on pos (both axes) with optional outline. scale draws the size-`size` text scaled (animated pops)
-## 5-point star centred at c, outer radius r; edge = outline colour (alpha 0 = none)
+## 5-point star centred at c, outer radius r; soft: plump arms + rounded tips (3 corner-cutting passes); edge = outline
+## colour (alpha 0 = none)
 static func star(ci: CanvasItem, c: Vector2, r: float, fill: Color, edge := Color(0, 0, 0, 0), width := 1.5) -> void:
 	var pts := PackedVector2Array()
 	for i in 10:
 		var a := -PI / 2 + i * PI / 5
-		pts.append(c + Vector2(cos(a), sin(a)) * (r if i % 2 == 0 else r * 0.45))
+		pts.append(c + Vector2(cos(a), sin(a)) * (r * 1.12 if i % 2 == 0 else r * 0.56))
+	for _pass in 3: # Chaikin: every corner cut -> round tips and inner bends, same overall size (outer pushed out above)
+		var cut := PackedVector2Array()
+		for i in pts.size():
+			var p0 := pts[i]
+			var p1 := pts[(i + 1) % pts.size()]
+			cut.append(p0.lerp(p1, 0.25))
+			cut.append(p0.lerp(p1, 0.75))
+		pts = cut
 	ci.draw_colored_polygon(pts, fill)
 	if edge.a > 0.0:
 		pts.append(pts[0])

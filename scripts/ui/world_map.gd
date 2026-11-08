@@ -12,7 +12,7 @@ signal level_picked(id: String)
 
 const Geo := preload("res://content/world_map.gd")
 const ART := "res://assets/terrain/chibi/%s.svg"
-const K_MIN := 8.5 # px per map unit at least: villages ~55 px, badge stars ~10 px across
+const K_MIN := 10.5 # px per map unit at least: villages ~65 px, stars ~25 px across (reference look: few big markers, pan)
 const HIT_R := 3.8
 const CLOUD := Color("#f7f3ea")
 const CLOUD_SHADE := Color("#ddd5c6")
@@ -23,8 +23,13 @@ const STAIN := Color("#c9a66a")
 const SEA := Color("#86b3bd")
 const SEA_D := Color("#5f93a3")
 const WATER := Color("#5f97a8")
-const DIRT := Color("#c9a86c")
-const DIRT_D := Color("#8a6d42")
+const ROAD := Color("#f4e4bb")
+const ROAD_EDGE := Color("#c9a467")
+const ROAD_DASH := Color("#6e4f30")
+const STAR_ON := Color("#f6a935")
+const STAR_HI := Color("#ffe08a")
+const STAR_OFF := Color("#3b2a20")
+const SEG := 10 # road samples between two levels
 const VILLAGE := 6.2 # building art box, map units: easy / mid levels
 const FORT := 7.6 # hard levels
 
@@ -45,7 +50,9 @@ var _dim: ColorRect # under the card: dims the map, a tap on it closes the card
 var _rivers: Array[PackedVector2Array] = []
 var _coast := PackedVector2Array()
 var _decor := [] # [y, art name, centre, size] back to front
-var _trails := [] # [level index it leads to, PackedVector2Array map units] (gently curved), in march order
+var _road := PackedVector2Array() # one smooth road through every level in march order (map units)
+var _road_at := { } # level index -> its sample index on _road
+var _bridges := [] # [centre, direction] where the road crosses a river (map units)
 
 func setup(lv: Array, open: int, focus_id := "") -> void:
 	levels = lv
@@ -64,6 +71,7 @@ func setup(lv: Array, open: int, focus_id := "") -> void:
 		var rpts: Array = r[1]
 		_rivers.append(smooth(rpts))
 	_coast = smooth(Geo.COAST)
+	_build_road()
 	_decor.clear()
 	for spec: Array in [[Geo.PEAKS, "mountain"], [Geo.WOODS, "forest"], [Geo.HILLS, "hill"]]:
 		var items: Array = spec[0]
@@ -78,7 +86,6 @@ func setup(lv: Array, open: int, focus_id := "") -> void:
 		func(a: Array, b: Array) -> bool:
 			return a[0] < b[0],
 	)
-	_build_trails()
 	_dim = ColorRect.new()
 	_dim.color = Color(Style.INK_D, 0.45)
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -110,20 +117,24 @@ func pos_of(i: int) -> Vector2:
 	var def: Dictionary = levels[i]
 	return Geo.POS.get(str(def.id), Vector2.INF)
 
-## footpath between consecutive levels: a quadratic bow (side + depth from a hash, so it never changes)
-func _build_trails() -> void:
-	_trails.clear()
-	var prev := Vector2.INF
+## the march road: one Catmull-Rom curve through every placed level, in order (levels sit on it)
+func _build_road() -> void:
+	var pts := []
+	_road_at.clear()
 	for i in levels.size():
 		var q := pos_of(i)
-		if q == Vector2.INF:
-			continue
-		if prev != Vector2.INF:
-			var d := q - prev
-			var bow := (Board.hash01(int(q.x), int(q.y), 8) - 0.5) * 0.5 * d.length()
-			var mid := (prev + q) / 2.0 + Vector2(-d.y, d.x).normalized() * bow
-			_trails.append([i, Draw.quad(prev, mid, q, maxi(6, int(d.length() / 1.2)))])
-		prev = q
+		if q != Vector2.INF:
+			_road_at[i] = pts.size() * SEG
+			pts.append(q)
+	_road = smooth(pts, SEG) if pts.size() > 1 else PackedVector2Array()
+	_bridges.clear()
+	for river: PackedVector2Array in _rivers:
+		for a in _road.size() - 1:
+			for b in river.size() - 1:
+				var hit: Variant = Geometry2D.segment_intersects_segment(_road[a], _road[a + 1], river[b], river[b + 1])
+				if hit != null:
+					var at: Vector2 = hit
+					_bridges.append([at, (_road[a + 1] - _road[a]).normalized()])
 
 func _p(v: Vector2) -> Vector2:
 	return _off + v * _k
@@ -354,8 +365,9 @@ func _draw() -> void:
 		Draw.glow(self, _p(sc), (14.0 + 10.0 * Board.hash01(j, 7, 3)) * k, Color(STAIN, 0.16))
 	_draw_sea(k, ink)
 	_draw_territory(k)
-	_draw_water(k, ink)
 	_draw_route(k)
+	_draw_water(k, ink)
+	_draw_bridges(k, ink)
 	for d: Array in _decor:
 		var at: Vector2 = d[2]
 		var s: float = d[3] * k
@@ -458,23 +470,49 @@ func _draw_water(k: float, ink: Color) -> void:
 			var rx := rc + Vector2((j - 1.5) * 0.7 * k, 0)
 			draw_line(rx, rx + Vector2((j - 1.5) * 0.15 * k, -1.5 * k), Color(ink, 0.6), maxf(1.0, 0.2 * k), true)
 
-## footpaths: worn dirt band (dark edge, light middle, pebbles); a path into a level not open yet is faint
+## the road: light dirt band with darker edges and a dashed middle; past the next level it fades
 func _draw_route(k: float) -> void:
-	var unseen := _unseen_ids()
-	for trail: Array in _trails:
-		var to: int = trail[0]
-		var line: PackedVector2Array = trail[1]
-		var def: Dictionary = levels[to]
-		if unseen.has(str(def.id)):
+	if _road.size() < 2:
+		return
+	var cut: int = _road_at.get(next, _road.size() - 1) if next < levels.size() else _road.size() - 1
+	for part: Array in [[0, cut + 1, 1.0], [cut, _road.size(), 0.5]]:
+		var a: int = part[0]
+		var b: int = part[1]
+		if b - a < 2:
 			continue
-		var a := 1.0 if not _locked(to) else 0.45
-		var pts := _xf(line)
-		draw_polyline(pts, Color(DIRT_D, 0.85 * a), maxf(3.0, 1.25 * k), true)
-		draw_polyline(pts, Color(DIRT, a), maxf(2.0, 0.8 * k), true)
-		for j in range(2, pts.size() - 2, 3): # pebbles / footprints along the middle
-			var side := (Board.hash01(to, j, 1) - 0.5) * 0.5 * k
-			var dir := (pts[j + 1] - pts[j - 1]).normalized()
-			draw_circle(pts[j] + Vector2(-dir.y, dir.x) * side, maxf(1.0, 0.13 * k), Color(DIRT_D, 0.7 * a))
+		var al: float = part[2]
+		var pts := _xf(_road.slice(a, b))
+		for layer: Array in [[ROAD_EDGE, 3.0], [ROAD, 2.3]]:
+			var col: Color = layer[0]
+			var w: float = layer[1] * k
+			draw_polyline(pts, Color(col, al), w, true)
+			for q in pts: # round joints on tight bends
+				draw_circle(q, w / 2.0, Color(col, al))
+		var run := 0.0 # dashed middle line
+		for j in pts.size() - 1:
+			var seg_len := pts[j].distance_to(pts[j + 1])
+			if fposmod(run, 1.9 * k) < 1.0 * k:
+				draw_line(pts[j], pts[j + 1], Color(ROAD_DASH, 0.85 * al), maxf(1.5, 0.3 * k), true)
+			run += seg_len
+
+## wooden bridge where the road crosses a river: planks across the road direction, rails, ink edge
+func _draw_bridges(k: float, ink: Color) -> void:
+	for br: Array in _bridges:
+		var at: Vector2 = br[0]
+		var c := _p(at)
+		var d: Vector2 = br[1]
+		var n := Vector2(-d.y, d.x)
+		var hl := 2.2 * k # half length along the road
+		var hw := 1.5 * k # half width
+		var deck := PackedVector2Array([c - d * hl - n * hw, c + d * hl - n * hw, c + d * hl + n * hw, c - d * hl + n * hw])
+		draw_colored_polygon(deck, Color("#a77a47"))
+		for j in 7:
+			var t := -hl + (j + 0.5) * (2.0 * hl / 7.0)
+			draw_line(c + d * t - n * hw, c + d * t + n * hw, Color("#6e4a28"), maxf(1.0, 0.15 * k), true)
+		for side: float in [-1.0, 1.0]:
+			draw_line(c - d * hl + n * hw * side, c + d * hl + n * hw * side, Color("#5a3a1e"), maxf(2.0, 0.35 * k), true)
+		deck.append(deck[0])
+		draw_polyline(deck, ink, maxf(1.2, 0.2 * k), true)
 
 ## level ids of every region with no level open yet (still unknown land: clouds, no shields)
 func _unseen_ids() -> Dictionary:
@@ -545,8 +583,8 @@ func _draw_names(k: float, ink: Color) -> void:
 		Draw.text_c(self, Style.semi, _p(at), str(nm[0]), roundi(fs * k), col)
 
 ## one building per level: village = easy / mid, castle = hard; red roofs = won (ours), blue = the Empire's, faded
-## = not open. In front: a shield with the stars earned (only those) over the number. Next level = pulsing gold
-## ring, selected = gold glow + bigger
+## = not open. Round level medallion at its lower left, 3 floating stars above (gold = earned, dark = not yet; none
+## while not open). Next level = pulsing gold ring, selected = gold glow + bigger
 func _draw_marks(k: float, ink: Color) -> void:
 	var px := Baked.screen_scale(self)
 	var order: Array = range(levels.size())
@@ -566,50 +604,48 @@ func _draw_marks(k: float, ink: Color) -> void:
 		var c := _p(p)
 		var u := k * (1.12 if i == sel else 1.0)
 		if i == sel:
-			Draw.glow(self, c, 5.5 * k, Color(Style.LEAF, 0.75))
+			Draw.glow(self, c + Vector2(0, -1.5 * k), 6.0 * k, Color(Style.LEAF, 0.75))
 		if i == next:
 			var ph := fmod(_t, 1.6) / 1.6
 			Draw.ellipse_line(self, c, 3.8 * k * (1.0 + 0.5 * ph), 1.6 * k * (1.0 + 0.5 * ph), Color(Style.LEAF, 1.0 - ph), maxf(2.0, 0.4 * k))
 		var s := (FORT if hard else VILLAGE) * u
 		var art := "%s_%s" % ["castle" if hard else "village", "p" if done else "e"]
 		var tex := _art(art, s * px)
-		if tex != null: # art ground line ~0.72 of its box: the building stands just above the spot
+		if tex != null: # art ground line ~0.72 of its box: the building stands on the spot
 			draw_texture_rect(tex, Rect2(c + Vector2(-s / 2.0, -s * 0.72), Vector2(s, s)), false, Color(1, 1, 1, 0.55) if locked else Color.WHITE)
-		_badge(c + Vector2(0, 1.75 * u), u * 0.8, i, done, locked, ink) # under its feet, never over the roofs
+		_medal(c + Vector2(-0.3 * s, -0.02 * s), u, i, done, locked, ink)
+		if not locked:
+			var top := c.y - s * (0.69 if hard else 0.36) # roof line of the art
+			_stars(Vector2(c.x, top - 1.7 * u), u, Store.stars_of(str(def.id)) if done else 0, ink)
 
-## shield badge: stars earned (gold, only those) above the level number; red = won, blue = not yet, grey = not open
-func _badge(c: Vector2, u: float, i: int, done: bool, locked: bool, ink: Color) -> void:
-	var def: Dictionary = levels[i]
-	var got := Store.stars_of(str(def.id)) if done else 0
-	var sh := shield(c, u)
-	var shadow := PackedVector2Array()
-	for q in sh:
-		shadow.append(q + Vector2(0.25, 0.35) * u)
-	draw_colored_polygon(shadow, Color(ink, 0.8))
-	draw_colored_polygon(sh, Style.CRIMSON if done else (Style.PAPER_2 if locked else Style.ROYAL))
-	var rim := sh.duplicate()
-	rim.append(sh[0])
-	if not locked:
-		draw_polyline(rim, Style.LEAF if done or i == next else Color("#c9b98a"), maxf(2.0, 0.4 * u), true)
-	draw_polyline(rim, ink if not locked else Style.FADED, maxf(1.2, 0.2 * u), true)
-	var num_y := 0.6 if got > 0 else -0.15
-	var txt := Style.FADED if locked else Style.PAPER_HI
-	Draw.text_c(self, Style.display, c + Vector2(0, num_y * u), str(i + 1), roundi(1.85 * u), txt, maxi(1, roundi(0.25 * u)), Color(ink, 0.6))
-	for j in got:
-		var sx := (j - (got - 1) / 2.0) * 1.2
-		Draw.star(self, c + Vector2(sx, -1.0) * u, 0.7 * u, Style.LEAF, ink, maxf(1.0, 0.14 * u))
+## round level medallion: white sticker edge, ink ring, 10 alternating segments, plate with the 2-digit number
+func _medal(c: Vector2, u: float, i: int, done: bool, locked: bool, ink: Color) -> void:
+	var r := 1.8 * u
+	var seg_a := Style.CRIMSON if done else (Style.FADED if locked else Style.ROYAL)
+	var seg_b := Style.LEAF if not locked else Style.PAPER_2
+	var plate := Color("#f39a2b") if done else (Style.PAPER_2 if locked else Color("#4f74c9"))
+	draw_circle(c + Vector2(0.15, 0.25) * u, r + 0.35 * u, Color(ink, 0.5)) # soft drop
+	draw_circle(c, r + 0.32 * u, Color.WHITE)
+	draw_circle(c, r + 0.1 * u, ink)
+	for j in 10:
+		var a0 := j * TAU / 10.0 - PI / 2.0
+		draw_arc(c, r * 0.86, a0, a0 + TAU / 10.0, 6, seg_a if j % 2 == 0 else seg_b, r * 0.28, true)
+	draw_circle(c, r * 0.72, ink)
+	draw_circle(c, r * 0.66, plate)
+	var txt := Style.FADED.darkened(0.3) if locked else Style.PAPER_HI
+	Draw.text_c(self, Style.display, c + Vector2(0, 0.05 * u), "%02d" % (i + 1), roundi(1.25 * u), txt, maxi(2, roundi(0.28 * u)), ink)
 
-## heraldic shield around centre c (u = px per map unit): flat top, straight sides, curved point at the bottom
-static func shield(c: Vector2, u: float) -> PackedVector2Array:
-	var w := 1.85
-	var pts := PackedVector2Array([c + Vector2(-w, -2.2) * u, c + Vector2(w, -2.2) * u])
-	var right := Draw.quad(Vector2(w, 0.1), Vector2(w, 1.45), Vector2(0, 2.3), 8)
-	for q in right:
-		pts.append(c + q * u)
-	var left := Draw.quad(Vector2(0, 2.3), Vector2(-w, 1.45), Vector2(-w, 0.1), 8)
-	for j in range(1, left.size()):
-		pts.append(c + left[j] * u)
-	return pts
+## 3 stars in a low arc (middle one higher, bigger): gold with a shine when earned, dark when not; white sticker edge
+func _stars(c: Vector2, u: float, got: int, ink: Color) -> void:
+	for j in 3:
+		var at := c + Vector2((j - 1) * 2.3, 0.0 if j == 1 else 0.65) * u
+		var r := (1.3 if j == 1 else 1.08) * u
+		Draw.star(self, at + Vector2(0.12, 0.2) * u, r * 1.28, Color(ink, 0.45)) # drop
+		Draw.star(self, at, r * 1.28, Color.WHITE)
+		var on := j < got
+		Draw.star(self, at, r, STAR_ON if on else STAR_OFF, ink, maxf(1.0, 0.12 * u))
+		if on:
+			Draw.star(self, at + Vector2(-0.12, -0.15) * r, r * 0.45, Color(STAR_HI, 0.85))
 
 ## map frame: ink edge, inner hairline, gold corner diamonds
 func _draw_frame(land: Rect2, k: float, ink: Color) -> void:

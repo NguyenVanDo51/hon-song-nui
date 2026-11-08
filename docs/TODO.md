@@ -58,6 +58,7 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
+- [ ] (2026-11-09) `sim/tests/duel.gd:106` "ai:army vs normal: whole game to a winner" chập chờn: `scripts/core/ai_plan.gd:192` dừng tìm theo đồng hồ (`ms`) -> máy bận (game khác đang chạy) = ít lượt tìm hơn -> ván seed 4242 khác đi, có lần chưa thắng tới lượt 40 (1 fail / 3 lần chạy). Sửa: test đặt ngân sách theo số lần chạy (không theo ms) hoặc nới lượt; không đụng bot khi chưa được phép.
 - [ ] (2026-11-08) `scripts/ui/style.gd` `make_theme` — ~20 kiểu nút (MenuBtn, PrimaryBtn, ActBtn, ActGo, ChipBtn, BackBtn, SegBtn, RoyalBtn, TileBtn…), mỗi kiểu tự gói màu + cỡ chữ + đệm, nhiều kiểu chỉ dùng 1 chỗ -> nút mỗi màn một cỡ, khó giữ thống nhất. Sửa: kiểu = màu (paper / primary / royal / hot / ghost) × cỡ (sm / md / lg) sinh trong theme, `Style.btn(text, kind, size)`, chuyển dần các màn.
 - [ ] (2026-11-08) `README.md:8` — còn "Anh hùng / Tướng giặc" (tên trước reskin; nay Hiệp Sĩ Chỉ Huy / Vorn) -> README lệch game; sửa câu theo `content/theme.gd` `heroes`.
 - [ ] (2026-11-08) `content/theme.gd` `text.skirmishTitle` — không script nào đọc -> khóa chết, sửa tên ở đó không có tác dụng (xoá hoặc dùng ở màn đấu tự do).

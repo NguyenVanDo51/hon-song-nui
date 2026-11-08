@@ -671,27 +671,30 @@ func _run() -> void:
 	print("DRIVER DONE fails=%d" % fails)
 	quit(1 if fails else 0)
 
-## real mouse on the level map: no card at first; tap the next level = its card; drag = pan, no pick, card stays;
-## tap empty land = card closes; ends with the next level's card open
+## real mouse on the level map: no card at first; drag = pan, no pick; tap the next level = its card in the middle,
+## the map does not move; tap outside the card = closes; ends with the next level's card open
 func _map_input(wm: WorldMap) -> void:
 	var old_size := root.size
 	root.size = Vector2i(1280, 720) # headless window is 64 px: real picking needs the map inside the viewport
 	await wait(0.4)
 	ok(wm.sel == -1 and not wm._card.visible, "map: no card before a tap")
 	var at := wm.get_global_transform() * wm._p(wm.pos_of(wm.next))
+	var off := wm._off
+	var dy := 60.0 if wm._off.y < WorldMap.TOP_PAD - 1.0 else -60.0 # towards the side the map can still move
+	await _mouse(at, at + Vector2(0, dy))
+	ok(wm.sel == -1 and wm._off != off, "map: drag pans, picks nothing")
+	at = wm.get_global_transform() * wm._p(wm.pos_of(wm.next))
+	off = wm._off
 	await _mouse(at, at)
 	await wait(0.2)
 	ok(wm.sel == wm.next and wm._card.visible, "map: real tap on the next level opens its card (sel %d)" % wm.sel)
-	var on := wm.get_global_transform() * wm._p(wm.pos_of(wm.next))
-	ok(on.y < wm.size.y - wm._card.size.y and on.y > 0.0, "map: tapped castle stays in view above the card (y %d)" % on.y)
-	var off := wm._off
-	await _mouse(at, at + Vector2(-80, -60))
-	ok(wm.sel == wm.next and wm._off != off, "map: drag pans, picks nothing")
-	var empty := wm.get_global_transform() * wm._p(Vector2(146, 6)) # sea corner
-	empty = Vector2(clampf(empty.x, 8.0, 1270.0), clampf(empty.y, 70.0, 300.0))
-	if wm._node_at(wm.get_global_transform().affine_inverse() * empty) < 0:
-		await _mouse(empty, empty)
-		ok(wm.sel == -1 and not wm._card.visible, "map: tap on empty land closes the card")
+	ok(wm._off == off, "map: a tap never moves the map")
+	var cr := wm._card.get_global_rect()
+	var mid := wm.get_global_rect().get_center()
+	ok(cr.has_point(mid) and cr.size.y < 400.0, "map: card centred, sized to its content (%s)" % cr)
+	var outside := Vector2(cr.position.x - 40.0, cr.get_center().y)
+	await _mouse(outside, outside)
+	ok(wm.sel == -1 and not wm._card.visible, "map: tap outside the card closes it")
 	wm.select(wm.next)
 	await wait(0.3)
 	root.size = old_size

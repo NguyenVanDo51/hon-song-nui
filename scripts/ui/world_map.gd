@@ -1,19 +1,21 @@
 class_name WorldMap
 extends Control
-## "Thử thách" as a kingdom map (geography: content/world_map.gd; premise "Ngọn Lửa Lâu Đài"). One castle per level
-## on the march route: won = ours (red castle + flame, land glows red), not won = the Empire's (blue castle), not open
-## yet = Empire haze, whole region not open = clouds. Scenery = the board's chibi terrain art without its grass square.
-## Drag pans (never below K_MIN px per map unit; portrait fills the height). Nothing selected at first (the next level
-## pulses); tap a castle = its card (title, setting line, short goal, best stars, "Xuất quân" = level_picked); tap
-## empty land = card closes. Opens centred on the next level, or on `focus_id` (back from a level).
+## "Thử thách" as a kingdom map (geography: content/world_map.gd; premise "Ngọn Lửa Lâu Đài"). One shield per level on
+## the march route: won = ours (red shield, best stars under it, land glows red), not won = the Empire's (blue), not
+## open yet = faded + Empire haze, whole region not open = clouds. Scenery = the board's chibi terrain art without its
+## grass square. Drag / wheel pans (never below K_MIN px per map unit; portrait fills the height). Nothing selected
+## at first (the next level pulses); tap a shield = its card in the middle of the screen over a dim layer (title,
+## setting line, short goal, best stars, "Xuất quân" = level_picked); tap outside = closes. The map never jumps on a
+## tap. Opens centred on the next level, or on `focus_id` (back from a level).
 
 signal level_picked(id: String)
 
 const Geo := preload("res://content/world_map.gd")
 const ART := "res://assets/terrain/chibi/%s.svg"
 const K_MIN := 7.5 # px per map unit at least: castles ~50 px wide on a phone, numbers readable
-const HIT_R := 4.4
-const CASTLE := 7.0 # castle art box, map units
+const HIT_R := 3.8
+const CLOUD := Color("#f7f3ea")
+const CLOUD_SHADE := Color("#ddd5c6")
 const DRAG_PX := 8.0
 const TOP_PAD := 64.0 # header (back button / counter) over the map
 const LAND := Color("#ead6a4")
@@ -35,6 +37,7 @@ var _dragging := false
 var _press := Vector2.ZERO
 var _press_off := Vector2.ZERO
 var _card: PanelContainer
+var _dim: ColorRect # under the card: dims the map, a tap on it closes the card
 var _rivers: Array[PackedVector2Array] = []
 var _coast := PackedVector2Array()
 var _decor := [] # [y, art name, centre, size] back to front
@@ -70,15 +73,26 @@ func setup(lv: Array, open: int, focus_id := "") -> void:
 		func(a: Array, b: Array) -> bool:
 			return a[0] < b[0],
 	)
+	_dim = ColorRect.new()
+	_dim.color = Color(Style.INK_D, 0.45)
+	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	_dim.visible = false
+	_dim.gui_input.connect(
+		func(ev: InputEvent) -> void:
+			var mb := ev as InputEventMouseButton
+			if mb != null and mb.button_index == MOUSE_BUTTON_LEFT and not mb.pressed:
+				deselect(),
+	)
+	add_child(_dim)
 	_card = PanelContainer.new()
-	var box := Style.paper(14.0)
-	box.shadow = Vector2(4, 4)
+	var box := Style.paper(16.0)
+	box.shadow = Vector2(5, 6)
 	_card.add_theme_stylebox_override("panel", box)
 	_card.anchor_left = 0.5
 	_card.anchor_right = 0.5
-	_card.anchor_top = 1.0
-	_card.anchor_bottom = 1.0
-	_card.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_card.anchor_top = 0.5
+	_card.anchor_bottom = 0.5
 	_card.visible = false
 	add_child(_card)
 	resized.connect(_fit)
@@ -101,14 +115,12 @@ func _fit() -> void:
 	if size.x < 1.0 or size.y < 1.0:
 		return
 	_k = maxf(minf(size.x / Geo.VB.x, size.y / Geo.VB.y), K_MIN)
-	if size.y > size.x: # portrait: fill the height (bigger castles for thumbs), pan sideways
+	if size.y > size.x: # portrait: fill the height (bigger shields for thumbs), pan sideways
 		_k = maxf(_k, (size.y - TOP_PAD - 24.0) / Geo.VB.y)
 	_card_width()
-	_center_on(sel if sel >= 0 else focus)
-	if sel >= 0:
-		_reveal(sel)
+	_center_on(focus)
 
-## card: fixed width (autowrapped labels need it before layout), bottom centre above the safe inset
+## card: fixed width (autowrapped labels need it before layout), centred on the screen
 func _card_width() -> void:
 	var vw := size.x if size.x >= 1.0 else get_viewport_rect().size.x
 	var w := minf(440.0, vw - 32.0)
@@ -117,15 +129,16 @@ func _card_width() -> void:
 	_card.offset_right = w / 2.0
 	_place_card()
 
-## bottom edge above the safe inset, top = bottom - the card's real (minimum) height: never left taller / lower
+## centred at its real (minimum) height: never left taller than its content
 func _place_card() -> void:
-	_card.offset_bottom = -16.0 - Style.safe_insets(self).w
-	_card.offset_top = _card.offset_bottom - _card.get_combined_minimum_size().y
+	var h := _card.get_combined_minimum_size().y
+	_card.offset_top = -h / 2.0
+	_card.offset_bottom = h / 2.0
 
 ## keep the map on screen with room for the header above (and the open card below); smaller than the screen = centred
 func _clamp(o: Vector2) -> Vector2:
 	var m := Geo.VB * _k
-	var bottom := _card.size.y + 32.0 if _card.visible else 16.0
+	var bottom := 16.0
 	var out := o
 	out.x = (size.x - m.x) / 2.0 if m.x <= size.x else clampf(o.x, size.x - m.x, 0.0)
 	var room := size.y - TOP_PAD - bottom
@@ -139,46 +152,31 @@ func _center_on(i: int) -> void:
 	_off = _clamp(Vector2(size.x * 0.5, TOP_PAD + (size.y - TOP_PAD) * 0.45) - p * _k)
 	queue_redraw()
 
-## tap a castle: its card. The map only moves if the card / header / an edge would hide that castle
+## tap a shield: its card in the middle of the screen (the map stays where it is)
 func select(i: int) -> void:
 	if i < 0 or i >= levels.size():
 		return
 	sel = i
+	_dim.visible = true
 	_card.visible = true # build while shown: autowrapped labels measured hidden report one word per line (card 1100+ px)
 	_build_card()
-	_reveal(i)
+	_settle(i)
 	queue_redraw()
 
-## close the card (tap on empty land)
+## close the card (tap outside it)
 func deselect() -> void:
 	sel = -1
+	_dim.visible = false
 	_card.visible = false
 	queue_redraw()
 
-## smallest pan that shows castle i above the card (the card's real height is known one frame after it was built)
-func _reveal(i: int) -> void:
+## re-centre the card once its labels wrapped at the card width (real height known one frame after building)
+func _settle(i: int) -> void:
 	if not is_inside_tree():
 		return
 	await get_tree().process_frame
-	if sel != i or not is_inside_tree():
-		return
-	_place_card() # labels wrapped at the card width by now: real height
-	var c := _p(pos_of(i))
-	var d := Vector2.ZERO
-	var low := size.y - _card.size.y - 28.0 - 3.0 * _k # castle badge + stars hang below the spot
-	var high := TOP_PAD + 5.0 * _k # castle art rises above the spot
-	if c.y > low:
-		d.y = low - c.y
-	elif c.y < high:
-		d.y = high - c.y
-	var margin := 4.0 * _k
-	if c.x < margin:
-		d.x = margin - c.x
-	elif c.x > size.x - margin:
-		d.x = size.x - margin - c.x
-	if d != Vector2.ZERO:
-		_off = _clamp(_off + d)
-	queue_redraw()
+	if sel == i:
+		_place_card()
 
 ## "Xuất quân": start the selected level (open ones only)
 func go() -> void:
@@ -233,7 +231,7 @@ func _node_at(at: Vector2) -> int:
 		var p := pos_of(i)
 		if p == Vector2.INF:
 			continue
-		var d := at.distance_to(_p(p + Vector2(0, -1.0))) # castle body sits a little above its spot
+		var d := at.distance_to(_p(p))
 		if d <= bd:
 			best = i
 			bd = d
@@ -343,9 +341,9 @@ func _draw() -> void:
 		var tex := _art(str(d[1]), s * px)
 		if tex != null:
 			draw_texture_rect(tex, Rect2(_p(at) - Vector2(s, s) / 2.0, Vector2(s, s)), false)
-	_draw_names(k, ink)
-	_draw_castles(k, ink, px)
+	_draw_marks(k, ink)
 	_draw_fog(k)
+	_draw_names(k, ink)
 	_draw_frame(land, k, ink)
 
 func _draw_sea(k: float, ink: Color) -> void:
@@ -461,28 +459,57 @@ func _draw_route(k: float, ink: Color) -> void:
 	if last_done >= 0:
 		draw_polyline(route.slice(0, mini(route.size(), last_done + 2)), Color(Style.CRIMSON, 0.9), maxf(2.0, 0.5 * k), true)
 
-## clouds over every region not opened at all (still unknown land)
-func _draw_fog(k: float) -> void:
+## level ids of every region with no level open yet (still unknown land: clouds, no shields)
+func _unseen_ids() -> Dictionary:
+	var out := { }
 	for rg: Dictionary in Geo.REGIONS:
 		var unseen := true
 		for id: String in rg.ids:
 			var i := Content.level_index(id)
 			unseen = unseen and i >= 0 and _locked(i)
-		if not unseen:
+		if unseen:
+			for id: String in rg.ids:
+				out[id] = true
+	return out
+
+## clouds over unknown regions: one drifting cumulus per level spot
+func _draw_fog(k: float) -> void:
+	for id: String in _unseen_ids():
+		var p: Vector2 = Geo.POS.get(id, Vector2.INF)
+		if p == Vector2.INF:
 			continue
-		for id: String in rg.ids:
-			var p: Vector2 = Geo.POS.get(id, Vector2.INF)
-			if p == Vector2.INF:
-				continue
-			for j in 4:
-				var h := Board.hash01(int(p.x), int(p.y), j)
-				var dx := (h - 0.5) * 9.0 + sin(_t * 0.25 + j + p.x) * 0.8
-				var dy := (Board.hash01(int(p.y), int(p.x), j) - 0.5) * 6.0
-				var c := _p(p + Vector2(dx, dy))
-				var r := (3.0 + h * 2.2) * k
-				draw_circle(c + Vector2(0, 0.6 * k), r, Color(Style.ROYAL_D, 0.1))
-				draw_circle(c, r, Color(0.96, 0.94, 0.9, 0.5))
-				draw_circle(c + Vector2(-0.3, -0.4) * r, r * 0.55, Color(1, 1, 1, 0.25))
+		var h := Board.hash01(int(p.x), int(p.y), 2)
+		var at := p + Vector2((h - 0.5) * 3.0 + sin(_t * 0.22 + p.x) * 0.9, (Board.hash01(int(p.y), int(p.x), 4) - 0.5) * 2.0)
+		_cloud(_p(at), (10.0 + h * 3.0) * k, k, h)
+
+## cartoon cumulus: 4-5 round lobes on a flat rounded base; ink edge = the same shapes drawn a little larger first,
+## grey underside, soft highlight on the top lobes. c = base centre, w = width px
+func _cloud(c: Vector2, w: float, k: float, sd: float) -> void:
+	var n := 4 + (1 if sd > 0.5 else 0)
+	var lobes := []
+	for j in n:
+		var t := (j + 0.5) / n
+		var hump := 1.0 - absf(t - 0.5) * 1.4 # middle lobes bigger and higher
+		var r := w * (0.13 + 0.11 * hump + 0.03 * Board.hash01(j, int(sd * 97.0), 3))
+		lobes.append([c + Vector2((t - 0.5) * w * 0.74, -r * 0.45 - w * 0.07 * hump), r])
+	var bh := w * 0.17 # base: a capsule along the bottom
+	var base := Rect2(c + Vector2(-w * 0.42, -bh * 0.5), Vector2(w * 0.84, bh))
+	var e := maxf(1.5, 0.3 * k)
+	draw_rect(Rect2(base.position + Vector2(0, bh * 0.5 + e), Vector2(base.size.x, e * 1.5)), Color(Style.ROYAL_D, 0.12)) # shadow
+	for pass_i in 2: # 0: ink edge (lobes + base, a little larger), 1: grey base (= underside), lobes on top
+		var grow := e if pass_i == 0 else 0.0
+		var base_col := Style.INK_D if pass_i == 0 else CLOUD_SHADE
+		draw_rect(base.grow(grow).grow_individual(-bh * 0.5, 0, -bh * 0.5, 0), base_col)
+		draw_circle(Vector2(base.position.x, base.get_center().y), bh * 0.5 + grow, base_col)
+		draw_circle(Vector2(base.end.x, base.get_center().y), bh * 0.5 + grow, base_col)
+		for lb: Array in lobes:
+			var lc: Vector2 = lb[0]
+			var lr: float = lb[1]
+			draw_circle(lc, lr + grow, Style.INK_D if pass_i == 0 else CLOUD)
+	for lb: Array in lobes:
+		var lc: Vector2 = lb[0]
+		var lr: float = lb[1]
+		draw_circle(lc + Vector2(-0.25, -0.3) * lr, lr * 0.45, Color(1, 1, 1, 0.55))
 
 ## region names (spaced capitals; red once every level in it is won), sea / river names
 func _draw_names(k: float, ink: Color) -> void:
@@ -500,45 +527,64 @@ func _draw_names(k: float, ink: Color) -> void:
 		var col := Color(Style.PAPER_HI, 0.9) if str(nm[3]) == "sea" else Color(SEA_D.darkened(0.35), 0.9)
 		Draw.text_c(self, Style.semi, _p(at), str(nm[0]), roundi(fs * k), col)
 
-## one castle per level: ours (red, flame) when won, else the Empire's (blue); number badge + best stars under it
-func _draw_castles(k: float, ink: Color, px: float) -> void:
-	var s := CASTLE * k
+## one shield per level: red = won (ours), blue = the Empire's, faded = not open; number on it, best stars on a paper
+## ribbon under won ones; next level = pulsing gold ring, selected = gold glow + bigger
+func _draw_marks(k: float, ink: Color) -> void:
 	var order: Array = range(levels.size())
 	order.sort_custom(
 		func(a: int, b: int) -> bool:
 			return pos_of(a).y < pos_of(b).y,
 	)
+	var unseen := _unseen_ids()
 	for i: int in order:
 		var p := pos_of(i)
-		if p == Vector2.INF:
-			continue
 		var def: Dictionary = levels[i]
+		if p == Vector2.INF or unseen.has(str(def.id)):
+			continue
 		var done := Store.is_done(str(def.id))
 		var locked := _locked(i)
-		var base := _p(p) + Vector2(0, 1.2 * k) # where the castle stands
+		var c := _p(p)
+		var u := k * (1.15 if i == sel else 1.0)
 		if i == sel:
-			Draw.ellipse(self, base, 3.6 * k, 1.3 * k, Color(Style.LEAF, 0.85))
-			Draw.ellipse_line(self, base, 3.6 * k, 1.3 * k, Style.CRIMSON_D, maxf(2.0, 0.3 * k))
+			Draw.glow(self, c, 5.0 * k, Color(Style.LEAF, 0.7))
 		if i == next:
 			var ph := fmod(_t, 1.6) / 1.6
-			Draw.ellipse_line(self, base, 3.4 * k * (1.0 + 0.6 * ph), 1.2 * k * (1.0 + 0.6 * ph), Color(Style.LEAF, 1.0 - ph), maxf(2.0, 0.4 * k))
-		var tex := _art("castle_p" if done else "castle_e", s * px, false)
-		var r := Rect2(base - Vector2(s / 2.0, s * 0.75), Vector2(s, s)) # art ground line ~0.75 of its box
-		if tex != null:
-			draw_texture_rect(tex, r, false, Color(1, 1, 1, 0.6) if locked else Color.WHITE)
+			draw_arc(c, 2.6 * k * (1.0 + 0.7 * ph), 0, TAU, 40, Color(Style.LEAF, 1.0 - ph), maxf(2.0, 0.45 * k), true)
+		var sh := shield(c, u)
+		var shadow := PackedVector2Array()
+		for q in sh:
+			shadow.append(q + Vector2(0.3, 0.4) * k)
+		draw_colored_polygon(shadow, Color(ink, 0.8))
+		var fill := Style.CRIMSON if done else (Style.PAPER_2 if locked else Style.ROYAL)
+		draw_colored_polygon(sh, fill)
+		var rim := sh.duplicate()
+		rim.append(sh[0])
+		if not locked:
+			draw_polyline(rim, Style.LEAF if done or i == next else Color("#c9b98a"), maxf(2.0, 0.45 * u), true)
+		draw_polyline(rim, ink if not locked else Style.FADED, maxf(1.2, 0.2 * u), true)
+		var txt := Style.FADED if locked else Style.PAPER_HI
+		Draw.text_c(self, Style.display, c + Vector2(0, -0.25 * u), str(i + 1), roundi(1.9 * u), txt, maxi(1, roundi(0.25 * u)), Color(ink, 0.6))
 		if done:
-			Draw.flame(self, r.position + BoardPaint.FIRE_AT * s, s * 0.32, _t * 1000.0, float(i))
-		var bc := base + Vector2(0, 1.2 * k)
-		var br := 1.45 * k
-		var fill := Style.CRIMSON if done else (Style.LEAF if i == next else (Style.PAPER_2 if locked else Style.PAPER_HI))
-		draw_circle(bc + Vector2(0.2, 0.3) * k, br, Color(ink, 0.85))
-		draw_circle(bc, br, fill)
-		draw_arc(bc, br, 0, TAU, 24, ink, maxf(1.2, 0.25 * k), true)
-		Draw.text_c(self, Style.display, bc + Vector2(0, 0.08 * k), str(i + 1), roundi(1.7 * k), Style.PAPER_HI if done else ink)
-		if done:
+			var rib := Rect2(c + Vector2(-3.1, 2.45) * k, Vector2(6.2, 1.9) * k)
+			draw_rect(Rect2(rib.position + Vector2(0.2, 0.3) * k, rib.size), Color(ink, 0.8))
+			draw_rect(rib, Style.PAPER_HI)
+			draw_rect(rib, ink, false, maxf(1.0, 0.18 * k))
 			var got := Store.stars_of(str(def.id))
 			for j in Stars.MAX:
-				Draw.star(self, bc + Vector2((j - 1) * 1.3 * k, br + 0.75 * k), 0.62 * k, Style.LEAF if j < got else Style.PAPER_2, ink, 1.0)
+				var sc := rib.get_center() + Vector2((j - 1) * 2.0 * k, 0.05 * k)
+				Draw.star(self, sc, 0.85 * k, Style.LEAF if j < got else Style.PAPER_2, ink, maxf(1.0, 0.15 * k))
+
+## heraldic shield around centre c (u = px per map unit): flat top, straight sides, curved point at the bottom
+static func shield(c: Vector2, u: float) -> PackedVector2Array:
+	var w := 1.85
+	var pts := PackedVector2Array([c + Vector2(-w, -2.2) * u, c + Vector2(w, -2.2) * u])
+	var right := Draw.quad(Vector2(w, 0.1), Vector2(w, 1.45), Vector2(0, 2.3), 8)
+	for q in right:
+		pts.append(c + q * u)
+	var left := Draw.quad(Vector2(0, 2.3), Vector2(-w, 1.45), Vector2(-w, 0.1), 8)
+	for j in range(1, left.size()):
+		pts.append(c + left[j] * u)
+	return pts
 
 ## map frame: ink edge, inner hairline, gold corner diamonds
 func _draw_frame(land: Rect2, k: float, ink: Color) -> void:

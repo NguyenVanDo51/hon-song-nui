@@ -127,6 +127,6 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 
 ## 2026-11-08 — hướng dẫn v2: t01–t03 kiểu LoL (nhánh `feat/tutorial-v2`, chưa merge)
 - Lý do (user): bạn chơi thử không biết đi quân / mục tiêu; hay quên Hết lượt; không biết 1 lượt đi được mọi quân. Spec `docs/superpowers/specs/2026-11-08-tutorial-v2-design.md`.
-- 3 màn chỉ tướng + vệ binh: t01 Bài Học Đầu (đi quân, quân xám, Hết lượt, địch tới bằng `waves`, đánh, đánh trả, dồn quân; thắng rout), t02 Công Thành (địa hình, lính giữ lâu đài, tướng chiếm = thắng), t03 Chiêu Binh (mua ở lâu đài, chiếm làng, hồi máu, Hết lượt sớm). Chi tiết `docs/content.md` § Hướng dẫn.
+- 3 màn chỉ tướng + vệ binh: t01 Bài Học Đầu (đi quân, quân xám, Hết lượt, địch tới bằng `waves`, đánh, đánh trả, dồn quân; thắng rout), t02 Lâu Đài Trống (tướng chiếm lâu đài trống, rừng thủ, hạ hết địch = thắng), t03 Chiêu Binh (mua ở lâu đài, chiếm làng, hồi máu, Hết lượt sớm). Chi tiết `docs/content.md` § Hướng dẫn.
 - `tutorial.gd`: bước `card` (thẻ tiêu đề + chữ + ▶ Đã hiểu / Space), chữ dài tự xuống dòng, chờ banner lượt, nhắc Hết lượt khi mọi quân xám + 2,5 s.
 - Kiểm: tests 190/0 (đi hết bước + bot thắng 8 seed / màn), golden tạo lại (chỉ dòng t01–t03 đổi), lint ok, click_driver m02 0 fail, `sim/tut_driver.gd` t01/t02/t03 0 fail (1280x720 + 1688x780). `sim/probes/tut_shot.gd` xoá (tut_driver chụp từng bước).

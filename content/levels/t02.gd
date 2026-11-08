@@ -1,14 +1,14 @@
 extends RefCounted
 # map rows: one line each reads better
 # gdlint: disable=max-line-length
-## tutorial t02: terrain cover (forest), a guard on the enemy castle (castle def +15: it takes focus fire), only the
-## hero takes a castle -> win. Enemy: no commander, cannot buy -> taking its castle ends the game. Format: docs/content.md
-## Roamer (6,5) hp 70 comes at us on enemy turn 1; guards hold until we come near (ai.gd).
+## tutorial t02: an empty castle mid-map (only the hero takes it: def +15, heals 20 a turn), forest cover, then hold the
+## castle and beat every enemy (win rout). Enemy: 3 soldiers that come at us (cannot take castles), cannot buy.
+## Format: docs/content.md
 
 const DEF := {
 	"id": "t02",
 	"order": 2,
-	"title": "Công Thành",
+	"title": "Lâu Đài Trống",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": [],
@@ -16,32 +16,24 @@ const DEF := {
 	"gold": { "p": 0, "e": 0 },
 	"tier": "easy",
 	"ai": "normal",
-	"win": { "type": "castles" },
-	"stars": { "turns": 6 },
-	"map": { "rows": ["hf.....fh", "f..f.....", "...f...c.", ".........", ".....f...", "f......hf", "ff.....ff"] },
-	"owner": [[7, 2, "e"]],
+	"win": { "type": "rout" },
+	"stars": { "turns": 7 },
+	"map": { "rows": ["hf.....fh", "f.......f", "...f.....", "....c....", "...f.....", "f.......f", "ff.....hf"] },
 	"units": [
 		["p", "hero", 1, 3],
 		["p", "soldier", 1, 2],
 		["p", "soldier", 1, 4],
-		["e", "soldier", 7, 2, { "guard": true, "hp": 70 }],
-		["e", "soldier", 8, 3, { "guard": true, "hp": 60 }],
-		["e", "soldier", 6, 5, { "hp": 70 }],
+		["e", "soldier", 8, 2, { "hp": 80 }],
+		["e", "soldier", 8, 4, { "hp": 80 }],
+		["e", "soldier", 7, 3, { "hp": 70 }],
 	],
-	"quests": [{ "do": "stand_on", "what": "f" }, { "do": "kill_with" }],
+	"quests": [{ "do": "capture", "what": "c" }, { "do": "stand_on", "what": "f" }, { "do": "kill_with" }],
 	"tutorial": [
-		{
-			"card": "Mục tiêu",
-			"point": [7, 2],
-			"say": "Đây là lâu đài địch. Tướng đứng lên lâu đài rồi bấm 🏯 Chiếm lâu đài là thắng. Chỉ Tướng chiếm được lâu đài.",
-		},
-		{
-			"card": "Lính giữ lâu đài",
-			"point": [7, 2],
-			"say": "Có lính đứng trên lâu đài thì phải hạ nó trước. Đứng trên lâu đài thì thủ rất cao: dồn 2–3 quân mới hạ được.",
-		},
-		{ "card": "Địa hình", "point": [3, 2], "say": "Rừng, đồi, lâu đài, làng: quân đứng trên bị mất ít máu hơn khi bị đánh." },
-		{ "q": 0, "point": [3, 2], "allow": [[3, 2], [3, 1], [1, 2]], "say": "Đưa Vệ binh vào rừng, chờ địch tới" },
-		{ "card": "Tự chỉ huy", "say": "Giờ bạn tự chỉ huy. Đi hết quân rồi bấm Hết lượt. Hạ lính giữ lâu đài, rồi đưa Tướng lên lâu đài." },
+		{ "card": "Mục tiêu", "say": "Hạ hết quân địch để thắng. Giữa bản đồ có 1 lâu đài trống: chiếm nó trước!" },
+		{ "card": "Lâu đài", "point": [4, 3], "say": "Chỉ Tướng chiếm được lâu đài. Quân đứng trên lâu đài thủ rất cao và hồi 20 máu mỗi lượt." },
+		{ "q": 0, "point": [4, 3], "allow": [[4, 3], [1, 3]], "say": "Đưa Tướng lên lâu đài rồi bấm 🏯 Chiếm lâu đài" },
+		{ "card": "Địa hình", "point": [3, 2], "say": "Rừng, đồi, làng cũng giúp thủ: đứng trên đó bị mất ít máu hơn." },
+		{ "q": 1, "point": [3, 2], "allow": [[3, 2], [3, 4], [1, 2]], "say": "Đưa Vệ binh vào rừng cạnh lâu đài, chờ địch tới" },
+		{ "card": "Tự chỉ huy", "say": "Giữ lâu đài + rừng, để địch đánh vào chỗ thủ cao. Dồn quân hạ từng tên. Hạ hết để thắng!" },
 	],
 }

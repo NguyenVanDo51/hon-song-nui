@@ -3,7 +3,7 @@ extends RefCounted
 # gdlint: disable=max-line-length
 ## tutorial t03: our castle (gold, buy), a bought unit acts at once, villages (gold + heal), a hurt soldier back to our
 ## village, end turn early, heal at turn start; then win by taking the enemy castle. Enemy cannot buy: a wave of 2
-## soldiers on turn 2 (spawned done, they act from enemy turn 3). Format: docs/content.md
+## soldiers by the castle on turn 1 (spawned done, they act from enemy turn 2); villages east are theirs (no lure). Format: docs/content.md
 
 const DEF := {
 	"id": "t03",
@@ -17,11 +17,11 @@ const DEF := {
 	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "castles" },
-	"stars": { "turns": 8 },
+	"stars": { "turns": 9 },
 	"map": { "rows": ["hf......fh", "f.v....v.f", "....f.....", ".c......c.", ".....f....", "f.v....v.f", "hf......fh"] },
-	"owner": [[1, 3, "p"], [2, 5, "p"], [8, 3, "e"], [7, 5, "e"]],
+	"owner": [[1, 3, "p"], [2, 5, "p"], [8, 3, "e"], [7, 1, "e"], [7, 5, "e"]],
 	"units": [["p", "hero", 2, 3], ["p", "soldier", 3, 4, { "hp": 40 }], ["e", "soldier", 8, 3, { "guard": true, "hp": 80 }]],
-	"waves": [{ "turn": 2, "units": [["soldier", 8, 1], ["soldier", 8, 5]] }],
+	"waves": [{ "turn": 1, "units": [["soldier", 8, 2], ["soldier", 8, 4]] }],
 	"quests": [
 		{ "do": "stand_on", "what": "v" },
 		{ "do": "buy", "what": "soldier" },

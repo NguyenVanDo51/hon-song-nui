@@ -5,7 +5,7 @@ extends Control
 ## (ring flashes); the screen asks allows() before tile clicks, orders, buys and end turn. Step i is done when
 ## s.quests[step.q].done; s.tut_step keeps it in the save. Off for `bot` runs. Tokens: Vector2i tile, "end_turn",
 ## "buy:<type>", "act:<order kind>".
-## Card steps ({ card: title, say, point? }) explain a concept: dim + ring on point (tile / "end_turn" / none = centred),
+## Card steps ({ card: title, say, point?, also? }) explain a concept: dim + ring on point (tile / "end_turn" / none = centred),
 ## paper bubble with title + text + Đã hiểu; nothing else clickable. After the last step the guide only nudges
 ## Hết lượt (hand, no dim, no lock) once every unit of ours has acted and the player waits.
 
@@ -480,6 +480,12 @@ func _aim_card() -> void:
 	if _target.has_area():
 		var rr := _ring_r(_target, true, 0.0)
 		_add_box(boxes, radii, rr, rr.size.x / 2.0)
+	var also: Array = st.get("also", []) # more lit tiles, no ring (e.g. a fresh unit next to a grey one)
+	for a: Variant in also:
+		var h := _tile_r(_xy(a))
+		_holes.append(h)
+		var hr := h.grow(-h.size.x * 0.06)
+		_add_box(boxes, radii, hr, hr.size.x / 2.0)
 	if gear.has_area():
 		var gr := gear.grow(4.0)
 		_add_box(boxes, radii, gr, minf(gr.size.x, gr.size.y) / 2.0)

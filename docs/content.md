@@ -82,9 +82,10 @@ const DEF := {
 - Mỗi bước: `q` = chỉ số trong `quests` (bước xong khi nhiệm vụ đó xong), `point` = ô `[x, y]` | `"end_turn"` | `"buy:<loại>"` (vòng sáng + tay chỉ), `allow` = ô / nút bấm được trong bước (phải chứa `point` và mọi ô cần bấm, vd ô quân + ô đích), `say` = 1 dòng ngắn (tuỳ chọn).
 - Bước `card` = thẻ giải thích: `{ "card": tiêu đề, "say": 1–2 câu, "point": [x, y] | "end_turn" | không có (= giữa màn) }`. Bàn tối + vòng ở `point` (không tay), nút **▶ Đã hiểu** (Space / Enter); không `q` / `allow`. Bước nhiệm vụ: `say` dài tự xuống dòng (~360 px), `title` tuỳ chọn.
 - Hết bước -> chơi tự do; lượt ta mọi quân đã đi + 2,5 s không bấm gì -> tay + bong bóng chỉ Hết lượt (không tối, không khoá). Guide chờ banner lượt tắt rồi mới hiện.
-- Nhiệm vụ sau bước cuối = làm trong chơi tự do (vd t02 `kill_with`).
+- Nhiệm vụ sau bước cuối = làm trong chơi tự do (vd t02 `kill_with`). Thẻ có thể thêm `"also": [[x, y]]` = ô sáng thêm (không vòng), vd t01 "Quân đã đi": tướng xám cạnh vệ binh sáng.
+- Thắng `rout`: dòng mục tiêu đếm cả quân địch chưa tới (`waves` chưa ra) -> t01 lượt 1 hiện "còn 2", không "còn 0".
 - Test (`sim/tests/quests.gd` `quest_content_tests`): bước hợp lệ (card / `point` ∈ `allow` / `q` tăng dần), mở bằng thẻ mục tiêu + kết bằng thẻ "Tự chỉ huy", chỉ tướng + vệ binh, địch không mua; đi hết bước trên bản đồ thật rồi bot chơi phe ta tới thắng (8 seed / màn). UI: `sim/tut_driver.gd -- mission=t0N fresh` (click thật từng bước, ảnh `shots=`).
-- t01: không làng / thành; địch tới bằng `waves` lượt 1 (A (7,3) 80 máu, B (8,1) 60): Tướng 45–55 + Vệ binh 40–45 luôn hạ A -> bài "dồn quân". t02: địch không tướng, không mua -> chiếm lâu đài = thắng; lính gác đứng trên lâu đài (thủ +15). t03: lâu đài + làng ta, mua được ngay (AE2), lính 40 máu về làng hồi; địch: 1 gác + `waves` lượt 2 (2 vệ binh).
+- t01: không làng / thành; địch tới bằng `waves` lượt 1 (A (7,3) 80 máu, B (8,1) 60): Tướng 45–55 + Vệ binh 40–45 luôn hạ A -> bài "dồn quân". t02: lâu đài trống giữa bản đồ (chỉ tướng chiếm; thủ +15, hồi 20), 3 vệ binh địch tự tới (không chiếm được lâu đài), thắng rout. Bản đầu (lính gác trên lâu đài địch, thắng castles) bỏ: bot luôn đưa lính gác ra khỏi lâu đài lượt 2 -> chiếm không cần đánh. t03: lâu đài + làng ta, mua được ngay (AE2), lính 40 máu về làng hồi; địch: 1 gác + `waves` lượt 1 (2 vệ binh cạnh lâu đài địch), 2 làng phía đông của địch (không có làng trống làm mồi kéo lính gác đi). Test: đi theo hướng dẫn thì không thắng trước lượt 4.
 
 Vào màn: thẳng bàn cờ, rồi thẻ giới thiệu quân mới (nếu có). Không thoại / sử tích (bỏ 2026-11-07).
 
@@ -104,7 +105,7 @@ Thứ tự = `order`. Màn `mNN` = làm tay (giữ nhịp thấy -> cầm -> mua
 | # | id | Tên | Khó | Bot | Thắng | Mới |
 |---|---|---|---|---|---|---|
 | 1 | t01 | Bài Học Đầu | Dễ | normal | rout | tướng + vệ binh; hướng dẫn: mục tiêu, chọn + đi quân, quân xám, hết lượt, địch tới, đánh, đánh trả, dồn quân |
-| 2 | t02 | Công Thành | Dễ | normal | castles | hướng dẫn: địa hình thủ, lính giữ lâu đài, tướng chiếm lâu đài = thắng |
+| 2 | t02 | Lâu Đài Trống | Dễ | normal | rout | hướng dẫn: tướng chiếm lâu đài (thủ + hồi máu), rừng thủ, giữ chỗ cao, hạ hết địch |
 | 3 | t03 | Chiêu Binh | Dễ | normal | castles | vệ binh (mua); hướng dẫn: lâu đài mua quân, làng (vàng + hồi máu), hết lượt sớm |
 | 4 | m01 | Lời Thề Hát Môn | Dễ | normal | rout | — (bộ binh, tướng ra mắt ở t01–t03) |
 | 5 | m02 | Về Lại Mê Linh | Dễ | normal | castles | nỏ thủ (mua), chiếm thành |

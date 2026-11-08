@@ -13,7 +13,7 @@ extends RefCounted
 
 static var TYPES := {
 	"castles": { "bar_n": _castles_left },
-	"rout": { },
+	"rout": { "bar_n": _rout_left },
 	"hero": { "loss": _hero_loss, "check": _hero_check },
 	"survive": { "on_round": _survive_round, "check": _survive_check },
 	"reach": {
@@ -84,6 +84,16 @@ static func check(s: Dictionary) -> String:
 # ---------- castles ----------
 static func _castles_left(s: Dictionary) -> int:
 	return Game.castles(s, "e")
+
+# ---------- rout ----------
+## enemies on the board + those still to arrive by wave (t01 starts with none on the board)
+static func _rout_left(s: Dictionary) -> int:
+	var n := Game.unit_count(s, "e")
+	for w: Dictionary in s.waves:
+		if not w.done:
+			var wu: Array = w.units
+			n += wu.size()
+	return n
 
 # ---------- hero: bring down the enemy commander ----------
 static func _hero_loss(s: Dictionary, side: String) -> Variant:

@@ -312,7 +312,7 @@ func quest_content_tests() -> void:
 					),
 					id + " buys soldiers only",
 				)
-			var wt := ["rout", "castles", "castles"]
+			var wt := ["rout", "rout", "castles"]
 			for i in TUT.size():
 				var tid: String = TUT[i]
 				var w: Dictionary = _lv(tid).get("win", { })
@@ -333,7 +333,7 @@ func quest_content_tests() -> void:
 				["kill_with", "soldier"],
 			]
 			eq(_pairs(_lv("t01")), q1, "t01 quests")
-			eq(_pairs(_lv("t02")), [["stand_on", "f"], ["kill_with", null]], "t02 quests")
+			eq(_pairs(_lv("t02")), [["capture", "c"], ["stand_on", "f"], ["kill_with", null]], "t02 quests")
 			var q3 := [["stand_on", "v"], ["buy", "soldier"], ["capture", "v"], ["end_turn", null], ["heal_on", "v"]]
 			eq(_pairs(_lv("t03")), q3, "t03 quests"),
 	)
@@ -440,6 +440,9 @@ func _check_steps(def: Dictionary) -> void:
 			var cp: Variant = st.get("point")
 			var cp_ok: bool = cp == null or (cp is String and cp == "end_turn") or on_map.call(cp)
 			check(cp_ok, tag + " card point")
+			for a: Variant in st.get("also", []):
+				var also_ok: bool = on_map.call(a)
+				check(also_ok, tag + " card also tile on map")
 			continue
 		var q: int = st.get("q", -1)
 		check(q >= 0 and q < qs.size(), tag + " q index")
@@ -558,6 +561,7 @@ func _walk_t01(sd: int) -> void:
 	s.rng = 1000 + sd * 7919
 	Quests.init_state(s, def)
 	var tag := "t01 seed %d" % sd
+	eq(Objectives.bar_n(s), 2, tag + ": win line counts the wave still to come (not 'còn 0')")
 	var hero := _first(s, "p", "hero")
 	var sol := _first(s, "p", "soldier")
 	eq(_side(s, "e").size(), 0, tag + ": no enemy before the move lesson")
@@ -593,7 +597,7 @@ func _walk_t01(sd: int) -> void:
 	eq(s.winner, "p", tag + ": the rest is won (bot plays us)")
 	AI.rng = old
 
-## t02: soldier into the forest (guide), then the bot plays us: castle guard falls, hero takes the castle
+## t02: hero takes the empty castle, a soldier into the forest (guide), then the bot plays us and beats every enemy
 func _walk_t02(sd: int) -> void:
 	var def := _lv("t02")
 	var old := _seed(sd)
@@ -601,30 +605,35 @@ func _walk_t02(sd: int) -> void:
 	s.rng = 1000 + sd * 7919
 	Quests.init_state(s, def)
 	var tag := "t02 seed %d" % sd
-	var castle := _tile(_step(def, 0))
+	var castle := _tile(_step(def, 2))
 	var cx: int = castle[0]
 	var cy: int = castle[1]
-	eq(Game.tile_at(s, cx, cy), "c", tag + ": goal card on the castle")
+	eq(Game.tile_at(s, cx, cy), "c", tag + ": capture step on the castle")
+	eq(_step(def, 1).get("point"), castle, tag + ": castle card on it")
 	var own: Dictionary = s.owner
-	eq(own.get(Vector2i(cx, cy)), "e", tag + ": enemy castle")
-	check(not _at(s, castle).is_empty(), tag + ": a guard stands on it")
-	var f := _tile(_step(def, 3))
+	eq(own.get(Vector2i(cx, cy)), null, tag + ": castle empty, nobody's")
+	var hero := _first(s, "p", "hero")
+	check(_allows(_step(def, 2), hero), tag + ": hero clickable at the castle step")
+	_go(s, hero, castle, "capture", tag)
+	eq(own.get(Vector2i(cx, cy)), "p", tag + ": castle ours")
+	var f := _tile(_step(def, 4))
 	var fx: int = f[0]
 	var fy: int = f[1]
 	eq(Game.tile_at(s, fx, fy), "f", tag + ": forest step on a forest")
 	var sol: Dictionary = { }
 	for u: Dictionary in _side(s, "p"):
-		if u.type == "soldier" and _allows(_step(def, 3), u):
+		if u.type == "soldier" and _allows(_step(def, 4), u):
 			sol = u
 	check(not sol.is_empty(), tag + ": a soldier is clickable at the forest step")
 	if sol.is_empty():
 		AI.rng = old
 		return
 	_go(s, sol, f, "wait", tag)
-	eq(Quests.done_count(s), 1, tag + ": stand_on f")
+	eq(Quests.done_count(s), 2, tag + ": capture c + stand_on f")
+	Game.end_turn(s)
 	_finish(s, 14)
 	eq(s.winner, "p", tag + ": the bot playing us wins")
-	eq(s.get("reason"), "castlesLost", tag + ": by taking the castle")
+	eq(s.get("reason"), "routed", tag + ": every enemy beaten")
 	AI.rng = old
 
 ## t03: hurt soldier to our village, buy on our castle, the new soldier takes a village, Hết lượt, heal; then the bot
@@ -676,10 +685,11 @@ func _walk_t03(sd: int) -> void:
 	var gold: Dictionary = s.gold
 	var g: int = gold.p
 	check(g >= Rules.UNITS.soldier.cost, tag + ": gold for one more soldier on turn 2 (%d)" % g)
-	_finish(s, 2)
 	var w0: Dictionary = s.waves[0]
 	var came: bool = w0.done
-	check(came, tag + ": the wave came on turn 2")
+	check(came, tag + ": the wave came on enemy turn 1")
 	_finish(s, 16)
 	eq(s.winner, "p", tag + ": the bot playing us wins")
+	var wt: int = s.turn
+	check(wt >= 4, tag + ": not won before the wave fought (turn %d)" % wt)
 	AI.rng = old

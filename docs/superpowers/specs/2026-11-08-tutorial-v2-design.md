@@ -13,9 +13,10 @@ Ngày: 2026-11-08. Nhánh `feat/tutorial-v2` (từ master 01efeb1). Thay §7 c�
 | màn | dạy | thắng |
 |---|---|---|
 | t01 Bài Học Đầu | chọn + đi quân, quân xám, Hết lượt; địch xuất hiện -> đánh; mẹo: dồn 2 quân hạ 1 tên | `rout` (user: diệt hết quân) |
-| t02 Công Thành | địa hình thủ (rừng / thành), hạ lính giữ thành, chiếm thành bằng tướng | `castles` (Claude: chiếm thành địch = cách thắng chính của game, 15/38 màn) |
-| t03 Chiêu Binh | thành ta mua quân, chiếm làng (vàng + hồi máu), đưa quân yếu về làng hồi máu, rồi đánh thắng | `castles` |
+| t02 Lâu Đài Trống | tướng chiếm lâu đài trống (thủ + hồi máu), rừng thủ, giữ chỗ cao, hạ hết địch | `rout` (user: chiếm thành + đánh bại hết quân). Bản đầu `castles` + lính gác: bot đưa gác ra khỏi lâu đài lượt 2 (8/8 seed) -> chiếm không cần đánh -> bỏ (Claude) |
+| t03 Chiêu Binh | thành ta mua quân, chiếm làng (vàng + hồi máu), đưa quân yếu về làng hồi máu, rồi đánh thắng | `castles` (chiếm lâu đài địch = cách thắng chính, 15/39 màn); đợt địch lượt 1 + không làng mồi -> không thắng trước lượt 4 |
 - t01 chưa có làng (user: chưa cần chiếm làng). t02 không làng (Claude: 1 bài 1 ý).
+- Mốc sao lượt nới cho người mới (Claude): t01 6, t02 7, t03 9.
 - Địch không mua quân (`allowed.e []`, `gold.e 0`); địch tới = `waves` (Claude: đoán trước được, không sửa bot).
 - `order` 1/2/3 (m01 = 10, không khoá ai).
 

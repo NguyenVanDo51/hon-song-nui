@@ -26,6 +26,7 @@ var offsets := { }
 var knock := { } # unit id -> { dir, t0, dur, mag }: hit reaction the board turns into a shove + lean
 var facing := { } # unit id -> -1 / 1: which way an attacker turned to strike
 var rigs: Array = [] # live code-rigged attacks (Rig), drawn by the 2D board; kept until their sparks fade
+var view_board: Board = null # the game board (portrait: turned 90°, see Board.rot); null = never turned
 var _gen := 0 # bumped by clear(): delayed effects of an older scene drop out
 var _last := 0.0
 
@@ -145,8 +146,10 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := { }) -> void:
 	var heavy: bool = st.get("heavy", false)
 	var kill: bool = opts.get("kill", false)
 	var dir := Vector2(dx - ax, dy - ay).normalized()
-	if absf(dir.x) > 0.01:
-		facing[a.id] = signf(dir.x)
+	var sdir := view_board.scr(dir) if view_board else dir # facing / leap are on-screen
+	var up := view_board.unscr(Vector2.UP) if view_board else Vector2.UP
+	if absf(sdir.x) > 0.01:
+		facing[a.id] = signf(sdir.x)
 	if shot != "":
 		# draw: lean back, then loose the shot and spring forward
 		await tween(
@@ -174,7 +177,7 @@ func attack(a: Dictionary, d: Dictionary, amount: int, opts := { }) -> void:
 		await tween(
 			100.0,
 			func(t: float) -> void:
-				offsets[a.id] = (-dir * 0.12).lerp(reach, t * t) - Vector2(0, sin(t * PI) * 0.14),
+				offsets[a.id] = (-dir * 0.12).lerp(reach, t * t) + up * sin(t * PI) * 0.14,
 		)
 		_play("slash")
 		FxStrikes.signature(self, a, d, dir)
@@ -218,7 +221,8 @@ func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: in
 	var ay: int = a.y
 	var dx: int = d.x
 	var dy: int = d.y
-	r.place(board, Vector2i(ax, ay), Vector2i(dx, dy), f)
+	var b: Board = board
+	r.place(board, b.vis_tile(Vector2i(ax, ay)), b.vis_tile(Vector2i(dx, dy)), f) # on-screen tiles: the rig plays upright
 	rigs.append(r)
 	var t0 := now()
 	var adur: float = r.A.dur
@@ -234,10 +238,14 @@ func rig_attack(board: Control, r: Rig, a: Dictionary, d: Dictionary, amount: in
 
 ## the way a rig attacker faces: toward the target; pure up / down keeps the token's facing
 static func rig_face(board: Control, a: Dictionary, d: Dictionary) -> float:
-	var dx: int = d.x - a.x
-	if dx != 0:
-		return signf(dx)
 	var b: Board = board
+	var ax: float = a.x
+	var ay: float = a.y
+	var tx: float = d.x
+	var ty: float = d.y
+	var dx := b.scr(Vector2(tx - ax, ty - ay)).x
+	if dx != 0.0:
+		return signf(dx)
 	var a_id: int = a.id
 	var a_side: String = a.side
 	return b.face_of(a_id, a_side)
@@ -766,8 +774,10 @@ func draw_over(ci: CanvasItem, T: float, t: float) -> void:
 			col.a = 1.0 - k * k
 			var life: float = p.life
 			Draw.ellipse(ci, X, R, maxf(0.5, R * absf(cos(life / 80.0))), col, 0.0, 16)
+	Draw.set_xf(ci, view_board.vis_xf() if view_board else Transform2D.IDENTITY)
 	for r: Rig in rigs:
 		r.draw_layer(ci, "front")
+	Draw.set_xf(ci, Transform2D.IDENTITY)
 
 ## additive effects (canvas 'lighter'): rank rays, slash arcs, orbs, glows, sparks
 func draw_add(ci: CanvasItem, T: float, t: float) -> void:
@@ -872,5 +882,8 @@ func draw_top(ci: CanvasItem, T: float, t: float) -> void:
 		var fx: float = f.x
 		var fy: float = f.y
 		var text: String = f.text
-		var pos := Vector2((fx + 0.5) * T, (fy + 0.3) * T - k * T * 0.55)
+		var c := Vector2(fx + 0.5, fy + 0.5) * T
+		Draw.set_xf(ci, view_board.up_xf(c) if view_board else Transform2D.IDENTITY) # rises up the screen on a turned board too
+		var pos := c - Vector2(0, T * 0.2 + k * T * 0.55)
 		Draw.text_c(ci, Style.xbold, pos, text, size, col, maxi(3, int(T * 0.08 * 1.3)), Color(0.1, 0.047, 0.024, col.a), pop / 1.3)
+	Draw.set_xf(ci, Transform2D.IDENTITY)

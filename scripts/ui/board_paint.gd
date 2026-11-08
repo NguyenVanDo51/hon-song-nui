@@ -44,7 +44,7 @@ func _art_draw(ci: CanvasItem, path: String, x: int, y: int, rot := 0.0) -> bool
 	if rot == 0.0:
 		ci.draw_texture_rect(tex, Rect2(x * bd.T, y * bd.T, bd.T, bd.T), false)
 	else:
-		ci.draw_set_transform(Vector2((x + 0.5) * bd.T, (y + 0.5) * bd.T), rot)
+		ci.draw_set_transform_matrix(Draw.xf * Transform2D(rot, Vector2((x + 0.5) * bd.T, (y + 0.5) * bd.T)))
 		ci.draw_texture_rect(tex, Rect2(-bd.T / 2.0, -bd.T / 2.0, bd.T, bd.T), false)
 		ci.draw_set_transform_matrix(Draw.xf)
 	return true
@@ -90,14 +90,18 @@ func draw_terrain(ci: CanvasItem) -> void:
 			var t: String = bd.s.tiles[y][x]
 			var p: Dictionary = Content.terrain(t)
 			var ap := _tile_art(t, x, y) if art else ""
-			if ap != "" and _art_draw(ci, ap, x, y, PI / 2.0 if t == "=" and _bridge_horiz(x, y) else 0.0):
+			# bridge / water follow the map (turn with the board); the rest stands upright on a turned board
+			var turn := (PI / 2.0 if _bridge_horiz(x, y) else 0.0) if t == "=" else (0.0 if t == "~" else bd.up_rot())
+			if ap != "" and _art_draw(ci, ap, x, y, turn):
 				continue
+			Draw.set_xf(ci, Transform2D(turn, Vector2(x + 0.5, y + 0.5) * bd.T - (Vector2(x + 0.5, y + 0.5) * bd.T).rotated(turn)))
 			var tex := Token.image(p.get("img"))
 			if tex:
 				ci.draw_texture_rect(tex, Rect2(x * bd.T, y * bd.T, bd.T, bd.T), false)
 			else:
 				var kind: String = p.paint
 				_paint(ci, kind, x * bd.T, y * bd.T, p, x, y)
+			Draw.set_xf(ci, Transform2D.IDENTITY)
 	_draw_roads(ci)
 	# shorelines: sand on land edges touching water
 	for y: int in sh:
@@ -134,8 +138,10 @@ func _draw_static_buildings(ci: CanvasItem) -> void:
 		var y: int = b[2]
 		var own: String = b[3]
 		var ap := _bld_art(t, own)
-		if ap != "" and not _art_draw(ci, ap, x, y):
+		if ap != "" and not _art_draw(ci, ap, x, y, bd.up_rot()):
+			Draw.set_xf(ci, bd.up_xf(Vector2(x + 0.5, y + 0.5) * bd.T))
 			draw_building(ci, t, x * bd.T, y * bd.T, own, 0.0, x, y)
+			Draw.set_xf(ci, Transform2D.IDENTITY)
 
 ## [t, x, y, owner] of every building as shown now (a raze / repair keeps the old tile until its event plays)
 func _bld_list() -> Array:

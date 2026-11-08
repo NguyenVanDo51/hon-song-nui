@@ -465,13 +465,13 @@ func draw_char(ci: CanvasItem) -> void:
 	var g := cam.root(px, 0.0)
 	var base := g - Vector2(0.0, (data.feet - 256.0) * cam.ca)
 	var ls := clampf(1.0 + py / 220.0, 0.45, 1.0)
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 	Token.draw_shadow(ci, base, T, 1.0, ls)
 	if a_type == "hero":
 		Token.halo(ci, base - Vector2(0.0, T * Token.FOOT), T, Token.FOE_GLOW if swap or data.name.ends_with("_e") else Token.HERO_GLOW)
 	if playing:
 		spec.draw_char_under(_ctx(ci), cam, self)
-		ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+		ci.draw_set_transform_matrix(Draw.xf)
 	var R := bones_of(p)
 	var X := cam.char_xf(px, py)
 	var tex_px := 256.0 * cam.ca * Baked.screen_scale(ci)
@@ -493,9 +493,9 @@ func draw_char(ci: CanvasItem) -> void:
 		if tex == null:
 			continue
 		var bm: Transform2D = R[e[1]]
-		ci.draw_set_transform_matrix(X * bm)
+		ci.draw_set_transform_matrix(Draw.xf * X * bm)
 		ci.draw_texture_rect(tex, Rect2(0, 0, 256, 256), false, Color(1, 1, 1, al))
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 	if A.get("smear") != null and playing:
 		_draw_smear(ci)
 	spec.draw_char_extra(_ctx(ci), cam, self)
@@ -563,7 +563,7 @@ func _draw_smear(ci: CanvasItem) -> void:
 		tips.append(tp)
 		mids.append(md)
 		inner.append(tp.lerp(md, 0.35))
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 	var fill := RigFx.col(sm.get("fill", "#f4fbff"))
 	var inn := RigFx.col(sm.get("inner", "#b9e7f3"))
 	fill.a *= a
@@ -601,7 +601,7 @@ func draw_layer(ci: CanvasItem, layer: String) -> void:
 	if playing:
 		ctx.alpha = 1.0
 		spec.draw(ctx, cam, self, layer, t)
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 
 ## full-board flash (engine flash(): 45% at start, fading)
 func draw_flash(ci: CanvasItem, area: Rect2) -> void:
@@ -609,7 +609,7 @@ func draw_flash(ci: CanvasItem, area: Rect2) -> void:
 		return
 	var c := flash_col
 	c.a = 0.45 * flash_t / flash_dur
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	ci.draw_set_transform_matrix(Draw.xf)
 	ci.draw_rect(area, c)
 
 ## nothing left to draw (character back to token, every fx gone)

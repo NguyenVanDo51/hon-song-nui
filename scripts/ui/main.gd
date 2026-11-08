@@ -14,7 +14,6 @@ var flags := { }
 var _shot_t := 0.0
 var _shot_n := 0
 var _t := 0.0
-var _rotate: Control
 
 func _ready() -> void:
 	var args := Array(OS.get_cmdline_user_args())
@@ -59,7 +58,6 @@ func _ready() -> void:
 		FX.speed = str(flags.speed).to_float()
 	if flags.has("fresh"):
 		Store.clear_game()
-	_build_rotate_hint()
 	get_window().size_changed.connect(_fit_scale)
 	_fit_scale()
 	_boot()
@@ -72,36 +70,9 @@ func _fit_scale() -> void:
 	var w := get_window()
 	var px := Vector2(w.size)
 	var auto := minf(px.x / BASE.x, px.y / BASE.y)
-	w.content_scale_factor = maxf(1.0, MIN_SCALE / maxf(auto, 0.01))
-	if _rotate:
-		_rotate.visible = px.y > px.x * 1.1 # portrait phone: ask to turn the screen
-
-func _build_rotate_hint() -> void:
-	_rotate = ColorRect.new()
-	(_rotate as ColorRect).color = Style.PAPER
-	_rotate.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_rotate.mouse_filter = Control.MOUSE_FILTER_STOP
-	_rotate.z_index = 200
-	_rotate.visible = false
-	var c := CenterContainer.new()
-	c.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	var v := Style.vbox(14)
-	var icon := TextureRect.new()
-	icon.texture = Icons.tex("rotate")
-	icon.custom_minimum_size = Vector2(72, 72)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	v.add_child(icon)
-	var t := Style.lbl("Xoay ngang màn hình để chơi", 22, Style.INK, Style.display)
-	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(t)
-	var sub := Style.lbl("Bàn cờ cần khổ ngang.", 15, Style.MUTED)
-	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	v.add_child(sub)
-	c.add_child(v)
-	_rotate.add_child(c)
-	add_child(_rotate)
+	# portrait: scale as if the base were 720x1280 (a 1280-wide canvas on a phone held upright = unreadable text)
+	var want := minf(px.x / BASE.y, px.y / BASE.x) if px.y > px.x else auto
+	w.content_scale_factor = maxf(want / maxf(auto, 0.01), MIN_SCALE / maxf(auto, 0.01))
 
 func _boot() -> void:
 	GameLog.crumb("boot flags=%s" % [flags])

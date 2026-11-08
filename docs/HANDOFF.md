@@ -125,9 +125,17 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Kiểm: tests 156/0, lint ok, click_driver m02 (có / không intro) / t01 / t02 fails=0; ảnh probe `intro_shot.gd`, `hud_shot.gd`.
 - Nợ mở: `docs/TODO.md` § Nợ kỹ thuật (golden cũ, tên màn m01–m16 còn sử Việt, `_eff` hết địch trong tầm, font thiếu ❤🪙…).
 
-## 2026-11-08 — hướng dẫn v2: t01–t03 kiểu LoL (nhánh `feat/tutorial-v2`, chưa merge)
+## 2026-11-08 — hướng dẫn v2: t01–t03 kiểu LoL (nhánh `feat/tutorial-v2`, merged master 2026-11-08)
 - Lý do (user): bạn chơi thử không biết đi quân / mục tiêu; hay quên Hết lượt; không biết 1 lượt đi được mọi quân. Spec `docs/superpowers/specs/2026-11-08-tutorial-v2-design.md`.
 - 3 màn chỉ tướng + vệ binh: t01 Bài Học Đầu (đi quân, quân xám, Hết lượt, địch tới bằng `waves`, đánh, đánh trả, dồn quân; thắng rout), t02 Lâu Đài Trống (tướng chiếm lâu đài trống, rừng thủ, hạ hết địch = thắng), t03 Chiêu Binh (mua ở lâu đài, chiếm làng, hồi máu, Hết lượt sớm). Chi tiết `docs/content.md` § Hướng dẫn.
 - `tutorial.gd`: bước `card` (thẻ tiêu đề + chữ + ▶ Đã hiểu / Space), chữ dài tự xuống dòng, chờ banner lượt, nhắc Hết lượt khi mọi quân xám + 2,5 s.
 - Kiểm: tests 190/0 (đi hết bước + bot thắng 8 seed / màn), golden tạo lại (chỉ dòng t01–t03 đổi), lint ok, click_driver m02 0 fail, `sim/tut_driver.gd` t01/t02/t03 0 fail (1280x720 + 1688x780). `sim/probes/tut_shot.gd` xoá (tut_driver chụp từng bước).
 - Sau đó (user): t01–t03 không hiện thẻ giới thiệu quân (bắt đầu từ m01); nhắc Hết lượt chỉ ở t01 + t02 (`nudgeEnd`). Driver: `mission=m01 fresh tutcheck`.
+
+## 2026-11-08 — màn dọc (nhánh `feat/portrait`, merged master 2026-11-08)
+- Yêu cầu user: màn dọc trên mobile = xoay bàn như cờ tướng (quân đỏ tiến lên trên), không vẽ lại bản đồ.
+- Cách làm: `Board.rot` (màn cao > rộng + `auto_rotate`, chỉ bàn trận chính) -> Board `rotation = -90°`; hình học (cỏ, sông, đường, vùng tô, đường đi, mũi tên bay) xoay theo bàn; vật đứng (lính, nhà, cây / đồi / núi, chữ, huy hiệu) dựng thẳng bằng `up_xf(tâm ô)`; rig tấn công đặt trên ô màn hình (`vis_tile`) + vẽ qua `vis_xf()` (rig compose `Draw.xf`). Hướng mặt / đòn lao / knock đổi qua `scr()`. Chạm ô: Godot tự đổi toạ độ; `tile_rect` = `get_transform() * rect`.
+- HUD: `Board.place / visual_size / visual_rect`. Tỉ lệ UI dọc = như khung 720x1280 (`Main._fit_scale`). Bỏ màn "xoay ngang". `orientation=6` (sensor), PWA any.
+- Menu dọc: lưới Thử thách xếp chi tiết dưới lưới (`BoxContainer.vertical`; HBox không đổi hướng được), Sách lính tab xuống dòng, đấu tự do / 1 đấu 1 hàng tự xuống dòng (`HFlowContainer`).
+- Kiểm: tests 189/0; click_driver có cửa sổ 540x1170 m02 / m02 intro / t01 fails=0 (headless bỏ qua --resolution); `sim/probes/portrait_shot.gd` (chọn ô khớp 100% + xoay máy giữa trận ngang <-> dọc), safe_shot dọc 15/15.
+- Còn lại: `docs/TODO.md` § Tính năng "Màn dọc" (đá máy bắn đá cong ngang, fx bay lên, màn tiêu đề).

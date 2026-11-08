@@ -24,6 +24,10 @@
 ## Tính năng
 - [ ] **Giao diện "chất game"** (`docs/review/ui_direction.html`, 2026-11-07): 3 hướng (Trống Đồng / Sơn Mài / Đông Hồ) + mockup, đề xuất B Sơn Mài; chờ chọn hướng -> làm P0–P5 sau khi tách `game_screen.gd` merge.
 - [ ] Vùng địch đánh tới: có thể thêm nút bật vùng gộp mọi quân địch + cảnh báo khi chọn ô đích nằm trong vùng.
+- [ ] **Màn dọc** (nhánh `feat/portrait`, 2026-11-08): bàn xoay 90° (`Board.rot`), lính / nhà / chữ đứng thẳng. Còn lại (user: chưa cần, chơi được trước):
+  - [ ] Đá máy bắn đá (`fx.gd` `_proj_pos` arc) cong theo trục y bản đồ -> màn dọc cong sang ngang (đổi: cộng arc theo `view_board.unscr(UP)`).
+  - [ ] Hiệu ứng "bay lên" khác vẫn theo bản đồ -> màn dọc bay ngang: lốc tướng (`whirl`), khói / sao / mảnh `burst` có trọng lực, hồn `raise_fx`, tia lên cấp.
+  - [ ] Màn tiêu đề dọc = sân khấu ngang thu nhỏ -> chữ nhỏ; nên xếp dọc (logo / menu / hình).
 - [x] **Chế độ 1 đấu 1** (`docs/1v1.md`, 2026-11-06): người–người chung máy (màn chuyển tay) + người–máy; bước 1–3 xong.
   - [x] Bước 4: Dễ / Thường / Khó = `AI.PRESETS` -> `s.aiParams` (docs/1v1.md "Độ khó"; tỉ lệ thắng docs/ai.md). Khó v1 chỉ hơn Thường ~55% -> xong bằng Khó v2.
   - [x] **Khó v2** (2026-11-07, `scripts/core/ai_plan.gd`, docs/ai.md "Khó v2"): lập kế hoạch cả lượt (portfolio style + dồn đòn giết + giữ thành, địch đáp 1 lượt, chấm thế cờ). Seed giữ riêng: 0,896 vs Khó v1 (396 ván).
@@ -58,6 +62,9 @@
 - [ ] (2026-11-08) `docs/ai.md` / bảng tỉ lệ thắng bot (Khó v3 / v5, `hard_v*`) đo trên luật đi cũ + dong_bang cũ 300 vàng / trần 15 -> mọi số cũ hết hiệu lực; đo lại khi luyện bot tiếp.
 - [ ] (2026-11-08) `sim/click_driver.gd` `turn_of` (3000 frame) / `idle` (400 frame) chờ theo số frame -> cửa sổ Godot ở nền (macOS hạ fps) thì hết hạn sớm, FAIL ngẫu nhiên (gặp khi chạy tut_driver lần 2). Sửa: chờ theo đồng hồ như `sim/tut_driver.gd` `_until`.
 Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
+- [ ] (2026-11-08) `scripts/ui/board.gd` `_info_spots` không còn nơi nào thêm phần tử (chấm ⓘ đã bỏ) -> `_info_at` luôn -1, `info_requested` của bàn cờ chết + tooltip "Xem thông tin quân" không bao giờ hiện (xoá hoặc vẽ lại chấm).
+- [ ] (2026-11-08) `sim/probes/*.gd` không qua `tools/lint.sh` (chỉ scripts/) -> probe lỗi parse chạy có cửa sổ = treo tới MAX_SEC, log trống (thêm `--check-only` probe vào lint).
+- [ ] (2026-11-08) Godot headless bỏ qua `--resolution` (GameScreen 80x80) -> click_driver headless không kiểm được màn dọc; phải chạy có cửa sổ `--resolution 540x1170`.
 - [x] (2026-11-07) `scripts/core/game.gd:246` tầm đi dùng đủ `mv`; AE2 gốc = `mv − 1` (docs/review/ae2_research.md "So sánh đầy đủ") -> mọi quân nhanh hơn gốc 1 bước. Đổi = luật lớn (AI, UI, màn đã cân bằng, replay cũ) -> chờ user quyết; đo bằng sim trước. **Đã sửa (2026-11-08, user)**: `rules.gd` `mv` = số bước thật (gốc − 1: lính 4, sói 5, máy bắn đá 3, rồng 6); luật Dijkstra giữ nguyên; t01 dời làng (2,1) + lính gác (7,4); `hero_fix` chạy kịch bản cũ với bảng mv + 1. Màn chưa cân lại (xem bảng sim trước / sau).
 - [ ] (2026-11-07) `scripts/core/game.gd:717` hào quang `dist <= 2` gồm cả 0 (quân đứng chồng ô Wisp) -> gốc chỉ 1–2.
 - [ ] (2026-11-07) `scripts/core/game.gd:362` comment roll dẫn RM -> nay xác nhận gốc `e.class a(II)I`; `rules.gd:141` trần chiến dịch 100 dẫn RM -> gốc `i.b(I)V @pc 738–741`.

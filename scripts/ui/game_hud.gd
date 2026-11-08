@@ -170,6 +170,8 @@ func build_hud() -> void:
 func make_board() -> void:
 	gs.board = Board.new()
 	gs.board.fx = gs.fx
+	gs.fx.view_board = gs.board
+	gs.board.auto_rotate = true
 	if coins != null:
 		coins.board = gs.board
 	gs.board.tile_clicked.connect(gs._on_tile_clicked)
@@ -532,9 +534,10 @@ func fit() -> void:
 		return
 	_layout()
 	gs.board.fit(_safe.size - Vector2(8, 8))
-	gs.board.position = (_safe.position + (_safe.size - gs.board.size) / 2.0).floor()
-	_frame.position = gs.board.position
-	_frame.size = gs.board.size
+	gs.board.place((_safe.position + (_safe.size - gs.board.visual_size()) / 2.0).floor())
+	var vr := gs.board.visual_rect()
+	_frame.position = vr.position
+	_frame.size = vr.size
 	place_hud()
 	gs.panel.place_pop.call_deferred()
 

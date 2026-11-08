@@ -38,6 +38,10 @@ const SHIELD_INK := Color("#0b2330")
 const ZOOM := 1.9
 
 var paint: BoardPaint # terrain / building painting (board_paint.gd)
+## portrait screen (auto_rotate on): the board turns 90° counter-clockwise (map right -> screen up, like a xiangqi board
+## seen from the red side); figures / buildings / text stay upright via up_xf / vis_xf. Map data never changes.
+var auto_rotate := false
+var rot := false
 
 var _info_spots := [] # [[centre, unit id]] of the ⓘ dots drawn this frame
 var _stage: Control
@@ -148,10 +152,13 @@ func fit(avail: Vector2) -> void:
 		return
 	var sw: int = s.w
 	var sh: int = s.h
-	T = clampf(floorf(minf(avail.x / sw, avail.y / sh)), 22.0, 96.0)
+	rot = auto_rotate and avail.y > avail.x
+	var a := Vector2(avail.y, avail.x) if rot else avail
+	T = clampf(floorf(minf(a.x / sw, a.y / sh)), 22.0, 96.0)
 	var px := _px()
 	custom_minimum_size = px
 	size = px
+	rotation = -PI / 2.0 if rot else 0.0
 	_stage.size = px
 	for l: Control in [_terrain_view, _water, _night] + _layers:
 		l.size = px
@@ -221,7 +228,49 @@ func _apply_zoom(shake: Vector2) -> void:
 
 ## a tile's rectangle in the parent's coordinates (popup placement)
 func tile_rect(x: int, y: int) -> Rect2:
-	return Rect2(position + Vector2(x * T, y * T), Vector2(T, T))
+	return get_transform() * Rect2(Vector2(x * T, y * T), Vector2(T, T))
+
+# ---------- portrait view ----------
+## on-screen size (turned board: w / h swap)
+func visual_size() -> Vector2:
+	return Vector2(size.y, size.x) if rot else size
+
+## on-screen rectangle in the parent's coordinates
+func visual_rect() -> Rect2:
+	return Rect2(position - (Vector2(0.0, size.x) if rot else Vector2.ZERO), visual_size())
+
+## put the on-screen top-left at p (the turned board's origin sits at its bottom-left)
+func place(p: Vector2) -> void:
+	position = p + (Vector2(0.0, size.x) if rot else Vector2.ZERO)
+
+## draw transform that keeps art centred at c (board px) upright on a turned board
+func up_xf(c: Vector2) -> Transform2D:
+	if not rot:
+		return Transform2D.IDENTITY
+	return Transform2D(PI / 2.0, c - c.rotated(PI / 2.0))
+
+## draw transform from on-screen board px (origin = on-screen top-left) to board px
+func vis_xf() -> Transform2D:
+	if not rot:
+		return Transform2D.IDENTITY
+	return Transform2D(Vector2(0, 1), Vector2(-1, 0), Vector2(_px().x, 0))
+
+## map direction -> screen direction
+func scr(v: Vector2) -> Vector2:
+	return Vector2(v.y, -v.x) if rot else v
+
+## screen direction -> map direction
+func unscr(v: Vector2) -> Vector2:
+	return Vector2(-v.y, v.x) if rot else v
+
+## map tile -> the tile it shows as on screen (column, row of the turned grid)
+func vis_tile(t: Vector2i) -> Vector2i:
+	var sw: int = s.w
+	return Vector2i(t.y, sw - 1 - t.x) if rot else t
+
+## art turn on a turned board (+90° undoes the board's -90°)
+func up_rot() -> float:
+	return PI / 2.0 if rot else 0.0
 
 func _process(dt: float) -> void:
 	if s.is_empty() or not is_visible_in_tree():
@@ -283,15 +332,19 @@ func _draw_dyn(ci: CanvasItem) -> void:
 		var x: int = b[1]
 		var y: int = b[2]
 		var own: String = b[3]
+		Draw.set_xf(ci, up_xf(Vector2(x + 0.5, y + 0.5) * T))
 		paint.draw_building(ci, t, x * T, y * T, own, time, x, y)
 	for g: Dictionary in s.graves:
 		var gx: float = g.x
 		var gy: float = g.y
+		Draw.set_xf(ci, up_xf(Vector2(gx + 0.5, gy + 0.5) * T))
 		paint.draw_grave(ci, gx * T, gy * T, time)
 	for at: Array in Objectives.marks(s):
 		var ax: float = at[0]
 		var ay: float = at[1]
+		Draw.set_xf(ci, up_xf(Vector2(ax + 0.5, ay + 0.5) * T))
 		paint.draw_goal(ci, ax * T, ay * T, time)
+	Draw.set_xf(ci, Transform2D.IDENTITY)
 	_draw_overlays(ci, time)
 	fx.draw_under(ci, T, time)
 	_draw_units(ci, time)
@@ -477,12 +530,16 @@ func _draw_preview(ci: CanvasItem) -> void:
 	var pad := 7.0
 	var w := w1 + w2 + pad * 2
 	var h := fs * 1.5
-	var px: float = p.x
-	var sw: int = s.w
-	var x := clampf((px + 0.5) * T - w / 2, 2, sw * T - w - 2)
-	var y: float = p.y * T - h - 4
+	# laid out in on-screen px (turned board: vis_xf keeps the box upright)
+	var tx: int = p.x
+	var ty: int = p.y
+	var vt := vis_tile(Vector2i(tx, ty))
+	var vw := visual_size().x
+	var x := clampf((vt.x + 0.5) * T - w / 2, 2, vw - w - 2)
+	var y: float = vt.y * T - h - 4
 	if y < 2:
-		y = (p.y + 1) * T + 4
+		y = (vt.y + 1) * T + 4
+	Draw.set_xf(ci, vis_xf())
 	var box := Style.box(Style.PAPER_HI, Style.CRIMSON if p.kill or p.die else Style.INK_D, 7, 0, 2)
 	ci.draw_style_box(box, Rect2(x, y, w, h))
 	var base := y + h / 2 + (Style.xbold.get_ascent(fs) - Style.xbold.get_descent(fs)) / 2
@@ -493,6 +550,7 @@ func _draw_preview(ci: CanvasItem) -> void:
 		var x2 := x + pad + w1 + 12.0
 		ci.draw_texture_rect(Icons.tex("back"), Rect2(x2, iy, ic, ic), false)
 		ci.draw_string(Style.xbold, Vector2(x2 + ic + gap, base), take, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Style.BAD)
+	Draw.set_xf(ci, Transform2D.IDENTITY)
 
 func _draw_units(ci: CanvasItem, time: float) -> void:
 	_info_spots.clear()
@@ -512,17 +570,22 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 	for r: Rig in fx.rigs:
 		if r.shown:
 			z[r.a_id] = 2
-	# deterministic: sort_custom is not stable
+	# deterministic: sort_custom is not stable. Back to front by on-screen row (turned board: row = -map x)
+	for it: Dictionary in list:
+		var ix: float = it.x
+		var iy: float = it.y
+		it.sr = -ix if rot else iy
+		it.sc = iy if rot else ix
 	list.sort_custom(
 		func(a: Dictionary, b: Dictionary) -> bool:
-			if a.y != b.y:
-				return a.y < b.y
+			if a.sr != b.sr:
+				return a.sr < b.sr
 			var za: int = z.get(a.u.id, 1)
 			var zb: int = z.get(b.u.id, 1)
 			if za != zb:
 				return za < zb
-			if a.x != b.x:
-				return a.x < b.x
+			if a.sc != b.sc:
+				return a.sc < b.sc
 			return a.u.id < b.u.id,
 	)
 	var sel_id: int = v.sel.id if v.sel != null else -1
@@ -557,6 +620,8 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		var flash := (fl - time) / 180.0 if fl > time else 0.0
 		var rt: Rig = rig_t.get(u.id) if not rig_done.has(u.id) else null
 		var is_sel: bool = u.id == sel_id
+		var ux := up_xf(c)
+		Draw.set_xf(ci, ux)
 		if is_sel:
 			Draw.ellipse_line(ci, c + Vector2(0, T * 0.32), T * 0.36, T * 0.12, sel_color(time), maxf(2.0, T * 0.05))
 		var alpha: float = it.alpha if it.alpha >= 0 else 1.0
@@ -565,6 +630,8 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 		var pose := _pose(u, it, x, y, off, time, is_sel)
 		var pose_flash: float = pose.flash
 		flash = maxf(flash, pose_flash)
+		# rigs are placed on on-screen tiles (fx.rig_attack) and drawn in on-screen px
+		Draw.set_xf(ci, vis_xf())
 		for rb: Rig in back_at.get(i, []):
 			rb.draw_layer(ci, "back")
 			back_done[rb] = true
@@ -576,28 +643,32 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			var shadow: float = pose.shadow
 			var pose_xf: Transform2D = pose.xf
 			var still: bool = pose.still
+			Draw.set_xf(ci, ux)
 			_atlas.draw_shadow(ci, c, it_sc, alpha, shadow)
-			Draw.set_xf(ci, pose_xf)
+			Draw.set_xf(ci, ux * pose_xf)
 			if flash > 0 or _zoom > 0.0: # hit flash / close-up: paint live (white figure; crisp at any scale)
 				var o := { "alpha": alpha, "flash": flash, "shadow": false, "tint": tint }
 				if _zoom > 0.0:
 					o.rs = _zoom_rs()
 				Token.paint(ci, c, T * it_sc, side, type, s.heroKey[side], o)
-			elif not _atlas.draw(ci, st, c, side, type, 0.0, it_sc, alpha, tint, false, still):
+			elif not _atlas.draw(ci, st * ux, c, side, type, 0.0, it_sc, alpha, tint, false, still):
 				Token.paint(ci, c, T * it_sc, side, type, s.heroKey[side], { "alpha": alpha, "shadow": false })
-			Draw.set_xf(ci, Transform2D.IDENTITY)
 		if rt != null:
 			rig_done[u.id] = true
+			Draw.set_xf(ci, vis_xf())
 			rt.draw_layer(ci, "mid")
+		Draw.set_xf(ci, ux)
 		if it.alpha < 0 or it.alpha > 0.5:
 			draw_unit_badges(ci, v, u, c, T)
 			if it.alpha < 0 and off == null and not v.busy and not it.has("die"):
 				_draw_buffs(ci, u, c, roundi(x), roundi(y), time)
+	Draw.set_xf(ci, vis_xf())
 	for r: Rig in fx.rigs:
 		if not rig_done.has(r.d_id) or rig_t.get(r.d_id) != r: # target not drawn, or an older rig on the same target
 			if not back_done.has(r):
 				r.draw_layer(ci, "back")
 			r.draw_layer(ci, "mid")
+	Draw.set_xf(ci, Transform2D.IDENTITY)
 	if not v.busy: # ours inside the picked enemy's threat zone: red "!" badge, top right
 		for uid: int in v.danger:
 			var du: Variant = Game.unit_by_id(s, uid)
@@ -607,9 +678,11 @@ func _draw_units(ci: CanvasItem, time: float) -> void:
 			var dy: float = du.y
 			var bc := Vector2((dx + 0.84) * T, (dy + 0.16) * T)
 			var br := T * 0.13
+			Draw.set_xf(ci, up_xf(Vector2(dx + 0.5, dy + 0.5) * T))
 			ci.draw_circle(bc, br + maxf(1.0, T * 0.02), Color(0.1, 0.03, 0.02, 0.9))
 			ci.draw_circle(bc, br, ATTACK.lightened(0.05 + sin(time / 200.0) * 0.08))
 			Draw.text_c(ci, Style.xbold, bc, "!", roundi(T * 0.2), Color.WHITE)
+		Draw.set_xf(ci, Transform2D.IDENTITY)
 
 ## hp bar + number (when hurt), rank stars, sleeping-sentry 💤 around a figure centred at c (tile size ts).
 static func draw_unit_badges(ci: CanvasItem, v: Dictionary, u: Dictionary, c: Vector2, ts: float) -> void:
@@ -664,8 +737,9 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 	if not it.has("die"):
 		if last != null:
 			var lp: Vector2 = last
-			if absf(bx - lp.x) > 0.001:
-				face = signf(bx - lp.x)
+			var mv := scr(Vector2(bx, by) - lp)
+			if absf(mv.x) > 0.001:
+				face = signf(mv.x)
 		_last_xy[id] = Vector2(bx, by)
 	# walking: one hop per tile, a little sway and stretch while in the air
 	var p := fposmod(bx, 1.0) + fposmod(by, 1.0)
@@ -679,7 +753,8 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 	# striking: lean into the blow, stretch along it
 	if off != null:
 		still = false
-		var o: Vector2 = off
+		var o0: Vector2 = off
+		var o := scr(o0)
 		if fx.facing.has(id):
 			face = fx.facing[id]
 		lean += clampf(o.x * 1.5, -0.55, 0.55)
@@ -694,7 +769,8 @@ func _pose(u: Dictionary, it: Dictionary, x: float, y: float, off: Variant, time
 		else:
 			still = false
 			var mag: float = kn.mag
-			var kdir: Vector2 = kn.dir
+			var kd0: Vector2 = kn.dir
+			var kdir := scr(kd0)
 			var a := (1.0 - k) * (1.0 - k) * mag
 			shift += kdir * 0.13 * T * a
 			lean += kdir.x * 0.32 * a - (0.0 if absf(kdir.x) > 0.3 else 0.12 * a)

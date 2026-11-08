@@ -13,7 +13,7 @@ const DEF := {
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "boat", "wolf", "shaman"], "e": [] },
 	"gold": { "p": 200, "e": 0 },
 	"win": { "type": "survive", "turns": 10 },
-	"stars": { "lost": 7 },
+	"stars": { "lost": 6 },
 	"unitCap": 15,
 	"night": false,
 	"map": {

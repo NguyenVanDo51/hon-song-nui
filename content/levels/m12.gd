@@ -12,11 +12,11 @@ const DEF := {
 		"p": ["soldier", "archer", "boat", "drum", "wolf", "elephant", "catapult"],
 		"e": ["soldier", "archer", "boat", "drum", "wolf", "elephant", "catapult"],
 	},
-	"gold": { "p": 1100, "e": 300 },
+	"gold": { "p": 1300, "e": 300 },
 	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "castles" },
-	"stars": { "turns": 15 },
+	"stars": { "turns": 17 },
 	"map": {
 		"rows": [
 			"ffhfffhhf....c..",

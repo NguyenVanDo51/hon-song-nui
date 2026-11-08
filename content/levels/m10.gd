@@ -9,11 +9,11 @@ const DEF := {
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "boat", "drum", "elephant"], "e": ["soldier", "archer", "boat", "elephant"] },
-	"gold": { "p": 600, "e": 250 },
+	"gold": { "p": 600, "e": 400 },
 	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "hero" },
-	"stars": { "turns": 10 },
+	"stars": { "turns": 16 },
 	"quests": [{ "do": "repair" }],
 	"map": {
 		"rows": [

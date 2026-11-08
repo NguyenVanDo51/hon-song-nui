@@ -13,7 +13,7 @@ const DEF := {
 	"tier": "mid",
 	"ai": "normal",
 	"win": { "type": "hero" },
-	"stars": { "turns": 8 },
+	"stars": { "turns": 11 },
 	"quests": [{ "do": "buy", "what": "drum" }, { "do": "hit_type", "what": "hero" }],
 	"map": {
 		"rows": [

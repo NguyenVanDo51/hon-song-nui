@@ -5,7 +5,7 @@ extends "res://sim/tests/test_base.gd"
 const ReviewLib := preload("res://sim/review_lib.gd")
 const Tune := preload("res://sim/tune.gd")
 const SCEN := "res://sim/scenarios/2026-11-07_22-19-09_duel_dong_bang_t%d.scenario"
-const CASTLE := Vector2i(11, 8) # unowned castle next to the bot's side of dong_bang
+const CASTLE := Vector2i(11, 8) # unowned castle in the recorded scenario (old dong_bang layout, stored in the .scenario)
 
 func hero_tests() -> void:
 	_old_moves(true)

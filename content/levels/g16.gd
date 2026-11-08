@@ -16,7 +16,7 @@ const DEF := {
 	},
 	"gold": { "p": 900, "e": 500 },
 	"win": { "type": "hero" },
-	"stars": { "turns": 9 },
+	"stars": { "turns": 11 },
 	"unitCap": 15,
 	"night": false,
 	"map": {

@@ -167,6 +167,24 @@ func wait_handoff(g: GameScreen) -> bool:
 	return false
 
 ## 1 vs 1: two humans on one device (handoff between turns), then a short start against the AI
+## click u, then twice on a free reach tile (move + wait); true = it moved there
+func _walk_wait(g: GameScreen, u: Dictionary) -> bool:
+	var s: Dictionary = g.s
+	g._on_tile(pos(u).x, pos(u).y)
+	var dest := Vector2i(-1, -1)
+	var reach: Dictionary = board(g).view.reach
+	for r: Dictionary in reach.values():
+		if pos(r) != pos(u) and Game.unit_at(s, pos(r).x, pos(r).y) == null:
+			dest = pos(r)
+	g._on_tile(dest.x, dest.y)
+	g._on_tile(dest.x, dest.y)
+	await idle(g)
+	for i in 5:
+		if g.ui.sel == null:
+			break
+		g.cancel()
+	return u.acted and pos(u) == dest
+
 func _duel(g: GameScreen) -> void:
 	var done0: Array = Store.done_list().duplicate()
 	press("1 đấu 1")
@@ -191,21 +209,7 @@ func _duel(g: GameScreen) -> void:
 		func(u: Dictionary) -> bool:
 			return u.side == "p" and u.type == "hero",
 	)[0]
-	g._on_tile(pos(hero).x, pos(hero).y)
-	var dest := Vector2i(-1, -1)
-	var reach: Dictionary = board(g).view.reach
-	for r: Dictionary in reach.values():
-		if pos(r) != pos(hero) and Game.unit_at(s, pos(r).x, pos(r).y) == null:
-			dest = pos(r)
-	g._on_tile(dest.x, dest.y)
-	g._on_tile(dest.x, dest.y)
-	await idle(g)
-	var p1_ok: bool = hero.acted and pos(hero) == dest
-	ok(p1_ok, "P1 hero moved")
-	for i in 5:
-		if g.ui.sel == null:
-			break
-		g.cancel()
+	ok(await _walk_wait(g, hero), "P1 hero moved")
 	press("Hết lượt")
 	ok(await wait_handoff(g), "handoff card after P1 ends the turn")
 	var hb := find_btn(g.turns.handoff_layer, "Bắt đầu")
@@ -215,8 +219,12 @@ func _duel(g: GameScreen) -> void:
 	ok(await turn_of(g, "e"), "Blue to move")
 	var gold_ok: bool = int(g.hud.gold_num.text) == s.gold.e or g.hud.gold_shown >= 0
 	ok(gold_ok, "HUD shows Blue's gold (%s vs %d)" % [g.hud.gold_num.text, s.gold.e])
-	# P2: buy at Blue's castle
+	# P2: commander starts on the castle (AE2) -> step it off, then buy there
 	var cas: Vector2i = Game.castle_tiles(s, "e")[0]
+	var ehv: Variant = Game.unit_at(s, cas.x, cas.y)
+	var eh: Dictionary = ehv if ehv != null else { }
+	if not eh.is_empty():
+		okv(await _walk_wait(g, eh), "Blue commander stepped off its castle")
 	ok(Game.unit_at(s, cas.x, cas.y) == null, "Blue castle free")
 	g._on_tile(cas.x, cas.y)
 	await process_frame
@@ -233,10 +241,7 @@ func _duel(g: GameScreen) -> void:
 		func(u: Dictionary) -> bool:
 			return u.side == "e" and u.type == "soldier" and not u.acted,
 	)[0]
-	var foe: Dictionary = units_of(s).filter(
-		func(u: Dictionary) -> bool:
-			return u.side == "p" and u.type != "hero",
-	)[0]
+	var foe: Dictionary = hero # AE2 start: Red has only its commander
 	foe.x = sol.x + 1
 	foe.y = sol.y
 	if Game.tile_at(s, pos(foe).x, pos(foe).y) == null or Game.unit_at(s, pos(foe).x, pos(foe).y) != foe:

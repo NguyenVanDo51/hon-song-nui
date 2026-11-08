@@ -80,24 +80,31 @@ Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy 
 - Format: [gdscript-formatter](https://github.com/GDQuest/GDScript-formatter) 0.27 (GDQuest, binary ở `~/.local/bin`); `tools/lint.sh` chạy `--check`. Sửa: `gdscript-formatter --max-line-length 150 --blank-lines-around-definitions 1 <files>`. Lỗi tool: comment cuối lambda nhiều dòng làm đối số -> mỗi lần chạy thêm 1 dấu `,` vào comment => đặt comment lên dòng trên. Không dùng `gdformat` (gdtoolkit 4.5.0 hỏng lambda nhiều dòng).
 - `gdlintrc`: dòng ≤ 150, class-definitions-order bật; `max-file-lines` 1000 (gdlint mặc định).
 
-## Cân bằng (sim AI-vs-AI, 12 ván/màn (24 nếu ghi /24), 2026-11-06, luật AE2 + AI `fe83a5d` + nhịp ra quân mới)
-AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng; "hòa" = hết 60 lượt chưa phân thắng bại. Mới = loại quân ra mắt (thấy → cầm → mua, xem `docs/content.md` mục "Nhịp ra quân mới").
+## Cân bằng (sim AI-vs-AI, 24 ván/màn, 2026-11-08, luật đi AE2 (mv − 1) + AI master `facd372`)
+AI chơi cả hai phe; "Ta thắng" = số ván phe ta thắng / 24; "hòa" = hết 60 lượt. Mốc sao 3 = trung vị khi phe ta thắng (`docs/content.md` "Sao màn"). Mục tiêu khi cân lại: tỉ lệ thắng như trước khi đổi luật đi (bảng 12 ván ở `docs/TODO.md`) ± ~4/24; đã chỉnh: vàng p / e, m13 voi 50 máu, m15 giữ 11 lượt. m08 vẫn hòa nhiều (9/24 hết 60 lượt; trước đổi luật 3/12).
 
-| Màn | Kiểu | Mới | Ta thắng | Trung vị lượt | | Màn | Kiểu | Mới | Ta thắng | Trung vị lượt |
+| Màn | Ta thắng | Hòa | Trung vị lượt | Sao 3 | | Màn | Ta thắng | Hòa | Trung vị lượt | Sao 3 |
 |---|---|---|---|---|---|---|---|---|---|---|
-| m01 Lời Thề Hát Môn | diệt hết | bộ binh, tướng | 12/12 | 6 | | m09 Tin Dữ Hợp Phố | giữ vững | thủy binh (địch) | 12/12 | 10 |
-| m02 Về Lại Mê Linh | chiếm thành | nỏ thủ | 16/24 | 11 | | m10 Sóng An Biên | hạ tướng | thủy binh (ta) | 11/12 | 9 |
-| m03 Giữ Làng Hạ Lôi | giữ vững | trống (đặt sẵn) | 12/12 | 10 | | m11 Bát Nàn Giữ Ải | chiếm thành | sói (địch) | 11/12 | 12 |
-| m04 Phá Đồn Cổ Loa | hạ tướng | voi (địch) | 9/12 | 9 | | m12 Trận Lãng Bạc | chiếm thành | sói (ta) | 21/24 | 18 |
-| m05 Đêm Hồ Tây | chiếm thành | (đêm) | 12/12 | 12 | | m13 Địu Con Phá Vây | tới đích | thầy mo (đặt sẵn) | 20/24 | 6 |
-| m06 Trận Bãi Sông | hạ tướng | — | 12/12 | 7 | | m14 Rút Về Cấm Khê | tới đích | — | 12/12 | 8 |
-| m07 Vây Thành Long Biên | chiếm thành | máy bắn đá | 10/12 | 13 | | m15 Thành Cấm Khê | giữ vững | rồng (1 con) | 10/12 | 11 |
-| m08 Trị Sở Luy Lâu | chiếm thành | — | 14/24 (4 hòa) | 21 | | m16 Đêm Sông Hát | giữ vững | — | 14/24 | 9 |
+| m01 Lời Thề Hát Môn | 24/24 | 0 | 8 | ≤ 8 lượt | | g03 Ngã Ba Sông | 10/24 | 0 | 22 | ≤ 23 lượt |
+| m02 Về Lại Mê Linh | 19/24 | 0 | 12 | ≤ 11 lượt | | g04 Giữ Đồn | 24/24 | 0 | 10 | mất ≤ 7 |
+| m03 Giữ Làng Hạ Lôi | 24/24 | 0 | 11 | mất ≤ 0 | | g05 Rừng Lim | 13/24 | 0 | 15 | ≤ 14 lượt |
+| m04 Phá Đồn Cổ Loa | 19/24 | 0 | 12 | ≤ 11 lượt | | g06 Bãi Bồi | 8/24 | 0 | 14 | ≤ 27 lượt |
+| m05 Đêm Hồ Tây | 23/24 | 0 | 12 | ≤ 12 lượt | | g07 Cửa Sông | 22/24 | 0 | 10 | ≤ 10 lượt |
+| m06 Trận Bãi Sông | 23/24 | 0 | 12 | ≤ 11 lượt | | g08 Sông Đáy | 20/24 | 0 | 21 | ≤ 20 lượt |
+| m07 Vây Thành Long Biên | 20/24 | 1 | 14 | ≤ 12 lượt | | g09 Làng Ven Đê | 22/24 | 0 | 10 | ≤ 10 lượt |
+| m08 Trị Sở Luy Lâu | 15/24 | 9 | 20 | ≤ 17 lượt | | g10 Rừng Đêm | 24/24 | 0 | 12 | ≤ 12 lượt |
+| m09 Tin Dữ Hợp Phố | 24/24 | 0 | 10 | mất ≤ 1 | | g11 Thành Đá | 7/24 | 0 | 19 | ≤ 16 lượt |
+| m10 Sóng An Biên | 17/24 | 0 | 20 | ≤ 16 lượt | | g12 Bãi Lau | 24/24 | 0 | 6 | ≤ 6 lượt |
+| m11 Bát Nàn Giữ Ải | 23/24 | 0 | 14 | ≤ 14 lượt | | g13 Miếu Cổ | 15/24 | 0 | 11 | ≤ 11 lượt |
+| m12 Trận Lãng Bạc | 23/24 | 1 | 18 | ≤ 17 lượt | | g14 Đầm Lầy | 24/24 | 0 | 8 | mất ≤ 0 |
+| m13 Địu Con Phá Vây | 20/24 | 0 | 7 | ≤ 7 lượt | | g15 Thành Mới | 20/24 | 0 | 15 | ≤ 15 lượt |
+| m14 Rút Về Cấm Khê | 20/24 | 0 | 9 | ≤ 9 lượt | | g16 Núi Rồng | 24/24 | 0 | 11 | ≤ 11 lượt |
+| m15 Thành Cấm Khê | 12/24 | 0 | 12 | mất ≤ 12 | | g17 Lũy Tre | 10/24 | 0 | 19 | ≤ 20 lượt |
+| m16 Đêm Sông Hát | 12/24 | 0 | 9 | mất ≤ 7 | | g18 Trăng Khuyết | 24/24 | 0 | 12 | ≤ 12 lượt |
+| g01 Bến Đò | 13/24 | 0 | 16 | ≤ 16 lượt | | g19 Giữ Thành | 24/24 | 0 | 11 | mất ≤ 6 |
+| g02 Đồi Sim | 23/24 | 1 | 13 | ≤ 13 lượt | | g20 Trận Cuối | 9/24 | 1 | 25 | ≤ 25 lượt |
 
-- Màn ra mắt quân ≥ ~75%; trận cuối chương ~55–60% (m08, m16).
-- `fe83a5d` (lính máu < 50 về ô hồi máu, không đứng ỳ ở góc) so với ngay trước nó (`5f45645`, cùng seed): mọi màn lệch ≤ 3 ván (24 ván: m08 16→14 + hòa 1→4, m12 18→21, m13 23→20, m16 16→14, m02 15→16).
-- m14 hết lệch: 12/12 (bảng `31a006e`: 3/12; ở `5f45645` đã 10/12).
-- Bảng cũ (2026-11-05) đo trước khi đưa luật về AE2; số trước đổi (AI cũ): m07 7/12, m08 7/12, m13 5/12, m15 4/12.
+- Bảng cũ (2026-11-06, luật đi cũ = mv đủ, AI `fe83a5d`, 12 ván): xem git history README trước `rules/move-minus-one`.
 
 ## Luật = AE2 (2026-11-06)
 Luật đã đưa về giống Ancient Empires II theo `docs/review/rules_compare.html` (số liệu từ dữ liệu gốc + mã dịch ngược bản mod; điểm chưa xác nhận ghi trong `docs/spec.md`). Bản port JS cũ + phép đo khớp JS (`sim/legacy/`, `trace_js.cjs`) đã bỏ.

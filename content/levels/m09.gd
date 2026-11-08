@@ -13,7 +13,7 @@ const DEF := {
 	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "survive", "turns": 9 },
-	"stars": { "lost": 0 },
+	"stars": { "lost": 1 },
 	"map": {
 		"rows": [
 			"~~~~~~~~~~~~~~",

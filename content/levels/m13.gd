@@ -15,7 +15,7 @@ const DEF := {
 	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "reach", "at": [[12, 1]], "turns": 16 },
-	"stars": { "turns": 6 },
+	"stars": { "turns": 7 },
 	"map": {
 		"rows": [
 			"f....f.....fhf",

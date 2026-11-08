@@ -18,7 +18,7 @@
 - [x] **m14 Rút Về Cấm Khê quá khó**: đã hết (sim AI-vs-AI ta thắng 12/12 ở AI `fe83a5d`, 10/12 ngay trước; bảng `31a006e` từng là 3/12, phần lớn `timeUp`). Người thật chơi thử để chắc.
 - [ ] **Chơi thử nhịp ra quân mới** (`docs/content.md` mục "Nhịp ra quân mới"): người thật chơi m03–m05 + m09–m13, xem có kịp quen quân cũ trước khi gặp quân mới không. Sim AI không đo được việc học quân.
 - [ ] **Chơi thử mốc sao** (2026-11-06): mốc sao 3 = trung vị khi AI phe ta thắng (`docs/content.md` mục "Sao màn"). Người thật thấy quá dễ / quá khó thì chỉnh `stars` trong file màn. Đáng xem: m08 (25, trung vị AI 30), m03 / m09 (`lost: 0`), m14 (AI thắng thì tướng ngã 11/12 ván -> sao 2 có thể quá khó).
-- [ ] **Cân lại màn sau luật đi − 1** (2026-11-08, sim 12 ván / màn, phe ta thắng trước -> sau): lệch lớn g09 11 -> 0, g16 11 -> 5, m08 9 -> 5 (7 ván hết giờ, trung vị 21 -> 61 lượt), m05 12 -> 9, m13 10 -> 7; dễ hơn m15 7 -> 12, m16 5 -> 10, g03 4 -> 8, g06 5 -> 9, g17 3 -> 8, g20 5 -> 9. Ván dài hơn ~1–6 lượt -> mốc sao `turns` cần đo lại. Bảng README chưa cập nhật.
+- [x] **Cân lại màn sau luật đi − 1** (2026-11-08, sim 12 ván / màn, phe ta thắng trước -> sau): lệch lớn g09 11 -> 0, g16 11 -> 5, m08 9 -> 5 (7 ván hết giờ, trung vị 21 -> 61 lượt), m05 12 -> 9, m13 10 -> 7; dễ hơn m15 7 -> 12, m16 5 -> 10, g03 4 -> 8, g06 5 -> 9, g17 3 -> 8, g20 5 -> 9. Ván dài hơn ~1–6 lượt -> mốc sao `turns` cần đo lại. Bảng README chưa cập nhật. **Đã cân (2026-11-08)**: 24 ván / màn, bảng README; mốc sao đặt lại theo trung vị. Còn: m08 hòa 9/24 (hết 60 lượt) -> người chơi thử.
 - [ ] Sau mỗi lần đổi AI (`scripts/core/ai.gd`): chạy lại `bash tools/sim_many.sh "m01 … m16" 12 8` + cập nhật bảng cân bằng README (số hiện tại đo với AI `fe83a5d`).
 
 ## Tính năng
@@ -54,6 +54,8 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
+- [ ] (2026-11-08) `sim/sim.gd` mode `naive` — bản đồ cố định dong_bang -> random-vs-AI không kiểm 2 bản đồ còn lại (dùng chung tham số map như `skirmish`).
+- [ ] (2026-11-08) `docs/ai.md` / bảng tỉ lệ thắng bot (Khó v3 / v5, `hard_v*`) đo trên luật đi cũ + dong_bang cũ 300 vàng / trần 15 -> mọi số cũ hết hiệu lực; đo lại khi luyện bot tiếp.
 Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
 - [x] (2026-11-07) `scripts/core/game.gd:246` tầm đi dùng đủ `mv`; AE2 gốc = `mv − 1` (docs/review/ae2_research.md "So sánh đầy đủ") -> mọi quân nhanh hơn gốc 1 bước. Đổi = luật lớn (AI, UI, màn đã cân bằng, replay cũ) -> chờ user quyết; đo bằng sim trước. **Đã sửa (2026-11-08, user)**: `rules.gd` `mv` = số bước thật (gốc − 1: lính 4, sói 5, máy bắn đá 3, rồng 6); luật Dijkstra giữ nguyên; t01 dời làng (2,1) + lính gác (7,4); `hero_fix` chạy kịch bản cũ với bảng mv + 1. Màn chưa cân lại (xem bảng sim trước / sau).
 - [ ] (2026-11-07) `scripts/core/game.gd:717` hào quang `dist <= 2` gồm cả 0 (quân đứng chồng ô Wisp) -> gốc chỉ 1–2.

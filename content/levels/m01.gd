@@ -13,7 +13,7 @@ const DEF := {
 	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "rout" },
-	"stars": { "turns": 6 },
+	"stars": { "turns": 8 },
 	"quests": [{ "do": "move", "what": "hero" }, { "do": "capture", "what": "v" }, { "do": "attack_with", "what": "soldier" }, { "do": "kill_with" }],
 	"map": { "rows": ["......fff~~", ".rv...fhf.~", ".rrrrrrv..~", ".rfhf..r.~~", ".r.f...rh~~", "fv.....rf.~", "hf.....vf.~", ".......fh~~"] },
 	"units": [

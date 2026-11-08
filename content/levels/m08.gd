@@ -9,11 +9,11 @@ const DEF := {
 	"enemyHero": "tuonggiac",
 	"newUnits": [],
 	"allowed": { "p": ["soldier", "archer", "drum", "elephant", "catapult"], "e": ["soldier", "archer", "drum", "elephant", "catapult"] },
-	"gold": { "p": 1800, "e": 0 },
+	"gold": { "p": 2200, "e": 0 },
 	"tier": "easy",
 	"ai": "normal",
 	"win": { "type": "castles" },
-	"stars": { "turns": 18 }, # AI win median 30: AI-vs-AI drags here, a player should be faster
+	"stars": { "turns": 17 }, # AI win median 30: AI-vs-AI drags here, a player should be faster
 	"map": {
 		"rows": [
 			"...........~~v..",

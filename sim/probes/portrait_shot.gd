@@ -58,7 +58,40 @@ func _run(g: GameScreen) -> void:
 		await create_timer(0.6).timeout
 		_check(g)
 		await _snap("%s_flip_%dx%d" % [tag, sz.x, sz.y])
+	await _real_taps(g)
 	quit()
+
+## real mouse events through the viewport (Godot's hit test of the turned Control): corners + centre -> tile_clicked
+func _real_taps(g: GameScreen) -> void:
+	var s: Dictionary = g.s
+	var h: int = s.h
+	var w: int = s.w
+	var got: Array[Vector2i] = []
+	var rec := func(x: int, y: int) -> void:
+		got.append(Vector2i(x, y))
+	g.board.tile_clicked.connect(rec)
+	var bad := 0
+	for t: Vector2i in [Vector2i(0, 0), Vector2i(w - 1, 0), Vector2i(0, h - 1), Vector2i(w - 1, h - 1), Vector2i(w >> 1, h >> 1)]:
+		while g.ui.sel != null or g.hud.card.visible:
+			g.cancel()
+			await _frames(2)
+			if g.ui.sel == null:
+				break
+		got.clear()
+		var at: Vector2 = g.board.get_parent_control().get_global_transform_with_canvas() * g.board.tile_rect(t.x, t.y).get_center()
+		for pressed: bool in [true, false]:
+			var mb := InputEventMouseButton.new()
+			mb.button_index = MOUSE_BUTTON_LEFT
+			mb.pressed = pressed
+			mb.position = at
+			mb.global_position = at
+			root.push_input(mb, true)
+			await _frames(2)
+		if got != [t]:
+			bad += 1
+			print("PORTRAIT tap %s -> %s" % [t, got])
+	g.board.tile_clicked.disconnect(rec)
+	print("PORTRAIT real taps rot=%s bad=%d/5" % [g.board.rot, bad])
 
 ## board turned or not, on-screen rect inside the screen, every tile's on-screen centre picks back that tile
 func _check(g: GameScreen) -> void:

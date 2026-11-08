@@ -685,12 +685,7 @@ func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
 				main.start_game(sst, sctx),
 		)
 		return
-	confirm(
-		"Ván đang dở [b]%s · lượt %d[/b] sẽ bị thay bằng ván mới." % [svd.get("title", ""), sst.turn],
-		"Xuất quân",
-		func() -> void:
-			main.start_game(state, ctx),
-	)
+	main.start_game(state, ctx) # another game in progress: replaced, no ask (user 2026-11-09: "Thôi / Xuất quân" popup = noise)
 
 ## small modal: message + [Thôi] [alt] [yes]; no_fn = after Thôi
 func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callable(), no_fn := Callable()) -> void:

@@ -608,6 +608,16 @@ func _run() -> void:
 	await wait(0.6)
 	var kept_ok: bool = g.visible and g.s.turn == 2
 	ok(kept_ok, "modal 'Đánh tiếp' keeps the saved game")
+	# another level while this one is in progress: straight in, no "Thôi / Xuất quân" ask (user)
+	main.show_title()
+	await wait(0.4)
+	var m01: Dictionary = Content.level("m01")
+	main.menus.confirm_start(Game.new_game(m01), { "kind": "campaign", "id": "m01" })
+	await wait(0.6)
+	var straight_ok: bool = g.visible and str(g.s.scenario) == "m01" and find_btn(main, "Thôi") == null
+	ok(straight_ok, "other level over a game in progress: starts at once, no confirm")
+	main.menus.confirm_start(Game.new_game(m02), { "kind": "campaign", "id": "m02" })
+	await wait(0.6)
 	# win -> next mission: straight onto the board -> new-unit intro -> play (no story)
 	main.flags.erase("nointro")
 	Store.set_v("seen_units", []) # driver profile: m03's unit cards show on every run

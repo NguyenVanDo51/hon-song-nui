@@ -58,6 +58,7 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
+- [ ] (2026-11-08) `README.md:8` — còn "Anh hùng / Tướng giặc" (tên trước reskin; nay Hiệp Sĩ Chỉ Huy / Vorn) -> README lệch game; sửa câu theo `content/theme.gd` `heroes`.
 - [ ] (2026-11-08) `content/theme.gd` `text.skirmishTitle` — không script nào đọc -> khóa chết, sửa tên ở đó không có tác dụng (xoá hoặc dùng ở màn đấu tự do).
 - [ ] (2026-11-08) `docs/content.md` bảng "Nhịp ra mắt" cột "Mới" — còn tên quân trước reskin (nỏ thủ, trống đồng, voi, thầy mo, thủy binh, âm binh) -> lệch với tên trong game (Cung thủ, Tu sĩ ánh sáng, Golem đá…); đổi theo `content/theme.gd` `UNITS`.
 - [ ] (2026-11-08) `sim/sim.gd` mode `naive` — bản đồ cố định dong_bang -> random-vs-AI không kiểm 2 bản đồ còn lại (dùng chung tham số map như `skirmish`).

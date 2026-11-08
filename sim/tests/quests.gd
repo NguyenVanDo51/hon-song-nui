@@ -1,6 +1,10 @@
 extends "res://sim/tests/test_base.gd"
 ## quest suite: Quests (data, progress from Game events), Stars.final
 
+const TUT := ["t01", "t02", "t03"]
+
+var _rng: RandomNumberGenerator
+
 func _def(quests: Array) -> Dictionary:
 	return { "quests": quests }
 
@@ -279,75 +283,72 @@ func quest_content_tests() -> void:
 			eq(_lv("m01").get("newUnits"), [], "m01 debut moved to t01 / t02"),
 	)
 	run(
-		"quest content: tutorial levels t01 t02 exist, first in order",
+		"quest content: tutorial levels t01 t02 t03 exist, first in order",
 		func() -> void:
 			var ids: Array = Content.levels().map(
 				func(m: Dictionary) -> String:
 					return m.id,
 			)
-			eq(ids.slice(0, 3), ["t01", "t02", "m01"], "t01, t02 before m01")
-			for id: String in ["t01", "t02"]:
+			eq(ids.slice(0, 4), ["t01", "t02", "t03", "m01"], "t01–t03 before m01")
+			for id: String in TUT:
 				var d := _lv(id)
 				eq(Stars.check_def(d), "", id + " stars")
 				eq(d.get("tier"), "easy", id + " tier")
 				eq(d.get("ai", "normal"), "normal", id + " ai")
 				check(d.has("tutorial") and d.has("quests"), id + " tutorial + quests")
-			var t01 := _lv("t01")
-			var t02 := _lv("t02")
-			var w1: Dictionary = t01.get("win", { })
-			var w2: Dictionary = t02.get("win", { })
-			eq(t01.get("newUnits"), ["hero"], "t01 newUnits")
-			eq(t02.get("newUnits"), ["soldier"], "t02 newUnits")
-			eq(w1.get("type"), "rout", "t01 win")
-			eq(w2.get("type"), "castles", "t02 win")
-			var q1 := [["select", "hero"], ["capture", "v"], ["end_turn", null], ["stand_on", "f"], ["attack_with", "hero"]]
-			eq(_pairs(t01), q1, "t01 quests")
-			eq(_pairs(t02), [["buy", "soldier"], ["stand_on", "v"], ["end_turn", null], ["heal_on", "v"]], "t02 quests")
-			# t01: our hero only; enemies = low-hp guards
-			var units: Array = t01.get("units", [])
-			for u: Array in units:
-				if u[0] == "p":
-					eq(u[1], "hero", "t01 p hero only")
-					continue
-				var o: Dictionary = u[4] if u.size() > 4 else { }
-				var hp: int = o.get("hp", 100)
-				var guard: bool = o.get("guard", false)
-				check(guard and hp < 100, "t01 e guard + low hp"),
+				var al: Dictionary = d.get("allowed", { })
+				eq(al.get("e"), [], id + " enemy cannot buy")
+				for u: Array in d.get("units", []):
+					var ut: String = u[1]
+					check(ut in ["hero", "soldier"], id + " hero + soldier only (no archer yet)")
+				for w: Dictionary in d.get("waves", []):
+					for wu: Array in w.units:
+						eq(wu[0], "soldier", id + " wave soldiers only")
+				var buys: Array = al.get("p", [])
+				check(
+					buys.all(
+						func(x: String) -> bool:
+							return x == "soldier",
+					),
+					id + " buys soldiers only",
+				)
+			var wt := ["rout", "castles", "castles"]
+			for i in TUT.size():
+				var tid: String = TUT[i]
+				var w: Dictionary = _lv(tid).get("win", { })
+				eq(w.get("type"), wt[i], tid + " win")
+			var m1: Dictionary = _lv("t01").get("map", { })
+			var rows1: Array = m1.get("rows", [])
+			var built := rows1.any(
+				func(r: String) -> bool:
+					return r.contains("v") or r.contains("c"),
+			)
+			check(not built, "t01: no village / castle yet")
+			var q1 := [
+				["select", "hero"],
+				["move", "hero"],
+				["move", "soldier"],
+				["end_turn", null],
+				["attack_with", "hero"],
+				["kill_with", "soldier"],
+			]
+			eq(_pairs(_lv("t01")), q1, "t01 quests")
+			eq(_pairs(_lv("t02")), [["stand_on", "f"], ["kill_with", null]], "t02 quests")
+			var q3 := [["stand_on", "v"], ["buy", "soldier"], ["capture", "v"], ["end_turn", null], ["heal_on", "v"]]
+			eq(_pairs(_lv("t03")), q3, "t03 quests"),
 	)
 	run(
-		"quest content: tutorial steps valid (q, point in allow, tiles on map)",
+		"quest content: tutorial steps valid (q, point in allow, tiles on map, cards)",
 		func() -> void:
 			for def: Dictionary in Content.levels():
 				if def.has("tutorial"):
 					_check_steps(def)
-			var s1: Array = _lv("t01").get("tutorial", [])
-			check(s1.size() >= 2, "t01 steps")
-			if s1.size() >= 2:
-				var a: Dictionary = s1[0]
-				var b: Dictionary = s1[1]
-				eq(a.get("say"), "Chọn tướng", "t01 step 1 say")
-				eq(b.get("say"), "Làng: vàng mỗi lượt, đứng trên thì hồi máu", "t01 village say"),
-	)
-	run(
-		"quest content: t02 has no enemy units and never loses by it",
-		func() -> void:
-			var t02 := _lv("t02")
-			check(not t02.is_empty(), "t02")
-			if t02.is_empty():
-				return
-			var gold: Dictionary = t02.gold
-			var allowed: Dictionary = t02.allowed
-			var cost: int = Rules.UNITS.soldier.cost
-			var gp: int = gold.p
-			eq(gold.e, 0, "gold.e 0")
-			eq(allowed.e, [], "allowed.e []")
-			eq(allowed.p, ["soldier"], "allowed.p soldier")
-			check(gp >= cost, "gold for 1 soldier")
-			var s := Game.new_game(t02)
-			eq(_side(s, "e").size(), 0, "e has 0 units")
-			Game.end_turn(s)
-			Game.end_turn(s)
-			eq(s.winner, null, "nobody lost after 2 end_turns"),
+			for id: String in TUT:
+				var s0: Array = _lv(id).get("tutorial", [])
+				var first: Dictionary = s0[0] if s0.size() else { }
+				check(first.has("card"), id + " opens on a card (goal)")
+				var last: Dictionary = s0[s0.size() - 1] if s0.size() else { }
+				eq(last.get("card"), "Tự chỉ huy", id + " ends handing control over"),
 	)
 	run(
 		"quest content: old progress keeps everything up to m05 + next open",
@@ -364,12 +365,23 @@ func quest_content_tests() -> void:
 			Store.set_v("campaign_done", []),
 	)
 	run(
-		"quest content: t01 steps walk through on the real map",
+		"quest content: t01 steps walk through on the real map, then the player wins",
 		func() -> void:
 			for sd: int in 8:
 				_walk_t01(sd),
 	)
-	run("quest content: t02 steps walk through on the real map", _walk_t02)
+	run(
+		"quest content: t02 forest step, then the scripted push takes the castle",
+		func() -> void:
+			for sd: int in 8:
+				_walk_t02(sd),
+	)
+	run(
+		"quest content: t03 steps walk through (buy, village, heal), enemy wave comes",
+		func() -> void:
+			for sd: int in 8:
+				_walk_t03(sd),
+	)
 
 func _lv(id: String) -> Dictionary:
 	var d: Variant = Content.level(id)
@@ -410,9 +422,25 @@ func _check_steps(def: Dictionary) -> void:
 	var id: String = def.id
 	var last_q := -1
 	check(steps.size() > 0, id + " steps")
+	var on_map := func(a: Variant) -> bool:
+		if not (a is Array):
+			return false
+		var t: Array = a
+		var tx: int = t[0]
+		var ty: int = t[1]
+		return t.size() == 2 and tx >= 0 and ty >= 0 and ty < rows.size() and tx < row0.length()
 	for i in steps.size():
 		var st: Dictionary = steps[i]
 		var tag := "%s step %d" % [id, i + 1]
+		var say: String = st.get("say", "")
+		check(say.length() > 0, tag + " say")
+		if st.has("card"):
+			var title: String = st.card
+			check(title.length() > 0 and not st.has("q") and not st.has("allow"), tag + " card: title, no q / allow")
+			var cp: Variant = st.get("point")
+			var cp_ok: bool = cp == null or (cp is String and cp == "end_turn") or on_map.call(cp)
+			check(cp_ok, tag + " card point")
+			continue
 		var q: int = st.get("q", -1)
 		check(q >= 0 and q < qs.size(), tag + " q index")
 		check(q >= last_q, tag + " q order")
@@ -421,17 +449,13 @@ func _check_steps(def: Dictionary) -> void:
 		check(allow.has(st.get("point")), tag + " point in allow")
 		for a: Variant in allow:
 			if a is Array:
-				var t: Array = a
-				var tx: int = t[0]
-				var ty: int = t[1]
-				check(t.size() == 2 and tx >= 0 and ty >= 0 and ty < rows.size() and tx < row0.length(), tag + " tile on map")
+				var a_ok: bool = on_map.call(a)
+				check(a_ok, tag + " tile on map")
 			else:
 				var tok: String = a
 				var buy_ok: bool = tok.begins_with("buy:") and Quests.feasible(def, { "do": "buy", "what": tok.substr(4) }) == ""
 				check(tok == "end_turn" or buy_ok, tag + " token " + tok)
-		var say: String = st.get("say", "x")
-		check(say.length() > 0, tag + " say")
-	eq(last_q, qs.size() - 1, id + " every quest has a step")
+	check(last_q >= 0 and last_q < qs.size(), id + " steps cover the quests in order (later ones = free play)")
 
 ## enemy side plays its turn with the real bot, then hands back; returns the events of the hand-back
 func _ai_turn(s: Dictionary) -> Array:
@@ -454,103 +478,208 @@ func _spots(s: Dictionary) -> Array:
 			return [u.x, u.y],
 	)
 
-## scripted player follows t01 steps 1–5, the real bot plays the enemy turns (AI rng seeded by sd)
+## the side to move plays its whole turn with the real bot, then hands over; returns every event
+func _bot_turn(s: Dictionary) -> Array:
+	var mem := { }
+	var side: String = s.side
+	var out := []
+	for i in 200:
+		if s.winner != null or s.side != side:
+			break
+		var st: Variant = AI.next_step(s, mem)
+		if st == null:
+			out.append_array(Game.end_turn(s))
+			break
+		var step: Dictionary = st
+		out.append_array(AI.apply_step(s, step))
+	return out
+
+func _at(s: Dictionary, t: Array) -> Dictionary:
+	var tx: int = t[0]
+	var ty: int = t[1]
+	var u: Variant = Game.unit_at(s, tx, ty)
+	return u if u != null else { }
+
+func _first(s: Dictionary, side: String, type: String) -> Dictionary:
+	for u: Dictionary in _side(s, side):
+		if u.type == type:
+			return u
+	return { }
+
+## u moves to `to` (in its reach, as the guide allows) and does kind; the events are fed to the quests
+func _go(s: Dictionary, u: Dictionary, to: Array, kind: String, tag: String) -> Array:
+	var tx: int = to[0]
+	var ty: int = to[1]
+	check(Game.reachable(s, u).has(Vector2i(tx, ty)), "%s: %s reaches %s" % [tag, u.type, to])
+	var ev := Game.do_action(s, { "id": u.id, "to": to, "kind": kind })
+	Quests.observe(s, ev)
+	return ev
+
+## u strikes `foe` from the cheapest free tile next to it that u reaches (the UI's auto tile does the same)
+func _strike(s: Dictionary, u: Dictionary, foe: Dictionary, tag: String) -> Array:
+	var reach := Game.reachable(s, u)
+	var best: Variant = null
+	var best_c := INF
+	for k: Vector2i in reach:
+		var fx: int = foe.x
+		var fy: int = foe.y
+		var r: Dictionary = reach[k]
+		var c: float = r.cost
+		if Game.dist(k.x, k.y, fx, fy) == 1 and c < best_c:
+			best = [k.x, k.y]
+			best_c = c
+	check(best != null, "%s: %s reaches %s" % [tag, u.type, [foe.x, foe.y]])
+	if best == null:
+		return []
+	var ev := Game.do_action(s, { "id": u.id, "to": best, "kind": "attack", "target": foe.id })
+	Quests.observe(s, ev)
+	return ev
+
+## both sides on the bot until someone wins or round `last` ends
+func _finish(s: Dictionary, last: int) -> void:
+	for i in 80:
+		if s.winner != null or s.turn > last:
+			return
+		_bot_turn(s)
+
+## AI rng seeded by sd (the generator lives in _rng: a Callable on a freed one is null)
+func _seed(sd: int) -> Callable:
+	_rng = RandomNumberGenerator.new()
+	_rng.seed = 7 + sd * 131
+	var old: Callable = AI.rng
+	AI.rng = _rng.randf
+	return old
+
+## t01: move both (steps 2–5), Hết lượt -> wave on the pointed tiles, hero hits A, soldier finishes A, bot plays the rest
 func _walk_t01(sd: int) -> void:
 	var def := _lv("t01")
-	if def.is_empty():
-		check(false, "t01")
-		return
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 7 + sd * 131
-	var old: Callable = AI.rng
-	AI.rng = rng.randf
+	var old := _seed(sd)
 	var s := Game.new_game(def)
 	s.rng = 1000 + sd * 7919
 	Quests.init_state(s, def)
-	var hero: Dictionary = _side(s, "p")[0]
-	var tag := "seed %d " % sd
-	# 1 select hero
-	eq(_tile(_step(def, 0)), [hero.x, hero.y], tag + "step 1 points at the hero")
+	var tag := "t01 seed %d" % sd
+	var hero := _first(s, "p", "hero")
+	var sol := _first(s, "p", "soldier")
+	eq(_side(s, "e").size(), 0, tag + ": no enemy before the move lesson")
+	eq(_tile(_step(def, 1)), [hero.x, hero.y], tag + ": select step points at the hero")
 	Quests.note(s, "select", "hero")
-	# 2 capture the village
-	check(_allows(_step(def, 1), hero), tag + "hero clickable at step 2")
-	Quests.observe(s, Game.do_action(s, { "id": hero.id, "to": _tile(_step(def, 1)), "kind": "capture" }))
-	eq(Quests.done_count(s), 2, tag + "capture v")
-	# 3 end turn: guards hold
+	check(_allows(_step(def, 2), hero), tag + ": hero clickable at the move step")
+	_go(s, hero, _tile(_step(def, 2)), "wait", tag)
+	eq(_step(def, 3).get("point"), [hero.x, hero.y], tag + ": grey card points at the moved hero")
+	check(_allows(_step(def, 4), sol), tag + ": soldier clickable at its move step")
+	_go(s, sol, _tile(_step(def, 4)), "wait", tag)
 	Quests.note(s, "end_turn", null)
-	var e0 := _spots(s)
+	eq(Quests.done_count(s), 4, tag + ": select, 2 moves, end turn")
 	Game.end_turn(s)
 	_ai_turn(s)
-	eq(_spots(s), e0, tag + "guards hold while we take the village")
-	eq(Quests.done_count(s), 3, tag + "end_turn")
-	# 4 forest; the enemy turn after it: a guard wakes and strikes
+	eq(s.side, "p", tag + ": back to us")
+	var a := _at(s, _tile(_step(def, 7)))
+	check(not a.is_empty() and str(a.get("side")) == "e", tag + ": wave enemy on the attack step's point")
+	eq(_step(def, 6).get("point"), _tile(_step(def, 7)), tag + ": 'Địch tới' card on the same enemy")
+	eq(_side(s, "e").size(), 2, tag + ": 2 enemies arrived")
+	if a.is_empty():
+		AI.rng = old
+		return
+	_strike(s, hero, a, tag)
+	eq(Quests.done_count(s), 5, tag + ": hero attacked")
+	var a_hp: int = a.hp
+	check(a_hp > 0 and a_hp <= 35, tag + ": A hurt, alive (%d)" % a_hp)
+	_strike(s, sol, a, tag)
+	eq(Quests.done_count(s), 6, tag + ": soldier finished A")
+	var aid: int = a.id
+	eq(Game.unit_by_id(s, aid), null, tag + ": A dead")
+	Game.end_turn(s)
+	_finish(s, 12)
+	eq(s.winner, "p", tag + ": the rest is won (bot plays us)")
+	AI.rng = old
+
+## t02: soldier into the forest (guide), then the bot plays us: castle guard falls, hero takes the castle
+func _walk_t02(sd: int) -> void:
+	var def := _lv("t02")
+	var old := _seed(sd)
+	var s := Game.new_game(def)
+	s.rng = 1000 + sd * 7919
+	Quests.init_state(s, def)
+	var tag := "t02 seed %d" % sd
+	var castle := _tile(_step(def, 0))
+	var cx: int = castle[0]
+	var cy: int = castle[1]
+	eq(Game.tile_at(s, cx, cy), "c", tag + ": goal card on the castle")
+	var own: Dictionary = s.owner
+	eq(own.get(Vector2i(cx, cy)), "e", tag + ": enemy castle")
+	check(not _at(s, castle).is_empty(), tag + ": a guard stands on it")
 	var f := _tile(_step(def, 3))
 	var fx: int = f[0]
 	var fy: int = f[1]
-	eq(Game.tile_at(s, fx, fy), "f", tag + "step 4 point = forest")
-	check(_allows(_step(def, 3), hero), tag + "hero clickable at step 4")
-	Quests.observe(s, Game.do_action(s, { "id": hero.id, "to": f, "kind": "wait" }))
-	eq(Quests.done_count(s), 4, tag + "stand_on f")
-	var hp0: int = hero.hp
-	Game.end_turn(s)
-	_ai_turn(s)
-	eq(s.winner, null, tag + "no winner after the enemy turn")
-	var hp1: int = hero.hp
-	check(hp1 < hp0, tag + "an enemy woke up and hit the hero")
-	# 5 attack the pointed enemy
-	var t := _tile(_step(def, 4))
-	var tx: int = t[0]
-	var ty: int = t[1]
-	var foe: Variant = Game.unit_at(s, tx, ty)
-	check(foe != null, tag + "step 5 point holds an enemy")
-	check(_allows(_step(def, 4), hero), tag + "hero clickable at step 5")
-	if foe != null:
-		var fd: Dictionary = foe
-		eq(fd.side, "e", tag + "step 5 target side")
-		Quests.observe(s, Game.do_action(s, { "id": hero.id, "to": [hero.x, hero.y], "kind": "attack", "target": fd.id }))
-	eq(Quests.done_count(s), 5, tag + "attack_with hero")
+	eq(Game.tile_at(s, fx, fy), "f", tag + ": forest step on a forest")
+	var sol: Dictionary = { }
+	for u: Dictionary in _side(s, "p"):
+		if u.type == "soldier" and _allows(_step(def, 3), u):
+			sol = u
+	check(not sol.is_empty(), tag + ": a soldier is clickable at the forest step")
+	if sol.is_empty():
+		AI.rng = old
+		return
+	_go(s, sol, f, "wait", tag)
+	eq(Quests.done_count(s), 1, tag + ": stand_on f")
+	_finish(s, 14)
+	eq(s.winner, "p", tag + ": the bot playing us wins")
+	eq(s.get("reason"), "castlesLost", tag + ": by taking the castle")
 	AI.rng = old
 
-## scripted player follows t02 steps 1–4 (no enemy units: the bot only ends its turn)
-func _walk_t02() -> void:
-	var def := _lv("t02")
-	if def.is_empty():
-		check(false, "t02")
-		return
+## t03: hurt soldier to our village, buy on our castle, the new soldier takes a village, Hết lượt, heal; then the bot
+func _walk_t03(sd: int) -> void:
+	var def := _lv("t03")
+	var old := _seed(sd)
 	var s := Game.new_game(def)
+	s.rng = 1000 + sd * 7919
 	Quests.init_state(s, def)
-	# 1 buy a soldier at the pointed castle
-	var c := _tile(_step(def, 0))
+	var tag := "t03 seed %d" % sd
+	var own: Dictionary = s.owner
+	var hurt := _first(s, "p", "soldier")
+	var hurt_hp: int = hurt.hp
+	check(_allows(_step(def, 1), hurt) and hurt_hp < 100, tag + ": the hurt soldier is clickable at the heal step")
+	var hv := _tile(_step(def, 1))
+	var hx: int = hv[0]
+	var hy: int = hv[1]
+	eq(own.get(Vector2i(hx, hy)), "p", tag + ": our village (heals)")
+	_go(s, hurt, hv, "wait", tag)
+	eq(Quests.done_count(s), 1, tag + ": stand_on v")
+	var c := _tile(_step(def, 3))
 	var cx: int = c[0]
 	var cy: int = c[1]
-	check(Game.sells(Game.tile_at(s, cx, cy)), "step 1 point = castle")
-	var own: Dictionary = s.owner
-	eq(own.get(Vector2i(cx, cy)), "p", "our castle")
-	check(Game.buy(s, cx, cy, "soldier") != null, "buy soldier")
-	Quests.note(s, "buy", "soldier")
-	eq(Quests.done_count(s), 1, "buy done")
-	# 2 hurt soldier -> our village
-	var hurt: Array = _side(s, "p").filter(
-		func(u: Dictionary) -> bool:
-			return u.type == "soldier" and u.hp < 100,
-	)
-	check(hurt.size() == 1, "one hurt soldier")
-	if hurt.is_empty():
+	check(Game.sells(Game.tile_at(s, cx, cy)), tag + ": buy step on a castle")
+	eq(own.get(Vector2i(cx, cy)), "p", tag + ": our castle")
+	eq(_step(def, 2).get("point"), c, tag + ": castle card on it")
+	var nu: Variant = Game.buy(s, cx, cy, "soldier")
+	check(nu != null, tag + ": buy soldier")
+	if nu == null:
+		AI.rng = old
 		return
-	var hs: Dictionary = hurt[0]
-	var v := _tile(_step(def, 1))
+	Quests.note(s, "buy", "soldier")
+	var fresh: Dictionary = nu
+	var did: bool = fresh.acted
+	check(not did, tag + ": the bought soldier acts this turn (AE2)")
+	check(_allows(_step(def, 4), fresh), tag + ": bought soldier clickable at the village step")
+	var v := _tile(_step(def, 4))
 	var vx: int = v[0]
 	var vy: int = v[1]
-	check(_allows(_step(def, 1), hs), "hurt soldier clickable")
-	eq(Game.tile_at(s, vx, vy), "v", "step 2 point = village")
-	eq(own.get(Vector2i(vx, vy)), "p", "our village (heals)")
-	Quests.observe(s, Game.do_action(s, { "id": hs.id, "to": v, "kind": "wait" }))
-	eq(Quests.done_count(s), 2, "stand_on v done")
-	# 3 end turn, 4 heal at our next turn start
-	eq(_step(def, 2).get("point"), "end_turn", "step 3 end_turn")
+	eq(Game.tile_at(s, vx, vy), "v", tag + ": village step on a village")
+	_go(s, fresh, v, "capture", tag)
+	eq(Quests.done_count(s), 3, tag + ": capture v")
 	Quests.note(s, "end_turn", null)
 	var ev := Game.end_turn(s)
 	ev.append_array(_ai_turn(s))
 	Quests.observe(s, ev)
-	eq(Quests.done_count(s), 4, "all quests done")
-	eq(s.winner, null, "game goes on")
+	eq(Quests.done_count(s), 5, tag + ": all quests done")
+	eq(hurt.hp, 60, tag + ": +20 on the village")
+	var gold: Dictionary = s.gold
+	var g: int = gold.p
+	check(g >= Rules.UNITS.soldier.cost, tag + ": gold for one more soldier on turn 2 (%d)" % g)
+	_finish(s, 2)
+	var w0: Dictionary = s.waves[0]
+	var came: bool = w0.done
+	check(came, tag + ": the wave came on turn 2")
+	_finish(s, 16)
+	eq(s.winner, "p", tag + ": the bot playing us wins")
+	AI.rng = old

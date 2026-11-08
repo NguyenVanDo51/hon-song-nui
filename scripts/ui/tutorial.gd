@@ -5,6 +5,9 @@ extends Control
 ## (ring flashes); the screen asks allows() before tile clicks, orders, buys and end turn. Step i is done when
 ## s.quests[step.q].done; s.tut_step keeps it in the save. Off for `bot` runs. Tokens: Vector2i tile, "end_turn",
 ## "buy:<type>", "act:<order kind>".
+## Card steps ({ card: title, say, point? }) explain a concept: dim + ring on point (tile / "end_turn" / none = centred),
+## paper bubble with title + text + Đã hiểu; nothing else clickable. After the last step the guide only nudges
+## Hết lượt (hand, no dim, no lock) once every unit of ours has acted and the player waits.
 
 ## quests the turn start completes by itself: no hole / lock, their line pops up once when done
 const PASSIVE := ["heal_on"]
@@ -33,6 +36,9 @@ const HAND_DOWN := preload("res://assets/emoji/emoji_u1f447.png")
 const HAND_PX := 50.0
 const TIP_X := 0.42 # fingertip across the hand picture
 const MAX_HOLES := 8
+const SAY_W := 360.0 # px: longer lines wrap
+const CARD_W := 400.0
+const NUDGE_S := 2.5 # s every unit acted and nothing picked before the hand shows Hết lượt
 
 var step := 0
 var gs: GameScreen
@@ -58,6 +64,10 @@ var _ring: Control
 var _hand: TextureRect
 var _bubble: PanelContainer
 var _say: Label
+var _title: Label
+var _ok: Button
+var _idle := 0.0
+var _nudge := false
 
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -91,8 +101,17 @@ func _init() -> void:
 	_bubble.add_theme_stylebox_override("panel", Style.paper(10.0, 4.0))
 	_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_bubble)
+	var col := Style.vbox(6)
+	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_bubble.add_child(col)
+	_title = Style.lbl("", 22, Style.GOLD, Style.display)
+	col.add_child(_title)
 	_say = Style.lbl("", 18, Style.INK, Style.bold)
-	_bubble.add_child(_say)
+	col.add_child(_say)
+	_ok = Style.button(Content.text("tutOk"))
+	_ok.size_flags_horizontal = Control.SIZE_SHRINK_END
+	_ok.pressed.connect(next_card)
+	col.add_child(_ok)
 
 func bind(screen: GameScreen, list: Array) -> void:
 	gs = screen
@@ -125,7 +144,7 @@ func advance() -> void:
 	if not _on:
 		return
 	var was := step
-	while step < steps.size() and _quest(_st()).done:
+	while step < steps.size() and not is_card() and _quest(_st()).done:
 		if _passive(_st()):
 			_pop_line(_st())
 		step += 1
@@ -140,6 +159,21 @@ func advance() -> void:
 		if sel != null and not _tiles(_st()).has(_at(su)):
 			gs._clear_sel()
 	gs.save()
+
+## the current step is a card (waits for Đã hiểu)
+func is_card() -> bool:
+	return _on and step < steps.size() and _st().has("card")
+
+## Đã hiểu (button, Space / Enter): next step
+func next_card() -> void:
+	if not is_card():
+		return
+	step += 1
+	gs.s.tut_step = step
+	_flash = 0.0
+	gs._clear_sel()
+	gs.save()
+	gs.refresh()
 
 ## where the ring is, in screen (GameScreen) coords
 func target_rect() -> Rect2:
@@ -245,6 +279,8 @@ func _spent(st: Dictionary) -> bool:
 	return not tokens and _unit_tiles(st).is_empty() and not _picked(st)
 
 func _allowed() -> Array:
+	if _st().has("card"):
+		return []
 	if _spent(_st()):
 		return ["end_turn"]
 	var st := _eff(_st())
@@ -287,27 +323,65 @@ func _process(dt: float) -> void:
 	if active() and not gs.s.is_empty():
 		_aim()
 	var live := _live()
-	visible = live or _toast > 0.0
+	_nudge = not live and _nudge_due(dt)
+	visible = live or _toast > 0.0 or _nudge
 	if not visible:
 		modulate.a = 0.0
 		return
 	modulate.a = minf(1.0, modulate.a + dt * 5.0)
 	mouse_filter = Control.MOUSE_FILTER_STOP if live else Control.MOUSE_FILTER_IGNORE
+	var card := live and is_card()
 	_dim.visible = live
-	_ring.visible = live
-	_hand.visible = live
+	_ring.visible = live or _nudge
+	_hand.visible = (live and not card) or _nudge
+	_ok.visible = card
 	if not live:
-		_target = _toast_at
-		_say.text = _toast_say
+		_title.text = ""
+		_round = true
+		if _nudge:
+			_target = _ctrl_r(gs.hud.btn_end)
+			_say.text = Content.text("tutNudgeEnd")
+		else:
+			_target = _toast_at
+			_say.text = _toast_say
+	_fit_text()
 	_place()
 	_ring.queue_redraw()
+
+## after the steps: every unit of ours acted, nothing picked, the player waits -> point at Hết lượt
+func _nudge_due(dt: float) -> bool:
+	var idle: bool = (
+		step >= steps.size() and _since >= SHOW_DELAY and gs.visible and not gs.s.is_empty() and gs.s.winner == null and gs._human_turn()
+		and not gs.ui.busy and gs.ui.sel == null and not gs._intro_on and gs.turns.handoff_layer == null and not gs.hud.menu.visible
+		and not gs.cards.end_layer.visible and gs.hud.btn_end.is_visible_in_tree() and not gs.hud.btn_end.disabled and _all_acted()
+	)
+	_idle = _idle + dt if idle else 0.0
+	return _idle >= NUDGE_S
+
+func _all_acted() -> bool:
+	var units: Array = gs.s.units
+	return not units.any(
+		func(u: Dictionary) -> bool:
+			return u.side == gs._me() and not u.acted,
+	)
+
+## long lines wrap at SAY_W (cards: CARD_W); short ones stay on one line
+func _fit_text() -> void:
+	var w := CARD_W if _ok.visible else SAY_W
+	var font: Font = Style.bold
+	var one := font.get_string_size(_say.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x
+	var tw := Style.display.get_string_size(_title.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
+	var wraps := one > w
+	_say.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if wraps else TextServer.AUTOWRAP_OFF
+	_say.custom_minimum_size.x = w if wraps else maxf(0.0, minf(tw, w))
+	_title.visible = _title.text != ""
 
 ## input is open for the player and nothing else covers the board
 func _live() -> bool:
 	if not active() or _since < SHOW_DELAY or not gs.visible or gs.s.is_empty():
 		return false
 	return (
-		gs.s.winner == null and gs._human_turn() and not gs.ui.busy and not gs._intro_on
+		gs.s.winner == null and gs._human_turn() and not gs.ui.busy and not gs._intro_on and not gs.hud.banner_on()
 		and gs.turns.handoff_layer == null and not gs.hud.menu.visible and not gs.cards.end_layer.visible
 		and not gs.main.menus.is_codex_open() and (_cel_t == 0.0 or _cel_t > CELEBRATE_MAX) # the quest ✓ stamp plays undimmed first
 	)
@@ -322,6 +396,10 @@ func _ctrl_r(c: Control) -> Rect2:
 
 ## target / holes / click-through rects for the step and the current selection, then the shader holes
 func _aim() -> void:
+	if is_card():
+		_aim_card()
+		return
+	_title.text = str(_st().get("title", ""))
 	var st := _eff(_st())
 	var allowed := _allowed()
 	var say: String = st.get("say", "")
@@ -379,6 +457,39 @@ func _aim() -> void:
 	_mat.set_shader_parameter("boxes", boxes)
 	_mat.set_shader_parameter("radii", radii)
 
+## card: ring + hole on its point (tile / Hết lượt), none = whole board dim, bubble centred
+func _aim_card() -> void:
+	var st := _st()
+	_title.text = str(st.card)
+	_say.text = str(st.get("say", ""))
+	_holes.clear()
+	_btn_holes.clear()
+	_round = true
+	var p: Variant = st.get("point")
+	_target = Rect2()
+	if p is Array:
+		_target = _tile_r(_xy(p))
+	elif p == "end_turn" and gs.hud.btn_end.is_visible_in_tree():
+		_target = _ctrl_r(gs.hud.btn_end)
+	_pass = []
+	var gear := _ctrl_r(gs.hud.gear) if gs.hud.gear.is_visible_in_tree() else Rect2()
+	if gear.has_area():
+		_pass.append(gear)
+	var boxes := PackedVector4Array()
+	var radii := PackedFloat32Array()
+	if _target.has_area():
+		var rr := _ring_r(_target, true, 0.0)
+		_add_box(boxes, radii, rr, rr.size.x / 2.0)
+	if gear.has_area():
+		var gr := gear.grow(4.0)
+		_add_box(boxes, radii, gr, minf(gr.size.x, gr.size.y) / 2.0)
+	_mat.set_shader_parameter("size", size)
+	_mat.set_shader_parameter("count", mini(boxes.size(), MAX_HOLES))
+	boxes.resize(MAX_HOLES)
+	radii.resize(MAX_HOLES)
+	_mat.set_shader_parameter("boxes", boxes)
+	_mat.set_shader_parameter("radii", radii)
+
 static func _add_box(boxes: PackedVector4Array, radii: PackedFloat32Array, r: Rect2, rad: float) -> void:
 	var c := r.get_center()
 	boxes.append(Vector4(c.x, c.y, r.size.x / 2.0, r.size.y / 2.0))
@@ -425,6 +536,12 @@ static func _ring_r(r: Rect2, is_round: bool, grow: float) -> Rect2:
 
 ## hand under the target pointing up (above it pointing down near the bottom edge); bubble where it covers neither
 func _place() -> void:
+	_bubble.reset_size()
+	if not _target.has_area(): # card without a point: centred
+		var bs0 := _bubble.get_combined_minimum_size()
+		_bubble.position = ((size - bs0) / 2.0).floor()
+		_bubble.visible = true
+		return
 	var rr := _ring_r(_target, _round, 0.0)
 	var bob := absf(sin(_t * TAU / 1.1)) * 8.0
 	var below := rr.end.y + HAND_PX * 0.9 < size.y - 4.0
@@ -436,7 +553,6 @@ func _place() -> void:
 			else Rect2(Vector2(hx, rr.position.y - HAND_PX - 2.0), Vector2(HAND_PX, HAND_PX + 8.0))
 	if not _hand.visible:
 		hand_r = Rect2()
-	_bubble.reset_size()
 	var bs := _bubble.get_combined_minimum_size()
 	var c := rr.get_center()
 	var gap := 12.0
@@ -469,10 +585,10 @@ func _place() -> void:
 	if best.x < 0.0:
 		best = Vector2(clampf(cands[0].x, lim.position.x, lim.end.x - bs.x), clampf(cands[0].y, lim.position.y, lim.end.y - bs.y))
 	_bubble.position = best.floor()
-	_bubble.visible = _say.text != ""
+	_bubble.visible = _say.text != "" or _title.text != ""
 
 func _draw_ring() -> void:
-	if not _dim.visible:
+	if not _ring.visible or not _target.has_area():
 		return
 	var pulse := 0.5 + 0.5 * sin(_t * TAU / 1.1)
 	var r := _ring_r(_target, _round, 2.0 + pulse * 5.0 + _flash * 8.0)

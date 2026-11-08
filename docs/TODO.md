@@ -56,6 +56,7 @@
 ## Nợ kỹ thuật
 - [ ] (2026-11-08) `sim/sim.gd` mode `naive` — bản đồ cố định dong_bang -> random-vs-AI không kiểm 2 bản đồ còn lại (dùng chung tham số map như `skirmish`).
 - [ ] (2026-11-08) `docs/ai.md` / bảng tỉ lệ thắng bot (Khó v3 / v5, `hard_v*`) đo trên luật đi cũ + dong_bang cũ 300 vàng / trần 15 -> mọi số cũ hết hiệu lực; đo lại khi luyện bot tiếp.
+- [ ] (2026-11-08) `sim/click_driver.gd` `turn_of` (3000 frame) / `idle` (400 frame) chờ theo số frame -> cửa sổ Godot ở nền (macOS hạ fps) thì hết hạn sớm, FAIL ngẫu nhiên (gặp khi chạy tut_driver lần 2). Sửa: chờ theo đồng hồ như `sim/tut_driver.gd` `_until`.
 Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu năng (dù nhỏ, dù ngoài task) -> ghi ở đây.
 - [x] (2026-11-07) `scripts/core/game.gd:246` tầm đi dùng đủ `mv`; AE2 gốc = `mv − 1` (docs/review/ae2_research.md "So sánh đầy đủ") -> mọi quân nhanh hơn gốc 1 bước. Đổi = luật lớn (AI, UI, màn đã cân bằng, replay cũ) -> chờ user quyết; đo bằng sim trước. **Đã sửa (2026-11-08, user)**: `rules.gd` `mv` = số bước thật (gốc − 1: lính 4, sói 5, máy bắn đá 3, rồng 6); luật Dijkstra giữ nguyên; t01 dời làng (2,1) + lính gác (7,4); `hero_fix` chạy kịch bản cũ với bảng mv + 1. Màn chưa cân lại (xem bảng sim trước / sau).
 - [ ] (2026-11-07) `scripts/core/game.gd:717` hào quang `dist <= 2` gồm cả 0 (quân đứng chồng ô Wisp) -> gốc chỉ 1–2.

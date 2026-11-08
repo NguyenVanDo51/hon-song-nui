@@ -583,6 +583,10 @@ func banner(text: String, foe := false) -> void:
 	_banner.show_text(text, foe)
 	gs.main.audio.play("drum")
 
+## the turn banner is still on screen (the tutorial guide waits for it)
+func banner_on() -> bool:
+	return _banner.visible
+
 func _goal_line() -> String:
 	var win: Dictionary = gs.s.win
 	var hero_keys: Dictionary = gs.s.heroKey

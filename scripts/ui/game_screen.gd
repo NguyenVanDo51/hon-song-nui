@@ -641,7 +641,10 @@ func _unhandled_input(ev: InputEvent) -> void:
 	if not (key != null and key.pressed and not key.echo):
 		return
 	if tutorial.active() and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER, KEY_TAB, KEY_E, KEY_H]:
-		tutorial.refuse()
+		if tutorial.is_card() and key.keycode in [KEY_SPACE, KEY_ENTER, KEY_KP_ENTER]:
+			tutorial.next_card()
+		else:
+			tutorial.refuse()
 		get_viewport().set_input_as_handled()
 		return
 	match key.keycode:

@@ -114,6 +114,8 @@ const THEME := {
 		"tutSkip": "» Bỏ qua hướng dẫn",
 		"tutSkipTip": "Tính thắng 1 sao, về lưới thử thách",
 		"tutEndTurn": "Hết lượt",
+		"tutOk": "▶ Đã hiểu",
+		"tutNudgeEnd": "Mọi quân đã đi (xám): bấm Hết lượt",
 		"noEnemyHero": "quân địch",
 		"tileVillage": "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta.",
 		"tileRuin": "Làng bị {raze} đốt cháy. {capV} đứng vào rồi bấm Dựng lại làng; lượt sau mới chiếm được.",

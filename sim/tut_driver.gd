@@ -3,7 +3,7 @@ extends "res://sim/click_driver.gd"
 ## hole, orders popup / shop buttons, Hết lượt), lock checks, a shot per step, then the Hết lượt nudge (t01), Đánh tiếp
 ## resume (t03) and ⚙ Bỏ qua (t02). Windowed for shots:
 ##   tools/run_guarded.sh /tmp/t.log -- --path . -s sim/tut_driver.gd -- mission=t01 fresh shots=/tmp/tut [win=WxH]
-## mission=m01 / m03 fresh tutcheck: first real level shows the unit intros; Hết lượt nudge on m01 / m02 only
+## mission=m01 fresh tutcheck: first real level shows the unit intros, no Hết lượt nudge (t01 / t02 only)
 
 ## quest verbs done by picking a unit, a destination tile, then an orders popup button
 const ACT_OF := {
@@ -48,11 +48,13 @@ func _tutorial(g: GameScreen) -> void:
 	ok(tut.step == steps.size() and not tut.active(), id + ": every step walked, guide off")
 	if id == "t01":
 		await _nudge(g)
+	if id == "t03":
+		await _no_nudge(g)
 	if id == "t02":
 		await _skip(g)
 
 ## a real level after the tutorials: unit intros show (none were shown in t01–t03); every unit acted + idle ->
-## nudge only where def.nudgeEnd (m01, m02)
+## no nudge (def.nudgeEnd: t01, t02 only)
 func _real_level(g: GameScreen, id: String) -> void:
 	root.size = Vector2i(1280, 720)
 	var saw := await _until(
@@ -66,7 +68,7 @@ func _real_level(g: GameScreen, id: String) -> void:
 		g.cards.intro_closed.emit()
 		await wait(0.3)
 	var want: bool = g.def.get("nudgeEnd", false)
-	ok(want == (id in ["m01", "m02"]), id + ": nudgeEnd only on m01 / m02")
+	ok(not want, id + ": no nudgeEnd on real levels")
 	for u: Dictionary in units_of(g.s):
 		if u.side == "p":
 			u.acted = true
@@ -225,6 +227,19 @@ func _nudge(g: GameScreen) -> void:
 	ok(await turn_of(g, "p"), "t01: Hết lượt through the nudge, enemy turn, back to us")
 	await wait(0.4)
 	ok(not tut._nudge, "t01: new turn, units fresh -> no nudge")
+
+## t03 (no nudgeEnd): every unit acted + idle -> no hand
+func _no_nudge(g: GameScreen) -> void:
+	for u: Dictionary in units_of(g.s):
+		if u.side == "p":
+			u.acted = true
+	g.refresh()
+	var tut := g.tutorial
+	var shown := await _until(
+		func() -> bool:
+			return tut._nudge,
+	)
+	ok(not shown, "t03: every unit acted + idle -> no nudge (t01 / t02 only)")
 
 ## save mid-way, title, Đánh tiếp -> same step
 func _resume(g: GameScreen, tag: String) -> void:

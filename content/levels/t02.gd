@@ -16,6 +16,7 @@ const DEF := {
 	"gold": { "p": 0, "e": 0 },
 	"tier": "easy",
 	"ai": "normal",
+	"nudgeEnd": true,
 	"win": { "type": "rout" },
 	"stars": { "turns": 7 },
 	"map": { "rows": ["hf.....fh", "f.......f", "...f.....", "....c....", "...f.....", "f.......f", "ff.....hf"] },

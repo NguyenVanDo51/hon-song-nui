@@ -23,7 +23,7 @@ Ngày: 2026-11-08. Nhánh `feat/tutorial-v2` (từ master 01efeb1). Thay §7 c�
 ## 3. Cơ chế mới (Claude)
 1. **Thẻ giải thích** (bước `card`): `{ "card": "<tiêu đề>", "say": "1–2 câu", "point": [x,y] | "end_turn" | null }`. Bàn tối + vòng sáng ở `point` (không bàn tay), bong bóng tiêu đề + chữ + nút **Đã hiểu ▶** (Space / Enter cũng được). Khoá mọi click khác (trừ ⚙). Dùng ở khoảnh khắc khái niệm: mục tiêu, quân xám, địch đánh trả…
 2. Bước nhiệm vụ cũ: `say` dài hơn được (bong bóng tự xuống dòng, rộng tối đa ~360 px) + `title` tuỳ chọn.
-3. **Nhắc Hết lượt** (màn hướng dẫn, sau khi hết bước): lượt ta, mọi quân đã đi (xám), 2,5 s không bấm gì -> bàn tay + bong bóng chỉ Hết lượt, không tối, không khoá.
+3. **Nhắc Hết lượt** (chỉ t01 + t02, `nudgeEnd`; user), sau khi hết bước: lượt ta, mọi quân đã đi (xám), 2,5 s không bấm gì -> bàn tay + bong bóng chỉ Hết lượt, không tối, không khoá.
 
 ## 4. Không làm
 - Không sửa bot (`ai.gd`, `ai_plan.gd`, presets, ai hook của objectives). (user, lệnh cũ)

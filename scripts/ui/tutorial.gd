@@ -7,8 +7,8 @@ extends Control
 ## "buy:<type>", "act:<order kind>".
 ## Card steps ({ card: title, say, point?, also? }) explain a concept: dim + ring on point (tile / "end_turn" / none = centred),
 ## paper bubble with title + text + Đã hiểu; nothing else clickable. After the last step the guide only nudges
-## Hết lượt (hand, no dim, no lock) once every unit of ours has acted and the player waits; levels with nudgeEnd
-## (m01, m02) get only that nudge.
+## Hết lượt (hand, no dim, no lock) once every unit of ours has acted and the player waits, in levels with
+## nudgeEnd (t01, t02).
 
 ## quests the turn start completes by itself: no hole / lock, their line pops up once when done
 const PASSIVE := ["heal_on"]
@@ -69,7 +69,7 @@ var _title: Label
 var _ok: Button
 var _idle := 0.0
 var _nudge := false
-var _nudge_ok := false # tutorial levels + def.nudgeEnd (m01, m02)
+var _nudge_ok := false # def.nudgeEnd (t01, t02)
 
 func _init() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -120,7 +120,7 @@ func bind(screen: GameScreen, list: Array) -> void:
 	steps = list
 	_on = not list.is_empty() and not gs.main.flags.has("bot")
 	var nudge_def: bool = gs.def.get("nudgeEnd", false)
-	_nudge_ok = (_on or nudge_def) and not gs.main.flags.has("bot")
+	_nudge_ok = nudge_def and not gs.main.flags.has("bot")
 	_since = 0.0
 	_toast = 0.0
 	_pass.clear()
@@ -316,7 +316,7 @@ func _own_tile(st: Dictionary) -> Vector2i:
 
 # ---------- view ----------
 func _process(dt: float) -> void:
-	if not _nudge_ok or gs == null:
+	if not (_on or _nudge_ok) or gs == null:
 		visible = false
 		return
 	_t += dt
@@ -327,7 +327,7 @@ func _process(dt: float) -> void:
 	if active() and not gs.s.is_empty():
 		_aim()
 	var live := _live()
-	_nudge = not live and _nudge_due(dt)
+	_nudge = not live and _nudge_ok and _nudge_due(dt)
 	visible = live or _toast > 0.0 or _nudge
 	if not visible:
 		modulate.a = 0.0

@@ -312,6 +312,16 @@ func quest_content_tests() -> void:
 					),
 					id + " buys soldiers only",
 				)
+			var nudge := TUT.filter(
+				func(id: String) -> bool:
+					var d := _lv(id)
+					var on: bool = d.get("nudgeEnd", false)
+					return on,
+			)
+			eq(nudge, ["t01", "t02"], "Hết lượt nudge: the first 2 tutorial levels only (user)")
+			for m: Dictionary in Content.levels():
+				if not TUT.has(m.id):
+					check(not m.has("nudgeEnd"), str(m.id) + " no nudgeEnd")
 			var wt := ["rout", "rout", "castles"]
 			for i in TUT.size():
 				var tid: String = TUT[i]

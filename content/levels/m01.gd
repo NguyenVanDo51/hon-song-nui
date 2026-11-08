@@ -12,7 +12,6 @@ const DEF := {
 	"gold": { "p": 0, "e": 0 },
 	"tier": "easy",
 	"ai": "normal",
-	"nudgeEnd": true,
 	"win": { "type": "rout" },
 	"stars": { "turns": 8 },
 	"quests": [{ "do": "move", "what": "hero" }, { "do": "capture", "what": "v" }, { "do": "attack_with", "what": "soldier" }, { "do": "kill_with" }],

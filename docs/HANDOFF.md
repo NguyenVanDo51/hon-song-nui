@@ -130,4 +130,4 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - 3 màn chỉ tướng + vệ binh: t01 Bài Học Đầu (đi quân, quân xám, Hết lượt, địch tới bằng `waves`, đánh, đánh trả, dồn quân; thắng rout), t02 Lâu Đài Trống (tướng chiếm lâu đài trống, rừng thủ, hạ hết địch = thắng), t03 Chiêu Binh (mua ở lâu đài, chiếm làng, hồi máu, Hết lượt sớm). Chi tiết `docs/content.md` § Hướng dẫn.
 - `tutorial.gd`: bước `card` (thẻ tiêu đề + chữ + ▶ Đã hiểu / Space), chữ dài tự xuống dòng, chờ banner lượt, nhắc Hết lượt khi mọi quân xám + 2,5 s.
 - Kiểm: tests 190/0 (đi hết bước + bot thắng 8 seed / màn), golden tạo lại (chỉ dòng t01–t03 đổi), lint ok, click_driver m02 0 fail, `sim/tut_driver.gd` t01/t02/t03 0 fail (1280x720 + 1688x780). `sim/probes/tut_shot.gd` xoá (tut_driver chụp từng bước).
-- Sau đó (user): t01–t03 không hiện thẻ giới thiệu quân (bắt đầu từ m01); nhắc Hết lượt thêm ở m01 + m02 (`nudgeEnd`). Driver: `mission=m01|m02|m03 fresh tutcheck`.
+- Sau đó (user): t01–t03 không hiện thẻ giới thiệu quân (bắt đầu từ m01); nhắc Hết lượt chỉ ở t01 + t02 (`nudgeEnd`). Driver: `mission=m01 fresh tutcheck`.

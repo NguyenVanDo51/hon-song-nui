@@ -12,7 +12,6 @@ const DEF := {
 	"gold": { "p": 550, "e": 100 },
 	"tier": "easy",
 	"ai": "normal",
-	"nudgeEnd": true,
 	"win": { "type": "castles" },
 	"stars": { "turns": 11 },
 	"quests": [{ "do": "buy", "what": "archer" }, { "do": "capture", "what": "c" }],

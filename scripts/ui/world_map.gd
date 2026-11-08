@@ -613,14 +613,14 @@ func _draw_marks(k: float, ink: Color) -> void:
 		var tex := _art(art, s * px)
 		if tex != null: # art ground line ~0.72 of its box: the building stands on the spot
 			draw_texture_rect(tex, Rect2(c + Vector2(-s / 2.0, -s * 0.72), Vector2(s, s)), false, Color(1, 1, 1, 0.55) if locked else Color.WHITE)
-		_medal(c + Vector2(-0.3 * s, -0.02 * s), u, i, done, locked, ink)
+		_medal(c + Vector2(-0.47 * s, 0.1 * s), u, i, done, locked, ink) # beside the house, not over it
 		if not locked:
 			var top := c.y - s * (0.69 if hard else 0.36) # roof line of the art
-			_stars(Vector2(c.x, top - 1.7 * u), u, Store.stars_of(str(def.id)) if done else 0, ink)
+			_stars(Vector2(c.x, top - 2.9 * u), u, Store.stars_of(str(def.id)) if done else 0, ink)
 
 ## round level medallion: white sticker edge, ink ring, 10 alternating segments, plate with the 2-digit number
 func _medal(c: Vector2, u: float, i: int, done: bool, locked: bool, ink: Color) -> void:
-	var r := 1.8 * u
+	var r := 1.4 * u
 	var seg_a := Style.CRIMSON if done else (Style.FADED if locked else Style.ROYAL)
 	var seg_b := Style.LEAF if not locked else Style.PAPER_2
 	var plate := Color("#f39a2b") if done else (Style.PAPER_2 if locked else Color("#4f74c9"))
@@ -633,7 +633,7 @@ func _medal(c: Vector2, u: float, i: int, done: bool, locked: bool, ink: Color) 
 	draw_circle(c, r * 0.72, ink)
 	draw_circle(c, r * 0.66, plate)
 	var txt := Style.FADED.darkened(0.3) if locked else Style.PAPER_HI
-	Draw.text_c(self, Style.display, c + Vector2(0, 0.05 * u), "%02d" % (i + 1), roundi(1.25 * u), txt, maxi(2, roundi(0.28 * u)), ink)
+	Draw.text_c(self, Style.display, c + Vector2(0, 0.05 * u), "%02d" % (i + 1), roundi(r * 0.72), txt, maxi(2, roundi(0.28 * u)), ink)
 
 ## 3 stars in a low arc (middle one higher, bigger): gold with a shine when earned, dark when not; white sticker edge
 func _stars(c: Vector2, u: float, got: int, ink: Color) -> void:

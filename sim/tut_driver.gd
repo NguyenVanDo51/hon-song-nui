@@ -3,6 +3,7 @@ extends "res://sim/click_driver.gd"
 ## hole, orders popup / shop buttons, Hết lượt), lock checks, a shot per step, then the Hết lượt nudge (t01), Đánh tiếp
 ## resume (t03) and ⚙ Bỏ qua (t02). Windowed for shots:
 ##   tools/run_guarded.sh /tmp/t.log -- --path . -s sim/tut_driver.gd -- mission=t01 fresh shots=/tmp/tut [win=WxH]
+## mission=m01 / m03 fresh tutcheck: first real level shows the unit intros; Hết lượt nudge on m01 / m02 only
 
 ## quest verbs done by picking a unit, a destination tile, then an orders popup button
 const ACT_OF := {
@@ -17,6 +18,9 @@ const ACT_OF := {
 
 func _tutorial(g: GameScreen) -> void:
 	var id := str(main.flags.get("mission", ""))
+	if id.begins_with("m"):
+		await _real_level(g, id)
+		return
 	await _tut_open(g, id)
 	var tut := g.tutorial
 	if id == "t01":
@@ -46,6 +50,36 @@ func _tutorial(g: GameScreen) -> void:
 		await _nudge(g)
 	if id == "t02":
 		await _skip(g)
+
+## a real level after the tutorials: unit intros show (none were shown in t01–t03); every unit acted + idle ->
+## nudge only where def.nudgeEnd (m01, m02)
+func _real_level(g: GameScreen, id: String) -> void:
+	root.size = Vector2i(1280, 720)
+	var saw := await _until(
+		func() -> bool:
+			return g._intro_on,
+	)
+	ok(saw, id + ": unit intro shows on a real level")
+	for i in 20:
+		if not g._intro_on:
+			break
+		g.cards.intro_closed.emit()
+		await wait(0.3)
+	var want: bool = g.def.get("nudgeEnd", false)
+	ok(want == (id in ["m01", "m02"]), id + ": nudgeEnd only on m01 / m02")
+	for u: Dictionary in units_of(g.s):
+		if u.side == "p":
+			u.acted = true
+	g.refresh()
+	var tut := g.tutorial
+	var shown := await _until(
+		func() -> bool:
+			return tut._nudge and tut.visible,
+	)
+	ok(shown == want, id + ": every unit acted + idle -> nudge %s" % ("on" if want else "off"))
+	if want:
+		ok(not tut._dim.visible and tut.mouse_filter == Control.MOUSE_FILTER_IGNORE, id + " nudge: no dim, clicks pass")
+		await _shot(id + "_nudge")
 
 ## guide up, nothing else covering it, a frame to lay out
 func _ready_step(g: GameScreen) -> bool:
@@ -284,7 +318,7 @@ static func _tile_r(g: GameScreen, x: int, y: int) -> Rect2:
 static func _near(a: Rect2, b: Rect2) -> bool:
 	return a.get_center().distance_to(b.get_center()) < 3.0
 
-## intro cards up first (guide hidden under them), closed, then the guide comes up
+## tutorial level opens straight on the guide (no unit intro cards)
 func _tut_open(g: GameScreen, tag: String) -> void:
 	var win: String = main.flags.get("win", "1280x720")
 	var wh := win.split("x")
@@ -295,25 +329,15 @@ func _tut_open(g: GameScreen, tag: String) -> void:
 	await wait(0.3)
 	var tut := g.tutorial
 	ok(tut.active() and tut.step == 0, tag + ": guide on at step 1")
-	var saw := false
-	for i in 120:
-		if g._intro_on:
-			saw = true
-			break
-		await process_frame
-	ok(saw, tag + ": new-unit intro shows first")
-	await process_frame
-	ok(not tut.visible, tag + ": guide hidden under the intro")
-	for i in 20:
-		if not g._intro_on:
-			break
-		g.cards.intro_closed.emit()
-		await wait(0.3)
-	for i in 300:
-		if tut.visible:
-			break
-		await process_frame
-	ok(tut.visible, tag + ": step 1 shows once the intro is closed")
+	ok(
+		await _until(
+			func() -> bool:
+				return tut.visible,
+		),
+		tag + ": step 1 shows",
+	)
+	var seen: Array = Store.get_v("seen_units", [])
+	ok(not g._intro_on and seen.is_empty(), tag + ": no unit intro in tutorial levels (seen list untouched)")
 
 func _hero(s: Dictionary) -> Dictionary:
 	return units_of(s).filter(

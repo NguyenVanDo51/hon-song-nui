@@ -14,7 +14,7 @@ func _init() -> void:
 	var argv := Array(OS.get_cmdline_user_args())
 	if argv.any(
 		func(a: String) -> bool:
-			return a.begins_with("mission=t0"),
+			return a.begins_with("mission=t0") or a == "tutcheck",
 	):
 		Store.set_v("seen_units", []) # before boot: the intro cards must show ahead of step 1
 	var scn: PackedScene = load("res://main.tscn")
@@ -319,7 +319,7 @@ func _run() -> void:
 	await wait(1.0)
 	var g: GameScreen = main.game
 	var mission := str(main.flags.get("mission", ""))
-	if mission.begins_with("t0"):
+	if mission.begins_with("t0") or main.flags.has("tutcheck"):
 		await _tutorial(g)
 		print("DRIVER DONE fails=%d" % fails)
 		quit(1 if fails else 0)

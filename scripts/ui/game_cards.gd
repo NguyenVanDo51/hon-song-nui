@@ -21,8 +21,11 @@ func build_end() -> void:
 
 ## entering a mission: introduce every kind of unit this mission brings (on the map, in its reinforcements, or
 ## buyable) that the player has never met — all at the start, never mid-battle. Remembered per player
-## (Store "seen_units"). Off for bot / nointro runs, which also never write the seen list.
+## (Store "seen_units"). Off for bot / nointro runs, which also never write the seen list, and in tutorial levels
+## (user: the guide speaks there; the cards start with the first real level).
 func intro_new_units() -> void:
+	if gs.def.has("tutorial"):
+		return
 	if gs.main.flags.has("bot") or gs.main.flags.has("nointro") or gs._intro_on or gs.s.is_empty() or not gs.visible or gs._hotseat():
 		return
 	var seen: Array = Store.get_v("seen_units", [])

@@ -12,7 +12,7 @@ signal level_picked(id: String)
 
 const Geo := preload("res://content/world_map.gd")
 const ART := "res://assets/terrain/chibi/%s.svg"
-const K_MIN := 7.5 # px per map unit at least: castles ~50 px wide on a phone, numbers readable
+const K_MIN := 8.5 # px per map unit at least: villages ~55 px, badge stars ~10 px across
 const HIT_R := 3.8
 const CLOUD := Color("#f7f3ea")
 const CLOUD_SHADE := Color("#ddd5c6")
@@ -23,6 +23,10 @@ const STAIN := Color("#c9a66a")
 const SEA := Color("#86b3bd")
 const SEA_D := Color("#5f93a3")
 const WATER := Color("#5f97a8")
+const DIRT := Color("#c9a86c")
+const DIRT_D := Color("#8a6d42")
+const VILLAGE := 6.2 # building art box, map units: easy / mid levels
+const FORT := 7.6 # hard levels
 
 var levels: Array = []
 var open_index := 0
@@ -41,6 +45,7 @@ var _dim: ColorRect # under the card: dims the map, a tap on it closes the card
 var _rivers: Array[PackedVector2Array] = []
 var _coast := PackedVector2Array()
 var _decor := [] # [y, art name, centre, size] back to front
+var _trails := [] # [level index it leads to, PackedVector2Array map units] (gently curved), in march order
 
 func setup(lv: Array, open: int, focus_id := "") -> void:
 	levels = lv
@@ -60,19 +65,20 @@ func setup(lv: Array, open: int, focus_id := "") -> void:
 		_rivers.append(smooth(rpts))
 	_coast = smooth(Geo.COAST)
 	_decor.clear()
-	for spec: Array in [[Geo.PEAKS, "mountain"], [Geo.WOODS, "forest"], [Geo.HILLS, "hill"], [Geo.HAMLETS, "village_n"]]:
+	for spec: Array in [[Geo.PEAKS, "mountain"], [Geo.WOODS, "forest"], [Geo.HILLS, "hill"]]:
 		var items: Array = spec[0]
 		var kind: String = spec[1]
 		for it: Array in items:
 			var x: float = it[0]
 			var y: float = it[1]
 			var s: float = it[2]
-			var nm := kind if kind == "village_n" else "%s_%s" % [kind, "a" if Board.hash01(int(x * 10), int(y * 10), 5) < 0.5 else "b"]
+			var nm := "%s_%s" % [kind, "a" if Board.hash01(int(x * 10), int(y * 10), 5) < 0.5 else "b"]
 			_decor.append([y, nm, Vector2(x, y), s])
 	_decor.sort_custom(
 		func(a: Array, b: Array) -> bool:
 			return a[0] < b[0],
 	)
+	_build_trails()
 	_dim = ColorRect.new()
 	_dim.color = Color(Style.INK_D, 0.45)
 	_dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -103,6 +109,21 @@ func setup(lv: Array, open: int, focus_id := "") -> void:
 func pos_of(i: int) -> Vector2:
 	var def: Dictionary = levels[i]
 	return Geo.POS.get(str(def.id), Vector2.INF)
+
+## footpath between consecutive levels: a quadratic bow (side + depth from a hash, so it never changes)
+func _build_trails() -> void:
+	_trails.clear()
+	var prev := Vector2.INF
+	for i in levels.size():
+		var q := pos_of(i)
+		if q == Vector2.INF:
+			continue
+		if prev != Vector2.INF:
+			var d := q - prev
+			var bow := (Board.hash01(int(q.x), int(q.y), 8) - 0.5) * 0.5 * d.length()
+			var mid := (prev + q) / 2.0 + Vector2(-d.y, d.x).normalized() * bow
+			_trails.append([i, Draw.quad(prev, mid, q, maxi(6, int(d.length() / 1.2)))])
+		prev = q
 
 func _p(v: Vector2) -> Vector2:
 	return _off + v * _k
@@ -334,7 +355,7 @@ func _draw() -> void:
 	_draw_sea(k, ink)
 	_draw_territory(k)
 	_draw_water(k, ink)
-	_draw_route(k, ink)
+	_draw_route(k)
 	for d: Array in _decor:
 		var at: Vector2 = d[2]
 		var s: float = d[3] * k
@@ -437,27 +458,23 @@ func _draw_water(k: float, ink: Color) -> void:
 			var rx := rc + Vector2((j - 1.5) * 0.7 * k, 0)
 			draw_line(rx, rx + Vector2((j - 1.5) * 0.15 * k, -1.5 * k), Color(ink, 0.6), maxf(1.0, 0.2 * k), true)
 
-## march route: dashed all the way, solid red up to the level after the furthest win
-func _draw_route(k: float, ink: Color) -> void:
-	var route := PackedVector2Array()
-	var last_done := -1
-	for i in levels.size():
-		var p := pos_of(i)
-		if p == Vector2.INF:
+## footpaths: worn dirt band (dark edge, light middle, pebbles); a path into a level not open yet is faint
+func _draw_route(k: float) -> void:
+	var unseen := _unseen_ids()
+	for trail: Array in _trails:
+		var to: int = trail[0]
+		var line: PackedVector2Array = trail[1]
+		var def: Dictionary = levels[to]
+		if unseen.has(str(def.id)):
 			continue
-		route.append(_p(p))
-		var def: Dictionary = levels[i]
-		if Store.is_done(str(def.id)):
-			last_done = route.size() - 1
-	for j in route.size() - 1:
-		var a := route[j]
-		var b := route[j + 1]
-		var n := maxi(1, int(a.distance_to(b) / (1.3 * k)))
-		for q in n:
-			if q % 2 == 0:
-				draw_line(a.lerp(b, float(q) / n), a.lerp(b, float(q + 1) / n), Color(ink, 0.45), maxf(1.2, 0.32 * k), true)
-	if last_done >= 0:
-		draw_polyline(route.slice(0, mini(route.size(), last_done + 2)), Color(Style.CRIMSON, 0.9), maxf(2.0, 0.5 * k), true)
+		var a := 1.0 if not _locked(to) else 0.45
+		var pts := _xf(line)
+		draw_polyline(pts, Color(DIRT_D, 0.85 * a), maxf(3.0, 1.25 * k), true)
+		draw_polyline(pts, Color(DIRT, a), maxf(2.0, 0.8 * k), true)
+		for j in range(2, pts.size() - 2, 3): # pebbles / footprints along the middle
+			var side := (Board.hash01(to, j, 1) - 0.5) * 0.5 * k
+			var dir := (pts[j + 1] - pts[j - 1]).normalized()
+			draw_circle(pts[j] + Vector2(-dir.y, dir.x) * side, maxf(1.0, 0.13 * k), Color(DIRT_D, 0.7 * a))
 
 ## level ids of every region with no level open yet (still unknown land: clouds, no shields)
 func _unseen_ids() -> Dictionary:
@@ -527,9 +544,11 @@ func _draw_names(k: float, ink: Color) -> void:
 		var col := Color(Style.PAPER_HI, 0.9) if str(nm[3]) == "sea" else Color(SEA_D.darkened(0.35), 0.9)
 		Draw.text_c(self, Style.semi, _p(at), str(nm[0]), roundi(fs * k), col)
 
-## one shield per level: red = won (ours), blue = the Empire's, faded = not open; number on it, best stars on a paper
-## ribbon under won ones; next level = pulsing gold ring, selected = gold glow + bigger
+## one building per level: village = easy / mid, castle = hard; red roofs = won (ours), blue = the Empire's, faded
+## = not open. In front: a shield with the stars earned (only those) over the number. Next level = pulsing gold
+## ring, selected = gold glow + bigger
 func _draw_marks(k: float, ink: Color) -> void:
+	var px := Baked.screen_scale(self)
 	var order: Array = range(levels.size())
 	order.sort_custom(
 		func(a: int, b: int) -> bool:
@@ -543,36 +562,42 @@ func _draw_marks(k: float, ink: Color) -> void:
 			continue
 		var done := Store.is_done(str(def.id))
 		var locked := _locked(i)
+		var hard := LevelSelect.tier_of(def) == "hard"
 		var c := _p(p)
-		var u := k * (1.15 if i == sel else 1.0)
+		var u := k * (1.12 if i == sel else 1.0)
 		if i == sel:
-			Draw.glow(self, c, 5.0 * k, Color(Style.LEAF, 0.7))
+			Draw.glow(self, c, 5.5 * k, Color(Style.LEAF, 0.75))
 		if i == next:
 			var ph := fmod(_t, 1.6) / 1.6
-			draw_arc(c, 2.6 * k * (1.0 + 0.7 * ph), 0, TAU, 40, Color(Style.LEAF, 1.0 - ph), maxf(2.0, 0.45 * k), true)
-		var sh := shield(c, u)
-		var shadow := PackedVector2Array()
-		for q in sh:
-			shadow.append(q + Vector2(0.3, 0.4) * k)
-		draw_colored_polygon(shadow, Color(ink, 0.8))
-		var fill := Style.CRIMSON if done else (Style.PAPER_2 if locked else Style.ROYAL)
-		draw_colored_polygon(sh, fill)
-		var rim := sh.duplicate()
-		rim.append(sh[0])
-		if not locked:
-			draw_polyline(rim, Style.LEAF if done or i == next else Color("#c9b98a"), maxf(2.0, 0.45 * u), true)
-		draw_polyline(rim, ink if not locked else Style.FADED, maxf(1.2, 0.2 * u), true)
-		var txt := Style.FADED if locked else Style.PAPER_HI
-		Draw.text_c(self, Style.display, c + Vector2(0, -0.25 * u), str(i + 1), roundi(1.9 * u), txt, maxi(1, roundi(0.25 * u)), Color(ink, 0.6))
-		if done:
-			var rib := Rect2(c + Vector2(-3.1, 2.45) * k, Vector2(6.2, 1.9) * k)
-			draw_rect(Rect2(rib.position + Vector2(0.2, 0.3) * k, rib.size), Color(ink, 0.8))
-			draw_rect(rib, Style.PAPER_HI)
-			draw_rect(rib, ink, false, maxf(1.0, 0.18 * k))
-			var got := Store.stars_of(str(def.id))
-			for j in Stars.MAX:
-				var sc := rib.get_center() + Vector2((j - 1) * 2.0 * k, 0.05 * k)
-				Draw.star(self, sc, 0.85 * k, Style.LEAF if j < got else Style.PAPER_2, ink, maxf(1.0, 0.15 * k))
+			Draw.ellipse_line(self, c, 3.8 * k * (1.0 + 0.5 * ph), 1.6 * k * (1.0 + 0.5 * ph), Color(Style.LEAF, 1.0 - ph), maxf(2.0, 0.4 * k))
+		var s := (FORT if hard else VILLAGE) * u
+		var art := "%s_%s" % ["castle" if hard else "village", "p" if done else "e"]
+		var tex := _art(art, s * px)
+		if tex != null: # art ground line ~0.72 of its box: the building stands just above the spot
+			draw_texture_rect(tex, Rect2(c + Vector2(-s / 2.0, -s * 0.72), Vector2(s, s)), false, Color(1, 1, 1, 0.55) if locked else Color.WHITE)
+		_badge(c + Vector2(0, 1.75 * u), u * 0.8, i, done, locked, ink) # under its feet, never over the roofs
+
+## shield badge: stars earned (gold, only those) above the level number; red = won, blue = not yet, grey = not open
+func _badge(c: Vector2, u: float, i: int, done: bool, locked: bool, ink: Color) -> void:
+	var def: Dictionary = levels[i]
+	var got := Store.stars_of(str(def.id)) if done else 0
+	var sh := shield(c, u)
+	var shadow := PackedVector2Array()
+	for q in sh:
+		shadow.append(q + Vector2(0.25, 0.35) * u)
+	draw_colored_polygon(shadow, Color(ink, 0.8))
+	draw_colored_polygon(sh, Style.CRIMSON if done else (Style.PAPER_2 if locked else Style.ROYAL))
+	var rim := sh.duplicate()
+	rim.append(sh[0])
+	if not locked:
+		draw_polyline(rim, Style.LEAF if done or i == next else Color("#c9b98a"), maxf(2.0, 0.4 * u), true)
+	draw_polyline(rim, ink if not locked else Style.FADED, maxf(1.2, 0.2 * u), true)
+	var num_y := 0.6 if got > 0 else -0.15
+	var txt := Style.FADED if locked else Style.PAPER_HI
+	Draw.text_c(self, Style.display, c + Vector2(0, num_y * u), str(i + 1), roundi(1.85 * u), txt, maxi(1, roundi(0.25 * u)), Color(ink, 0.6))
+	for j in got:
+		var sx := (j - (got - 1) / 2.0) * 1.2
+		Draw.star(self, c + Vector2(sx, -1.0) * u, 0.7 * u, Style.LEAF, ink, maxf(1.0, 0.14 * u))
 
 ## heraldic shield around centre c (u = px per map unit): flat top, straight sides, curved point at the bottom
 static func shield(c: Vector2, u: float) -> PackedVector2Array:

@@ -12,6 +12,10 @@ func _boot() -> void:
 				return m.id,
 		)
 		Store.set_v("campaign_done", ids)
+		var st := { }
+		for j in ids.size():
+			st[ids[j]] = j % 3 + 1 # 1 / 2 / 3 stars in turn
+		Store.set_v("campaign_stars", st)
 	if args.has("done") or args.has("focus"):
 		main.menus.show_levels(str(args.get("focus", "")))
 	await create_timer(1.0).timeout

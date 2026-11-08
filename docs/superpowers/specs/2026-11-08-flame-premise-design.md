@@ -84,4 +84,5 @@ Mạch: nhóm lửa (t01–m04) -> lan ra sông, biển (g01–m10) -> vùng nú
 - Kéo để xem (≥ 6 px / đơn vị bản đồ); màn dọc phóng theo chiều cao, kéo ngang. Mở ra canh vào màn kế, hoặc màn vừa chơi khi quay về. (Claude)
 - Vòng 2 (user): mở bản đồ không hiện thẻ (chỉ khi chạm); chọn màn không được cuộn bản đồ đi (chỉ dịch tối thiểu nếu thẻ che); bản đồ đẹp + chi tiết hơn -> lâu đài thật mỗi màn (đỏ + lửa = của ta, xanh = Đế Quốc), cảnh từ ảnh địa hình bàn cờ, biển có thuyền + la bàn, mây che vùng chưa mở. (user / Claude)
 - Vòng 3 (user): thẻ giữa màn hình (chọn màn góc dưới không bị cuộn); lâu đài to quá, sao bé quá -> "đổi cách khác, không hiện lâu đài lửa" -> khiên có số + dải sao to (Claude chọn khiên); mây phải ra hình mây.
+- Vòng 4 (user): sao trong khiên, trên số, chỉ sao đạt; nối màn bằng lối mòn; làng = màn Dễ / Trung bình, lâu đài = màn Khó (user đề xuất, Claude đồng ý: lâu đài hiếm = "trùm").
 

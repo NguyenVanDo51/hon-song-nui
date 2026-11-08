@@ -261,8 +261,8 @@ func _skip(g: GameScreen) -> void:
 	press(Content.text("tutSkip"))
 	await wait(0.6)
 	var skip_ok: bool = Store.is_done("t02") and Store.stars_of("t02") >= 1 and not g.visible and Store.load_game() == null
-	ok(skip_ok, "t02: Bỏ qua = win (1 star), level grid, save cleared")
-	ok(_find_cls(main, "LevelSelect") != null, "t02: level grid shows after skip")
+	ok(skip_ok, "t02: Bỏ qua = win (1 star), level map, save cleared")
+	ok(_find_cls(main, "WorldMap") != null, "t02: level map shows after skip")
 
 static func _ctrl_r(g: GameScreen, c: Control) -> Rect2:
 	return Rect2(c.global_position - g.tutorial.global_position, c.size)

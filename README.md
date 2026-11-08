@@ -2,7 +2,7 @@
 
 Tên cũ: Hồn Sông Núi (repo / thư mục `hon-song-nui`, save cũ ở `~/Library/Application Support/Godot/app_userdata/Hồn Sông Núi/`, đã chép sang thư mục tên mới).
 
-Chiến thuật theo lượt trên lưới ô, lấy cảm hứng từ các cuộc khởi nghĩa của phụ nữ Việt thời Bắc thuộc. Godot 4.7, GDScript, chạy trên web và máy bàn.
+Chiến thuật theo lượt trên lưới ô, thế giới giả tưởng: Quân Khởi Nghĩa giành lại từng lâu đài từ Đế Quốc (tiền đề "Ngọn Lửa Lâu Đài"). Godot 4.7, GDScript, chạy trên web và máy bàn.
 Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`). Chế độ chính: **Thử thách** = chuỗi level đánh số, thắng level này mở level sau, nhãn Dễ / Trung bình / Khó, 3 sao mỗi level (không cốt truyện, không chương; thiết kế `docs/superpowers/specs/2026-11-07-levels-design.md`).
 
 Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); một chỉ huy mỗi phe (Anh hùng / Tướng giặc), cùng chỉ số. Không có cốt truyện: chỉ chơi cờ.
@@ -27,7 +27,7 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 
 ### Điều khiển
 - Bấm lính để thấy ô đi được. Bấm **quân địch**: ô trắng = nó đi tới, ô đỏ + viền đỏ = ô nó đánh tới được lượt sau; quân ta trong vùng có dấu **!** đỏ.
-- **Sao màn**: thắng · tướng không ngã · mốc riêng (thắng trong N lượt / mất ≤ K lính). Hiện ở thẻ kết thúc + lưới Thử thách (giữ số sao cao nhất). **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
+- **Sao màn**: thắng · tướng không ngã · mốc riêng (thắng trong N lượt / mất ≤ K lính). Hiện ở thẻ kết thúc + bản đồ Thử thách (giữ số sao cao nhất). **Rê chuột lên kẻ địch**: bàn cờ vẽ đường tới ô đánh tốt nhất và nhãn "⚔ gây · ↩ nhận"; **bấm một lần là đánh**. (Màn hình cảm ứng: chạm lần 1 ngắm, lần 2 đánh.)
 - Bấm ô xanh để đi tới; bấm **lại chính ô đó** = hành động mặc định (chiếm nếu được, không thì chờ). Không có "đi tại chỗ": bấm lại lính đang đứng là bỏ chọn (trừ khi chiếm / cứu thương được ngay tại đó). Không có bảng bên: mọi lệnh (⚔ Đánh / 🏠 Chiếm / 🩹 / Chờ / Hủy), dự báo trận, mua lính, thông tin lính và ô đất hiện trong một popup ngay cạnh ô trên bàn cờ, tự né không che quân.
 - **Đánh trên bàn cờ**: mỗi đòn, máy quay sà vào hai quân, hoạt cảnh đòn đánh (rig) + đánh trả, rồi lùi ra. Theo tốc độ x1/x2/x3.
 - **Lượt địch**: giữ `Space` hoặc chuột để chạy x4; nút **⏩ Tua lượt địch** tua hết lượt đó (bỏ cận cảnh).
@@ -138,7 +138,7 @@ Thêm emoji mới vào chữ: chạy `python tools/build_fonts.py <thư mục c�
 
 ## Kiến trúc
 - `scripts/core`: luật thuần, không Node. Trạng thái ván là Dictionary (ô = `Vector2i`), lưu bằng `var_to_str` vào `user://` (web: IndexedDB). `content.gd` gom level + theme. `rules.gd` = số liệu + cờ (quân, công trình), `objectives.gd` = kiểu mục tiêu màn; `game.gd` / `ai.gd` không so tên quân / ký tự ô.
-- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `level_select.gd` (tiêu đề, lưới Thử thách, đấu tự do, Sách lính), `game_screen.gd` (trạng thái ván, chọn quân + click, gợi ý) + phần tách ra: `game_hud.gd` (HUD nổi, ⚙, thẻ góc, Hết lượt), `info_panel.gd` (popup lệnh / ⓘ / mua cạnh ô), `event_player.gd` (phát lại sự kiện, đếm vàng / máu), `turn_driver.gd` (lượt, lượt địch, bot, trao máy, kết thúc), `game_cards.gd` (giới thiệu quân mới, thẻ kết thúc), `board.gd` (bàn 2D: quân vẽ từ atlas, FX, đêm, nhãn dự báo) + `board_paint.gd` (vẽ địa hình bake 1 texture, nhà cửa), `fx.gd` + `fx_strikes.gd` (đòn cận chiến riêng từng loại quân), `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh dựng sẵn thành wav trong `assets/sfx`, tạo lại: `godot --headless --path . -s tools/bake_sfx.gd`; + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
+- `scripts/ui`: `main.gd` (vỏ + cờ debug), `menus.gd` + `menu_bg.gd` + `world_map.gd` + `level_select.gd` (tiêu đề, bản đồ Thử thách + helper màn kế, đấu tự do, Sách lính), `game_screen.gd` (trạng thái ván, chọn quân + click, gợi ý) + phần tách ra: `game_hud.gd` (HUD nổi, ⚙, thẻ góc, Hết lượt), `info_panel.gd` (popup lệnh / ⓘ / mua cạnh ô), `event_player.gd` (phát lại sự kiện, đếm vàng / máu), `turn_driver.gd` (lượt, lượt địch, bot, trao máy, kết thúc), `game_cards.gd` (giới thiệu quân mới, thẻ kết thúc), `board.gd` (bàn 2D: quân vẽ từ atlas, FX, đêm, nhãn dự báo) + `board_paint.gd` (vẽ địa hình bake 1 texture, nhà cửa), `fx.gd` + `fx_strikes.gd` (đòn cận chiến riêng từng loại quân), `token.gd`, `style.gd`, `draw.gd`, `audio.gd` (âm thanh dựng sẵn thành wav trong `assets/sfx`, tạo lại: `godot --headless --path . -s tools/bake_sfx.gd`; + nhạc ngũ cung), `emoji_font.gd`, `store.gd`.
 - `shaders/`: nền menu, logo ánh kim, vignette, màn đêm.
 - Font: Be Vietnam Pro + Alegreya SC (OFL), subset Noto Sans Symbols 2 (OFL), emoji Noto (Apache 2.0) đóng thành font bitmap lúc khởi động. Không dùng font hệ thống, nên web và máy bàn hiển thị như nhau.
 

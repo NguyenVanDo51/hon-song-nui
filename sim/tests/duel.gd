@@ -185,7 +185,7 @@ func duel_tests() -> void:
 			check(not Store.fits_content(gone), "unknown level id does not fit"),
 	)
 	run(
-		"level grid: first tap selects (info), second tap on the same cell starts; ring = next level after the furthest win",
+		"level map: opens on the next level's card; Xuất quân starts it; a locked level shows its card but never starts",
 		func() -> void:
 			Store.use_profile("unit_tests")
 			var lv := Content.levels()
@@ -196,22 +196,27 @@ func duel_tests() -> void:
 			Store.set_v("campaign_done", [ids[0], ids[2]])
 			eq(Store.unlocked_index(), 3, "open up to the furthest win + 1")
 			eq(LevelSelect.first_unwon(lv, 3), 3, "level 2 skipped -> still the one after the furthest win")
-			var ls := LevelSelect.new()
-			ls.setup(lv, Store.unlocked_index(), 0)
-			eq(ls.sel, 3, "starts on the next level")
+			var wm := WorldMap.new()
+			wm.setup(lv, Store.unlocked_index())
+			eq(wm.sel, 3, "starts on the next level")
 			var got := []
-			ls.level_picked.connect(
+			wm.level_picked.connect(
 				func(id: String) -> void:
 					got.append(id),
 			)
-			ls._pick(0)
-			eq(got, [], "tap on another cell: select only")
-			eq(ls.sel, 0)
-			ls._pick(0)
-			eq(got, [ids[0]], "second tap on it: start")
-			ls._pick(5)
-			eq(got, [ids[0]], "locked cell never starts")
-			ls.free()
+			wm.select(1)
+			eq(got, [], "tap on a node: card only")
+			eq(wm.sel, 1)
+			wm.go()
+			eq(got, [ids[1]], "Xuất quân: start (a skipped level stays open)")
+			wm.select(5)
+			wm.go()
+			eq(got, [ids[1]], "locked level never starts")
+			var wm2 := WorldMap.new()
+			wm2.setup(lv, Store.unlocked_index(), str(ids[2]))
+			eq(wm2.sel, 2, "focus id (back from a level) opens on it")
+			wm.free()
+			wm2.free()
 			Store.set_v("campaign_done", []),
 	)
 	run(

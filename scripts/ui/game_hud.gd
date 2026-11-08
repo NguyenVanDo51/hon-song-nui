@@ -497,7 +497,7 @@ func _skip_tutorial() -> void:
 	var id := str(gs.ctx.get("id", ""))
 	Store.clear_game()
 	Store.record_result(gs.ctx, "p", 1)
-	gs.main.show_levels(LevelSelect.page_of(maxi(0, Content.level_index(id))))
+	gs.main.show_levels(id)
 
 ## codex / restart ask opened from ⚙ closed without leaving: back to the pause card
 func back_to_menu() -> void:

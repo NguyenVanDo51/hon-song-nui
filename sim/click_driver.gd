@@ -650,23 +650,63 @@ func _run() -> void:
 	main.show_title()
 	await wait(0.8)
 	ok(Store.is_done("m03") and not g.cards.end_layer.visible, "win kept when leaving during the end pause")
-	# title -> "Thử thách" grid -> "Vào trận" = the first level not yet won
+	# title -> "Thử thách" map (card of the next level open) -> "Xuất quân" = the first level not yet won
 	press("Thử thách")
 	await wait(0.6)
-	var grid := _find_cls(main, "LevelSelect")
-	ok(grid != null, "level grid shows")
+	var wm := _find_cls(main, "WorldMap") as WorldMap
+	ok(wm != null, "level map shows")
 	var all := Content.levels()
 	var want: Dictionary = all[mini(LevelSelect.first_unwon(all, Store.unlocked_index()), all.size() - 1)]
-	press("Vào trận")
+	ok(wm != null and wm.sel == Content.level_index(str(want.id)), "map opens on the next level's card")
+	if wm != null:
+		await _map_input(wm)
+	press(Content.text("mapGo"))
 	await wait(0.8)
 	var go_ok: bool = g.visible and str(g.s.scenario) == str(want.id)
-	ok(go_ok, "grid 'Vào trận' starts the first level not yet won (%s)" % want.id)
+	ok(go_ok, "map 'Xuất quân' starts the first level not yet won (%s)" % want.id)
 	Store.clear_game() # the duel part below starts from no saved game
 	main.show_title()
 	await wait(0.4)
 	await _duel(g)
 	print("DRIVER DONE fails=%d" % fails)
 	quit(1 if fails else 0)
+
+## real mouse on the level map: tap a neighbour node = its card; drag = pan without picking; back to the next level
+func _map_input(wm: WorldMap) -> void:
+	var old_size := root.size
+	root.size = Vector2i(1280, 720) # headless window is 64 px: real picking needs the map inside the viewport
+	await wait(0.4)
+	var keep := wm.sel
+	var other := keep - 1 if keep > 0 else keep + 1
+	var at := wm.get_global_transform() * wm._p(wm.pos_of(other))
+	await _mouse(at, at)
+	ok(wm.sel == other, "map: real tap on node %d opens its card (sel %d)" % [other + 1, wm.sel])
+	var off := wm._off
+	await _mouse(at, at + Vector2(-80, -60))
+	ok(wm.sel == other and wm._off != off, "map: drag pans, picks nothing")
+	wm.select(keep)
+	await wait(0.2)
+	root.size = old_size
+	await wait(0.2)
+
+## press at a, move to b, release at b (real input through the viewport)
+func _mouse(a: Vector2, b: Vector2) -> void:
+	for step: Array in [[a, true], [b, null], [b, false]]:
+		var p: Vector2 = step[0]
+		var ev: InputEvent
+		if step[1] == null:
+			var mm := InputEventMouseMotion.new()
+			mm.button_mask = MOUSE_BUTTON_MASK_LEFT
+			ev = mm
+		else:
+			var mb := InputEventMouseButton.new()
+			mb.button_index = MOUSE_BUTTON_LEFT
+			mb.pressed = step[1]
+			ev = mb
+		(ev as InputEventMouse).position = p
+		(ev as InputEventMouse).global_position = p
+		root.push_input(ev, true)
+		await process_frame
 
 ## first node whose script has global class `cls`
 func _find_cls(n: Node, cls: String) -> Node:

@@ -6,7 +6,7 @@
 - Chỉ số, luật: `scripts/core/rules.gd` (không chứa tên).
 
 ## Level (Thử thách)
-Mỗi level = 1 file `content/levels/*.gd` (`DEF`), xếp theo `order`; số hiện cho người chơi = thứ tự trong danh sách. Mở khóa: mọi level tới level xa nhất đã thắng, + level kế (`Store.unlocked_index`). Màn chọn: `scripts/ui/level_select.gd` (20 ô / trang, màu theo `tier`, sao tốt nhất, khóa). Không chương (bỏ 2026-11-07).
+Mỗi level = 1 file `content/levels/*.gd` (`DEF`), xếp theo `order`; số hiện cho người chơi = thứ tự trong danh sách. Mở khóa: mọi level tới level xa nhất đã thắng, + level kế (`Store.unlocked_index`). Màn chọn = bản đồ vương quốc (2026-11-08, user): `scripts/ui/world_map.gd`; vị trí từng màn + 5 vùng + sông / biển / núi ở `content/world_map.gd` (**thêm màn = thêm vị trí + vùng**, test đòi: trong bản đồ, cách nhau ≥ 8, đúng 1 vùng). Chạm điểm = thẻ (tên, `lore`, mục tiêu dạng `short`, sao), "Xuất quân" = vào trận. Đã thắng = đất đỏ + lửa; chưa mở = sương xanh Đế Quốc; vùng thắng hết = tên đỏ. Kéo để xem; dọc = phóng to theo chiều cao. Không chương (bỏ 2026-11-07).
 
 ## Bản đồ đấu tự do
 `content/skirmish_maps.gd`: `name`, `blurb`, `rows`, `owner`, `units`, tùy chọn `enemyHero`. Mọi bản đối xứng xoay 180° (địa hình + chủ + quân; test kiểm tra). Mở đầu kiểu AE2: mỗi bên chỉ 1 tướng đứng trên thành mình. Tỉ lệ theo bản 2 người gốc AE2 (`docs/review/ae2cmp/maps.md`): 121–225 ô, ~3 thành / bản (0–2 trung lập), ~8–9 làng (làng / thành ≈ 3), không đền; địa hình ~32% nước, 10% núi, 15% rừng, 6% đồi, 8% cỏ, 20% đường. Bố cục tự vẽ, không chép bản gốc.
@@ -51,7 +51,7 @@ extends RefCounted
 const DEF := {
 	"id": "m09", "order": 9,
 	"title": "Tên level",
-	"lore": "1 câu bối cảnh",            # tiền đề "Ngọn Lửa Lâu Đài": hiện dưới tên ở lưới chọn màn; câu khiêu khích của Vorn = cùng khóa (`Vorn: «…»`)
+	"lore": "1 câu bối cảnh",            # tiền đề "Ngọn Lửa Lâu Đài": hiện trên thẻ màn ở bản đồ Thử thách; câu khiêu khích của Vorn = cùng khóa (`Vorn: «…»`)
 	"hero": "anhhung",                    # luôn là anhhung
 	"enemyHero": "tuonggiac",             # luôn là tuonggiac; null = địch không có tướng
 	"newUnits": ["wolf"],                 # ghi chú: màn ra mắt loại lính đó (thẻ giới thiệu quân tự bật theo quân trên bản đồ, xem dưới)
@@ -94,9 +94,9 @@ Vào màn: thẳng bàn cờ, rồi thẻ giới thiệu quân mới (nếu có)
 
 ## Tiền đề "Ngọn Lửa Lâu Đài" (2026-11-08, spec `docs/superpowers/specs/2026-11-08-flame-premise-design.md`)
 - Mỗi lâu đài từng giữ ngọn lửa thề; Đế Quốc dập tắt; giành lại = thắp lại. Không truyện để đọc (user bỏ qua truyện; ra store toàn cầu).
-- `theme.lede` dưới logo màn tiêu đề; mỗi màn `lore` 1 câu (lưới chọn màn); tướng địch tên **Vorn**.
+- `theme.lede` dưới logo màn tiêu đề; mỗi màn `lore` 1 câu (thẻ màn trên bản đồ); tướng địch tên **Vorn**.
 - Bàn cờ: lâu đài ta có lửa, Đế Quốc có khói, trung lập tắt; đổi chủ -> lửa bùng / khói phụt ~1 s (`BoardPaint.draw_fires`, `Draw.flame` / `Draw.smoke`). Quân đứng trên lâu đài che lửa (như che cờ).
-- Lưới chọn màn: "🔥 N/39 ngọn lửa đã thắp" (N = số màn đã thắng).
+- Bản đồ Thử thách: "🔥 N/39 ngọn lửa đã thắp" (N = số màn đã thắng).
 - Tên màn: giả tưởng chung, không địa danh / sử Việt. Màn g*: sửa cả `sim/level_recipes.gd` (`title` + `lore`).
 
 Khóa đã bỏ (engine bỏ qua, đừng dùng lại): `incomeMul`, `graves` (lính ngã chỉ sinh ra khi có quân chết), `heroMustLive` (thua khi mất hết thành và tướng đã ngã, hoặc hết quân lẫn thành; tướng ngã thì mua lại ở thành), `story`, `history`, `tips`, `chapter`, `region`, `pos`, `place` (bỏ cốt truyện + chương 2026-11-07).

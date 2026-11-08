@@ -192,10 +192,6 @@ func _grid(min_w: float, gap := 12, auto_fit := false) -> GridContainer:
 	g.columns = 4
 	return g
 
-static func goal_text(def: Dictionary) -> String:
-	var win: Dictionary = def.get("win", { })
-	return Content.goal_text(win, "brief", { "p": def.get("hero"), "e": def.get("enemyHero") }, { })
-
 # ---------- title ----------
 ## title: fixed stage (no scroll) laid out at TITLE_SIZE and scaled to the window; logo on top, menu left,
 ## castle + units right, round sound / music / speed / unit-book toggles under the menu
@@ -360,28 +356,46 @@ func _logo(text: String, fs := 104) -> Control:
 	return holder
 
 # ---------- campaign ----------
-## levels grid; page -1 = the page holding the first level not yet won
-func show_levels(pg := -1) -> void:
-	var open := Store.unlocked_index()
+## "Thử thách" kingdom map (WorldMap), centred on `focus_id` or the next level; full screen (a page scroll would eat
+## the map's drag), back button + flames-lit count on top
+func show_levels(focus_id := "") -> void:
+	visible = true
+	bg.visible = true
+	if page:
+		page.queue_free()
+	var holder := Control.new()
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(holder)
+	page = holder
 	var all := Content.levels()
-	var v := _page(1040)
-	v.add_child(
-		_head(
-			"‹ Trở lại",
-			func() -> void:
-				main.show_title(),
-			"Thử thách",
-		)
-	)
-	var ls := LevelSelect.new()
-	ls.setup(all, open, LevelSelect.page_of(mini(LevelSelect.first_unwon(all, open), all.size() - 1)) if pg < 0 else pg)
-	ls.level_picked.connect(
+	var wm := WorldMap.new()
+	holder.add_child(wm)
+	wm.setup(all, Store.unlocked_index(), focus_id)
+	wm.level_picked.connect(
 		func(id: String) -> void:
 			_sfx("ui")
 			var md: Dictionary = Content.level(id)
 			main.play_mission(md),
 	)
-	v.add_child(ls)
+	var e := Style.safe_insets(holder)
+	var band := PanelContainer.new() # paper strip: the header stays readable over the map
+	band.add_theme_stylebox_override("panel", Style.paper(8.0))
+	band.position = Vector2(10 + e.x, 6 + e.y)
+	holder.add_child(band)
+	var top := Style.hbox(14)
+	band.add_child(top)
+	top.add_child(
+		_on(
+			Style.button("‹ Trở lại", "BackBtn"),
+			func() -> void:
+				main.show_title(),
+		)
+	)
+	top.add_child(_h2("Thử thách", 26))
+	var fires := Style.lbl(LevelSelect.fires_text(all), 15, Style.CRIMSON_D, Style.bold)
+	fires.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	top.add_child(fires)
 
 # ---------- skirmish ----------
 func show_skirmish() -> void:

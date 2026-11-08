@@ -254,7 +254,7 @@ func finish() -> void:
 	if gs.ctx.kind == "campaign":
 		var mission_id: String = gs.ctx.id
 		var back := func() -> void:
-			gs.main.show_levels(LevelSelect.page_of(maxi(0, Content.level_index(mission_id))))
+			gs.main.show_levels(mission_id)
 		if win:
 			var nx: Variant = Content.next_level(mission_id)
 			if nx != null:

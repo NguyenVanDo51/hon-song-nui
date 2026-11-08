@@ -101,10 +101,10 @@ func show_title() -> void:
 	game.leave()
 	menus.show_title()
 
-func show_levels(pg := -1) -> void:
+func show_levels(focus_id := "") -> void:
 	GameLog.crumb("screen levels")
 	game.leave()
-	menus.show_levels(pg)
+	menus.show_levels(focus_id)
 
 ## level entered fresh (grid / next level)
 func play_mission(m: Dictionary) -> void:

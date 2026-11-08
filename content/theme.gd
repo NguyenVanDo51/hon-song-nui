@@ -116,6 +116,8 @@ const THEME := {
 		"tutEndTurn": "Hết lượt",
 		"tutOk": "▶ Đã hiểu",
 		"firesLit": "🔥 {n}/{all} ngọn lửa đã thắp",
+		"mapGo": "Xuất quân ›",
+		"mapLocked": "🔒 Chưa chiếm lại: thắng màn trước để mở",
 		"tutNudgeEnd": "Mọi quân đã đi (xám): bấm Hết lượt",
 		"noEnemyHero": "quân địch",
 		"tileVillage": "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta.",
@@ -162,13 +164,21 @@ const THEME := {
 		"quest_raze": "Đốt 1 làng",
 		"quest_raise": "Gọi dậy 1 bộ xương",
 	},
-	## win types: brief = goal line of the mission opening, bar = top bar. {eh} enemy commander, {hero} ours, {n} count, {turns} limit, {left} turns left
+	## win types: brief = goal line of the mission opening, bar = top bar, short = level map card. {eh} enemy commander, {hero} ours, {n} count, {turns} limit, {left} turns left
 	"goals": {
-		"castles": { "brief": "Chiếm hết lâu đài của địch và hạ {eh} (hoặc diệt sạch quân lẫn lâu đài).", "bar": "Chiếm {n} lâu đài + hạ {eh}" },
-		"rout": { "brief": "Diệt hết quân địch.", "bar": "Diệt hết địch (còn {n})" },
-		"hero": { "brief": "Hạ {eh}.", "bar": "Hạ {eh}" },
-		"survive": { "brief": "Giữ vững đến hết lượt {turns}.", "bar": "Giữ vững: còn {left} lượt" },
-		"reach": { "brief": "Đưa {hero} tới ô cờ vàng{within}.", "bar": "Đưa {hero} tới cờ vàng{left_txt}" },
+		"castles": {
+			"brief": "Chiếm hết lâu đài của địch và hạ {eh} (hoặc diệt sạch quân lẫn lâu đài).",
+			"bar": "Chiếm {n} lâu đài + hạ {eh}",
+			"short": "Chiếm hết lâu đài + hạ {eh}",
+		},
+		"rout": { "brief": "Diệt hết quân địch.", "bar": "Diệt hết địch (còn {n})", "short": "Diệt hết quân địch" },
+		"hero": { "brief": "Hạ {eh}.", "bar": "Hạ {eh}", "short": "Hạ {eh}" },
+		"survive": { "brief": "Giữ vững đến hết lượt {turns}.", "bar": "Giữ vững: còn {left} lượt", "short": "Giữ vững {turns} lượt" },
+		"reach": {
+			"brief": "Đưa {hero} tới ô cờ vàng{within}.",
+			"bar": "Đưa {hero} tới cờ vàng{left_txt}",
+			"short": "Đưa {hero} tới cờ vàng{within}",
+		},
 	},
 	## end card line per winner side + engine reason
 	"ends": {

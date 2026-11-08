@@ -62,7 +62,7 @@ func content_tests() -> void:
 			check(not Content.theme().has("people"), "theme people gone"),
 	)
 	run(
-		"next level + paging",
+		"next level",
 		func() -> void:
 			var lv := Content.levels()
 			var first: Dictionary = lv[0]
@@ -70,10 +70,27 @@ func content_tests() -> void:
 			var last: Dictionary = lv.back()
 			var nx: Dictionary = Content.next_level(str(first.id))
 			eq(nx.id, second.id)
-			eq(Content.next_level(str(last.id)), null)
-			eq(LevelSelect.page_of(0), 0)
-			eq(LevelSelect.page_of(19), 0)
-			eq(LevelSelect.page_of(20), 1),
+			eq(Content.next_level(str(last.id)), null),
+	)
+	run(
+		"kingdom map: every level placed inside the map, nodes spaced, each level in exactly one region",
+		func() -> void:
+			var Geo := preload("res://content/world_map.gd")
+			var placed: Array[Vector2] = []
+			for m: Dictionary in Content.levels():
+				var id: String = m.id
+				check(Geo.POS.has(id), "%s on the map" % id)
+				var p: Vector2 = Geo.POS.get(id, Vector2(-99, -99))
+				check(Rect2(Vector2(4, 4), Geo.VB - Vector2(8, 8)).has_point(p), "%s inside the map" % id)
+				for q: Vector2 in placed:
+					check(p.distance_to(q) >= 8.0, "%s >= 8 units from every other node (%s)" % [id, q])
+				placed.append(p)
+				var n := 0
+				for rg: Dictionary in Geo.REGIONS:
+					var rids: Array = rg.ids
+					n += 1 if rids.has(id) else 0
+				eq(n, 1, "%s in one region" % id)
+			eq(Geo.POS.size(), Content.levels().size(), "no stray map nodes"),
 	)
 	run(
 		"our commander can walk (over turns) to every castle, the enemy commander and the reach goal",

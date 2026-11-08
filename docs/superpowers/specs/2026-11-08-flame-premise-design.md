@@ -74,3 +74,11 @@ Mạch: nhóm lửa (t01–m04) -> lan ra sông, biển (g01–m10) -> vùng nú
 - `sim/tests` + lint xanh; golden không đổi (tên / lore không vào trace).
 - `click_driver m02` 0 lỗi; `tut_driver t02` 0 lỗi (lâu đài có lớp lửa).
 - Ảnh: lâu đài ta / địch / trung lập + vừa chiếm, 1280x720 + 540x1170 (dọc); màn tiêu đề; lưới chọn màn.
+
+## 6. Bản đồ Thử thách (thêm sau, user)
+- User: màn chọn Thử thách làm dạng bản đồ như ngày xưa; thấy vùng đã chiếm lại / chưa (chưa mở = chưa chiếm lại); chạm = thông tin cơ bản, bớt chữ; "Xuất quân" vào game luôn. (user)
+- 1 bản đồ vương quốc, 5 vùng theo mạch §3: Biên Giới (tây nam) -> Vùng Sông -> Vùng Núi -> Pháo Đài (tây bắc) -> Kinh Đô (đông bắc); biển phía đông. (Claude)
+- Điểm màn trên đường hành quân: đã thắng = đỏ + lửa + sao, đất quanh đỏ; màn kế = vàng nhấp nháy; chưa mở = mờ, sương xanh Đế Quốc. Vùng thắng hết -> tên vùng đỏ. (Claude)
+- Thẻ: số (màu độ khó) + tên + sao tốt nhất, `lore`, mục tiêu dạng ngắn (`goals[type].short`), nút "Xuất quân ›"; chưa mở: "🔒 Chưa chiếm lại". Bỏ: dòng "THỬ THÁCH N / độ khó", 3 dòng mục tiêu sao, "Bấm để vào trận". (Claude)
+- "Xuất quân" vẫn qua `confirm_start`: đang dở ván khác -> hỏi trước khi xoá (không mất ván). (Claude)
+- Kéo để xem (≥ 6 px / đơn vị bản đồ); màn dọc phóng theo chiều cao, kéo ngang. Mở ra canh vào màn kế, hoặc màn vừa chơi khi quay về. (Claude)

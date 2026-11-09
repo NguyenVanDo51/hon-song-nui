@@ -30,7 +30,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 - Bối cảnh v2 + tiếng Anh xong trên nhánh `feat/setting-v2`, chờ user chơi thử rồi merge; iOS build mới chưa làm.
 - Store listing (tiếng Anh); trận trùm cuối Ma Vương; online.
 - Cân bằng kinh tế + đội hình đa dạng cho bot; người chơi thử mốc sao.
-- Lật kèo 1 đấu 1 (bên thua hết làng = hết tiền): đang nghiên cứu, lương cố định đo ra tệ hơn -> chưa đổi luật (`docs/1v1.md` "Lật kèo", `sim/tune.gd comeback`).
+- Lật kèo 1 đấu 1 (bên thua hết làng = hết tiền): hoãn tới khi luật ổn định. Lương cố định + thưởng hạ quân đã đo, không giúp -> chưa đổi luật; kế tiếp = Thanh Nộ của Tướng (`docs/1v1.md` "Lật kèo", `docs/TODO.md`, `sim/tune.gd comeback`).
 - Toàn bộ danh sách: `docs/TODO.md`.
 
 ## File sự thật (mỗi mảng 1 nơi, luôn đúng bản hiện tại)

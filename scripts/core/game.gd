@@ -416,7 +416,7 @@ static func can_counter(s: Dictionary, d: Dictionary, ax: int, ay: int) -> bool:
 	var sd := stat(s, d)
 	var dx: int = d.x
 	var dy: int = d.y
-	return not sd.get("siege", false) and sd.rmin == 1 and dist(ax, ay, dx, dy) == 1
+	return sd.rmin == 1 and dist(ax, ay, dx, dy) == 1
 
 ## forecast: dmg / counter as min..max (+ mid for the AI). kill = sure kill, mayKill = possible; die / mayDie likewise
 static func preview(s: Dictionary, u: Dictionary, fx: int, fy: int, target: Dictionary) -> Dictionary:

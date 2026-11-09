@@ -184,7 +184,7 @@ static func traits(type: String, hero_key: Variant) -> Array:
 				else "Bắn xa %d–%d ô, nhưng đã di chuyển thì lượt đó không bắn được." % [st.rmin, st.rmax]
 			)
 		)
-	if st.get("siege", false):
+	if st.rmin > 1:
 		out.append("Không bao giờ đánh trả: bị áp sát là nguy.")
 	if st.get("aura", 0):
 		out.append("Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta." % st.aura)

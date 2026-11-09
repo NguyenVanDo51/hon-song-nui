@@ -27,7 +27,7 @@ const TERRAIN := {
 ##   capV/capC capture village/castle (= the TERRAIN `cap` flag); antiAir +atk vs fliers; vsType {type: +atk};
 ##   aura N: after acting, allies within 2 get +N atk until our next turn; poison N: a hit leaves the target -N atk / -N def
 ##   until our next turn; waterAtk / waterDef: bonus standing in water; raise "type": graves -> that type;
-##   siege (no move+attack, no counter); raze (wreck an enemy / unowned building with `razeTo` in range); noGrave;
+##   siege (no move+attack; no counter comes from rmin ≥ 2, not this flag); raze (wreck an enemy / unowned building with `razeTo` in range); noGrave;
 ##   noCap (not counted toward unitCap); buyable=false; heavy (bigger hit fx / knockback / sound)
 ##   AI: aiWeight (buy weight, default AI.DEFAULT_WEIGHT); aiValue (worth when scoring trades, default cost)
 ## mv = steps a unit really walks = AE2 units.bin move − 1 (orig destination needs > 0 steps left; ae2cmp/combat.md)

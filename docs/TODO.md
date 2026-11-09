@@ -74,7 +74,7 @@ Quy tắc: `CLAUDE.md` — đọc code thấy nợ / rủi ro lỗi / hiệu nă
 - [ ] (2026-11-07) `scripts/core/game.gd:717` hào quang `dist <= 2` gồm cả 0 (quân đứng chồng ô Wisp) -> gốc chỉ 1–2.
 - [ ] (2026-11-07) `scripts/core/game.gd:362` comment roll dẫn RM -> nay xác nhận gốc `e.class a(II)I`; `rules.gd:141` trần chiến dịch 100 dẫn RM -> gốc `i.b(I)V @pc 738–741`.
 - [ ] (2026-11-07) `scripts/core/rules.gd:108` ghost `cost: 150` không có trong gốc (−1, không mua được) -> chỉ AI value dùng.
-- [ ] (2026-11-07) `scripts/core/game.gd:419` `not siege` trong phản đòn thừa (máy bắn đá rmin 2 đã chặn).
+- [x] (2026-11-07) `scripts/core/game.gd:419` `not siege` trong phản đòn thừa (máy bắn đá rmin 2 đã chặn). **Đã sửa (2026-11-09)**: bỏ, phản đòn = `rmin == 1` + kề (= gốc `canPerformCloseAttack`); chữ "Không bao giờ đánh trả" (content.gd) theo `rmin > 1`.
 - [ ] (2026-11-07) `docs/spec.md` danh sách "chỉ mod": roll không chạm atkMax, độc sau phản đòn, Wisp chết vẫn cho hào quang = đã xác nhận là luật gốc -> sửa spec.
 - [ ] (2026-11-07) scripts/core/ai.gd PRESETS.army — chép tay = hard + V5_ARMY (const không merge được) -> sửa hard / V5_ARMY quên army thì lệch; test duel "ai:army" bắt (hoặc đổi PRESETS thành static var + merged).
 - [ ] (2026-11-07) scripts/core/ai.gd PRESETS.army — chép tay = hard + V5_ARMY (const không merge được) -> sửa hard / V5_ARMY quên army thì lệch; test duel "ai:army" bắt (hoặc đổi PRESETS thành static var + merged). 2026-11-08: thêm khối chép tay thứ 2 = `AI.HERO_FIX` trong cả hard lẫn army (+ bản cố định `tune.gd HERO_FIX`); test `hero_fix.gd` "presets" bắt lệch.

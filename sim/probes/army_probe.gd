@@ -17,6 +17,7 @@ func _init() -> void:
 	for a: String in OS.get_cmdline_user_args():
 		var kv := a.split("=", true, 1)
 		args[kv[0]] = kv[1] if kv.size() > 1 else ""
+	Tune.apply_econ(args)
 	var sum_of: String = args.get("sum", "")
 	if sum_of != "":
 		for path: String in sum_of.split(",", false):
@@ -56,14 +57,14 @@ func gm(k: String) -> float:
 
 func _play(map_id: String, me: String, A: Dictionary, B: Dictionary, salt: int, k: int) -> void:
 	seed_v = 1000.0 + (salt * 64.0 + k) * 7919.0
-	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false))
+	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false, Tune.start_gold))
 	s.seed = int(seed_v)
 	s.rng = int(seed_v)
 	var foe := Game.other(me)
 	for side: String in ["p", "e"]:
 		var sp: Dictionary = A if side == me else B
 		if sp.get("_spam", 0.0) > 0.0:
-			s.allowed[side] = ["soldier", "archer"]
+			s.allowed[side] = Tune.spam_types.duplicate()
 	s.aiParams = { me: A, foe: B }
 	var mem := { }
 	var steps := 0

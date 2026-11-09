@@ -8,9 +8,9 @@ signal codex_closed
 const LOGO_SHADER := preload("res://shaders/logo.gdshader")
 const TITLE_SIZE := Vector2(1000, 560) # title stage, scaled to fit the window
 ## 1 vs 1: who plays Blue (s.ctrl.e)
-## Khó = ai:army (hard v5, varied army); Siêu khó = ai:hard (v3; campaign "hard" levels keep it)
+## Khó = ai:army (hard v5b, varied army) = strongest offered; ai:hard (v3b) no longer offered (user 2026-11-09), old saves still load
 ## labels go through Lang.t where shown (i18n-const)
-const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Trung bình"], ["ai:army", "Máy Khó"], ["ai:hard", "Máy Siêu khó"]]
+const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Trung bình"], ["ai:army", "Máy Khó"]]
 
 var main: Main
 var bg: MenuBg
@@ -690,7 +690,7 @@ func _duel_side(side: String) -> Control:
 	if side == "p":
 		cv.add_child(Style.lbl(Lang.t("Người chơi 1"), 14, Style.MUTED))
 	else:
-		var seg := _flow(0) # 5 choices: wraps on a phone held upright
+		var seg := _flow(0) # 4 choices: wraps on a phone held upright
 		seg.add_theme_constant_override("v_separation", 4)
 		for o: Array in OPPONENTS:
 			var key: String = o[0]

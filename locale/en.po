@@ -1776,10 +1776,6 @@ msgstr "CPU Medium"
 msgid "Máy Khó"
 msgstr "CPU Hard"
 
-#: scripts/ui/menus.gd:13
-msgid "Máy Siêu khó"
-msgstr "CPU Very Hard"
-
 #: scripts/ui/menus.gd:245
 msgid "Màn %d/%d"
 msgstr "Level %d/%d"

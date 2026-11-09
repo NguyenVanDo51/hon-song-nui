@@ -1776,10 +1776,6 @@ msgstr ""
 msgid "Máy Khó"
 msgstr ""
 
-#: scripts/ui/menus.gd:13
-msgid "Máy Siêu khó"
-msgstr ""
-
 #: scripts/ui/menus.gd:245
 msgid "Màn %d/%d"
 msgstr ""

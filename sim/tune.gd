@@ -6,7 +6,8 @@ extends SceneTree
 ##                                                   -> mutate best, play child vs best, keep child if > thr twice
 ##                                                      (2 x games x maps x 2 seats); resumes from out (var_to_str)
 ##   presets [games=8] [salt=9000000] [tuned=<file>] [names=a,b,..] -> round robin of the presets (row score vs column)
-##   any mode: log=1 -> one line per game (winner, reason, turn, commander deaths)
+##   any mode: log=1 -> one line per game (winner, reason, turn, commander deaths); economy test: prices=soldier:200,archer:300
+##     gold=<start gold, 500> spam=<types a +_spam:1 side may buy, default soldier,archer>
 ##   time a=<spec> b=<spec> [games=2] [salt=9100000] -> A's AI wall time per step / per turn (avg, worst)
 ##   comeback a=<spec> [games=8] [salt=9007000] [thr=0.5] [rules=off,base,hero,both] (+ baseN / bothN = pay N)
 ##                                                   -> a vs a per rules variant (COMEBACK_TRY parts): wins, draws,
@@ -78,9 +79,28 @@ const HERO_FIX := { "hero_bt": 1.0, "hero_ncast": 2.0, "pl_hero_kill": 0.75 }
 ## comeback research (docs/1v1.md "Lật kèo"): candidate anti-snowball rules, not in the game (base pay measured worse)
 const COMEBACK_TRY := { "baseIncome": 100, "heroStep": 0 }
 
+## economy test (sim only, any mode + army_probe): start gold, unit types a `_spam` side may buy
+static var start_gold := 500
+static var spam_types: Array = ["soldier", "archer"]
+
 var seed_v := 1.0
 var args := { }
 var games_played := 0
+
+## sim-only economy knobs from args: prices=soldier:200,archer:300 (Game.UNITS copy), gold=600, spam=elephant,archer
+static func apply_econ(a: Dictionary) -> void:
+	var prices: String = a.get("prices", "")
+	if prices != "":
+		var units: Dictionary = Rules.UNITS.duplicate(true)
+		for kv: String in prices.split(",", false):
+			var p := kv.split(":")
+			var row: Dictionary = units[p[0]]
+			row.cost = int(p[1])
+		Game.UNITS = units
+	start_gold = int(str(a.get("gold", "500")))
+	var sp: String = a.get("spam", "")
+	if sp != "":
+		spam_types = Array(sp.split(",", false))
 
 func _init() -> void:
 	var argv := OS.get_cmdline_user_args()
@@ -88,6 +108,7 @@ func _init() -> void:
 	for a: String in argv.slice(1):
 		var kv := a.split("=", true, 1)
 		args[kv[0]] = kv[1] if kv.size() > 1 else ""
+	apply_econ(args)
 	AI.rng = rng
 	var t0 := Time.get_ticks_msec()
 	if mode == "match":
@@ -202,7 +223,7 @@ func play_match(a: Dictionary, b: Dictionary, games: int, salt: int, verbose := 
 func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int, timing := { }) -> String:
 	seed_v = 1000.0 + (salt * 64.0 + k) * 7919.0
 	var rules: Dictionary = timing.get("rules", { })
-	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false, 500, 10, rules))
+	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false, start_gold, 10, rules))
 	s.seed = int(seed_v)
 	s.rng = int(seed_v)
 	for side: String in ["p", "e"]:
@@ -211,8 +232,8 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 			var gf: float = sp._gold
 			var g0: int = s.gold[side]
 			s.gold[side] = int(g0 * gf)
-		if sp.get("_spam", 0.0) > 0.0: # spam test: this side may buy only the cheap pair
-			s.allowed[side] = ["soldier", "archer"]
+		if sp.get("_spam", 0.0) > 0.0: # spam test: this side may buy only spam_types (default the cheap pair)
+			s.allowed[side] = spam_types.duplicate()
 	s.aiParams = { "p": pp, "e": pe }
 	var mem := { }
 	var steps := 0

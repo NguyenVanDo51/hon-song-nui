@@ -290,8 +290,10 @@ func duel_tests() -> void:
 			var plain := Game.new_game(Content.skirmish_def("dong_bang", hp, false))
 			var b := Game.new_game(Content.skirmish_def("dong_bang", hp, false, 500, 10, { "bounty": 10 }))
 			var vet := { "type": "wolf", "side": "e", "rank": 3 }
+			var wolf_cost: int = Rules.UNITS.wolf.cost
+			var vet_pay: int = floori(wolf_cost * 10 * 3 / 100.0) # price read from the table (wolf 600 -> 500, 2026-11-09)
 			eq(Rules.bounty(plain, vet), 0, "AE2: no bounty")
-			eq(Rules.bounty(b, vet), 180, "wolf 600 x 10 % x rank 3")
+			eq(Rules.bounty(b, vet), vet_pay, "wolf price x 10 % x rank 3")
 			eq(Rules.bounty(b, { "type": "wolf", "side": "e", "rank": 0 }), 0, "recruit pays nothing")
 			eq(Rules.bounty(b, { "type": "ghost", "side": "e", "rank": 5 }), 0, "summon pays nothing")
 			eq(Rules.bounty(b, { "type": "hero", "side": "e", "rank": 2 }), 40, "commander priced 200")
@@ -309,7 +311,7 @@ func duel_tests() -> void:
 			eq(Rules.bounty(lag, vet), 0, "lag: equal buildings -> no bounty")
 			var lag_owner: Dictionary = lag.owner
 			lag_owner.erase(Game.castle_tiles(lag, "p")[0]) # p now has fewer buildings than e
-			eq(Rules.bounty(lag, vet), 180, "lag: the side behind on buildings gets it")
+			eq(Rules.bounty(lag, vet), vet_pay, "lag: the side behind on buildings gets it")
 			eq(Rules.bounty(lag, { "type": "wolf", "side": "p", "rank": 3 }), 0, "lag: the side ahead gets nothing"),
 	)
 	run(

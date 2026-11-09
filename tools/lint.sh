@@ -8,8 +8,20 @@ export PATH="$HOME/.local/bin:$PATH"
 bin=${GODOT:-$(command -v godot || echo /Applications/Godot.app/Contents/MacOS/Godot)}
 if [ "$1" = "--staged" ]; then
 	files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.gd')
+	# shown-text language check only when what the screens show can change (project settings, catalogs, code, content)
+	lang_need=$(git diff --cached --name-only -- project.godot 'locale/*' 'scripts/*' 'content/*' sim/lang_check.gd)
 else
 	files=$(git ls-files '*.gd')
+	lang_need=1
+fi
+# i18n shown text (docs/i18n.md "Kiểm"): after a language switch every screen shows that language (sim/lang_check.gd).
+# Before the .gd early exit: the 2026-11-09 bug was a project.godot-only change (locale/fallback)
+if [ -n "$lang_need" ]; then
+	lout=$("${GODOT:-$(command -v godot || echo /Applications/Godot.app/Contents/MacOS/Godot)}" --headless --path . -s sim/lang_check.gd 2>&1)
+	if ! echo "$lout" | grep -q "LANG CHECK fails=0"; then
+		echo "$lout" | grep -E "^FAIL|^       |SCRIPT ERROR|LANG CHECK"
+		echo "lint: shown text in the wrong language -> sim/lang_check.gd (docs/i18n.md)"; exit 1
+	fi
 fi
 files=$(echo "$files" | grep -v '^assets/') # generated (emoji manifest); gdlintrc excludes it too
 [ -z "$files" ] && exit 0

@@ -60,6 +60,15 @@ godot --headless --path . -s sim/levelgen.gd -- install=/tmp/lg/g05_s3.gd       
 ```
 Godot có cửa sổ (chụp màn hình) cần màn hình đang bật; khi máy vắng người, chỉ chạy headless.
 
+**Coverage** (Godot không có sẵn): `tools/coverage.sh` = chép repo ra thư mục tạm, chèn bộ đếm trước mỗi dòng lệnh trong hàm (`tools/coverage/instrument.py`), chạy runner, in % từng file (`report.py`); repo thật không đổi. Nhiều runner -> cộng dồn.
+```
+tools/coverage.sh                                   # scripts/core + sim/tests.gd (~50 s)
+tools/coverage.sh core -m quests                    # + liệt kê dòng chưa phủ của file chứa "quests"
+tools/coverage.sh ui -- sim/tests.gd -- sim/click_driver.gd -- mission=m02 fresh nointro   # UI: test + driver bấm thật
+tools/coverage.sh 'scripts/ui/rig/**/*.gd'          # glob tuỳ ý; KEEP=1 giữ bản chép, MAX_SEC mỗi runner (mặc định 400)
+```
+Mốc 2026-11-09: core 94,6% (`sim/tests.gd`; mọi file ≥ 90% trừ `lang.gd` 33%); UI 4,6% chỉ test -> 67,4% thêm `click_driver` m02. Không tính: dòng `func` / khai báo cấp lớp, `elif` / `else`, nhánh `match`, dòng nối, thân lambda nằm trong ngoặc. % AI lệch ±1% giữa các lần chạy (planner dừng theo đồng hồ). Runner bị kill (quá giờ) = không ghi kết quả.
+
 ### Log lỗi / crash
 - Mỗi lần chơi thật (có cửa sổ; không headless / `-s sim/...` / web) -> 1 file `user://logs/game/<profile>/<YYYY-MM-DD_HH-MM-SS>.log` (`scripts/ui/game_log.gd`, `OS.add_logger`). Ghi + flush từng dòng -> crash vẫn giữ tới dòng cuối. Giữ 20 phiên + 10 file crash. Hồ sơ `profile=test` ghi riêng thư mục `test/`, không đẩy log của người chơi ra.
 - Dòng: `HH:MM:SS +giây_từ_lúc_mở <loại> nội dung`. Loại: `E` lỗi engine / `push_error` · `W` cảnh báo / `push_warning` · `S` lỗi script · `H` shader · `X` printerr (gồm bản dump của crash handler: C++ + GDScript backtrace) · `P` print · `B` dấu vết (màn hình, bắt đầu ván + ctx, lượt / phe, từng lệnh / mua, kết thúc) · `==` mốc phiên (`session open`, `clean exit`, `paused`, `resumed`). Lỗi kèm `@ file:dòng hàm()` + GDScript backtrace (bản xuất release: backtrace rỗng trừ khi bật `debug/settings/gdscript/always_track_call_stacks`). Cùng một nội dung: 20 dòng đầu đủ, sau đó 1 dòng / 1000 lần kèm `(xN)`; file > 8 MB chỉ còn mốc + dấu vết.

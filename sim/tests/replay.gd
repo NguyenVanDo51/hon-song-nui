@@ -146,6 +146,33 @@ func replay_tests() -> void:
 			eq(tl.size(), 2, "2 half-turns")
 			_rm(dir),
 	)
+	run(
+		"bad input: missing / damaged file, broken head state, refused steps",
+		func() -> void:
+			var none := Replay.load_file("user://no_such_dir_xyz/none.replay")
+			eq(none.head, { }, "missing file -> empty head")
+			eq(none.recs, [], "missing file -> no recs")
+			var dir := _tmp()
+			var p := dir.path_join("bad.replay")
+			var f := FileAccess.open(p, FileAccess.WRITE)
+			f.store_line(Replay.encode({ "t": "head", "format": Replay.FORMAT }))
+			f.store_line("{\"t\": \"st")
+			f.store_line("")
+			f.store_line(Replay.encode({ "t": "step", "n": 1 }))
+			f.close()
+			var rep := Replay.load_file(p)
+			eq(rep.bad, 1, "cut line counted as bad")
+			var recs: Array = rep.recs
+			eq(recs.size(), 1, "good step kept")
+			eq(Replay.start_state({ "state": "not a state" }), { }, "broken head state -> {}")
+			eq(Replay.start_state({ }), { }, "no head state -> {}")
+			var s := blank([["p", "soldier", 2, 2], ["e", "soldier", 4, 4]])
+			eq(Replay.apply(s, { "kind": "unbuy", "id": 99 }), null, "unbuy unknown id refused")
+			eq(Replay.apply(s, { "kind": "unbuy", "id": 1 }), null, "unbuy a unit not just bought refused")
+			eq(Replay.apply(s, { "kind": "act", "act": { "id": 1, "to": [5, 0], "kind": "wait" } }), null, "unreachable act refused")
+			eq(Replay.apply(s, { "kind": "nope" }), null, "unknown kind refused")
+			_rm(dir),
+	)
 
 ## both sides play AI-picked steps by hand (Game.do_action / buy, like a player's clicks), recorded; returns steps applied
 func _play(s: Dictionary, rounds: int, try_unbuy: bool) -> int:

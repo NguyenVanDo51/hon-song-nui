@@ -274,3 +274,30 @@ func content_tests() -> void:
 			for ch: String in Rules.TERRAIN:
 				check(terrain.has(ch), "rules tile %s has theme" % ch),
 	)
+	run(
+		"unit guide: traits for every type, 'never counters' line = Game.can_counter",
+		func() -> void:
+			var never := "Không bao giờ đánh trả: bị áp sát là nguy."
+			for type: String in Rules.UNITS:
+				var hk: Variant = null
+				if type == "hero":
+					hk = hero_p
+				var lines := Content.traits(type, hk)
+				check(not lines.is_empty(), "%s: has traits" % type)
+				for ln: Variant in lines:
+					check(ln is String and str(ln) != "", "%s: line is text" % type)
+				var s := blank([["p", type, 2, 2], ["e", "soldier", 3, 2]])
+				s.heroKey.p = hero_p
+				var counters := Game.can_counter(s, unit(s, 0), 3, 2)
+				eq(lines.has(never), not counters, "%s: 'never counters' line vs rule" % type)
+			var archer := Content.traits("archer", null)
+			check(archer.has("Đánh xa 1–2 ô. Chỉ quân đứng kề mới đánh trả được."), "archer: range line %s" % [archer])
+			var cat := Content.traits("catapult", null)
+			check(
+				cat.any(
+					func(l: String) -> bool:
+						return l.begins_with("Bắn xa"),
+				),
+				"catapult: siege range line %s" % [cat],
+			),
+	)

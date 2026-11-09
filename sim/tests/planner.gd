@@ -105,6 +105,29 @@ func planner_tests() -> void:
 				check(not Game.hero_alive(c, "e"), "commander dead at mid rolls")
 				Game.fixed_roll = -1.0,
 	)
+	run(
+		"AIPlan.legal refuses: game over, buy not offered, unknown / enemy / acted unit, unreachable tile, bad raze",
+		func() -> void:
+			var s := blank([["p", "soldier", 2, 2], ["e", "soldier", 4, 4], ["p", "archer", 1, 1]])
+			check(AIPlan.legal(s, _wait(1, [2, 3])), "control: plain wait is legal")
+			check(not AIPlan.legal(s, _wait(99, [2, 2])), "unknown unit")
+			check(not AIPlan.legal(s, _wait(2, [4, 4])), "enemy unit on our turn")
+			check(not AIPlan.legal(s, _wait(1, [5, 0])), "tile out of reach")
+			check(
+				not AIPlan.legal(s, { "kind": "act", "act": { "id": 1, "to": [2, 2], "kind": "raze", "target": [0, 0] } }),
+				"raze with a non-raze unit",
+			)
+			check(not AIPlan.legal(s, { "kind": "buy", "x": 0, "y": 0, "type": "no_such_type" }), "buy type not offered")
+			var a3: Dictionary = unit(s, 2)
+			a3.acted = true
+			check(not AIPlan.legal(s, _wait(3, [1, 1])), "unit already acted")
+			s.winner = "p"
+			check(not AIPlan.legal(s, _wait(1, [2, 3])), "game over"),
+	)
+
+## a wait step for unit id to tile `to`
+static func _wait(id: int, to: Array) -> Dictionary:
+	return { "kind": "act", "act": { "id": id, "to": to, "kind": "wait" } }
 
 func tactics_tests() -> void:
 	run(

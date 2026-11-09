@@ -502,3 +502,31 @@ func rule_tests_2() -> void:
 			# stale key: placeholder, no crash
 			eq(Content.hero_look("lechan").name, "lechan"),
 	)
+	run(
+		"damaged saves are refused: no state, missing field, junk unit / buy list / controller / tile",
+		func() -> void:
+			var s := Game.new_game(mission("m03"))
+			var ctx := { "kind": "campaign", "id": "m03" }
+			check(Content.save_fits({ "state": s, "ctx": ctx }), "control: intact save fits")
+			check(not Content.save_fits({ "ctx": ctx }), "no state")
+			check(not Content.save_fits({ "state": "junk", "ctx": ctx }), "state not a dictionary")
+			var cases := {
+				"missing gold": func(d: Dictionary) -> void:
+					d.erase("gold"),
+				"unit not a dictionary": func(d: Dictionary) -> void:
+					var us: Array = d.units
+					us.append(7),
+				"unknown type in buy list": func(d: Dictionary) -> void:
+					var al: Array = d.allowed.p
+					al.append("dragon_x"),
+				"controller list not a dictionary": func(d: Dictionary) -> void:
+					d.ctrl = "ai",
+				"unknown tile": func(d: Dictionary) -> void:
+					d.tiles[0][0] = "?",
+			}
+			for name: String in cases:
+				var bad: Dictionary = s.duplicate(true)
+				var f: Callable = cases[name]
+				f.call(bad)
+				check(not Content.save_fits({ "state": bad, "ctx": ctx }), name),
+	)

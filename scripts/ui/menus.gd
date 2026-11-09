@@ -940,7 +940,7 @@ func _show_codex() -> void:
 
 ## one card per terrain: name, defence bonus, move cost per move class, rule note
 func _codex_terrain() -> void:
-	var classes := [["foot", Lang.t("Đi bộ")], ["water", Lang.t("Hải tặc")], ["fly", "Bay"]]
+	var classes := [["foot", Lang.t("Đi bộ")], ["water", Lang.t("Hải tặc")], ["beast", Lang.t("Sói")], ["fly", Lang.t("Bay")]]
 	for t: String in Rules.TERRAIN:
 		var ter: Dictionary = Rules.TERRAIN[t]
 		var card := Style.card(Color(0, 0, 0, 0.3), Style.LACQUER_3, 10, 12)

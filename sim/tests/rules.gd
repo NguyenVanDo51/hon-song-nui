@@ -234,7 +234,7 @@ func rule_tests() -> void:
 			var buffed: bool = a.get("aura") == "p" and unit(s, 2).get("aura") == null
 			check(buffed, "soldier (2 away) buffed, archer (far) not")
 			eq(Game.damage(s, a, 1, 1, 100, d, 0.0), before + 10)
-			eq(Game.buffs_at(s, a, 1, 1).atk, 10, "buffs_at shows it")
+			eq(Buffs.at(s, a, 1, 1).atk, 10, "buffs_at shows it")
 			Game.end_turn(s)
 			var lasts: bool = a.get("aura") == "p"
 			check(lasts, "lasts through the enemy turn")
@@ -318,7 +318,7 @@ func rule_tests() -> void:
 			eq(e.get("poison"), null, "worn off"),
 	)
 	run(
-		"AE2 water: everyone wades at cost 3 / def 0; water class 1 and +10 atk +15 def there",
+		"AE2 water: everyone wades at cost 3 / def 0; water class 1 and +15 atk +25 def there (2026-11-09: AE2 +10 / +15)",
 		func() -> void:
 			eq(Game.move_cost("foot", "~"), 3.0)
 			eq(Game.move_cost("water", "~"), 1.0)
@@ -327,8 +327,8 @@ func rule_tests() -> void:
 			var s := blank([["p", "boat", 1, 1], ["e", "soldier", 2, 1]])
 			s.tiles[1][1] = "~"
 			var b: Dictionary = s.units[0]
-			eq(Game.damage(s, b, 1, 1, 100, unit(s, 1), 0.0), 50, "50 + 10 water - 10")
-			eq(Game.damage(s, unit(s, 1), 2, 1, 100, b, 0.0), 25, "50 - (10 + 15)"),
+			eq(Game.damage(s, b, 1, 1, 100, unit(s, 1), 0.0), 55, "50 + 15 water - 10")
+			eq(Game.damage(s, unit(s, 1), 2, 1, 100, b, 0.0), 15, "50 - (10 + 25)"),
 	)
 	run(
 		"temple heals any side, cannot be captured",
@@ -427,10 +427,10 @@ func rule_tests() -> void:
 				"boat": [300, 50, 55, 10, 4, 1, 1],
 				"shaman": [400, 40, 45, 5, 4, 1, 1],
 				"drum": [500, 35, 40, 10, 4, 1, 1],
-				"wolf": [600, 60, 65, 15, 5, 1, 1],
+				"wolf": [500, 60, 65, 15, 5, 1, 1],
 				"elephant": [600, 60, 70, 30, 4, 1, 1],
 				"catapult": [700, 50, 70, 10, 3, 2, 4],
-				"bird": [1000, 70, 80, 25, 6, 1, 1],
+				"bird": [750, 70, 80, 25, 6, 1, 1],
 				"ghost": [150, 40, 50, 2, 4, 1, 1],
 			}
 			for t: String in spec:

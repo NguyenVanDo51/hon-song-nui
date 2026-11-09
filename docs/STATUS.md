@@ -18,7 +18,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 - **Đánh tiếp ván đang dở** (1 chỗ lưu). Cài đặt (màn tiêu đề + ⚙): âm thanh, nhạc, tốc độ hoạt cảnh x1/x2/x3, ngôn ngữ VI / EN.
 
 ## Nội dung
-- Quân (2 phe dùng chung, chỉ khác màu): 9 loại mua được + Bộ xương (pháp sư gọi hồn) + 2 tướng (Hiệp Sĩ Chỉ Huy / Vorn). Bảng chỉ số `docs/spec.md`, số gốc `scripts/core/rules.gd`.
+- Quân (2 phe dùng chung, chỉ khác màu): 9 loại mua được + Bộ xương (pháp sư gọi hồn) + 2 tướng (Hiệp Sĩ Chỉ Huy / Vorn). Bảng chỉ số `docs/spec.md`, số gốc `scripts/core/rules.gd`. Nhánh `feat/drop-superhard` (chờ user đánh thử): mỗi quân 1 việc riêng — Tu sĩ hồi 10 máu quanh 2 ô, Sói đi rừng / đồi / núi 1 bước + 500 vàng, Rồng 750, Hải tặc dưới sông +15 / +25, Máy bắn đá xuyên giáp.
 - Địa hình (tên trong game): đồng cỏ, đường mòn, rừng, đồi, núi, sông, cầu gỗ, làng, làng cháy, lâu đài, Giếng Thần.
 - Kiểu thắng: chiếm thành · diệt hết · hạ tướng · giữ N lượt · đưa tướng tới ô đích.
 - Hướng dẫn cầm tay t01–t03 + nhiệm vụ (quest) ở t01–t03, m01–m04, m10 + thẻ giới thiệu quân mới.

@@ -4,14 +4,15 @@ extends RefCounted
 
 ## AE2 rules (docs/review/rules_compare.html). def = defense bonus, cost = move cost (INF = impassable)
 ## water: every walker may wade at cost 3 with 0 def; the water class (boat) pays 1; fliers pay 1 everywhere.
+## rough (forest / hill / mountain): the beast class (wolf) pays 1 there (2026-11-09, not AE2).
 ## buildings (Game reads only these fields, never the letter): building (name, can be owned), income (gold / turn to
 ## the owner), cap (unit flag needed to capture), heals ("owner" | "any"), sells (owner buys units here; counts as a
 ## castle for the loss rule), razeTo (a raze unit wrecks it into), repairTo + repairBy (unit flag that repairs it)
 const TERRAIN := {
 	".": { "def": 5, "cost": 1 },
-	"f": { "def": 10, "cost": 2 },
-	"h": { "def": 10, "cost": 2 },
-	"m": { "def": 15, "cost": 3 },
+	"f": { "def": 10, "cost": 2, "rough": true },
+	"h": { "def": 10, "cost": 2, "rough": true },
+	"m": { "def": 15, "cost": 3, "rough": true },
 	"~": { "def": 0, "cost": 3, "water": true },
 	"=": { "def": 5, "cost": 1 },
 	"r": { "def": 0, "cost": 1 }, # path: drawn as a dirt track that links villages, castles, bridges
@@ -22,10 +23,12 @@ const TERRAIN := {
 }
 
 ## atk..atkMax = AE2 table attack; a hit rolls atk..atkMax-1 (AE2 never rolls the max).
-## move classes: foot, fly (all cost 1), water (river cost 1, land as foot).
+## move classes: foot, fly (all cost 1), water (river cost 1, land as foot), beast (rough terrain cost 1, else as foot).
 ## flags (all optional; a new type needs only cost/atk/atkMax/def/mv/rmin/rmax/move):
 ##   capV/capC capture village/castle (= the TERRAIN `cap` flag); antiAir +atk vs fliers; vsType {type: +atk};
-##   aura N: after acting, allies within 2 get +N atk until our next turn; poison N: a hit leaves the target -N atk / -N def
+##   aura N: after acting, allies within 2 get +N atk until our next turn; healAura N: at our turn start allies within 2
+##   heal N (not itself; no stacking with building heal or another healer: the biggest counts); pierce: the target gets
+##   no terrain def vs this attacker; poison N: a hit leaves the target -N atk / -N def
 ##   until our next turn; waterAtk / waterDef: bonus standing in water; raise "type": graves -> that type;
 ##   siege (no move+attack; no counter comes from rmin ≥ 2, not this flag); raze (wreck an enemy / unowned building with `razeTo` in range); noGrave;
 ##   noCap (not counted toward unitCap); buyable=false; heavy (bigger hit fx / knockback / sound)
@@ -69,8 +72,8 @@ const UNITS := {
 		"rmin": 1,
 		"rmax": 1,
 		"move": "water",
-		"waterAtk": 10,
-		"waterDef": 15,
+		"waterAtk": 15,
+		"waterDef": 25,
 		"aiWeight": 0.8,
 	},
 	"shaman": { "cost": 400, "atk": 40, "atkMax": 45, "def": 5, "mv": 4, "rmin": 1, "rmax": 1, "move": "foot", "raise": "ghost", "aiWeight": 0.6 },
@@ -84,10 +87,11 @@ const UNITS := {
 		"rmax": 1,
 		"move": "foot",
 		"aura": 10,
+		"healAura": 10,
 		"vsType": { "ghost": 15 },
 		"aiWeight": 0.5,
 	},
-	"wolf": { "cost": 600, "atk": 60, "atkMax": 65, "def": 15, "mv": 5, "rmin": 1, "rmax": 1, "move": "foot", "poison": 10, "aiWeight": 1.2 },
+	"wolf": { "cost": 500, "atk": 60, "atkMax": 65, "def": 15, "mv": 5, "rmin": 1, "rmax": 1, "move": "beast", "poison": 10, "aiWeight": 1.2 },
 	"elephant": { "cost": 600, "atk": 60, "atkMax": 70, "def": 30, "mv": 4, "rmin": 1, "rmax": 1, "move": "foot", "heavy": true, "aiWeight": 1.4 },
 	"catapult": {
 		"cost": 700,
@@ -99,12 +103,13 @@ const UNITS := {
 		"rmax": 4,
 		"move": "foot",
 		"siege": true,
+		"pierce": true,
 		"raze": true,
 		"shot": "rock",
 		"heavy": true,
 		"aiWeight": 0.7,
 	},
-	"bird": { "cost": 1000, "atk": 70, "atkMax": 80, "def": 25, "mv": 6, "rmin": 1, "rmax": 1, "move": "fly", "heavy": true, "aiWeight": 1 },
+	"bird": { "cost": 750, "atk": 70, "atkMax": 80, "def": 25, "mv": 6, "rmin": 1, "rmax": 1, "move": "fly", "heavy": true, "aiWeight": 1 },
 	"ghost": {
 		"cost": 150,
 		"atk": 40,

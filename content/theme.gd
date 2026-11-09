@@ -13,24 +13,24 @@ const UNITS := {
 	"boat": {
 		"name": "Hải tặc",
 		"icon": "⚔",
-		"desc": "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ.",
+		"desc": "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +15 công, +25 thủ.",
 	},
 	"shaman": { "name": "Pháp sư gọi hồn", "icon": "📖", "desc": "Gọi lính ngã ngay cạnh dậy thành bộ xương đánh cho ta (cả lính địch ngã)." },
 	"drum": {
 		"name": "Tu sĩ ánh sáng",
 		"icon": "📜",
-		"desc": "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương.",
+		"desc": "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. Đầu lượt ta: quân ta trong 2 ô hồi 10 máu. +15 công khi đánh bộ xương.",
 	},
 	"wolf": {
 		"name": "Sói bóng đêm",
 		"icon": "🐺",
-		"desc": "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta.",
+		"desc": "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước), rừng / đồi / núi chỉ tốn 1 bước. Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta.",
 	},
 	"elephant": { "name": "Golem đá", "icon": "🛡", "desc": "Người đá do pháp sư thổi hồn. Thủ rất dày, đánh mạnh, lên được cả núi. Đắt." },
 	"catapult": {
 		"name": "Máy bắn đá",
 		"icon": "💥",
-		"desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy).",
+		"desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Xuyên giáp: địch bị ném không được thủ địa hình. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy).",
 	},
 	"bird": {
 		"name": "Rồng",
@@ -98,7 +98,7 @@ const THEME := {
 		"tileRuin": "Làng bị {raze} đốt cháy. {capV} đứng vào rồi bấm Dựng lại làng; lượt sau mới chiếm được.",
 		"tileCastle": "Chỉ {capC_l} chiếm được lâu đài. Lâu đài: +{income} vàng/lượt, mua lính, hồi máu. Có quân ta đứng trên lâu đài vẫn mua được: lính mới phải bước ra ô khác.",
 		"tileTemple": "Giếng Thần: không ai chiếm được. Quân phe nào đứng đây cũng hồi {heal} máu mỗi lượt, thủ +15.",
-		"tileWater": "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ.",
+		"tileWater": "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +15 công, +25 thủ.",
 		"loseTip_heroFell": "Mẹo: giữ tướng sau hàng vệ binh; đứng trên đồi, làng, lâu đài được thêm thủ.",
 		"loseTip_castlesLost": "Mẹo: luôn để một quân đứng chặn trên lâu đài khi địch có tướng ở gần.",
 		"loseTip_routed": "Mẹo: chiếm làng sớm để có vàng mua quân; đừng đem lính lẻ ra đánh.",

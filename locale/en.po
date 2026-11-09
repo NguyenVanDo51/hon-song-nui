@@ -61,32 +61,32 @@ msgid "Đứng sau hàng lính, bắn từ ô thứ 2 thì địch không đánh
 msgstr "Stay behind the front line and shoot from 2 tiles away so the enemy can't strike back. +15 ATK against dragons: always keep archers when the enemy has dragons."
 
 #: content/guide.gd:26
-msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +10 công, +15 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
-msgstr "Moves on rivers for just 1 step; in the water +10 ATK, +15 DEF. Hold the river, block the fords and hit enemies wading across (they get no defense in water). On land it moves like a Guard."
+msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +15 công, +25 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
+msgstr "Moves on rivers for just 1 step; in the water +15 ATK, +25 DEF. Hold the river, block the fords and hit enemies wading across (they get no defense in water). On land it moves like a Guard."
 
 #: content/guide.gd:27
 msgid "Đánh yếu, đừng đưa lên đầu. Đứng cạnh lính ngã (cả lính địch) rồi bấm Gọi hồn: thêm một bộ xương miễn phí. Lính ngã mất sau lượt kế của mỗi bên, nên đứng gần chỗ đang đánh."
 msgstr "Weak in a fight, keep it out of the front line. Stand next to a fallen soldier (enemy ones too) and press Raise Dead: a free skeleton. The fallen fade after each side's next turn, so stay close to the fighting."
 
 #: content/guide.gd:28
-msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đánh bộ xương +15 công."
-msgstr "Give the cleric its order first (attack or wait): our units within 2 tiles get +10 ATK until next turn, then send in the rest. +15 ATK against skeletons."
+msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đầu lượt ta, quân ta trong 2 ô hồi 10 máu: đứng sau tuyến đầu để cả đội đánh lâu không cần về làng. Đánh bộ xương +15 công."
+msgstr "Give the cleric its order first (attack or wait): our units within 2 tiles get +10 ATK until next turn, then send in the rest. At the start of our turn, our units within 2 tiles heal 10 HP: keep it just behind the front line so the army fights on without walking back to a village. +15 ATK against skeletons."
 
 #: content/guide.gd:29
-msgid "Chạy 5 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
-msgstr "Runs 5 steps. A bite leaves the enemy −10 ATK, −10 DEF until our next turn: let the wolf bite first, then attack with the others. Great for hunting lone archers and catapults."
+msgid "Chạy 5 bước, rừng / đồi / núi chỉ tốn 1 bước: vòng qua rừng núi đánh tạt sườn. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
+msgstr "Runs 5 steps; forests, hills and mountains cost only 1 step: circle through the wilds to strike a flank. A bite leaves the enemy −10 ATK, −10 DEF until our next turn: let the wolf bite first, then attack with the others. Great for hunting lone archers and catapults."
 
 #: content/guide.gd:30
 msgid "Thủ rất dày, đánh mạnh, lên được cả núi. Đưa lên chặn cầu, cửa ải hoặc đấm thẳng vào chỗ địch đông. Đắt: đừng để bị vây."
 msgstr "Very thick armor, hits hard, can even climb mountains. Use it to block bridges and passes or to smash into a crowd of enemies. Expensive: don't let it get surrounded."
 
 #: content/guide.gd:31
-msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
-msgstr "Can only throw while standing still, range 2–4, never strikes back. Can destroy enemy villages. Keep it far behind with units shielding it."
+msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Xuyên giáp: địch đứng núi, rừng, làng, thành cũng không được thủ địa hình -> lôi golem trên núi, quân núp trong thành ra. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
+msgstr "Can only throw while standing still, range 2–4, never strikes back. Armor-piercing: targets on mountains, forests, villages or castles get no terrain defense -> breaks golems on mountains and units hiding in castles. Can destroy enemy villages. Keep it far behind with units shielding it."
 
 #: content/guide.gd:32
-msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
-msgstr "Flies over rivers and mountains for 1 step each, moves 6. Strongest and most expensive (1000 gold). Swing behind lines to hit catapults, lone archers and distant villages. Avoid enemy archers."
+msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (750 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
+msgstr "Flies over rivers and mountains for 1 step each, moves 6. Strongest and most expensive (750 gold). Swing behind lines to hit catapults, lone archers and distant villages. Avoid enemy archers."
 
 #: content/guide.gd:33
 msgid "Pháp sư gọi hồn dựng dậy, không mua được, không tính vào trần quân, không chiếm được làng. Dùng làm lá chắn, chặn đường hoặc đánh phụ. Sợ tu sĩ ánh sáng."
@@ -601,8 +601,8 @@ msgid "Hải tặc"
 msgstr "Pirate"
 
 #: content/theme.gd:16
-msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ."
-msgstr "River folk in small boats: moving on rivers costs only 1 step. In the river +10 ATK, +15 DEF."
+msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +15 công, +25 thủ."
+msgstr "River folk in small boats: moving on rivers costs only 1 step. In the river +15 ATK, +25 DEF."
 
 #: content/theme.gd:18
 msgid "Pháp sư gọi hồn"
@@ -617,16 +617,16 @@ msgid "Tu sĩ ánh sáng"
 msgstr "Cleric of Light"
 
 #: content/theme.gd:22
-msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương."
-msgstr "After raising its lamp in blessing (after any order): our units within 2 tiles get +10 ATK until next turn. +15 ATK against skeletons."
+msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. Đầu lượt ta: quân ta trong 2 ô hồi 10 máu. +15 công khi đánh bộ xương."
+msgstr "After raising its lamp in blessing (after any order): our units within 2 tiles get +10 ATK until next turn. At the start of our turn: our units within 2 tiles heal 10 HP. +15 ATK against skeletons."
 
 #: content/theme.gd:25
 msgid "Sói bóng đêm"
 msgstr "Shadow Wolf"
 
 #: content/theme.gd:27
-msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
-msgstr "A huge black wolf from the deep forest. Runs fast (5 steps). Its bite wounds the enemy: −10 ATK, −10 DEF until our next turn."
+msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước), rừng / đồi / núi chỉ tốn 1 bước. Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
+msgstr "A huge black wolf from the deep forest. Runs fast (5 steps); forests, hills and mountains cost only 1 step. Its bite wounds the enemy: −10 ATK, −10 DEF until our next turn."
 
 #: content/theme.gd:29
 msgid "Golem đá"
@@ -641,8 +641,8 @@ msgid "Máy bắn đá"
 msgstr "Catapult"
 
 #: content/theme.gd:33
-msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
-msgstr "Throws stones 2–4 tiles. Can't throw on a turn it has moved. Never strikes back. Can destroy enemy or unclaimed villages (they become burned villages)."
+msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Xuyên giáp: địch bị ném không được thủ địa hình. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
+msgstr "Throws stones 2–4 tiles. Can't throw on a turn it has moved. Never strikes back. Armor-piercing: its target gets no terrain defense. Can destroy enemy or unclaimed villages (they become burned villages)."
 
 #: content/theme.gd:36
 msgid "Rồng"
@@ -865,8 +865,8 @@ msgid "Giếng Thần: không ai chiếm được. Quân phe nào đứng đây 
 msgstr "Holy Well: nobody can capture it. A unit of either side standing here heals {heal} HP each turn, DEF +15."
 
 #: content/theme.gd:101
-msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ."
-msgstr "Every unit can wade across, but it costs 3 steps and gives no defense. {water} needs only 1 step, and in the river gets +10 ATK, +15 DEF."
+msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +15 công, +25 thủ."
+msgstr "Every unit can wade across, but it costs 3 steps and gives no defense. {water} needs only 1 step, and in the river gets +15 ATK, +25 DEF."
 
 #: content/theme.gd:102
 msgid "Mẹo: giữ tướng sau hàng vệ binh; đứng trên đồi, làng, lâu đài được thêm thủ."
@@ -1288,11 +1288,11 @@ msgstr " or "
 msgid "Tiếng Việt"
 msgstr "Tiếng Việt"
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " hạ gục"
 msgstr " kills"
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " có thể hạ"
 msgstr " may kill"
 
@@ -1300,7 +1300,7 @@ msgstr " may kill"
 msgid " ngã"
 msgstr " falls"
 
-#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:597
+#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:599
 msgid " có thể ngã"
 msgstr " may fall"
 
@@ -1660,91 +1660,95 @@ msgstr "+%d ATK vs dragons"
 msgid "+%d công đánh %s"
 msgstr "+%d ATK vs %s"
 
-#: scripts/ui/info_panel.gd:280
+#: scripts/ui/info_panel.gd:278
+msgid "xuyên giáp: địch không được thủ địa hình"
+msgstr "armor-piercing: no terrain defense for the enemy"
+
+#: scripts/ui/info_panel.gd:282
 msgid "địch được %s +%d thủ"
 msgstr "enemy gets %s +%d DEF"
 
-#: scripts/ui/info_panel.gd:282
+#: scripts/ui/info_panel.gd:284
 msgid "[color=#%s]địch +%d thủ[/color] dưới sông"
 msgstr "[color=#%s]enemy +%d DEF[/color] in the river"
 
-#: scripts/ui/info_panel.gd:284
+#: scripts/ui/info_panel.gd:286
 msgid "[color=#%s]địch −%d thủ[/color] (bị cắn)"
 msgstr "[color=#%s]enemy −%d DEF[/color] (bitten)"
 
-#: scripts/ui/info_panel.gd:286
+#: scripts/ui/info_panel.gd:288
 msgid "địch không đánh trả được"
 msgstr "the enemy can't strike back"
 
-#: scripts/ui/info_panel.gd:312 scripts/ui/info_panel.gd:494
+#: scripts/ui/info_panel.gd:314 scripts/ui/info_panel.gd:496
 msgid "✖ Đóng"
 msgstr "✖ Close"
 
-#: scripts/ui/info_panel.gd:333
+#: scripts/ui/info_panel.gd:335
 msgid "Đánh [b]%s[/b] (máu %d):"
 msgstr "Attack [b]%s[/b] (HP %d):"
 
-#: scripts/ui/info_panel.gd:341
+#: scripts/ui/info_panel.gd:343
 msgid "⚔ Đánh"
 msgstr "⚔ Attack"
 
-#: scripts/ui/info_panel.gd:348
+#: scripts/ui/info_panel.gd:350
 msgid "Bấm vào kẻ địch viền đỏ để chọn mục tiêu."
 msgstr "Tap an enemy outlined in red to pick a target."
 
-#: scripts/ui/info_panel.gd:351
+#: scripts/ui/info_panel.gd:353
 msgid "↩ Quay lại"
 msgstr "↩ Back"
 
-#: scripts/ui/info_panel.gd:363
+#: scripts/ui/info_panel.gd:365
 msgid "⚔ Đánh (%d)"
 msgstr "⚔ Attack (%d)"
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏯 Chiếm lâu đài"
 msgstr "🏯 Capture castle"
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏠 Chiếm làng"
 msgstr "🏠 Capture village"
 
-#: scripts/ui/info_panel.gd:388
+#: scripts/ui/info_panel.gd:390
 msgid "Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được."
 msgstr "Burned village: once rebuilt it becomes an unclaimed village, capturable the next turn."
 
-#: scripts/ui/info_panel.gd:391
+#: scripts/ui/info_panel.gd:393
 msgid "🔨 Dựng lại làng"
 msgstr "🔨 Rebuild village"
 
-#: scripts/ui/info_panel.gd:401
+#: scripts/ui/info_panel.gd:403
 msgid "Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước."
 msgstr "Burn the gold-ringed village: it becomes a [b]burned village[/b], and whoever wants it must rebuild it first."
 
-#: scripts/ui/info_panel.gd:404
+#: scripts/ui/info_panel.gd:406
 msgid "💥 Đốt làng"
 msgstr "💥 Burn village"
 
-#: scripts/ui/info_panel.gd:426
+#: scripts/ui/info_panel.gd:428
 msgid "🏯 Mộ quân"
 msgstr "🏯 Recruit"
 
-#: scripts/ui/info_panel.gd:437
+#: scripts/ui/info_panel.gd:439
 msgid "⏳ Chờ"
 msgstr "⏳ Wait"
 
-#: scripts/ui/info_panel.gd:443
+#: scripts/ui/info_panel.gd:445
 msgid "✖ Hủy"
 msgstr "✖ Cancel"
 
-#: scripts/ui/info_panel.gd:454
+#: scripts/ui/info_panel.gd:456
 msgid "Có %d vàng · Quân %d/%d · lính mới đi được ngay"
 msgstr "%d gold · Units %d/%d · new units can move right away"
 
-#: scripts/ui/info_panel.gd:596
+#: scripts/ui/info_panel.gd:598
 msgid "Gây"
 msgstr "Deal"
 
-#: scripts/ui/info_panel.gd:597
+#: scripts/ui/info_panel.gd:599
 msgid "Bị đánh trả"
 msgstr "Counter"
 
@@ -1911,6 +1915,14 @@ msgstr "Close ✕"
 #: scripts/ui/menus.gd:943
 msgid "Đi bộ"
 msgstr "On foot"
+
+#: scripts/ui/menus.gd:943
+msgid "Sói"
+msgstr "Wolf"
+
+#: scripts/ui/menus.gd:943
+msgid "Bay"
+msgstr "Flying"
 
 #: scripts/ui/menus.gd:951
 msgid "Thủ +%d"

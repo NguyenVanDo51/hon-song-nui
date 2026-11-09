@@ -61,7 +61,7 @@ msgid "Đứng sau hàng lính, bắn từ ô thứ 2 thì địch không đánh
 msgstr ""
 
 #: content/guide.gd:26
-msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +10 công, +15 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
+msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +15 công, +25 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
 msgstr ""
 
 #: content/guide.gd:27
@@ -69,11 +69,11 @@ msgid "Đánh yếu, đừng đưa lên đầu. Đứng cạnh lính ngã (cả 
 msgstr ""
 
 #: content/guide.gd:28
-msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đánh bộ xương +15 công."
+msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đầu lượt ta, quân ta trong 2 ô hồi 10 máu: đứng sau tuyến đầu để cả đội đánh lâu không cần về làng. Đánh bộ xương +15 công."
 msgstr ""
 
 #: content/guide.gd:29
-msgid "Chạy 5 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
+msgid "Chạy 5 bước, rừng / đồi / núi chỉ tốn 1 bước: vòng qua rừng núi đánh tạt sườn. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
 msgstr ""
 
 #: content/guide.gd:30
@@ -81,11 +81,11 @@ msgid "Thủ rất dày, đánh mạnh, lên được cả núi. Đưa lên ch�
 msgstr ""
 
 #: content/guide.gd:31
-msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
+msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Xuyên giáp: địch đứng núi, rừng, làng, thành cũng không được thủ địa hình -> lôi golem trên núi, quân núp trong thành ra. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
 msgstr ""
 
 #: content/guide.gd:32
-msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
+msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (750 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
 msgstr ""
 
 #: content/guide.gd:33
@@ -601,7 +601,7 @@ msgid "Hải tặc"
 msgstr ""
 
 #: content/theme.gd:16
-msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ."
+msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +15 công, +25 thủ."
 msgstr ""
 
 #: content/theme.gd:18
@@ -617,7 +617,7 @@ msgid "Tu sĩ ánh sáng"
 msgstr ""
 
 #: content/theme.gd:22
-msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương."
+msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. Đầu lượt ta: quân ta trong 2 ô hồi 10 máu. +15 công khi đánh bộ xương."
 msgstr ""
 
 #: content/theme.gd:25
@@ -625,7 +625,7 @@ msgid "Sói bóng đêm"
 msgstr ""
 
 #: content/theme.gd:27
-msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
+msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước), rừng / đồi / núi chỉ tốn 1 bước. Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
 msgstr ""
 
 #: content/theme.gd:29
@@ -641,7 +641,7 @@ msgid "Máy bắn đá"
 msgstr ""
 
 #: content/theme.gd:33
-msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
+msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Xuyên giáp: địch bị ném không được thủ địa hình. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
 msgstr ""
 
 #: content/theme.gd:36
@@ -865,7 +865,7 @@ msgid "Giếng Thần: không ai chiếm được. Quân phe nào đứng đây 
 msgstr ""
 
 #: content/theme.gd:101
-msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ."
+msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +15 công, +25 thủ."
 msgstr ""
 
 #: content/theme.gd:102
@@ -1288,11 +1288,11 @@ msgstr ""
 msgid "Tiếng Việt"
 msgstr ""
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " hạ gục"
 msgstr ""
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " có thể hạ"
 msgstr ""
 
@@ -1300,7 +1300,7 @@ msgstr ""
 msgid " ngã"
 msgstr ""
 
-#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:597
+#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:599
 msgid " có thể ngã"
 msgstr ""
 
@@ -1660,91 +1660,95 @@ msgstr ""
 msgid "+%d công đánh %s"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:280
-msgid "địch được %s +%d thủ"
+#: scripts/ui/info_panel.gd:278
+msgid "xuyên giáp: địch không được thủ địa hình"
 msgstr ""
 
 #: scripts/ui/info_panel.gd:282
-msgid "[color=#%s]địch +%d thủ[/color] dưới sông"
+msgid "địch được %s +%d thủ"
 msgstr ""
 
 #: scripts/ui/info_panel.gd:284
-msgid "[color=#%s]địch −%d thủ[/color] (bị cắn)"
+msgid "[color=#%s]địch +%d thủ[/color] dưới sông"
 msgstr ""
 
 #: scripts/ui/info_panel.gd:286
+msgid "[color=#%s]địch −%d thủ[/color] (bị cắn)"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:288
 msgid "địch không đánh trả được"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:312 scripts/ui/info_panel.gd:494
+#: scripts/ui/info_panel.gd:314 scripts/ui/info_panel.gd:496
 msgid "✖ Đóng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:333
+#: scripts/ui/info_panel.gd:335
 msgid "Đánh [b]%s[/b] (máu %d):"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:341
+#: scripts/ui/info_panel.gd:343
 msgid "⚔ Đánh"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:348
+#: scripts/ui/info_panel.gd:350
 msgid "Bấm vào kẻ địch viền đỏ để chọn mục tiêu."
 msgstr ""
 
-#: scripts/ui/info_panel.gd:351
+#: scripts/ui/info_panel.gd:353
 msgid "↩ Quay lại"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:363
+#: scripts/ui/info_panel.gd:365
 msgid "⚔ Đánh (%d)"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏯 Chiếm lâu đài"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏠 Chiếm làng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:388
+#: scripts/ui/info_panel.gd:390
 msgid "Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được."
 msgstr ""
 
-#: scripts/ui/info_panel.gd:391
+#: scripts/ui/info_panel.gd:393
 msgid "🔨 Dựng lại làng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:401
+#: scripts/ui/info_panel.gd:403
 msgid "Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước."
 msgstr ""
 
-#: scripts/ui/info_panel.gd:404
+#: scripts/ui/info_panel.gd:406
 msgid "💥 Đốt làng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:426
+#: scripts/ui/info_panel.gd:428
 msgid "🏯 Mộ quân"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:437
+#: scripts/ui/info_panel.gd:439
 msgid "⏳ Chờ"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:443
+#: scripts/ui/info_panel.gd:445
 msgid "✖ Hủy"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:454
+#: scripts/ui/info_panel.gd:456
 msgid "Có %d vàng · Quân %d/%d · lính mới đi được ngay"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:596
+#: scripts/ui/info_panel.gd:598
 msgid "Gây"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:597
+#: scripts/ui/info_panel.gd:599
 msgid "Bị đánh trả"
 msgstr ""
 
@@ -1910,6 +1914,14 @@ msgstr ""
 
 #: scripts/ui/menus.gd:943
 msgid "Đi bộ"
+msgstr ""
+
+#: scripts/ui/menus.gd:943
+msgid "Sói"
+msgstr ""
+
+#: scripts/ui/menus.gd:943
+msgid "Bay"
 msgstr ""
 
 #: scripts/ui/menus.gd:951

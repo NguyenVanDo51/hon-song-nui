@@ -828,7 +828,7 @@ func turn(id: int, from: float, to: float, dur: float) -> void:
 ## live buffs from Game.buffs_at (what the forecast counts): green up arrow per bonus (drum aura, water),
 ## red down arrow when bitten (-atk / -def), plus a soft ground ring in the dominant colour
 func _draw_buffs(ci: CanvasItem, u: Dictionary, c: Vector2, x: int, y: int, time: float) -> void:
-	var b := Game.buffs_at(s, u, x, y)
+	var b := Buffs.at(s, u, x, y)
 	var arrows := []
 	if b.atk_from == "aura":
 		arrows.append(true)

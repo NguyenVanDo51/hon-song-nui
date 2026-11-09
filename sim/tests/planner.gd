@@ -172,8 +172,9 @@ func tactics_tests() -> void:
 			var s := blank([["e", "elephant", 2, 2], ["e", "wolf", 3, 3], ["e", "soldier", 4, 4, 100], ["e", "soldier", 4, 1, 20]])
 			var ele: Dictionary = unit(s, 0)
 			var wolf: Dictionary = unit(s, 1)
-			eq(AI.tvalue(s, ele, 0.0, 0.0), AI.tvalue(s, wolf, 0.0, 0.0), "same cost, knobs off")
-			check(AI.tvalue(s, wolf, 0.5, 0.0) > AI.tvalue(s, ele, 0.5, 0.0), "wolf over elephant with tgt_sup")
+			var gain_w := AI.tvalue(s, wolf, 0.5, 0.0) / AI.tvalue(s, wolf, 0.0, 0.0)
+			var gain_e := AI.tvalue(s, ele, 0.5, 0.0) / AI.tvalue(s, ele, 0.0, 0.0)
+			check(gain_w > gain_e, "tgt_sup lifts the wolf (support), not the elephant (%.2f vs %.2f)" % [gain_w, gain_e])
 			check(AI.tvalue(s, unit(s, 2), 0.0, 2.0) > AI.tvalue(s, unit(s, 3), 0.0, 2.0), "full-hp soldier over 20-hp one with tgt_thr"),
 	)
 	run(
@@ -277,7 +278,8 @@ func v5_tests() -> void:
 			eq(w1.act.to, w0.act.to, "same water tile")
 			var sc0: float = w0.score
 			var sc1: float = w1.score
-			check(absf(sc1 - sc0 - 0.8 * 15.0) < 0.01, "+ def_w x waterDef (%.2f -> %.2f)" % [sc0, sc1]),
+			var wdef: float = Rules.UNITS.boat.waterDef
+			check(absf(sc1 - sc0 - 0.8 * wdef) < 0.01, "+ def_w x waterDef (%.2f -> %.2f)" % [sc0, sc1]),
 	)
 	run(
 		"mix_w: a grave the shaman reaches from the castle -> shaman; off -> a cheap unit; only affordable types",

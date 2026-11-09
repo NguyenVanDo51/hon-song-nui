@@ -214,6 +214,8 @@ static func move_cost(move_class: String, t: Variant) -> float:
 	var tt: Dictionary = TERRAIN[t]
 	if tt.get("water", false) and move_class == "water":
 		return 1
+	if move_class == "beast" and tt.get("rough", false):
+		return 1
 	return tt.cost
 
 ## index of the cheapest open entry, earliest-inserted among ties (= JS stable sort + shift)
@@ -340,24 +342,6 @@ static func poison_amt(u: Dictionary) -> int:
 	var n: int = u.get("poisonAmt", 0)
 	return n
 
-## UI helper, no rule effect: live bonuses on u if it stood at (x, y): aura (+atk, from a drum, until its side's next
-## turn), poison (-atk / -def), water bonus for the water class, terrain def. { atk, atk_from, aura, def, poison, terrain }
-static func buffs_at(s: Dictionary, u: Dictionary, x: int, y: int) -> Dictionary:
-	var st := stat(s, u)
-	var tt: Dictionary = TERRAIN[tile_at(s, x, y)]
-	var wet: bool = tt.get("water", false)
-	var out := { "atk": 0, "atk_from": null, "aura": 0, "def": 0, "def_from": null, "poison": 0, "terrain": terrain_def(s, u, x, y) }
-	if u.get("aura") != null:
-		out.aura = aura_atk(u)
-		out.atk += out.aura
-		out.atk_from = "aura"
-	if wet and st.get("waterAtk", 0):
-		out.atk += st.waterAtk
-		out.def += st.get("waterDef", 0)
-		out.def_from = "water"
-	out.poison = poison_amt(u)
-	return out
-
 static func terrain_def(s: Dictionary, _u: Dictionary, x: int, y: int) -> int:
 	return TERRAIN[tile_at(s, x, y)].def
 
@@ -388,7 +372,9 @@ static func _mods(s: Dictionary, a: Dictionary, ax: int, ay: int, d: Dictionary)
 	m -= poison_amt(a)
 	var dx: int = d.x
 	var dy: int = d.y
-	var D: int = sd.def + RULES.rankBonus * d.rank + terrain_def(s, d, dx, dy)
+	var D: int = sd.def + RULES.rankBonus * d.rank
+	if not sa.get("pierce", false): # catapult: terrain gives no cover
+		D += terrain_def(s, d, dx, dy)
 	if sd.get("waterDef", 0):
 		var dt: Dictionary = TERRAIN[tile_at(s, dx, dy)]
 		if dt.get("water", false):
@@ -992,8 +978,10 @@ static func end_turn(s: Dictionary) -> Array:
 		var ux: int = u.x
 		var uy: int = u.y
 		var uhp: int = u.hp
-		if heals_at(s, side, ux, uy) and uhp < 100:
-			var h := mini(heal, 100 - uhp)
+		var amt := heal if heals_at(s, side, ux, uy) else 0
+		amt = maxi(amt, Buffs.heal_aura(s, u))
+		if amt > 0 and uhp < 100:
+			var h := mini(amt, 100 - uhp)
 			u.hp += h
 			ev.append({ "t": "heal", "id": u.id, "amount": h, "x": u.x, "y": u.y })
 	_check_winner(s, ev)

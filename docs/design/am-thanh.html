@@ -13,6 +13,8 @@
 <section class="sheet" id="sounds">
   <header><h2>Âm thanh</h2><span class="pill" id="sndCount"></span></header>
   <p class="lede">Hiệu ứng tổng hợp bằng code (<code>node tools/sfx/synth.mjs</code>, kiểu "nhạc cụ gõ": chuông / mộc cầm giọng Rê + 1 phòng vang chung, cân âm lượng theo loại) thành <code>assets/sfx/s_*.wav</code>; âm hay lặp có 3 biến thể <code>s_&lt;âm&gt;_1..3.wav</code>, game phát ngẫu nhiên 1 cái. <code>s_select.wav</code> = âm cũ giữ lại. Nút ▶ lớn phát biến thể 1, các nút nhỏ phát từng biến thể. "Nghe trong cảnh" nhảy tới lúc âm đó phát trong đoạn game thật bên dưới.</p>
+  <div class="note" id="sndStyle"></div>
+  <p><button class="btn" id="seqBtn">▶ Nghe cả bộ (lần lượt, biến thể 1)</button></p>
   <div id="sndGroups"></div>
 </section><section class="sheet" id="scene">
   <header><h2>Cảnh game</h2><span class="pill" id="sceneInfo"></span></header>
@@ -47,12 +49,21 @@
 </main>
 <footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
 <script src="data.js"></script>
+<script src="sfx_synth.js"></script>
 <script src="shots/shots.js"></script>
 <script src="scene/scene.js"></script>
 <script src="design.js"></script>
 <script>
 const keys = Object.keys(META).filter((k) => D.sfx[k]).concat(Object.keys(D.sfx).filter((k) => !META[k]));
 const missingMeta = keys.filter((k) => !META[k]);
+const SY = window.SFX_SYNTH || null;
+if (SY) {
+  const b = SY.bus;
+  $('sndStyle').innerHTML = `<b>Chất âm chung</b> (đồng nhất cả bộ): ${SY.style}. Mọi âm qua cùng 1 khâu: lọc ấm ${b.lp / 1000} kHz + bão hoà nhẹ ×${b.drive}, `
+    + `phòng vang chung (cỡ ${b.room.size}, ướt ${b.room.wet}, đuôi ≤ ${b.room.tail} s), cân độ to theo loại (đo đỉnh 50 ms: giao diện −25…−27, đòn đánh −14…−20, nhạc báo −18…−21 dB), `
+    + `${SY.sr / 1000} kHz mono. Trong game: hiệu ứng ${D.sfxDb} dB, nhạc ${D.music.db} dB${Object.keys(D.sfxGain).length ? ', riêng ' + Object.entries(D.sfxGain).map(([k, v]) => `${k} +${v} dB`).join(', ') : ''}. `
+    + `Sửa âm: <code>tools/sfx/synth.mjs</code> → <code>node tools/sfx/synth.mjs</code> → <code>godot --headless --path . --import</code> → <code>tools/design_dump.gd</code>.`;
+}
 $('sndCount').textContent = `${keys.length} âm` + (missingMeta.length ? ` · chưa mô tả: ${missingMeta.join(', ')}` : '');
 
 const sceneCount = {};
@@ -78,7 +89,10 @@ for (const g of GROUPS) {
       when.append(el('br'), sb);
     }
     row.append(when);
-    const vars = el('div', { class: 'recipe' }, D.sfx[k].length > 1 ? `<div class="parts">${D.sfx[k].length} biến thể (ngẫu nhiên)</div>` : `<div class="parts">1 bản</div>`);
+    const syn = SY && SY.sounds[k];
+    const info = syn ? `<div class="parts"><b>${syn.desc}</b><br>${syn.files.length > 1 ? syn.files.length + ' biến thể (ngẫu nhiên)' : '1 bản'} · dài ${syn.files.map((f) => f.sec.toFixed(1)).join(' / ')} s · độ to ${syn.target} dB</div>`
+      : `<div class="parts">${k === 'select' ? 'Âm tổng hợp bản cũ (sóng tam giác 880 → 1320 Hz, 70 ms), giữ lại theo yêu cầu' : ''}</div>`;
+    const vars = el('div', { class: 'recipe' }, info);
     D.sfx[k].forEach((f, i) => { const vb = el('button', { class: 'btn ghost sm', title: f }, `▶ ${i + 1}`); vb.onclick = () => playFile(SFX_DIR + f, vb); vars.append(vb); });
     if (D.sfxGain[k]) vars.append(el('div', { class: 'parts' }, `+${D.sfxGain[k]} dB so với các âm khác`));
     row.append(vars);
@@ -86,6 +100,25 @@ for (const g of GROUPS) {
   }
   $('sndGroups').append(box);
 }
+
+// ---------- whole set in game order ----------
+const SEQ = ['ui', 'select', 'page', 'move', 'slash', 'hit', 'heavy', 'arrow', 'orb', 'rock', 'die', 'coin', 'capture', 'heal', 'drum', 'raise', 'rank', 'spawn', 'win', 'lose'].filter((k) => D.sfx[k]);
+let seqAudio = null, seqTimer = 0;
+$('seqBtn').onclick = () => {
+  if (seqAudio) { seqAudio.pause(); clearTimeout(seqTimer); seqAudio = null; $('seqBtn').textContent = '▶ Nghe cả bộ (lần lượt, biến thể 1)'; return; }
+  let i = 0;
+  seqAudio = new Audio();
+  const next = () => {
+    if (!seqAudio) return;
+    if (i >= SEQ.length) { $('seqBtn').click(); return; }
+    const k = SEQ[i++];
+    $('seqBtn').textContent = `❚❚ ${(META[k] || {}).name || k} (${i}/${SEQ.length})`;
+    seqAudio.src = SFX_DIR + D.sfx[k][0];
+    seqAudio.play();
+  };
+  seqAudio.onended = () => { seqTimer = setTimeout(next, 450); };
+  next();
+};
 
 // ---------- scene ----------
 const Scene = (() => {

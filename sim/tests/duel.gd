@@ -284,6 +284,29 @@ func duel_tests() -> void:
 			eq(back.rules, d.rules, "save text keeps rules"),
 	)
 	run(
+		"kill bounty (s.rules bounty %): killer's side gets % x price x rank; recruits, summons, AE2 games pay 0",
+		func() -> void:
+			var hp: String = Content.heroes_of("p")[0]
+			var plain := Game.new_game(Content.skirmish_def("dong_bang", hp, false))
+			var b := Game.new_game(Content.skirmish_def("dong_bang", hp, false, 500, 10, { "bounty": 10 }))
+			var vet := { "type": "wolf", "side": "e", "rank": 3 }
+			eq(Rules.bounty(plain, vet), 0, "AE2: no bounty")
+			eq(Rules.bounty(b, vet), 180, "wolf 600 x 10 % x rank 3")
+			eq(Rules.bounty(b, { "type": "wolf", "side": "e", "rank": 0 }), 0, "recruit pays nothing")
+			eq(Rules.bounty(b, { "type": "ghost", "side": "e", "rank": 5 }), 0, "summon pays nothing")
+			eq(Rules.bounty(b, { "type": "hero", "side": "e", "rank": 2 }), 40, "commander priced 200")
+			# a real kill through _kill: p gets the bounty for e's veteran
+			var foe: Dictionary = Game.spawn(b, "e", "soldier", 0, 0, false, { "rank": 4 })
+			var g0: int = b.gold.p
+			var ev := []
+			Game._kill(b, foe, ev)
+			eq(b.gold.p, g0 + 60, "soldier 150 x 10 % x rank 4 paid to the killer's side")
+			var deaths: Dictionary = b.heroDeaths
+			var h: Dictionary = Game.spawn(b, "p", "hero", 1, 0)
+			Game._kill(b, h, ev)
+			eq(deaths.p, 1, "commander death still counted"),
+	)
+	run(
 		"surrender: the other side wins at once, replay step applies it, no-op after the end",
 		func() -> void:
 			var s := Game.new_game(duel("dong_bang", "human"))

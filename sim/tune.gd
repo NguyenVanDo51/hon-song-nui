@@ -8,7 +8,7 @@ extends SceneTree
 ##   presets [games=8] [salt=9000000] [tuned=<file>] [names=a,b,..] -> round robin of the presets (row score vs column)
 ##   any mode: log=1 -> one line per game (winner, reason, turn, commander deaths)
 ##   time a=<spec> b=<spec> [games=2] [salt=9100000] -> A's AI wall time per step / per turn (avg, worst)
-##   comeback a=<spec> [games=8] [salt=9007000] [thr=0.5] [rules=off,base,hero,both] (+ baseN / bothN = pay N)
+##   comeback a=<spec> [games=8] [salt=9007000] [thr=0.7,0.5] [rules=off,base,hero,both] (+ baseN / bothN = pay N, bountyN = kill bounty N %/rank)
 ##                                                   -> a vs a per rules variant (COMEBACK_TRY parts): wins, draws,
 ##                                                      length, and how often the side that first fell behind (army
 ##                                                      value + gold <= thr x foe's, fewer buildings) still won
@@ -467,56 +467,67 @@ func comeback() -> void:
 	var a := spec(arg("a", "default"))
 	var games := int(arg("games", "8"))
 	var salt := int(arg("salt", str(HELD_OUT + 7000)))
-	var thr := float(arg("thr", "0.5"))
+	var thrs := Array(arg("thr", "0.7,0.5").split(",")) # several "behind" bars, tracked in the same games
 	var cb: Dictionary = COMEBACK_TRY
 	var variants := { "off": { }, "base": { "baseIncome": cb.baseIncome }, "hero": { "heroStep": cb.heroStep }, "both": cb }
 	print(
-		"a=%s both sides, %d games per variant, behind = value + gold <= %.2f x foe + fewer buildings"
-		% [arg("a", "default"), games * Content.SKIRMISH.MAPS.size(), thr]
+		"a=%s both sides, %d games per variant, behind@T = value + gold <= T x foe + fewer buildings (first time)"
+		% [arg("a", "default"), games * Content.SKIRMISH.MAPS.size()]
 	)
-	print("%-5s  p win  e win  draw  avg turn  behind games  comeback (behind side won)  turns behind -> loss" % "rules")
+	var head := "%-9s  p win  e win  draw  avg turn" % "rules"
+	for t: String in thrs:
+		head += "  | @%s: behind side won   turns behind->loss" % t
+	print(head)
 	for vname: String in arg("rules", "off,base,hero,both").split(","):
 		if vname.length() > 4 and (vname.begins_with("base") or vname.begins_with("both")): # base50 / both50: other pay
 			var pay := int(vname.substr(4))
 			variants[vname] = { "baseIncome": pay } if vname.begins_with("base") else { "baseIncome": pay, "heroStep": 0 }
-		var c := { "n": 0, "p": 0, "e": 0, "draw": 0, "turns": 0, "behind": 0, "back": 0, "tail": 0, "lost": 0 }
+		if vname.begins_with("bounty"): # bountyN: killer gets N % of the victim's price per rank
+			variants[vname] = { "bounty": int(vname.substr(6)) }
+		var c := { "n": 0, "p": 0, "e": 0, "draw": 0, "turns": 0 }
+		var per := { }
+		for t: String in thrs:
+			per[t] = { "behind": 0, "back": 0, "tail": 0, "lost": 0 }
 		for map_id: String in Content.SKIRMISH.MAPS:
 			for k in games:
-				var st := { "side": "", "turn": 0 }
+				var st := { }
 				var opt := {
 					"rules": variants[vname],
 					"watch": func(s: Dictionary) -> void:
-						if st.side != "":
-							return
-						for side: String in ["p", "e"]:
-							if behind(s, side, thr):
-								st.side = side
-								st.turn = s.turn
-								return,
+						for t: String in thrs:
+							if st.has(t):
+								continue
+							for side: String in ["p", "e"]:
+								if behind(s, side, float(t)):
+									st[t] = [side, s.turn]
+									break,
 				}
 				var w := play_one(map_id, a, a, salt, k, opt)
 				var last: int = opt.last
 				c.n += 1
 				c[w] += 1
 				c.turns += last
-				if st.side != "":
-					c.behind += 1
-					if w == st.side:
-						c.back += 1
+				for t: String in st:
+					var hit: Array = st[t]
+					var pt: Dictionary = per[t]
+					pt.behind += 1
+					if w == hit[0]:
+						pt.back += 1
 					elif w != "draw":
-						c.lost += 1
-						var t0: int = st.turn
-						c.tail += last - t0
+						pt.lost += 1
+						var t0: int = hit[1]
+						pt.tail += last - t0
 		var n: int = c.n
-		var nb: int = c.behind
-		var nl: int = c.lost
 		var turns: float = c.turns
-		var tail: float = c.tail
-		var back: float = c.back
-		print(
-			"%-5s  %5d  %5d  %4d  %8.1f  %12d  %26s  %20.1f"
-			% [vname, c.p, c.e, c.draw, turns / n, nb, "%d / %d = %.0f%%" % [back, nb, 100.0 * back / maxi(nb, 1)], tail / maxi(nl, 1)]
-		)
+		var row := "%-9s  %5d  %5d  %4d  %8.1f" % [vname, c.p, c.e, c.draw, turns / n]
+		for t: String in thrs:
+			var pt: Dictionary = per[t]
+			var nb: int = pt.behind
+			var nl: int = pt.lost
+			var back: float = pt.back
+			var tail: float = pt.tail
+			row += "  | %18s  %20.1f" % ["%d / %d = %.0f%%" % [back, nb, 100.0 * back / maxi(nb, 1)], tail / maxi(nl, 1)]
+		print(row)
 
 ## gold + what its units are worth to the AI (AI.value x hp)
 static func strength(s: Dictionary, side: String) -> float:

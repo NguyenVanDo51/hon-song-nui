@@ -146,6 +146,9 @@ const RULES := {
 	"heroMax": 1000,
 	# flat gold every side gets each turn on top of its buildings (AE2: none); per-game override only (s.rules, comeback research)
 	"baseIncome": 0,
+	# gold to the killer's side = bounty % of the victim's price per rank (veterans pay, recruits 0). AE2: none.
+	# Per-game override only (s.rules, comeback research, docs/1v1.md "Lật kèo")
+	"bounty": 0,
 	# buyAE2: a bought unit acts the same turn; our castle may be bought on while one of our units stands there
 	"buyAE2": true,
 }
@@ -156,3 +159,14 @@ static func of(s: Dictionary, key: String) -> int:
 	var over: Dictionary = s.get("rules", { })
 	var v: Variant = over[key] if over.has(key) else Game.RULES.get(key, 0)
 	return type_convert(v, TYPE_INT)
+
+## kill bounty (comeback research): bounty % x price x rank; commanders priced at heroBase, summons (not buyable) pay 0
+static func bounty(s: Dictionary, u: Dictionary) -> int:
+	var pct := of(s, "bounty")
+	var rank: int = u.get("rank", 0)
+	var base: Dictionary = Game.UNITS[u.type]
+	if pct <= 0 or rank <= 0 or not base.get("buyable", true):
+		return 0
+	var price: int = of(s, "heroBase") if u.type == "hero" else base.cost
+	@warning_ignore("integer_division")
+	return price * pct * rank / 100

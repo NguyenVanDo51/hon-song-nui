@@ -537,8 +537,7 @@ static func _kill(s: Dictionary, u: Dictionary, ev: Array) -> void:
 	if u.type == "hero":
 		s.heroDead[u.side] = true
 		var deaths: Dictionary = s.heroDeaths
-		var n: int = deaths.get(u.side, 0)
-		s.heroDeaths[u.side] = n + 1
+		deaths[u.side] = deaths.get(u.side, 0) + 1
 		s.heroSaved[u.side] = { "rank": u.rank, "xp": u.xp }
 	else:
 		var base: Dictionary = UNITS[u.type]
@@ -555,6 +554,7 @@ static func _kill(s: Dictionary, u: Dictionary, ev: Array) -> void:
 			)
 			graves.append({ "x": u.x, "y": u.y, "ttl": RULES.graveRounds })
 			s.graves = graves
+	s.gold["e" if u.side == "p" else "p"] += Rules.bounty(s, u) # kill bounty by rank (s.rules, research; 0 by default)
 	ev.append({ "t": "die", "id": u.id, "x": u.x, "y": u.y, "side": u.side, "type": u.type })
 
 ## act = {id, to:[x,y], kind:'attack'|'capture'|'raise'|'repair'|'raze'|'wait', target?: unit id | [x,y]}; returns events

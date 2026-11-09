@@ -32,6 +32,10 @@ static func has(type: String, side: String) -> bool:
 
 ## a fresh attack rig for this unit (null when it has none)
 static func make(type: String, side: String) -> Rig:
+	if enabled:
+		var sr := SpriteRig.make(type, side) # TRY: sprite-gen commander (Token.sprite_hero)
+		if sr != null:
+			return sr
 	if not has(type, side):
 		return null
 	var e: Dictionary = SPECS[type]

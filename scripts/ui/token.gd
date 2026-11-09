@@ -18,6 +18,11 @@ const ART := 1.12 # full-colour art is drawn this much taller than a silhouette
 ## art set: full-colour per-side figures assets/units/styles/<fig_style>/<type>_<side>.svg + terrain assets/terrain/<fig_style>/
 ## (raw SVG, importer "keep", rasterised at runtime). "" = old silhouettes + procedural terrain
 static var fig_style := "chibi"
+## TRY (docs/sprite_gen_try.md): our commander drawn from the sprite-gen still + attack frames
+## (assets/units/sprite_try/, SpriteRig). Off by default (user 2026-11-09: keep the rig); flag `sprite` starts it on,
+## F8 toggles it live to compare.
+static var sprite_hero := false
+const SPRITE_STILL := "res://assets/units/sprite_try/hero_p_still.png"
 static var _rast := { } # "path@px" -> ImageTexture
 static var _rast_old := { }
 static var _has := { } # path -> bool
@@ -110,6 +115,11 @@ static func paint(ci: CanvasItem, c: Vector2, T: float, p_side: String, p_type: 
 	var look := Content.unit_type_look(p_side, p_type, p_hero)
 	var hero := p_type == "hero"
 	var foe := hero and p_side == "e"
+	if sprite_hero and hero and p_side == "p" and fig_style == "chibi":
+		var st := image(SPRITE_STILL)
+		if st != null:
+			_standee(ci, c, T, p_side, hero, foe, fac, st, o.merged({ "color": true, "png": true }))
+			return
 	if fig_style != "":
 		var alt := "res://assets/units/styles/%s/%s_%s.svg" % [fig_style, p_type, p_side]
 		if exists(alt):
@@ -200,7 +210,8 @@ static func _standee(
 	var foot := base - Vector2(0, bob)
 	var rpx := 0.0
 	var svg: String = o.get("svg", "") # set with color
-	if colour:
+	var png: bool = o.get("png", false) # full-colour raster art passed in `fig` (sprite try)
+	if colour and not png:
 		# y scale too: an edge-on turn (x ~ 0) must not rasterise a tiny texture per frame
 		var rs: float = o.get("rs", Baked.screen_scale(ci))
 		rpx = h * rs * maxf(absf(Draw.xf.get_scale().x), absf(Draw.xf.get_scale().y))
@@ -227,7 +238,9 @@ static func _standee(
 		ci.draw_texture_rect(fig, Rect2(r.position + d, r.size), false, ink)
 	ci.draw_texture_rect(fig, r, false, col)
 	var fl: float = o.get("flash", 0.0)
-	if fl > 0: # white silhouette at alpha = flash (engine.js drawTarget)
+	if fl > 0 and png: # raster art has no white raster: over-bright modulate instead
+		ci.draw_texture_rect(fig, r, false, Color(4, 4, 4, minf(1.0, fl) * al))
+	elif fl > 0: # white silhouette at alpha = flash (engine.js drawTarget)
 		var wt: Texture2D = raster(svg, rpx, true) if colour else fig
 		ci.draw_texture_rect(wt if wt != null else fig, r, false, Color(1, 1, 1, minf(1.0, fl) * al))
 	ci.draw_set_transform_matrix(Draw.xf)
@@ -265,7 +278,7 @@ class Atlas extends RefCounted:
 
 	## (re)render when tile size, screen scale or commanders changed; cheap no-op otherwise
 	func ensure(p_T: float, scale: float, hero_keys: Dictionary) -> void:
-		var k := "%s|%s|%.3f|%.3f" % [hero_keys.get("p"), hero_keys.get("e"), p_T, scale]
+		var k := "%s|%s|%.3f|%.3f|%s" % [hero_keys.get("p"), hero_keys.get("e"), p_T, scale, Token.sprite_hero]
 		if k == key:
 			return
 		key = k

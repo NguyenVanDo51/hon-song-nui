@@ -41,6 +41,8 @@ func _ready() -> void:
 		Audio.log_sfx = true
 	if flags.has("norig"): # norig: every attack uses the old FX.attack instead of the code-rigged animation
 		Rigs.enabled = false
+	if flags.has("sprite"): # TRY: start with the sprite-gen commander (docs/sprite_gen_try.md; F8 toggles live)
+		Token.sprite_hero = true
 	if flags.has("safe"): # safe=l,t,r,b: preview a phone's hidden edges (notch / rounded corners) on desktop
 		var sp := str(flags.safe).split(",")
 		if sp.size() == 4:
@@ -168,6 +170,10 @@ func _unhandled_input(ev: InputEvent) -> void:
 			menus.close_codex()
 		elif game.visible:
 			game.cancel()
+		get_viewport().set_input_as_handled()
+	elif k != null and k.pressed and not k.echo and k.keycode == KEY_F8: # TRY: sprite-gen commander <-> SVG rig
+		Token.sprite_hero = not Token.sprite_hero
+		print("sprite_hero = ", Token.sprite_hero)
 		get_viewport().set_input_as_handled()
 
 func _process(dt: float) -> void:

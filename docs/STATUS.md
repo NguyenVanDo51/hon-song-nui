@@ -28,6 +28,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 
 ## Chưa có / đang chờ
 - Bối cảnh v2 + tiếng Anh xong trên nhánh `feat/setting-v2`, chờ user chơi thử rồi merge; iOS build mới chưa làm.
+- Thử hình tướng ta bằng sprite-gen (ảnh + video web miễn phí -> khung ảnh): có trong master nhưng **tắt mặc định** (user: "ổn", chưa đổi, dùng tướng cũ). Bật: cờ `sprite`, hoặc F8 trong game (đổi qua lại). Quy trình làm lại `docs/sprite_gen_try.md`.
 - Store listing (tiếng Anh); trận trùm cuối Ma Vương; online.
 - Cân bằng kinh tế + đội hình đa dạng cho bot; người chơi thử mốc sao.
 - Lật kèo 1 đấu 1 (bên thua hết làng = hết tiền): hoãn tới khi luật ổn định. Lương cố định + thưởng hạ quân đã đo, không giúp -> chưa đổi luật; kế tiếp = Thanh Nộ của Tướng (`docs/1v1.md` "Lật kèo", `docs/TODO.md`, `sim/tune.gd comeback`).

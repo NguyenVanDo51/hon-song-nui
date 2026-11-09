@@ -53,7 +53,6 @@ const THEME := {
 	"lede": "Nửa đế quốc đã theo Ma Vương. Giành lại từng lâu đài.",
 	"text": {
 		"enemyTurn": "Lượt quân Ma Vương",
-		"skirmishTitle": "Đấu tự do",
 		"skirmishBlurb": "Hiệp Sĩ Chỉ Huy đấu với Vorn",
 		"duelBlurb": "Hai người chung máy, hoặc đấu với máy",
 		"duelTurn": "Lượt {turn} · {side}",

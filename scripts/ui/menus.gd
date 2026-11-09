@@ -18,11 +18,6 @@ var root: Control # current page lives here
 var page: Control = null
 var codex: Control = null
 var codex_side := "p"
-var hero_choice := ""
-var easy := true
-var sk_gold := 500 # AE2 skirmish defaults: starting gold 500, unit cap 10
-var sk_cap := 10
-var map_choice := "dong_bang"
 var duel_opts := { "map": "dong_bang", "gold": 500, "cap": 10, "hero": "", "heroE": "", "ctrlE": "human" }
 var _codex_card: Control
 var _codex_grid: GridContainer
@@ -37,7 +32,6 @@ func _init() -> void:
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
-	hero_choice = Content.heroes_of("p")[0]
 	resized.connect(_fit_safe)
 
 ## pages stay out of the phone's notch / rounded corners (backdrop still fills the screen)
@@ -260,7 +254,6 @@ func show_title() -> void:
 			)
 		)
 	list.add_child(_on(Style.menu_button(Lang.t("Thử thách"), prog, sv == null), show_levels))
-	list.add_child(_on(Style.menu_button(Lang.t("Đấu tự do")), show_skirmish))
 	list.add_child(_on(Style.menu_button(Lang.t("1 đấu 1")), show_duel))
 	var tg := Style.hbox(18)
 	tg.position = Vector2(60, 462)
@@ -453,97 +446,6 @@ func show_levels(focus_id := "") -> void:
 	back.position = Vector2(14 + e.x, 12 + e.y)
 	holder.add_child(back)
 
-# ---------- skirmish ----------
-func show_skirmish() -> void:
-	var v := _page(1040)
-	v.add_child(
-		_head(
-			Lang.t("‹ Trở lại"),
-			func() -> void:
-				main.show_title(),
-			Lang.t("Đấu tự do"),
-		)
-	)
-	var grid := _grid(220, 12, true)
-	var heroes := Content.heroes_of("p")
-	if hero_choice == "" or not heroes.has(hero_choice):
-		hero_choice = heroes[0]
-	for key: String in (heroes if heroes.size() > 1 else []): # one commander: nothing to choose
-		grid.add_child(
-			_hero_card(
-				"p",
-				key,
-				key == hero_choice,
-				func() -> void:
-					hero_choice = key
-					show_skirmish(),
-			)
-		)
-	v.add_child(grid)
-	v.add_child(
-		_map_cards(
-			map_choice,
-			func(mid: String) -> void: # battlefield
-				map_choice = mid
-				show_skirmish(),
-		)
-	)
-	var row := _flow(10)
-	var seg := Style.hbox(0)
-	var e_btn := Style.button(Lang.t("Dễ"), "SegOn" if easy else "SegBtn")
-	var n_btn := Style.button(Lang.t("Thường"), "SegBtn" if easy else "SegOn")
-	_on(
-		e_btn,
-		func() -> void:
-			easy = true
-			show_skirmish(),
-	)
-	_on(
-		n_btn,
-		func() -> void:
-			easy = false
-			show_skirmish(),
-	)
-	seg.add_child(e_btn)
-	seg.add_child(n_btn)
-	row.add_child(seg)
-	var note := Style.lbl(
-		Lang.t("Dễ: địch khởi đầu với nửa số vàng.") if easy else Lang.t("Thường: hai bên ngang vàng."),
-		13,
-		Style.MUTED,
-		null,
-		true,
-	)
-	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(note)
-	var go := Style.menu_button(Lang.t("Xuất quân"), "", true)
-	go.custom_minimum_size.x = 200
-	_on(
-		go,
-		func() -> void:
-			confirm_start(
-				Game.new_game(Content.skirmish_def(map_choice, hero_choice, easy, sk_gold, sk_cap)),
-				{ "kind": "skirmish", "hero": hero_choice, "easy": easy, "map": map_choice, "gold": sk_gold, "cap": sk_cap },
-			),
-	)
-	v.add_child(
-		_gold_cap_row(
-			sk_gold,
-			sk_cap,
-			func(key: String, val: int) -> void:
-				if key == "gold":
-					sk_gold = val
-				else:
-					sk_cap = val
-				show_skirmish(),
-		)
-	)
-	row.add_child(go)
-	v.add_child(row)
-	_settle_page()
-
-## no enter-slide jitter when only the selection changed
 func _settle_page() -> void:
 	if page:
 		page.modulate.a = 1.0

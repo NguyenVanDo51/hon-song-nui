@@ -102,8 +102,6 @@ func _boot() -> void:
 	var sc: String = flags.get("screen", "title")
 	if sc == "levels":
 		menus.show_levels()
-	elif sc == "skirmish":
-		menus.show_skirmish()
 	elif sc == "duel":
 		menus.show_duel()
 	elif sc == "codex":
@@ -127,11 +125,6 @@ func show_levels(focus_id := "") -> void:
 func play_mission(m: Dictionary) -> void:
 	var mid: String = m.id
 	menus.confirm_start(Game.new_game(m), { "kind": "campaign", "id": mid })
-
-func show_skirmish() -> void:
-	GameLog.crumb("screen skirmish")
-	game.leave()
-	menus.show_skirmish()
 
 func show_duel() -> void:
 	GameLog.crumb("screen duel")

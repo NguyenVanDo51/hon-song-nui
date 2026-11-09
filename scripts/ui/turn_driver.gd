@@ -289,7 +289,7 @@ func finish() -> void:
 		)
 		buttons.append([Lang.t("Về menu"), gs.main.show_title, false])
 	else:
-		buttons.append([Lang.t("Ván mới"), gs.main.show_skirmish, true])
+		buttons.append([Lang.t("Ván mới"), gs.main.show_duel, true]) # old skirmish saves: menu mode removed 2026-11-09
 		buttons.append(["Menu", gs.main.show_title, false])
 	gs.cards.show_end(win, reason_text, buttons, star_goals if win else [], best_before, stars)
 	if gs.main.flags.has("shots"):

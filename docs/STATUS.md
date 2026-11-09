@@ -11,7 +11,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 
 ## Chế độ (màn tiêu đề)
 - **Thử thách**: 39 level = 3 hướng dẫn (t01–t03) + 36 level (m01–m16, g01–g20), Dễ / Trung bình / Khó, 3 sao / level, mở tuần tự. Chọn level trên bản đồ vương quốc (làng = Dễ / TB, lâu đài = Khó). `docs/content.md`.
-- **Đấu tự do**: 3 bản đồ (Đảo Sông Bạc, Quần đảo Sương Mù, Hẻm núi Đá Xám), độ khó Dễ (địch ½ vàng) / Thường.
+- ~~Đấu tự do~~: bỏ khỏi menu 2026-11-09 (user: trùng 1 đấu 1 vs máy, cùng 3 bản đồ Đảo Sông Bạc / Quần đảo Sương Mù / Hẻm núi Đá Xám). Save đấu tự do cũ vẫn đánh tiếp được; sim / đo bot vẫn dùng `Content.skirmish_def`.
 - **1 đấu 1**: người–người chung máy, hoặc người–máy Dễ / Trung bình / Khó (Siêu khó bỏ 2026-11-09). `docs/1v1.md`, AI `docs/ai.md`.
 - **Đầu hàng** (⚙, chỉ 1 đấu 1 + đấu tự do, trong lượt mình): hỏi lại -> bên kia thắng ngay. `docs/1v1.md`.
 - **Sách lính**: thẻ từng loại quân (`content/guide.gd`).

@@ -12,13 +12,7 @@ static func sections() -> Array:
 		["Làm game", ["Thiết kế, lập trình, hình ảnh, âm thanh: %s" % AUTHOR, "Liên hệ: %s" % CONTACT]],
 		[
 			"Hình ảnh",
-			[
-				"Quân lính, địa hình, công trình, biểu tượng giao diện: vẽ riêng cho game.",
-				"Biểu tượng quân từ game-icons.net, giấy phép CC BY 3.0 (creativecommons.org/licenses/by/3.0): "
-				+ "Pikeman, Archer, Drum, Sun priest, Elephant, Cavalry, Brute — Delapouite; Catapult — HeavenlyDog; "
-				+ "Bandaged — Lorc; Swordwoman — Cathelineau. Đã bỏ nền vuông, còn lại giữ nguyên.",
-				"Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0.",
-			],
+			["Quân lính, địa hình, công trình, biểu tượng giao diện: vẽ riêng cho game.", "Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."],
 		],
 		["Âm thanh", ["Hiệu ứng và nhạc: tổng hợp bằng code trong game."]],
 		[

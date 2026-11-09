@@ -3,69 +3,43 @@ extends RefCounted
 # gdlint: disable=max-line-length
 ## all names, icons, colors, UI wording. Swap this file to re-skin; scripts/core/rules.gd keeps the numbers.
 ## any unit / hero / terrain may set "img": "res://..." to replace the emoji / procedural drawing.
-## "fig": a white silhouette (SVG) drawn as a standing piece on a small base, in the faction's "fig" colour.
+## unit art = assets/units/styles/<Token.fig_style>/<type>_<side>.svg (figstyle=off -> plain disc).
 
 ## the one troop roster, used by both factions (same name + icon; only the faction colour differs)
 const UNITS := {
 	"hero": null,
-	"soldier": {
-		"name": "Vệ binh",
-		"icon": "⚔",
-		"fig": "res://assets/units/soldier.svg",
-		"desc": "Lính giáo khiên. Rẻ, chiếm được làng, dựng lại được làng cháy.",
-	},
-	"archer": {
-		"name": "Cung thủ",
-		"icon": "🎯",
-		"fig": "res://assets/units/archer.svg",
-		"desc": "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn quân bay (rồng).",
-	},
+	"soldier": { "name": "Vệ binh", "icon": "⚔", "desc": "Lính giáo khiên. Rẻ, chiếm được làng, dựng lại được làng cháy." },
+	"archer": { "name": "Cung thủ", "icon": "🎯", "desc": "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn quân bay (rồng)." },
 	"boat": {
 		"name": "Hải tặc",
 		"icon": "⚔",
-		"fig": "res://assets/units/soldier.svg",
 		"desc": "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ.",
 	},
-	"shaman": {
-		"name": "Pháp sư gọi hồn",
-		"icon": "📖",
-		"fig": "res://assets/units/shaman.svg",
-		"desc": "Gọi lính ngã ngay cạnh dậy thành bộ xương đánh cho ta (cả lính địch ngã).",
-	},
+	"shaman": { "name": "Pháp sư gọi hồn", "icon": "📖", "desc": "Gọi lính ngã ngay cạnh dậy thành bộ xương đánh cho ta (cả lính địch ngã)." },
 	"drum": {
 		"name": "Tu sĩ ánh sáng",
 		"icon": "📜",
-		"fig": "res://assets/units/drum.svg",
 		"desc": "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương.",
 	},
 	"wolf": {
 		"name": "Sói bóng đêm",
 		"icon": "🐺",
-		"fig": "res://assets/units/elephant.svg",
 		"desc": "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta.",
 	},
-	"elephant": {
-		"name": "Golem đá",
-		"icon": "🛡",
-		"fig": "res://assets/units/elephant.svg",
-		"desc": "Người đá do pháp sư thổi hồn. Thủ rất dày, đánh mạnh, lên được cả núi. Đắt.",
-	},
+	"elephant": { "name": "Golem đá", "icon": "🛡", "desc": "Người đá do pháp sư thổi hồn. Thủ rất dày, đánh mạnh, lên được cả núi. Đắt." },
 	"catapult": {
 		"name": "Máy bắn đá",
 		"icon": "💥",
-		"fig": "res://assets/units/catapult.svg",
 		"desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy).",
 	},
 	"bird": {
 		"name": "Rồng",
 		"icon": "🔥",
-		"fig": "res://assets/units/bird.svg",
 		"desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 6. Mạnh nhất, đắt nhất. Cung thủ bắn rồng +15 công.",
 	},
 	"ghost": {
 		"name": "Bộ xương",
 		"icon": "🩹",
-		"fig": "res://assets/units/ghost.svg",
 		"desc": "Lính ngã được pháp sư gọi hồn dựng dậy. Không mua được, không tính vào giới hạn quân, không chiếm được làng.",
 	},
 }
@@ -253,14 +227,12 @@ const THEME := {
 			"side": "p",
 			"name": "Hiệp Sĩ Chỉ Huy",
 			"icon": "👑",
-			"fig": "res://assets/units/hero_p.svg",
 			"blurb": "Người thề thắp lại ngọn lửa lâu đài, cầm quân khởi nghĩa trong mọi trận. Chiếm được cả làng lẫn lâu đài. Ngã thì mua lại ở lâu đài, giữ nguyên cấp; mỗi lần ngã giá mua lại +200.",
 		},
 		"tuonggiac": {
 			"side": "e",
 			"name": "Vorn",
 			"icon": "⚔",
-			"fig": "res://assets/units/hero_e.svg",
 			"blurb": "Hắc Hiệp Sĩ của Đế Quốc, kẻ đã dập tắt ngọn lửa các lâu đài. Cầm quân trong mọi trận. Cùng sức với tướng ta.",
 		},
 	},

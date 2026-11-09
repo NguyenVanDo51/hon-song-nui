@@ -65,6 +65,7 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
+- [ ] (2026-11-09) Đổi ngôn ngữ (`Main.switch_lang` -> `reload_current_scene`): thỉnh thoảng (1/4 lần probe) in `SCRIPT ERROR: Invalid access to property or key 'process_frame' on a base object of type 'null instance'` — một vòng `await get_tree().process_frame` của node đã bị giải phóng (đã chặn ở `intro_stage.gd _wait`, còn ~11 chỗ khác trong `scripts/ui`). Không thấy hỏng gì. Sửa: thêm `if not is_inside_tree(): return` trước mỗi vòng chờ frame.
 - [x] (2026-11-09) `assets/units/*.svg` (10 biểu tượng game-icons.net, CC BY 3.0) — chỉ còn là ảnh lùi khi bật cờ debug `figstyle=off` (khoá `fig` trong `content/theme.gd`), nhưng vẫn bị đóng vào bản build và bắt buộc credit -> đã xoá svg + LICENSE + khoá `fig` + dòng credit; `figstyle=off` giờ vẽ đĩa tròn.
 - [ ] (2026-11-09) `project.godot` `config/description` — còn "Hai Bà Trưng, chống Mã Viện, Bà Triệu" (trước reskin fantasy) -> lệch game (bản web / metadata có thể đọc). Sửa theo bối cảnh hiện tại.
 - [x] (2026-11-09, xong khi merge `feat/setting-v2`: 15 câu bọc `Lang.t` + dịch EN) `scripts/ui/credits.gd` — chữ màn Giới thiệu chưa qua i18n (nhánh `feat/setting-v2` có `Lang` + `locale/en.po`) -> merge 2 nhánh thì `tools/i18n_extract.py --check` báo thiếu; thêm bản EN ("Giới thiệu" = "About", trang support đã ghi About).

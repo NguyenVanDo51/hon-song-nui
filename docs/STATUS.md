@@ -22,6 +22,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 - Kiểu thắng: chiếm thành · diệt hết · hạ tướng · giữ N lượt · đưa tướng tới ô đích.
 - Hướng dẫn cầm tay t01–t03 + nhiệm vụ (quest) ở t01–t03, m01–m04, m10 + thẻ giới thiệu quân mới.
 - Hình: 2D vector, rig hoạt cảnh đánh cho mọi loại quân (`docs/rig_port.md`); giao diện giấy da / dấu sáp, font Paytone One.
+- Âm thanh: hiệu ứng tự tổng hợp kiểu "nhạc cụ gõ" (chuông / mộc cầm giọng Rê, 1 phòng vang chung; âm hay lặp có 3 biến thể phát ngẫu nhiên). Nhạc = 1 bài trầm, nhẹ "Lord of the Land" (Kevin MacLeod, CC BY 4.0) lặp cho cả menu lẫn trận, ghi công ở trang Giới thiệu.
 - Hỗ trợ: vùng địch đánh tới, gợi ý đòn (rê chuột / chạm 2 lần), replay + phân tích trận (`tools/review_match.sh`), log phiên (`logs/game/`).
 
 ## Chưa có / đang chờ
@@ -41,6 +42,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 | AI / bot | `docs/ai.md` |
 | 1 đấu 1 | `docs/1v1.md` |
 | Hình quân + hoạt cảnh | `docs/rig_port.md`, `docs/anim_demo/SHARED.md` |
+| Âm thanh, nhạc | `scripts/ui/audio.gd` (đầu file) + `tools/sfx/synth.mjs` (công thức từng âm), nghe ở `docs/design/am-thanh.html` |
 | Xem tận mắt mọi thành phần (9 trang: tướng, lính, địa hình, âm thanh + cảnh có tiếng, giao diện, màn hình, level & bản đồ, chữ); preview đổi bối cảnh làm ở đây trước | `docs/design/index.html` (sinh từ game: `tools/design_dump.gd`, `tools/design_shots.sh`, `tools/record_sfx_scene.sh`) |
 | Việc còn lại, nợ kỹ thuật | `docs/TODO.md` |
 | Chạy, build, test, debug | `README.md` |

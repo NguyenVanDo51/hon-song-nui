@@ -65,7 +65,7 @@ for (const t of D.unitOrder) {
     <p class="note">${esc(u.play)}</p>
     <details class="rigbox"><summary>Hoạt cảnh đánh (rig)</summary><iframe loading="lazy" data-src="${ROOT + u.rigDemo}"></iframe></details>
     ${t === 'hero' ? '<p class="note">Chi tiết 2 tướng: <a href="tuong.html">trang Tướng</a>.</p>' : ''}`;
-  c.querySelectorAll('[data-s]').forEach((b) => b.onclick = () => playFile(`${SFX_DIR}s_${b.dataset.s}.wav`, b));
+  c.querySelectorAll('[data-s]').forEach((b) => b.onclick = () => playFile(SFX_DIR + D.sfx[b.dataset.s][0], b));
   const det = c.querySelector('details');
   det.addEventListener('toggle', () => { const f = det.querySelector('iframe'); if (det.open && !f.src) f.src = f.dataset.src; });
   $('units').append(c);

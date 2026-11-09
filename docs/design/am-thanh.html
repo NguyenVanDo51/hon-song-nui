@@ -12,7 +12,7 @@
 <main>
 <section class="sheet" id="sounds">
   <header><h2>Âm thanh</h2><span class="pill" id="sndCount"></span></header>
-  <p class="lede">Mọi âm thanh trong game đều là tiếng tổng hợp bằng code (sóng + nhiễu), dựng sẵn thành file <code>assets/sfx/s_*.wav</code>. Nút ▶ phát đúng file game đang dùng. Hình thanh ngang = các lớp của âm (thời gian → phải). "Nghe trong cảnh" nhảy tới lúc âm đó phát trong đoạn game thật bên dưới.</p>
+  <p class="lede">Hiệu ứng tổng hợp bằng code (<code>node tools/sfx/synth.mjs</code>, kiểu "nhạc cụ gõ": chuông / mộc cầm giọng Rê + 1 phòng vang chung, cân âm lượng theo loại) thành <code>assets/sfx/s_*.wav</code>; âm hay lặp có 3 biến thể <code>s_&lt;âm&gt;_1..3.wav</code>, game phát ngẫu nhiên 1 cái. <code>s_select.wav</code> = âm cũ giữ lại. Nút ▶ lớn phát biến thể 1, các nút nhỏ phát từng biến thể. "Nghe trong cảnh" nhảy tới lúc âm đó phát trong đoạn game thật bên dưới.</p>
   <div id="sndGroups"></div>
 </section><section class="sheet" id="scene">
   <header><h2>Cảnh game</h2><span class="pill" id="sceneInfo"></span></header>
@@ -39,16 +39,10 @@
     </div>
   </div>
 </section><section class="sheet" id="music">
-  <header><h2>Nhạc nền</h2><span class="pill">nhạc sinh tự động</span></header>
-  <p class="lede">Nhạc không phải bản thu: mỗi nhịp game ghép các nốt đàn lute (thang D Dorian), nốt trầm, trống trận, theo câu 8 nhịp ngẫu nhiên. Trang này chạy đúng luật đó (<code>Audio.phrase</code> + <code>step_keys</code>) trên đúng các file nốt <code>assets/sfx/m_*.wav</code>; chỉ khác chuỗi ngẫu nhiên.</p>
-  <div class="music">
-    <div>
-      <button class="btn" id="musicBtn">▶ Phát nhạc</button>
-      <div class="note" id="musicInfo"></div>
-    </div>
-    <div class="steps" id="steps"></div>
-  </div>
-  <div class="note" id="musicKeys"></div>
+  <header><h2>Nhạc nền</h2><span class="pill">1 bài, lặp</span></header>
+  <p class="lede">Một bài nhạc trầm, nhẹ dùng cho cả menu lẫn trong trận, phát lặp liên tục: <b>"Lord of the Land"</b> — Kevin MacLeod (incompetech.com), giấy phép CC BY 4.0, ghi công ở trang Giới thiệu. Âm lượng trong game: nhạc <span id="musicDb"></span> dB, hiệu ứng <span id="sfxDb"></span> dB.</p>
+  <audio id="musicEl" controls loop preload="none" style="width:100%"></audio>
+  <div class="note" id="musicFile"></div>
 </section>
 </main>
 <footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
@@ -73,18 +67,21 @@ for (const g of GROUPS) {
     const m = META[k] || { name: k, when: ['chưa mô tả'], code: '' };
     const row = el('div', { class: 'snd', id: 'snd-' + k });
     const btn = el('button', { class: 'play', title: 'Phát ' + k }, '▶');
-    btn.onclick = () => playFile(`${SFX_DIR}s_${k}.wav`, btn);
+    btn.onclick = () => playFile(SFX_DIR + D.sfx[k][0], btn);
     const n = sceneCount[k] || 0;
     row.append(btn);
     row.append(el('div', { class: 'nm' }, `<b>${m.name}</b><code>${k}</code><div>${m.unused ? '<span class="pill bad">không dùng</span>' : ''}</div>`));
-    const when = el('div', { class: 'when' }, `<ul>${m.when.map((w) => `<li>${w}</li>`).join('')}</ul>${m.note ? `<div class="note">⚠ ${m.note}</div>` : ''}<span class="src">Gọi ở: <code>${m.code}</code> · file <code>assets/sfx/s_${k}.wav</code></span>`);
+    const when = el('div', { class: 'when' }, `<ul>${m.when.map((w) => `<li>${w}</li>`).join('')}</ul>${m.note ? `<div class="note">⚠ ${m.note}</div>` : ''}<span class="src">Gọi ở: <code>${m.code}</code> · file ${D.sfx[k].map((f) => `<code>${f}</code>`).join(' ')}</span>`);
     if (S && !m.unused) {
       const sb = el('button', { class: 'btn ghost sm scene-btn' }, n ? `▶ Nghe trong cảnh (${n} lần)` : 'Không có trong cảnh quay');
       if (n) sb.onclick = () => Scene.focus(k, true); else sb.disabled = true;
       when.append(el('br'), sb);
     }
     row.append(when);
-    row.append(el('div', { class: 'recipe' }, recipeSvg(D.sfx[k], g.hex) + `<div class="parts">${D.sfx[k].map(partText).join('<br>')}</div>`));
+    const vars = el('div', { class: 'recipe' }, D.sfx[k].length > 1 ? `<div class="parts">${D.sfx[k].length} biến thể (ngẫu nhiên)</div>` : `<div class="parts">1 bản</div>`);
+    D.sfx[k].forEach((f, i) => { const vb = el('button', { class: 'btn ghost sm', title: f }, `▶ ${i + 1}`); vb.onclick = () => playFile(SFX_DIR + f, vb); vars.append(vb); });
+    if (D.sfxGain[k]) vars.append(el('div', { class: 'parts' }, `+${D.sfxGain[k]} dB so với các âm khác`));
+    row.append(vars);
     box.append(row);
   }
   $('sndGroups').append(box);
@@ -167,7 +164,7 @@ const Scene = (() => {
       for (const [et, k] of S.events) {
         if (et > lastT && et <= t) {
           if (!filter || filter === k) { const b = el('b', {}, `${(META[k] || {}).name || k} · ${k}`); b.style.borderLeftColor = groupOf(k).hex; flash.append(b); setTimeout(() => b.remove(), 1000); }
-          if (mode === 'files') new Audio(`${SFX_DIR}s_${k}.wav`).play();
+          if (mode === 'files' && D.sfx[k]) new Audio(SFX_DIR + D.sfx[k][Math.floor(Math.random() * D.sfx[k].length)]).play();
         }
       }
     }
@@ -186,56 +183,11 @@ const Scene = (() => {
   return { focus };
 })();
 
-// ---------- music (port of Audio.phrase / step_keys) ----------
-const MC = D.musicConst;
-function phrase() {
-  let d = [0, 2, 4][Math.floor(Math.random() * 3)];
-  const out = [];
-  for (let i = 0; i < 6; i++) {
-    d += [-1, -1, 1, 1, -2, 2, 0][Math.floor(Math.random() * 7)];
-    d = Math.max(0, Math.min(MC.degrees - 1, d));
-    out.push(i > 0 && Math.random() < 0.25 ? null : d);
-  }
-  let best = MC.resolve[0];
-  for (const r of MC.resolve) if (Math.abs(r - d) < Math.abs(best - d)) best = r;
-  out.push(best, null);
-  return out;
-}
-function stepKeys(step, phr) {
-  const s = step % 8, out = [], deg = phr[s];
-  if (deg != null) out.push('n' + deg, 'o' + deg);
-  if (s === 0) out.push('bass'); else if (s === 4) out.push('fifth');
-  if (s === 0 || s === 6) out.push('thump'); else if (s === 7 && Math.random() < 0.3) out.push('roll');
-  return out;
-}
-const NOTE_NAMES = ['D', 'E', 'F', 'G', 'A', 'B', 'C'];
-const degName = (d) => NOTE_NAMES[d % 7] + (3 + Math.floor((d + 0) / 7) + (d % 7 >= 6 ? 1 : 0));
-let mTimer = 0, mStep = 0, mPhrase = [];
-const stepsEl = $('steps');
-for (let i = 0; i < 8; i++) stepsEl.append(el('div'));
-function drawPhrase(cur) {
-  [...stepsEl.children].forEach((c, i) => {
-    const d = mPhrase[i];
-    c.className = i === cur ? 'cur' : '';
-    c.innerHTML = d == null ? '<span>nghỉ</span>' : `<b style="bottom:${8 + d / (MC.degrees - 1) * 46}px"></b><span>${degName(d)}</span>`;
-  });
-}
-function musicTick() {
-  if (mStep % 8 === 0) mPhrase = phrase();
-  const ks = stepKeys(mStep, mPhrase);
-  for (const k of ks) new Audio(`${SFX_DIR}m_${k}.wav`).play();
-  drawPhrase(mStep % 8);
-  $('musicInfo').textContent = `nhịp ${mStep % 8 + 1}/8: ${ks.join(' + ') || 'nghỉ'}`;
-  mStep++;
-}
-$('musicBtn').onclick = () => {
-  if (mTimer) { clearInterval(mTimer); mTimer = 0; $('musicBtn').textContent = '▶ Phát nhạc'; return; }
-  mStep = 0; musicTick(); mTimer = setInterval(musicTick, MC.beat * 1000);
-  $('musicBtn').textContent = '❚❚ Dừng nhạc';
-};
-drawPhrase(-1);
-$('musicKeys').innerHTML = `Nhịp ${MC.beat}s · gốc D3 ${MC.base} Hz · ${MC.degrees} bậc · file: ${Object.keys(D.music).map((k) => `<code>m_${k}</code>`).join(' ')}`;
-
+// ---------- music ----------
+$('musicEl').src = ROOT + D.music.file;
+$('musicDb').textContent = D.music.db;
+$('sfxDb').textContent = D.sfxDb;
+$('musicFile').innerHTML = `file <code>${D.music.file}</code>`;
 </script>
 </body>
 </html>

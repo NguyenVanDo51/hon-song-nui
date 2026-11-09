@@ -40,10 +40,10 @@ const META = {
   page: { g: 'ui', name: 'Lật trang', when: ['Không chỗ nào gọi: có file nhưng game không phát'], code: 'chỉ định nghĩa trong audio.gd', unused: true },
   move: { g: 'board', name: 'Bước đi', when: ['Mỗi lần lính di chuyển (cả 2 phe)', 'Cảnh giới thiệu quân mới'], code: 'event_player.gd play · intro_stage.gd' },
   coin: { g: 'board', name: 'Tiền', when: ['Thu nhập đầu lượt', '+vàng hiện trên làng / lâu đài vừa chiếm', 'Hủy mua, hoàn vàng'], code: 'event_player.gd income_fx / _show_gains · game_screen.gd _unbuy_sel' },
-  capture: { g: 'board', name: 'Chiếm', when: ['Chiếm làng / lâu đài (tiếng tù và)', 'Sửa làng hỏng'], code: 'fx.gd capture / repair' },
+  capture: { g: 'board', name: 'Chiếm', when: ['Chiếm làng / lâu đài (chuông D4 → A4 → hợp âm D)', 'Sửa làng hỏng'], code: 'fx.gd capture / repair' },
   heal: { g: 'board', name: 'Hồi máu', when: ['Lính hồi máu đầu lượt (đứng trên làng / lâu đài / đền)'], code: 'event_player.gd heal_fx' },
-  drum: { g: 'board', name: 'Báo lượt', when: ['Băng rôn "Lượt N" / "Lượt địch" đầu mỗi lượt', '1 đấu 1: màn chuyển tay'], code: 'game_hud.gd banner · turn_driver.gd _handoff', note: 'Tên "drum" nhưng tiếng là chuông (A5 + E6), không phải trống.' },
-  spawn: { g: 'board', name: 'Xuất hiện', when: ['Lính vừa mua hiện ra', 'Thẻ giới thiệu quân địch mới'], code: 'fx.gd spawn_fx · game_cards.gd intro_card' },
+  drum: { g: 'board', name: 'Báo lượt', when: ['Băng rôn "Lượt N" / "Lượt địch" đầu mỗi lượt', '1 đấu 1: màn chuyển tay'], code: 'game_hud.gd banner · turn_driver.gd _handoff', note: 'Tên "drum" nhưng tiếng là chuông (A5 + E6 + A6), không phải trống.' },
+  spawn: { g: 'board', name: 'Xuất hiện', when: ['Quân địch đợt mới hiện ra (wave)', 'Thẻ giới thiệu quân địch mới'], code: 'fx.gd spawn_fx · game_cards.gd intro_card' },
   rank: { g: 'board', name: 'Lên cấp', when: ['Lính lên cấp', 'Thẻ giới thiệu quân ta mới'], code: 'fx.gd rank · game_cards.gd intro_card' },
   raise: { g: 'board', name: 'Gọi hồn', when: ['Pháp sư gọi hồn dựng Bộ xương từ mộ'], code: 'fx.gd raise_fx' },
   slash: { g: 'fight', name: 'Vung đòn', when: ['Đòn cận chiến: tướng, Vệ binh, Hải tặc, Bộ xương'], code: 'rig/specs/*.gd sound("slash") · fx.gd attack' },
@@ -53,32 +53,10 @@ const META = {
   hit: { g: 'fight', name: 'Trúng đòn', when: ['Đòn trúng, sát thương < 35, quân không nặng'], code: 'rig.gd (impact) · fx.gd _impact' },
   heavy: { g: 'fight', name: 'Trúng mạnh', when: ['Đòn trúng ≥ 35 sát thương, hoặc quân nặng (tướng, Golem, Rồng) đánh', 'Đá máy bắn đá rơi; Golem vung đòn', 'Làng bị phá'], code: 'rig.gd (impact) · rig/specs/elephant.gd · fx.gd raze' },
   die: { g: 'fight', name: 'Ngã', when: ['Lính chết'], code: 'fx.gd death' },
-  win: { g: 'end', name: 'Thắng', when: ['Thắng trận (kèn D trưởng)'], code: 'turn_driver.gd' },
-  lose: { g: 'end', name: 'Thua', when: ['Thua trận (kèn trầm đi xuống)'], code: 'turn_driver.gd' },
+  win: { g: 'end', name: 'Thắng', when: ['Thắng trận (chuông D5 → A5 → hợp âm D, ~2 s)'], code: 'turn_driver.gd' },
+  lose: { g: 'end', name: 'Thua', when: ['Thua trận (chuông A4 → F4 → D4 đi xuống, ~1.8 s)'], code: 'turn_driver.gd' },
 };
 const groupOf = (k) => GROUPS.find((g) => g.id === (META[k] ? META[k].g : 'ui'));
-function partEnd(p) { return (p.at || 0) + p.dur; }
-function recipeSvg(parts, color) {
-  const end = Math.max(...parts.map(([, p]) => partEnd(p)));
-  const W = 300, rowH = 13, H = parts.length * rowH + 16;
-  const sx = (t) => 6 + (t / end) * (W - 12);
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img">`;
-  parts.forEach(([kind, p], i) => {
-    const y = 4 + i * rowH, x0 = sx(p.at || 0), x1 = sx(partEnd(p));
-    const op = Math.min(1, 0.25 + p.vol * 1.6).toFixed(2);
-    const fill = kind === 'noise' ? '#6d5643' : color;
-    s += `<rect x="${x0}" y="${y}" width="${Math.max(2, x1 - x0)}" height="${rowH - 3}" rx="3" fill="${fill}" opacity="${op}"/>`;
-  });
-  s += `<text x="${W - 6}" y="${H - 2}" font-size="9" text-anchor="end" fill="#6d5643">${Math.round(end * 1000)} ms</text></svg>`;
-  return s;
-}
-function partText([kind, p]) {
-  const hz = (a, b) => (b ? `${Math.round(a)}→${Math.round(b)} Hz` : `${Math.round(a)} Hz`);
-  const at = p.at ? ` @${Math.round(p.at * 1000)}ms` : '';
-  if (kind === 'tone') return `sóng ${p.type || 'sine'} ${hz(p.f, p.f2)} · ${Math.round(p.dur * 1000)}ms · vol ${p.vol}${p.vib ? ' · rung ' + p.vib : ''}${at}`;
-  return `nhiễu ${p.type || 'lowpass'} ${hz(p.freq, p.f2)}${p.q ? ' q' + p.q : ''} · ${Math.round(p.dur * 1000)}ms · vol ${p.vol}${at}`;
-}
-
 let current = null;
 function playFile(src, btn) {
   if (current) { current.a.pause(); current.b && current.b.classList.remove('playing'); }

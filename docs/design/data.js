@@ -2,1144 +2,92 @@
 window.DESIGN = {
   "version": "1.0.6",
   "sfx": {
-    "select": [
-      [
-        "tone",
-        {
-          "f": 880,
-          "f2": 1320,
-          "type": "triangle",
-          "dur": 0.07,
-          "vol": 0.12
-        }
-      ]
-    ],
-    "move": [
-      [
-        "noise",
-        {
-          "dur": 0.12,
-          "vol": 0.12,
-          "freq": 600,
-          "f2": 300
-        }
-      ]
-    ],
-    "slash": [
-      [
-        "noise",
-        {
-          "dur": 0.18,
-          "vol": 0.35,
-          "freq": 3000,
-          "f2": 800,
-          "type": "bandpass",
-          "q": 1.5
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 220,
-          "f2": 90,
-          "type": "square",
-          "dur": 0.12,
-          "vol": 0.08,
-          "at": 0.03
-        }
-      ]
-    ],
-    "hit": [
-      [
-        "noise",
-        {
-          "dur": 0.2,
-          "vol": 0.45,
-          "freq": 900,
-          "f2": 200
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 140,
-          "f2": 60,
-          "dur": 0.18,
-          "vol": 0.3
-        }
-      ]
-    ],
-    "heavy": [
-      [
-        "noise",
-        {
-          "dur": 0.45,
-          "vol": 0.6,
-          "freq": 500,
-          "f2": 80
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 90,
-          "f2": 35,
-          "dur": 0.5,
-          "vol": 0.5
-        }
-      ]
-    ],
     "arrow": [
-      [
-        "noise",
-        {
-          "dur": 0.22,
-          "vol": 0.18,
-          "freq": 4000,
-          "f2": 1500,
-          "type": "bandpass",
-          "q": 4
-        }
-      ]
-    ],
-    "orb": [
-      [
-        "tone",
-        {
-          "f": 300,
-          "f2": 900,
-          "type": "sine",
-          "dur": 0.35,
-          "vol": 0.18,
-          "vib": 20
-        }
-      ]
-    ],
-    "rock": [
-      [
-        "tone",
-        {
-          "f": 200,
-          "f2": 120,
-          "type": "triangle",
-          "dur": 0.3,
-          "vol": 0.12
-        }
-      ]
-    ],
-    "die": [
-      [
-        "noise",
-        {
-          "dur": 0.5,
-          "vol": 0.3,
-          "freq": 700,
-          "f2": 120
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 330,
-          "f2": 110,
-          "type": "sawtooth",
-          "dur": 0.4,
-          "vol": 0.06
-        }
-      ]
+      "s_arrow_1.wav",
+      "s_arrow_2.wav",
+      "s_arrow_3.wav"
     ],
     "capture": [
-      [
-        "tone",
-        {
-          "f": 293.7,
-          "type": "sawtooth",
-          "dur": 0.28,
-          "vol": 0.08,
-          "attack": 0.025
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 293.7,
-          "type": "triangle",
-          "dur": 0.28,
-          "vol": 0.2,
-          "attack": 0.025
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 440,
-          "type": "sawtooth",
-          "dur": 0.8,
-          "vol": 0.08,
-          "at": 0.22,
-          "attack": 0.03,
-          "vib": 2
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 440,
-          "type": "triangle",
-          "dur": 0.8,
-          "vol": 0.2,
-          "at": 0.22,
-          "attack": 0.03,
-          "vib": 2
-        }
-      ]
+      "s_capture.wav"
     ],
     "coin": [
-      [
-        "tone",
-        {
-          "f": 988,
-          "type": "square",
-          "dur": 0.08,
-          "vol": 0.07
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 1319,
-          "type": "square",
-          "dur": 0.18,
-          "vol": 0.07,
-          "at": 0.07
-        }
-      ]
+      "s_coin_1.wav",
+      "s_coin_2.wav",
+      "s_coin_3.wav"
     ],
-    "rank": [
-      [
-        "tone",
-        {
-          "f": 523,
-          "type": "triangle",
-          "dur": 0.25,
-          "vol": 0.12
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 659,
-          "type": "triangle",
-          "dur": 0.25,
-          "vol": 0.12,
-          "at": 0.08
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 784,
-          "type": "triangle",
-          "dur": 0.25,
-          "vol": 0.12,
-          "at": 0.16
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 1047,
-          "type": "triangle",
-          "dur": 0.25,
-          "vol": 0.12,
-          "at": 0.24
-        }
-      ]
-    ],
-    "raise": [
-      [
-        "tone",
-        {
-          "f": 600,
-          "f2": 150,
-          "type": "sine",
-          "dur": 1.0,
-          "vol": 0.18,
-          "vib": 30
-        }
-      ],
-      [
-        "noise",
-        {
-          "dur": 0.8,
-          "vol": 0.08,
-          "freq": 2000,
-          "f2": 300,
-          "type": "bandpass",
-          "q": 3
-        }
-      ]
-    ],
-    "heal": [
-      [
-        "tone",
-        {
-          "f": 660,
-          "f2": 990,
-          "type": "sine",
-          "dur": 0.3,
-          "vol": 0.08
-        }
-      ]
+    "die": [
+      "s_die_1.wav",
+      "s_die_2.wav",
+      "s_die_3.wav"
     ],
     "drum": [
-      [
-        "tone",
-        {
-          "f": 880,
-          "dur": 1.5,
-          "vol": 0.16
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 2429,
-          "dur": 0.4,
-          "vol": 0.025
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 1318.5,
-          "dur": 1.4,
-          "vol": 0.1,
-          "at": 0.09
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 1760,
-          "dur": 1.1,
-          "vol": 0.04,
-          "at": 0.18
-        }
-      ]
+      "s_drum.wav"
     ],
-    "spawn": [
-      [
-        "noise",
-        {
-          "dur": 0.7,
-          "vol": 0.2,
-          "freq": 300,
-          "f2": 1200,
-          "type": "bandpass",
-          "q": 1
-        }
-      ]
+    "heal": [
+      "s_heal.wav"
     ],
-    "win": [
-      [
-        "tone",
-        {
-          "f": 293.7,
-          "type": "sawtooth",
-          "dur": 0.3,
-          "vol": 0.06,
-          "attack": 0.02
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 293.7,
-          "type": "triangle",
-          "dur": 0.3,
-          "vol": 0.14,
-          "attack": 0.02
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 370,
-          "type": "sawtooth",
-          "dur": 0.3,
-          "vol": 0.06,
-          "at": 0.15,
-          "attack": 0.02
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 370,
-          "type": "triangle",
-          "dur": 0.3,
-          "vol": 0.14,
-          "at": 0.15,
-          "attack": 0.02
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 440,
-          "type": "sawtooth",
-          "dur": 0.3,
-          "vol": 0.06,
-          "at": 0.3,
-          "attack": 0.02
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 440,
-          "type": "triangle",
-          "dur": 0.3,
-          "vol": 0.14,
-          "at": 0.3,
-          "attack": 0.02
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 587.3,
-          "type": "sawtooth",
-          "dur": 1.3,
-          "vol": 0.06,
-          "at": 0.45,
-          "attack": 0.03,
-          "vib": 3
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 587.3,
-          "type": "triangle",
-          "dur": 1.3,
-          "vol": 0.16,
-          "at": 0.45,
-          "attack": 0.03,
-          "vib": 3
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 440,
-          "type": "triangle",
-          "dur": 1.3,
-          "vol": 0.08,
-          "at": 0.45,
-          "attack": 0.03
-        }
-      ]
+    "heavy": [
+      "s_heavy_1.wav",
+      "s_heavy_2.wav",
+      "s_heavy_3.wav"
+    ],
+    "hit": [
+      "s_hit_1.wav",
+      "s_hit_2.wav",
+      "s_hit_3.wav"
     ],
     "lose": [
-      [
-        "tone",
-        {
-          "f": 220,
-          "type": "sawtooth",
-          "dur": 0.55,
-          "vol": 0.06,
-          "attack": 0.05
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 220,
-          "type": "triangle",
-          "dur": 0.55,
-          "vol": 0.16,
-          "attack": 0.05
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 196,
-          "type": "sawtooth",
-          "dur": 0.55,
-          "vol": 0.06,
-          "at": 0.35,
-          "attack": 0.05
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 196,
-          "type": "triangle",
-          "dur": 0.55,
-          "vol": 0.16,
-          "at": 0.35,
-          "attack": 0.05
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 174.6,
-          "type": "sawtooth",
-          "dur": 0.55,
-          "vol": 0.06,
-          "at": 0.7,
-          "attack": 0.05
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 174.6,
-          "type": "triangle",
-          "dur": 0.55,
-          "vol": 0.16,
-          "at": 0.7,
-          "attack": 0.05
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 146.8,
-          "f2": 142,
-          "type": "sawtooth",
-          "dur": 1.4,
-          "vol": 0.06,
-          "at": 1.05,
-          "attack": 0.06,
-          "vib": 2
-        }
-      ],
-      [
-        "tone",
-        {
-          "f": 146.8,
-          "f2": 142,
-          "type": "triangle",
-          "dur": 1.4,
-          "vol": 0.18,
-          "at": 1.05,
-          "attack": 0.06,
-          "vib": 2
-        }
-      ]
+      "s_lose.wav"
     ],
-    "ui": [
-      [
-        "tone",
-        {
-          "f": 170,
-          "f2": 70,
-          "dur": 0.1,
-          "vol": 0.07
-        }
-      ],
-      [
-        "noise",
-        {
-          "dur": 0.05,
-          "vol": 0.025,
-          "freq": 2500,
-          "f2": 900
-        }
-      ]
+    "move": [
+      "s_move_1.wav",
+      "s_move_2.wav",
+      "s_move_3.wav"
+    ],
+    "orb": [
+      "s_orb_1.wav",
+      "s_orb_2.wav",
+      "s_orb_3.wav"
     ],
     "page": [
-      [
-        "noise",
-        {
-          "dur": 0.16,
-          "vol": 0.25,
-          "freq": 1200,
-          "f2": 5000,
-          "type": "bandpass",
-          "q": 1.2
-        }
-      ],
-      [
-        "noise",
-        {
-          "dur": 0.1,
-          "vol": 0.06,
-          "freq": 3000,
-          "f2": 1200,
-          "at": 0.12
-        }
-      ]
+      "s_page.wav"
+    ],
+    "raise": [
+      "s_raise.wav"
+    ],
+    "rank": [
+      "s_rank.wav"
+    ],
+    "rock": [
+      "s_rock_1.wav",
+      "s_rock_2.wav",
+      "s_rock_3.wav"
+    ],
+    "select": [
+      "s_select.wav"
+    ],
+    "slash": [
+      "s_slash_1.wav",
+      "s_slash_2.wav",
+      "s_slash_3.wav"
+    ],
+    "spawn": [
+      "s_spawn.wav"
+    ],
+    "ui": [
+      "s_ui.wav"
+    ],
+    "win": [
+      "s_win.wav"
     ]
   },
-  "sfxGain": 0.56,
-  "musicGain": 0.128,
+  "sfxDb": -10.0,
+  "sfxGain": {
+    "select": 10.0
+  },
   "music": {
-    "n0": [
-      [
-        [
-          "tone",
-          {
-            "f": 146.83,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 293.66,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o0": [
-      [
-        [
-          "tone",
-          {
-            "f": 293.66,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n1": [
-      [
-        [
-          "tone",
-          {
-            "f": 164.811102553265,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 329.62220510653,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o1": [
-      [
-        [
-          "tone",
-          {
-            "f": 329.62220510653,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n2": [
-      [
-        [
-          "tone",
-          {
-            "f": 174.61128069585,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 349.222561391699,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o2": [
-      [
-        [
-          "tone",
-          {
-            "f": 349.222561391699,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n3": [
-      [
-        [
-          "tone",
-          {
-            "f": 195.994535787786,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 391.989071575572,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o3": [
-      [
-        [
-          "tone",
-          {
-            "f": 391.989071575572,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n4": [
-      [
-        [
-          "tone",
-          {
-            "f": 219.996428097803,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 439.992856195606,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o4": [
-      [
-        [
-          "tone",
-          {
-            "f": 439.992856195606,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n5": [
-      [
-        [
-          "tone",
-          {
-            "f": 246.937641303406,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 493.875282606812,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o5": [
-      [
-        [
-          "tone",
-          {
-            "f": 493.875282606812,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n6": [
-      [
-        [
-          "tone",
-          {
-            "f": 261.621317569092,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 523.242635138184,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o6": [
-      [
-        [
-          "tone",
-          {
-            "f": 523.242635138184,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n7": [
-      [
-        [
-          "tone",
-          {
-            "f": 293.66,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 587.32,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o7": [
-      [
-        [
-          "tone",
-          {
-            "f": 587.32,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n8": [
-      [
-        [
-          "tone",
-          {
-            "f": 329.62220510653,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 659.244410213061,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o8": [
-      [
-        [
-          "tone",
-          {
-            "f": 659.244410213061,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n9": [
-      [
-        [
-          "tone",
-          {
-            "f": 349.222561391699,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 698.445122783398,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o9": [
-      [
-        [
-          "tone",
-          {
-            "f": 698.445122783398,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "n10": [
-      [
-        [
-          "tone",
-          {
-            "f": 391.989071575572,
-            "type": "triangle",
-            "dur": 0.992,
-            "vol": 0.45,
-            "attack": 0.004
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 783.978143151145,
-            "type": "sine",
-            "dur": 0.25,
-            "vol": 0.12,
-            "attack": 0.002
-          }
-        ]
-      ],
-      0.128
-    ],
-    "o10": [
-      [
-        [
-          "tone",
-          {
-            "f": 783.978143151145,
-            "type": "sine",
-            "dur": 0.744,
-            "vol": 0.05,
-            "attack": 0.08
-          }
-        ]
-      ],
-      0.128
-    ],
-    "bass": [
-      [
-        [
-          "tone",
-          {
-            "type": "triangle",
-            "dur": 2.356,
-            "vol": 0.22,
-            "attack": 0.25,
-            "f": 73.415
-          }
-        ]
-      ],
-      0.128
-    ],
-    "fifth": [
-      [
-        [
-          "tone",
-          {
-            "type": "triangle",
-            "dur": 2.356,
-            "vol": 0.22,
-            "attack": 0.25,
-            "f": 110.1225
-          }
-        ]
-      ],
-      0.128
-    ],
-    "thump": [
-      [
-        [
-          "tone",
-          {
-            "f": 95,
-            "f2": 48,
-            "dur": 0.4,
-            "vol": 0.55
-          }
-        ],
-        [
-          "noise",
-          {
-            "dur": 0.06,
-            "vol": 0.12,
-            "freq": 300
-          }
-        ]
-      ],
-      0.128
-    ],
-    "roll": [
-      [
-        [
-          "tone",
-          {
-            "f": 90,
-            "f2": 55,
-            "dur": 0.16,
-            "vol": 0.12,
-            "at": 0.0
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 90,
-            "f2": 55,
-            "dur": 0.16,
-            "vol": 0.17,
-            "at": 0.155
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 90,
-            "f2": 55,
-            "dur": 0.16,
-            "vol": 0.22,
-            "at": 0.31
-          }
-        ],
-        [
-          "tone",
-          {
-            "f": 90,
-            "f2": 55,
-            "dur": 0.16,
-            "vol": 0.27,
-            "at": 0.465
-          }
-        ]
-      ],
-      0.128
-    ]
-  },
-  "musicConst": {
-    "scale": [
-      0,
-      2,
-      3,
-      5,
-      7,
-      9,
-      10
-    ],
-    "base": 146.83,
-    "beat": 0.62,
-    "degrees": 11,
-    "resolve": [
-      0,
-      4,
-      7
-    ],
-    "pool": 12,
-    "sfxPool": 8,
-    "sr": 22050
+    "file": "assets/music/lord_of_the_land.mp3",
+    "db": -10.0
   },
   "factions": {
     "p": {
@@ -1173,8 +121,8 @@ window.DESIGN = {
       "side": "p",
       "name": "Hiệp Sĩ Chỉ Huy",
       "icon": "👑",
-      "fig": "assets/units/styles/chibi/hero_p.svg",
       "blurb": "Hiệp sĩ trung thành của Đế Quốc, cầm quân giành lại nửa đất đã mất. Chiếm được cả làng lẫn lâu đài. Ngã thì mua lại ở lâu đài, giữ nguyên cấp; mỗi lần ngã giá mua lại +200.",
+      "fig": "assets/units/styles/chibi/hero_p.svg",
       "traits": [
         "Chiếm được cả lâu đài lẫn làng.",
         "Công 55–64: mỗi đòn lăn ngẫu nhiên trong khoảng này."
@@ -1184,8 +132,8 @@ window.DESIGN = {
       "side": "e",
       "name": "Vorn",
       "icon": "⚔",
-      "fig": "assets/units/styles/chibi/hero_e.svg",
       "blurb": "Tướng quân phản loạn, bán đế quốc cho Ma Vương để được lên ngôi. Cầm quân trong mọi trận. Cùng sức với tướng ta.",
+      "fig": "assets/units/styles/chibi/hero_e.svg",
       "traits": [
         "Chiếm được cả lâu đài lẫn làng.",
         "Công 55–64: mỗi đòn lăn ngẫu nhiên trong khoảng này."
@@ -1256,7 +204,6 @@ window.DESIGN = {
       "look": {
         "name": "Vệ binh",
         "icon": "⚔",
-        "fig": "res://assets/units/soldier.svg",
         "desc": "Lính giáo khiên. Rẻ, chiếm được làng, dựng lại được làng cháy."
       },
       "rules": {
@@ -1288,7 +235,6 @@ window.DESIGN = {
       "look": {
         "name": "Cung thủ",
         "icon": "🎯",
-        "fig": "res://assets/units/archer.svg",
         "desc": "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn quân bay (rồng)."
       },
       "rules": {
@@ -1322,7 +268,6 @@ window.DESIGN = {
       "look": {
         "name": "Hải tặc",
         "icon": "⚔",
-        "fig": "res://assets/units/soldier.svg",
         "desc": "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ."
       },
       "rules": {
@@ -1355,7 +300,6 @@ window.DESIGN = {
       "look": {
         "name": "Pháp sư gọi hồn",
         "icon": "📖",
-        "fig": "res://assets/units/shaman.svg",
         "desc": "Gọi lính ngã ngay cạnh dậy thành bộ xương đánh cho ta (cả lính địch ngã)."
       },
       "rules": {
@@ -1387,7 +331,6 @@ window.DESIGN = {
       "look": {
         "name": "Tu sĩ ánh sáng",
         "icon": "📜",
-        "fig": "res://assets/units/drum.svg",
         "desc": "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương."
       },
       "rules": {
@@ -1422,7 +365,6 @@ window.DESIGN = {
       "look": {
         "name": "Sói bóng đêm",
         "icon": "🐺",
-        "fig": "res://assets/units/elephant.svg",
         "desc": "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
       },
       "rules": {
@@ -1454,7 +396,6 @@ window.DESIGN = {
       "look": {
         "name": "Golem đá",
         "icon": "🛡",
-        "fig": "res://assets/units/elephant.svg",
         "desc": "Người đá do pháp sư thổi hồn. Thủ rất dày, đánh mạnh, lên được cả núi. Đắt."
       },
       "rules": {
@@ -1485,7 +426,6 @@ window.DESIGN = {
       "look": {
         "name": "Máy bắn đá",
         "icon": "💥",
-        "fig": "res://assets/units/catapult.svg",
         "desc": "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
       },
       "rules": {
@@ -1520,7 +460,6 @@ window.DESIGN = {
       "look": {
         "name": "Rồng",
         "icon": "🔥",
-        "fig": "res://assets/units/bird.svg",
         "desc": "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 6. Mạnh nhất, đắt nhất. Cung thủ bắn rồng +15 công."
       },
       "rules": {
@@ -1553,7 +492,6 @@ window.DESIGN = {
       "look": {
         "name": "Bộ xương",
         "icon": "🩹",
-        "fig": "res://assets/units/ghost.svg",
         "desc": "Lính ngã được pháp sư gọi hồn dựng dậy. Không mua được, không tính vào giới hạn quân, không chiếm được làng."
       },
       "rules": {
@@ -3544,6 +2482,18 @@ window.DESIGN = {
       " ngã": " falls",
       " có thể ngã": " may fall",
       "Xem thông tin quân": "View unit info",
+      "Làm game": "Made by",
+      "Thiết kế, lập trình, hình ảnh, âm thanh: %s": "Design, code, art, sound: %s",
+      "Liên hệ: %s": "Contact: %s",
+      "Hình ảnh": "Art",
+      "Quân lính, địa hình, công trình, biểu tượng giao diện: vẽ riêng cho game.": "Units, terrain, buildings and interface icons: drawn for this game.",
+      "Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0.": "Emoji: Noto Emoji © Google LLC, Apache License 2.0.",
+      "Âm thanh": "Sound",
+      "Hiệu ứng: tổng hợp bằng code trong game.": "Sound effects: synthesized in code for this game.",
+      "Nhạc: \"Lord of the Land\" — Kevin MacLeod (incompetech.com), giấy phép CC BY 4.0 (creativecommons.org/licenses/by/4.0).": "Music: \"Lord of the Land\" — Kevin MacLeod (incompetech.com), licensed under CC BY 4.0 (creativecommons.org/licenses/by/4.0).",
+      "Phông chữ (SIL Open Font License 1.1)": "Fonts (SIL Open Font License 1.1)",
+      "Làm bằng Godot Engine %s (godotengine.org), giấy phép MIT.": "Made with Godot Engine %s (godotengine.org), MIT License.",
+      "Thành phần bên thứ ba trong Godot Engine": "Third-party components in Godot Engine",
       "−%d công/thủ": "−%d ATK/DEF",
       "★ Lên cấp %d": "★ Level up %d",
       "lượt": "turns",
@@ -3560,7 +2510,6 @@ window.DESIGN = {
       "Quay lại ván (Esc)": "Back to the game (Esc)",
       "💬 Gợi ý nước đi": "💬 Suggest a move",
       "Gợi ý (phím H)": "Hint (H key)",
-      "Âm thanh": "Sound",
       "Nhạc": "Music",
       "Tốc độ": "Speed",
       "Tốc độ hoạt cảnh": "Animation speed",
@@ -3654,8 +2603,13 @@ window.DESIGN = {
       "Thử thách": "Challenges",
       "1 đấu 1": "1 vs 1",
       "Sách lính": "Unit Book",
+      "Giới thiệu": "About",
       "Tốc độ hoạt cảnh x1 / x2 / x3": "Animation speed x1 / x2 / x3",
       "‹ Trở lại": "‹ Back",
+      "Phiên bản %s": "Version %s",
+      "Giấy phép Godot Engine": "Godot Engine license",
+      "📜 Toàn văn giấy phép": "📜 Full license texts",
+      "Giấy phép": "Licenses",
       "Thường": "Normal",
       "Dễ: địch khởi đầu với nửa số vàng.": "Easy: the enemy starts with half the gold.",
       "Thường: hai bên ngang vàng.": "Normal: both sides get the same gold.",
@@ -3690,7 +2644,7 @@ window.DESIGN = {
       "Chơi lại": "Play again",
       "Về menu": "Main menu",
       "Ván mới": "New game",
-      "B": "N"
+      "Bắc": "North"
     }
   },
   "svgText": {

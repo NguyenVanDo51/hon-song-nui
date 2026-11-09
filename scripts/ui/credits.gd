@@ -17,7 +17,13 @@ static func sections() -> Array:
 				Lang.t("Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."),
 			],
 		],
-		[Lang.t("Âm thanh"), [Lang.t("Hiệu ứng và nhạc: tổng hợp bằng code trong game.")]],
+		[
+			Lang.t("Âm thanh"),
+			[
+				Lang.t("Hiệu ứng: tổng hợp bằng code trong game."),
+				Lang.t("Nhạc: \"Lord of the Land\" — Kevin MacLeod (incompetech.com), giấy phép CC BY 4.0 (creativecommons.org/licenses/by/4.0)."),
+			],
+		],
 		[
 			Lang.t("Phông chữ (SIL Open Font License 1.1)"),
 			[

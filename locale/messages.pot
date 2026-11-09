@@ -1312,31 +1312,35 @@ msgstr ""
 msgid "Hình ảnh"
 msgstr ""
 
-#: scripts/ui/credits.gd:15
+#: scripts/ui/credits.gd:16
 msgid "Quân lính, địa hình, công trình, biểu tượng giao diện: vẽ riêng cho game."
 msgstr ""
 
-#: scripts/ui/credits.gd:15
+#: scripts/ui/credits.gd:17
 msgid "Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."
 msgstr ""
 
-#: scripts/ui/credits.gd:17 scripts/ui/game_hud.gd:250 scripts/ui/menus.gd:268
+#: scripts/ui/credits.gd:21 scripts/ui/game_hud.gd:250 scripts/ui/menus.gd:268
 msgid "Âm thanh"
 msgstr ""
 
-#: scripts/ui/credits.gd:17
-msgid "Hiệu ứng và nhạc: tổng hợp bằng code trong game."
+#: scripts/ui/credits.gd:23
+msgid "Hiệu ứng: tổng hợp bằng code trong game."
 msgstr ""
 
-#: scripts/ui/credits.gd:19
-msgid "Phông chữ (SIL Open Font License 1.1)"
+#: scripts/ui/credits.gd:24
+msgid "Nhạc: \"Lord of the Land\" — Kevin MacLeod (incompetech.com), giấy phép CC BY 4.0 (creativecommons.org/licenses/by/4.0)."
 msgstr ""
 
 #: scripts/ui/credits.gd:28
+msgid "Phông chữ (SIL Open Font License 1.1)"
+msgstr ""
+
+#: scripts/ui/credits.gd:37
 msgid "Làm bằng Godot Engine %s (godotengine.org), giấy phép MIT."
 msgstr ""
 
-#: scripts/ui/credits.gd:52
+#: scripts/ui/credits.gd:61
 msgid "Thành phần bên thứ ba trong Godot Engine"
 msgstr ""
 

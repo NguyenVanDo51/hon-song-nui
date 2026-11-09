@@ -74,11 +74,19 @@ func _svg_texts(fig: String) -> Dictionary:
 
 func _initialize() -> void:
 	var th: Dictionary = Content.theme()
-	var music := { }
-	var rec := Audio.recipes()
-	for k: String in rec:
-		if k.begins_with("m:"):
-			music[k.substr(2)] = rec[k]
+	# sfx key -> its wav files (s_<key>.wav or s_<key>_<n>.wav variants), as the game resolves them
+	var sfx := { }
+	for f: String in DirAccess.get_files_at(Audio.DIR):
+		if f.begins_with("s_") and f.ends_with(".wav"):
+			var key := f.trim_prefix("s_").trim_suffix(".wav")
+			var cut := key.rfind("_")
+			if cut > 0 and key.substr(cut + 1).is_valid_int():
+				key = key.substr(0, cut)
+			if not sfx.has(key):
+				var names := PackedStringArray()
+				for path in Audio.files_of(key):
+					names.append(path.get_file())
+				sfx[key] = names
 	var fig := Token.fig_style
 	var heroes := { }
 	var th_heroes: Dictionary = th.heroes
@@ -161,20 +169,10 @@ func _initialize() -> void:
 			colors[k] = "#" + c.to_html(c.a < 1.0)
 	var data := {
 		"version": ProjectSettings.get_setting("application/config/version"),
-		"sfx": Audio.SFX,
-		"sfxGain": Audio.SFX_GAIN * Audio.MASTER,
-		"musicGain": Audio.MUSIC_GAIN * Audio.MASTER,
-		"music": music,
-		"musicConst": {
-			"scale": Audio.SCALE,
-			"base": Audio.BASE,
-			"beat": Audio.BEAT,
-			"degrees": Audio.DEGREES,
-			"resolve": Audio.RESOLVE,
-			"pool": Audio.MUSIC_POOL,
-			"sfxPool": Audio.POOL,
-			"sr": Audio.SR,
-		},
+		"sfx": sfx,
+		"sfxDb": Audio.SFX_DB,
+		"sfxGain": Audio.GAIN,
+		"music": { "file": Audio.MUSIC.trim_prefix("res://"), "db": Audio.MUSIC_DB },
 		"factions": th.factions,
 		"heroes": heroes,
 		"heroStats": Rules.UNITS.hero,
@@ -205,6 +203,6 @@ func _initialize() -> void:
 	f.close()
 	print(
 		"design_dump: %d sfx, %d units, %d terrain, %d levels, %d skirmish, %d colours -> %s"
-		% [Audio.SFX.size(), units.size(), terrain.size(), levels.size(), skirmish.size(), colors.size(), OUT]
+		% [sfx.size(), units.size(), terrain.size(), levels.size(), skirmish.size(), colors.size(), OUT]
 	)
 	quit()

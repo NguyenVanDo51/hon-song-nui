@@ -57,4 +57,5 @@ gdscript/warnings/unsafe_call_argument=2
 
 [internationalization]
 
+locale/fallback="vi"
 locale/translations=PackedStringArray("res://locale/en.po")

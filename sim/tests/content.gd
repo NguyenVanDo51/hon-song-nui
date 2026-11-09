@@ -10,6 +10,17 @@ func content_tests() -> void:
 		all.append(Content.skirmish_def(mid, hero_p, false))
 		all.append(Content.duel_def(mid, hero_p, hero_e1, "human"))
 	run(
+		"language: Vietnamese = what Controls auto-translate shows too (no fall back to the English catalog)",
+		func() -> void:
+			for code: String in ["en", "vi"]: # en first: the bug showed after switching back to vi
+				Lang.apply(code)
+				var want := "End Turn" if code == "en" else "Hết lượt"
+				eq(str(TranslationServer.translate("Hết lượt")), want, code + ": TranslationServer (Label / Button text)")
+				eq(Lang.t("Hết lượt"), want, code + ": Lang.t")
+			for msg: String in ["Đánh lại", "Sách lính", "Xuất quân", "Đầu hàng"]:
+				eq(str(TranslationServer.translate(msg)), msg, "vi shows the source: " + msg),
+	)
+	run(
 		"skirmish: maps are 180° rotations (fair start)",
 		func() -> void:
 			for mid: String in Content.SKIRMISH.MAPS:

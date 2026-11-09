@@ -58,6 +58,9 @@
 - [ ] Cờ `nobattle` không còn tác dụng (battle_view đã xoá) nhưng còn trong lệnh probe / docs/rig_port.md: dọn.
 
 ## Nợ kỹ thuật
+- [ ] (2026-11-09) `assets/units/*.svg` (10 biểu tượng game-icons.net, CC BY 3.0) — không script nào load, nhưng `export_filter="all_resources"` vẫn đóng vào bản build -> file thừa + phải giữ credit game-icons trong `scripts/ui/credits.gd`. Sửa: xoá 10 svg + LICENSE.txt, bỏ dòng credit tương ứng.
+- [ ] (2026-11-09) `project.godot` `config/description` — còn "Hai Bà Trưng, chống Mã Viện, Bà Triệu" (trước reskin fantasy) -> lệch game (bản web / metadata có thể đọc). Sửa theo bối cảnh hiện tại.
+- [ ] (2026-11-09) `scripts/ui/credits.gd` — chữ màn Giới thiệu chưa qua i18n (nhánh `feat/setting-v2` có `Lang` + `locale/en.po`) -> merge 2 nhánh thì `tools/i18n_extract.py --check` báo thiếu; thêm bản EN ("Giới thiệu" = "About", trang support đã ghi About).
 - [ ] (2026-11-09) `sim/tests/duel.gd:106` "ai:army vs normal: whole game to a winner" chập chờn: `scripts/core/ai_plan.gd:192` dừng tìm theo đồng hồ (`ms`) -> máy bận (game khác đang chạy) = ít lượt tìm hơn -> ván seed 4242 khác đi, có lần chưa thắng tới lượt 40 (1 fail / 3 lần chạy). Sửa: test đặt ngân sách theo số lần chạy (không theo ms) hoặc nới lượt; không đụng bot khi chưa được phép.
 - [ ] (2026-11-08) `scripts/ui/style.gd` `make_theme` — ~20 kiểu nút (MenuBtn, PrimaryBtn, ActBtn, ActGo, ChipBtn, BackBtn, SegBtn, RoyalBtn, TileBtn…), mỗi kiểu tự gói màu + cỡ chữ + đệm, nhiều kiểu chỉ dùng 1 chỗ -> nút mỗi màn một cỡ, khó giữ thống nhất. Sửa: kiểu = màu (paper / primary / royal / hot / ghost) × cỡ (sm / md / lg) sinh trong theme, `Style.btn(text, kind, size)`, chuyển dần các màn.
 - [ ] (2026-11-08) `README.md:8` — còn "Anh hùng / Tướng giặc" (tên trước reskin; nay Hiệp Sĩ Chỉ Huy / Vorn) -> README lệch game; sửa câu theo `content/theme.gd` `heroes`.

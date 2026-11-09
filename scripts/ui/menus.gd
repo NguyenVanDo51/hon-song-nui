@@ -269,6 +269,9 @@ func show_title() -> void:
 	var spd := _round(tg, "Tốc độ")
 	var book := _round(tg, "Sách lính")
 	book.icon = Icons.tex("book")
+	var about := _round(tg, "Giới thiệu")
+	about.icon = Icons.tex("scroll")
+	_on(about, show_credits)
 	spd.tooltip_text = "Tốc độ hoạt cảnh x1 / x2 / x3"
 	var sync := func() -> void:
 		var snd_on := main == null or not main.audio.muted
@@ -354,6 +357,49 @@ func _logo(text: String, fs := 104) -> Control:
 			holder.custom_minimum_size = gold.size + Vector2(0, 3),
 	)
 	return holder
+
+# ---------- credits ----------
+## "Giới thiệu": makers + asset credits + Godot notice (licence obligations); full licence texts on a 2nd page
+func show_credits() -> void:
+	var v := _page(760)
+	v.add_child(
+		_head(
+			"‹ Trở lại",
+			func() -> void:
+				main.show_title(),
+			"Giới thiệu",
+		)
+	)
+	var head := Style.vbox(2)
+	head.add_child(_h2(str(Content.theme().title), 26))
+	head.add_child(Style.lbl("Phiên bản %s" % ProjectSettings.get_setting("application/config/version", ""), 14, Style.MUTED))
+	v.add_child(_credit_card([head]))
+	for sec: Array in Credits.sections():
+		var lines: Array = sec[1]
+		var kids: Array = [_eyebrow(str(sec[0]), 13)]
+		for line: String in lines:
+			kids.append(Style.lbl(line, 15, Style.INK, Style.body, true))
+		v.add_child(_credit_card(kids))
+	v.add_child(_credit_card([_eyebrow("Giấy phép Godot Engine", 13), Style.lbl(Credits.godot_notice(), 12, Style.INK, Style.body, true)]))
+	var more := _on(Style.button("📜 Toàn văn giấy phép", "ActBtn"), show_licenses)
+	more.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	v.add_child(more)
+
+## every licence text in full (OFL, Apache, Godot third-party), one card per licence
+func show_licenses() -> void:
+	var v := _page(760)
+	v.add_child(_head("‹ Trở lại", show_credits, "Giấy phép"))
+	for block: Array in Credits.full_texts():
+		v.add_child(_credit_card([_eyebrow(str(block[0]), 13), Style.lbl(str(block[1]), 12, Style.INK, Style.body, true)]))
+
+func _credit_card(kids: Array) -> PanelContainer:
+	var c := Style.card()
+	c.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var col := Style.vbox(8)
+	c.add_child(col)
+	for k: Control in kids:
+		col.add_child(k)
+	return c
 
 # ---------- campaign ----------
 ## "Thử thách" kingdom map (WorldMap), centred on `focus_id` or the next level; full screen (a page scroll would eat

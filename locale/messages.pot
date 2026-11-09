@@ -561,7 +561,7 @@ msgid "Đảo Sông Bạc"
 msgstr ""
 
 #: content/skirmish_maps.gd:8
-msgid "Sông lớn chia đôi chiến trường, lâu đài trên cù lao giữa dòng. Hai cầu gỗ hai bên."
+msgid "Sông lớn chia đôi chiến trường, cù lao giữa dòng nối hai bờ. Hai cầu gỗ hai bên."
 msgstr ""
 
 #: content/skirmish_maps.gd:28
@@ -577,7 +577,7 @@ msgid "Hẻm núi Đá Xám"
 msgstr ""
 
 #: content/skirmish_maps.gd:49
-msgid "Núi đá hai bờ suối. Lâu đài chắn ngang dòng là lối qua giữa, hai cầu gỗ ở hai đầu hẻm."
+msgid "Núi đá hai bờ suối. Bãi cạn rộng giữa hẻm là lối qua chính, hai cầu gỗ ở hai đầu hẻm."
 msgstr ""
 
 #: content/theme.gd:11

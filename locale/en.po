@@ -561,8 +561,8 @@ msgid "Đảo Sông Bạc"
 msgstr "Silver River Isle"
 
 #: content/skirmish_maps.gd:8
-msgid "Sông lớn chia đôi chiến trường, lâu đài trên cù lao giữa dòng. Hai cầu gỗ hai bên."
-msgstr "A great river splits the battlefield, with a castle on the island midstream. Two wooden bridges on either side."
+msgid "Sông lớn chia đôi chiến trường, cù lao giữa dòng nối hai bờ. Hai cầu gỗ hai bên."
+msgstr "A great river splits the battlefield; an island midstream links both banks. Two wooden bridges on either side."
 
 #: content/skirmish_maps.gd:28
 msgid "Quần đảo Sương Mù"
@@ -577,8 +577,8 @@ msgid "Hẻm núi Đá Xám"
 msgstr "Grey Rock Gorge"
 
 #: content/skirmish_maps.gd:49
-msgid "Núi đá hai bờ suối. Lâu đài chắn ngang dòng là lối qua giữa, hai cầu gỗ ở hai đầu hẻm."
-msgstr "Rocky mountains on both banks of a stream. The castle across the stream is the middle crossing, with a wooden bridge at each end of the gorge."
+msgid "Núi đá hai bờ suối. Bãi cạn rộng giữa hẻm là lối qua chính, hai cầu gỗ ở hai đầu hẻm."
+msgstr "Rocky mountains on both banks of a stream. A wide ford mid-gorge is the main crossing, with a wooden bridge at each end."
 
 #: content/theme.gd:11
 msgid "Vệ binh"

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """1 vs 1 map check (skill duel-map-maker): content/skirmish_maps.gd -> per map: symmetry, terrain mix, castles,
-walking turns home -> enemy home, contested castles. Exit 1 if any map breaks a hard rule.
+walking turns home -> enemy home, contested castles; WARN tied villages. Exit 1 if any map breaks a hard rule.
 usage: python3 tools/map_check.py [map_id ...]   (default: every map)
 Move costs mirror scripts/core/rules.gd TERRAIN (foot class); a soldier walks MV = 4 per turn."""
 import heapq
@@ -13,6 +13,7 @@ MV = 4
 MAX_WATER = 0.33
 MAX_HOME_TURNS = 5.0  # foot turns, home castle -> enemy home castle
 MIN_LEAD = 1.0  # a neutral castle must be >= 1 foot turn nearer one home than the other
+# a neutral village both homes reach on the same whole turn goes to the first mover (cua_bien: p 77% -> 58% once fixed)
 
 
 def load(path="content/skirmish_maps.gd"):
@@ -25,6 +26,10 @@ def load(path="content/skirmish_maps.gd"):
         owner = re.findall(r'\[(\d+), (\d+), "(\w)"\]', body[: body.index('"units"')])
         maps[mid] = {"name": name, "rows": rows, "owner": {(int(x), int(y)): s for x, y, s in owner}}
     return maps
+
+
+def turns(cost):
+    return -(-int(cost) // MV)  # whole turns a soldier needs
 
 
 def walk(rows, start):
@@ -49,6 +54,7 @@ def check(mid, m):
     rows, owner = m["rows"], m["owner"]
     h, w = len(rows), len(rows[0])
     bad = []
+    warn = []  # tied villages: fix when the sim shows a seat edge (not every tie decides games)
     if any(len(r) != w for r in rows):
         bad.append("rows of unequal width")
     if not all(rows[y][x] == rows[h - 1 - y][w - 1 - x] for y in range(h) for x in range(w)):
@@ -73,6 +79,10 @@ def check(mid, m):
         neutral.append("(%d,%d) p %.1f / e %.1f" % (c[0], c[1], tp, te))
         if c == (w - 1 - c[0], h - 1 - c[1]) or abs(tp - te) < MIN_LEAD:
             bad.append("contested castle (%d,%d): p %.1f / e %.1f turns — first mover takes it" % (c[0], c[1], tp, te))
+    for y in range(h):
+        for x in range(w):
+            if rows[y][x] in "vx" and (x, y) not in owner and turns(dp[(x, y)]) == turns(de[(x, y)]):
+                warn.append("tied village (%d,%d): both homes walk there in %d turns — first mover takes it" % (x, y, turns(dp[(x, y)])))
     vil = sum(r.count("v") for r in rows)
     print(
         "%-10s %s  %dx%d  water %.0f%% mount %.0f%% forest %.0f%% hill %.0f%% road %.0f%%  castles %d  villages %d  "
@@ -80,6 +90,8 @@ def check(mid, m):
         % (mid, m["name"], w, h, share["~"] * 100, share["m"] * 100, share["f"] * 100, share["h"] * 100,
            share["r"] * 100, len(castles), vil, home_turns, ", ".join(neutral) or "none")
     )
+    for x in warn:
+        print("WARN %s: %s" % (mid, x))
     return [mid + ": " + b for b in bad]
 
 

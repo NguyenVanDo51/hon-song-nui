@@ -462,6 +462,8 @@ Hướng làm (theo thứ tự; ai.md luật ship vẫn áp: ≥ 768 ván giữ 
 - v5b chỉ hơn v3b ở trống (0,62 / ván; trống phủ quân chưa đi 7,4 / ván); tổng thể **không đa dạng hơn**. Vàng lúc mua đầu lượt TB 299 (v5b) / 344 (v3b); ≥ 600 chỉ 6–9% lượt -> để dành của v5 (khi đang hơn) hiếm khi bật.
 - Điểm v3b vs v5b 0,542 (24 ván, ± ~0,10 = nhiễu).
 
+> 2026-11-09: 3 bản đồ 1 đấu 1 vẽ lại (bỏ thành giữa, `docs/content.md`) + luật quân mới (`docs/spec.md` "Khác AE2 gốc") -> mọi tỉ lệ thắng bot trong file này đo trên bản đồ / luật cũ.
+
 ### Giá lính + cung (2026-11-09, phiên 7, đo nhanh trước khi user đánh tay)
 User: tăng giá gốc lính + cung (không giảm công, không tăng giá theo số lượng). Cờ sim: `prices=` / `gold=` / `spam=` (`sim/tune.gd apply_econ`, `army_probe.gd`), `MATCH_EXTRA` (`tools/match_par.sh`).
 Ghi trước khi xem kết quả: bản V0 150 / 250, A 200 / 300, B 250 / 350; bot `hard_v5b` cả 2 bên, 48 ván / bài (`match_par.sh ... 1 9600000 8`, 3 map × 2 ghế; ± ~0,07 -> chỉ thấy chênh lớn). Bài: (1) `+_spam:1` chỉ lính + cung vs đủ loại, (2) `spam=elephant,archer` chỉ voi + cung vs đủ loại, (3) `army_probe` v5b vs v5b (mua / ván, độ dài ván). Đạt: (1) ≤ 0,50 và (2) ≤ 0,50 và độ dài ván TB không tăng > 20% so V0. Chọn bản rẻ nhất đạt -> user đánh tay quyết. Đội hình bot chỉ để xem (cách bot mua chưa sửa, TODO).

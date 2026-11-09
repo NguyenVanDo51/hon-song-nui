@@ -14,10 +14,10 @@ Maps = `content/skirmish_maps.gd` `MAPS` (`name`, `blurb`, `rows`, `owner`, `uni
 
 ## Loop
 1. Draw `rows` (11–16 × 8–12). Edit both a tile and its 180° twin `(w-1-x, h-1-y)` — the twin of a road tile may be a village you just deleted. Script it: build the top half, append the rotated rows.
-2. `python3 tools/map_check.py <id>` → must print `map_check: ok` (symmetry, water, home → home turns, contested castles; exit 1 otherwise).
-3. Sim, bot both sides, 48 games: `godot --headless --path . -s sim/sim.gd -- skirmish 48 normal <id>`.
-   - `turns med` ≤ 20 (longer: more crossings, less water / mountain between homes).
-   - `p X/48`: 19–29 (40–60 %). Outside → the first mover reaches something first: move the homes' nearest villages / neutral castles so each side's are equally far, or add a route on the slow side.
+2. `python3 tools/map_check.py <id>` → must print `map_check: ok` (symmetry, water, home → home turns, contested castles; exit 1 otherwise). `WARN tied village` = both homes walk there on the same whole turn → the first mover gets it.
+3. Sim, bot both sides, **192 games** (48 is noise: one tile edit swung p 24 → 42 / 48): `godot --headless --path . -s sim/sim.gd -- skirmish 192 normal <id>`.
+   - `p X/192` in 77–115 (40–60 %). Outside → fix the `WARN tied village`s first: move each tied village so one twin is a whole turn nearer each home (cua_bien: one tied pair moved, p 147 → 112 / 192).
+   - `turns med` not longer than before the redraw. Bot games run 19–29 turns and barely react to terrain edits; the user's own playtest judges pace.
    - Sims never prove rule 2 (the bot does not rush castles) — the check in step 2 does.
 4. Regenerate the golden trace (map change = new games): `godot --headless --path . -s sim/trace.gd 2>/dev/null | grep -E '^[a-z0-9_]+ [0-9]+ ' > sim/golden.txt`; only the `sk_<id>` lines should change.
 5. `blurb` changed → `python3 tools/i18n_extract.py`, translate `locale/en.po` (`docs/i18n.md`); `tools/lint.sh`; tests `sim/tests.gd` (map symmetry test included).
@@ -30,4 +30,6 @@ Maps = `content/skirmish_maps.gd` `MAPS` (`name`, `blurb`, `rows`, `owner`, `uni
 | Village count dropped | The 180° twin of the tile you opened was a village |
 | Centre castle "for action" | Rule 2: mirrored pair nearer each side, or none |
 | Sim looks fine, so the map is fine | Bots ignore castle races and play slower than people; rules 1–2 are checked statically |
+| Steering by a 48-game sim | 192 games; at 48 the seat score swings ±8 from seed noise |
+| Removing a middle castle and nothing else | Fights then start later: open a lane (mountain → hill) or widen the crossing it fed |
 | Many bridges, all in one corner | Spread crossings so both flanks and the centre can be used |

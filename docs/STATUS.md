@@ -5,7 +5,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 
 ## Game
 - Cờ chiến thuật theo lượt trên lưới ô, luật = Ancient Empires II (`docs/spec.md`). Godot 4.7, GDScript.
-- Nền tảng: iOS (TestFlight, ngang + dọc), macOS / Windows (`godot --path .`), web (`tools/export_web.ps1` chạy trên máy Windows; bản trên Vercel không rõ cập nhật tới commit nào).
+- Nền tảng: iOS (TestFlight, ngang + dọc), macOS / Windows (`godot --path .`), web (`tools/export_web.ps1` chạy trên máy Windows; Vercel https://hon-song-nui.vercel.app = master `be011f8`, deploy 2026-11-09, tướng sprite tắt — bật thử bằng `?sprite`).
 - Bối cảnh: **Quân Đế Quốc (xanh) vs Quân Ma Vương (đỏ rượu + tím)**, Vorn = tướng quân phản loạn -> `docs/setting.md`.
 - Ngôn ngữ: Tiếng Việt + English, mặc định theo máy, đổi ở nút Ngôn ngữ (màn tiêu đề + ⚙) -> `docs/i18n.md`.
 

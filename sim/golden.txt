@@ -158,10 +158,10 @@ sk_dong_bang 0 p castlesLost t33 n540 e8287a1
 sk_dong_bang 1 p castlesLost t17 n219 5aff409
 sk_dong_bang 2 p castlesLost t16 n207 508b90c1
 sk_dong_bang 3 p castlesLost t22 n315 3fd45299
-sk_cua_bien 0 e castlesLost t26 n432 8b677597
-sk_cua_bien 1 p castlesLost t32 n464 682634d7
-sk_cua_bien 2 p castlesLost t22 n318 c0d6c871
-sk_cua_bien 3 p castlesLost t31 n469 b5c0eac4
+sk_cua_bien 0 e castlesLost t25 n372 bd2776b6
+sk_cua_bien 1 e castlesLost t16 n197 2d89de4
+sk_cua_bien 2 p castlesLost t25 n336 57f6ac94
+sk_cua_bien 3 p castlesLost t18 n237 24ec374d
 sk_nui_rung 0 e castlesLost t22 n341 37103bff
 sk_nui_rung 1 p castlesLost t22 n301 bbb76929
 sk_nui_rung 2 p castlesLost t32 n501 13912357

@@ -569,7 +569,7 @@ msgid "Quần đảo Sương Mù"
 msgstr ""
 
 #: content/skirmish_maps.gd:29
-msgid "Mỗi bên giữ một đảo và 2 làng. Cầu hẹp nối các đảo, thuyền có đất dụng võ."
+msgid "Mỗi bên giữ một đảo và 2 làng. Cầu và bãi cạn nối các đảo, đảo giữa là lối tắt; thuyền có đất dụng võ."
 msgstr ""
 
 #: content/skirmish_maps.gd:48

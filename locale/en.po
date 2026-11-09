@@ -569,8 +569,8 @@ msgid "Quần đảo Sương Mù"
 msgstr "Misty Isles"
 
 #: content/skirmish_maps.gd:29
-msgid "Mỗi bên giữ một đảo và 2 làng. Cầu hẹp nối các đảo, thuyền có đất dụng võ."
-msgstr "Each side holds an island and 2 villages. Narrow bridges link the islands, so boats come into their own."
+msgid "Mỗi bên giữ một đảo và 2 làng. Cầu và bãi cạn nối các đảo, đảo giữa là lối tắt; thuyền có đất dụng võ."
+msgstr "Each side holds an island and 2 villages. Bridges and shallows link the islands, the middle isle is the shortcut; boats have room to shine."
 
 #: content/skirmish_maps.gd:48
 msgid "Hẻm núi Đá Xám"

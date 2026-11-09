@@ -304,7 +304,13 @@ func duel_tests() -> void:
 			var deaths: Dictionary = b.heroDeaths
 			var h: Dictionary = Game.spawn(b, "p", "hero", 1, 0)
 			Game._kill(b, h, ev)
-			eq(deaths.p, 1, "commander death still counted"),
+			eq(deaths.p, 1, "commander death still counted")
+			var lag := Game.new_game(Content.skirmish_def("dong_bang", hp, false, 500, 10, { "bounty": 10, "bountyLag": 1 }))
+			eq(Rules.bounty(lag, vet), 0, "lag: equal buildings -> no bounty")
+			var lag_owner: Dictionary = lag.owner
+			lag_owner.erase(Game.castle_tiles(lag, "p")[0]) # p now has fewer buildings than e
+			eq(Rules.bounty(lag, vet), 180, "lag: the side behind on buildings gets it")
+			eq(Rules.bounty(lag, { "type": "wolf", "side": "p", "rank": 3 }), 0, "lag: the side ahead gets nothing"),
 	)
 	run(
 		"surrender: the other side wins at once, replay step applies it, no-op after the end",

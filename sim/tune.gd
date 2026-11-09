@@ -8,7 +8,9 @@ extends SceneTree
 ##   presets [games=8] [salt=9000000] [tuned=<file>] [names=a,b,..] -> round robin of the presets (row score vs column)
 ##   any mode: log=1 -> one line per game (winner, reason, turn, commander deaths)
 ##   time a=<spec> b=<spec> [games=2] [salt=9100000] -> A's AI wall time per step / per turn (avg, worst)
-##   comeback a=<spec> [games=8] [salt=9007000] [thr=0.7,0.5] [rules=off,base,hero,both] (+ baseN / bothN = pay N, bountyN = kill bounty N %/rank)
+##   comeback a=<spec> [games=8] [salt=9007000] [thr=0.7,0.5] [rules=off,base,hero,both]
+##                                                   (+ baseN / bothN = pay N, bountyN = kill bounty N %/rank,
+##                                                    lagbountyN = bounty only for the side with fewer buildings)
 ##                                                   -> a vs a per rules variant (COMEBACK_TRY parts): wins, draws,
 ##                                                      length, and how often the side that first fell behind (army
 ##                                                      value + gold <= thr x foe's, fewer buildings) still won
@@ -242,7 +244,23 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 				rec.append([map_id, me, s.turn] + features(s, me))
 			continue
 		var st: Dictionary = step
-		AI.apply_step(s, st)
+		if timing.has("pay"): # bounty telemetry: gold paid to the side behind / ahead (by strength) at the kill
+			var before := { }
+			for u: Dictionary in s.units:
+				before[u.id] = u.duplicate()
+			var killer: String = s.side
+			var lag := strength(s, killer) < strength(s, Game.other(killer))
+			for e: Dictionary in AI.apply_step(s, st):
+				if e.t == "die" and before.has(e.id):
+					var vic: Dictionary = before[e.id]
+					var to: String = Game.other(str(vic.side))
+					var amt := Rules.bounty(s, vic)
+					var pay: Dictionary = timing.pay
+					var key := ("behind" if lag else "ahead") if to == killer else ("ahead" if lag else "behind")
+					var had: int = pay.get(key, 0)
+					pay[key] = had + amt
+		else:
+			AI.apply_step(s, st)
 		steps += 1
 	games_played += 1
 	timing.last = s.turn
@@ -484,7 +502,10 @@ func comeback() -> void:
 			variants[vname] = { "baseIncome": pay } if vname.begins_with("base") else { "baseIncome": pay, "heroStep": 0 }
 		if vname.begins_with("bounty"): # bountyN: killer gets N % of the victim's price per rank
 			variants[vname] = { "bounty": int(vname.substr(6)) }
+		if vname.begins_with("lagbounty"): # lagbountyN: same, only for the side with fewer buildings
+			variants[vname] = { "bounty": int(vname.substr(9)), "bountyLag": 1 }
 		var c := { "n": 0, "p": 0, "e": 0, "draw": 0, "turns": 0 }
+		var pay_all := { } # bounty gold: side behind / ahead (strength) when the kill happened
 		var per := { }
 		for t: String in thrs:
 			per[t] = { "behind": 0, "back": 0, "tail": 0, "lost": 0 }
@@ -502,6 +523,7 @@ func comeback() -> void:
 									st[t] = [side, s.turn]
 									break,
 				}
+				opt.pay = pay_all
 				var w := play_one(map_id, a, a, salt, k, opt)
 				var last: int = opt.last
 				c.n += 1
@@ -527,6 +549,8 @@ func comeback() -> void:
 			var back: float = pt.back
 			var tail: float = pt.tail
 			row += "  | %18s  %20.1f" % ["%d / %d = %.0f%%" % [back, nb, 100.0 * back / maxi(nb, 1)], tail / maxi(nl, 1)]
+		if not pay_all.is_empty():
+			row += "  | bounty gold to behind %d / ahead %d" % [pay_all.get("behind", 0), pay_all.get("ahead", 0)]
 		print(row)
 
 ## gold + what its units are worth to the AI (AI.value x hp)

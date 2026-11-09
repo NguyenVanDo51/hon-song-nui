@@ -149,6 +149,7 @@ const RULES := {
 	# gold to the killer's side = bounty % of the victim's price per rank (veterans pay, recruits 0). AE2: none.
 	# Per-game override only (s.rules, comeback research, docs/1v1.md "Lật kèo")
 	"bounty": 0,
+	"bountyLag": 0, # 1 = only a killer side with fewer buildings (castles + villages) than the victim's side gets it
 	# buyAE2: a bought unit acts the same turn; our castle may be bought on while one of our units stands there
 	"buyAE2": true,
 }
@@ -167,6 +168,11 @@ static func bounty(s: Dictionary, u: Dictionary) -> int:
 	var base: Dictionary = Game.UNITS[u.type]
 	if pct <= 0 or rank <= 0 or not base.get("buyable", true):
 		return 0
+	if of(s, "bountyLag") > 0:
+		var vic: String = u.side
+		var killer := Game.other(vic)
+		if Game.castles(s, killer) + Game.villages(s, killer) >= Game.castles(s, vic) + Game.villages(s, vic):
+			return 0
 	var price: int = of(s, "heroBase") if u.type == "hero" else base.cost
 	@warning_ignore("integer_division")
 	return price * pct * rank / 100

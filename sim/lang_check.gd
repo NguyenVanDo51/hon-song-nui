@@ -66,8 +66,6 @@ func screens(code: String) -> void:
 	await check("title", code)
 	main.show_levels()
 	await check("levels map", code)
-	main.show_skirmish()
-	await check("skirmish setup", code)
 	main.show_duel()
 	await check("1 vs 1 setup", code)
 	main.show_title()

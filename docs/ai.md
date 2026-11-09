@@ -421,6 +421,65 @@ Dev (salt 4000–4006, `games=4`, 7 tiến trình, 168 ván): `hard_v3b` vs `har
 - Hành vi (ít ván, chỉ để thấy hướng; `tactics_probe.gd base=<spec> opp=v1 games=2 salt=9200000`, 12 ván / dòng; ván v5b dài hơn: 19 vs 12 lượt nên số "/ ván" không so được): tướng chết được kể cả quân mua (roll 0,75) cuối lượt 3,65% -> **1,83%** số lượt-tướng; thành trung lập chiếm / ván 0,58 -> **1,42**; tướng đầy máu đứng yên 2,7% -> 3,0% lượt đi của tướng; tướng chết 2 -> 4 lần / 12 ván. Mua / ván (`army_probe.gd a=<spec> b=hard_v3 games=1 salt=9200000`, 6 ván): v5 lính 9,5 cung 3,0 thuyền 0,8 thầy mo 1,0 trống 0,2 (tổng 14,7); v5b lính 11,5 cung 3,8 thuyền 1,5 thầy mo 1,2 trống 0,5 voi 0,2 chim 0,2 (tổng 19, vàng lúc mua TB 273 -> 362: còn tướng -> kinh tế không sập).
 - t22 / "về thành hồi máu": không thêm knob (mọi ô chết; thành hồi máu sau lượt địch). t13 (`kill2` hơn chiếm thành, rồi tướng bị dồn 96 -> 25) và t21 (đổi máu tướng lấy thuyền) không đổi: 2 ply tính máu tướng rẻ (`pl_hp_cap`); ghi `docs/TODO.md`.
 
+### Trận người thật -> hướng khôn hơn (2026-11-09, phiên 7, chỉ nghiên cứu, chưa đổi code)
+Dữ liệu: `user://replays/default/`, 6 trận 1 đấu 1 user (p) vs `army` = nút "Khó" = Khó v5 (`ctrlE: ai:army` trong head replay; từ `908ecd6` 11-07 22:08, Siêu khó = v3) (2026-11-07 22:19 -> 11-08 00:01) + m12, m02 (Thường, chiến dịch).
+- **Bot cũ**: trước `HERO_FIX` (ship 11-08 03:56), trước luật đi mv − 1 (04:46), trước vẽ lại 3 map (06:48); vàng đầu 350–2050 (user chọn); người luôn ghế p. **0 trận ghi với bot hiện tại.**
+- 4 / 6 trận lệch hash ở code hiện tại (luật đi đổi; TODO "Replay lưu cả state đầu") -> phân tích bằng `tools/review_match.sh <file>` trong worktree commit `42c51bd` (cần `godot --headless --import` trước).
+- Thường (m12, m02) không gộp: mức khó chiến dịch đã cân theo AI Thường (README bảng cân bằng) -> đổi = cân lại 39 màn, ngoài phạm vi.
+
+Kết quả 6 trận: user 3 thắng (10 / 21 / 24 lượt) – 3 thua (10 / 11 / 12 lượt). Bên mất tướng nhiều hơn luôn thua: user thắng -> tướng bot chết 1 / 2 / 2 lần; user thua -> tướng user chết 2 lần mỗi trận.
+
+Nhãn bot (`bot_tags`, 6 trận; `_punished` = bị trả giá thật):
+
+| Nhãn | Số |
+|---|---|
+| `bot_exploited` (người đáp hay hơn mô hình đối thủ 2 ply) | 20 lượt |
+| quân lẻ trong tầm: chết / không chết | 19 / 14 |
+| tướng hở: chết / không chết | 4 / 6 |
+| `bot_blunder` (kém planner Khó v3 cùng thế cờ) | 8 |
+| thành trống bị chiếm | 2 |
+
+Cơ chế (truy từ bước trong replay):
+- **19 quân lẻ chết**: 12 vừa đánh rồi đứng lại (6 trong đó ≥ 70 máu), 4 chiếm làng (3 ở < 35 máu), 3 đứng chờ; 8 / 19 ở < 35 máu. TB 2 đòn người / quân chết; 5 / 19 có quân người vừa mua đánh ngay. `lone_w` chấm theo `threat_map` (quân sẵn có, roll giữa) -> không thấy quân mua + dồn đòn.
+- **20 lượt bị khai thác** (22 tính cả Thường): lời đáp người có mua 11 / 22, quân mới mua đánh ngay 6 / 22, ≥ 3 đòn dồn 1 mục tiêu 8 / 22. Mô hình đối thủ 2 ply (`AIPlan._reply_score`) = Thường tham lam -> không mua-rồi-đánh, ít dồn đòn. `HERO_FIX` (`pl_hero_kill`) đã thêm lời đáp này **chỉ cho tướng**; bản cho mọi quân (`pl_opp_kill`) tự đấu 0,517 vs `hard_v2_0` = không ship.
+- Giả thuyết: tự đấu không thưởng được "đề phòng kiểu người" vì bot đối thủ không khai thác như người -> cần thước đo khác ngoài tỉ lệ thắng tự đấu.
+- Ghi nhận (1 trận, chưa kết luận): user mua đa dạng (voi, trống, thầy mo, sói, máy bắn đá, chim) và thắng cả 3 trận dài; 23-41 voi user lên cấp 7. Bot `army` trận dài mua 14–15 lính. Khác tự đấu ("lính + cung tối ưu mỗi vàng", mục Khó v5).
+
+Hướng làm (theo thứ tự; ai.md luật ship vẫn áp: ≥ 768 ván giữ riêng, không yếu đi vs bot yếu hơn, ngân sách thời gian):
+1. **User chơi 2–3 trận 1 đấu 1 bản hiện tại** (Khó + Siêu khó) -> `tools/review_match.sh all-new` -> biết `HERO_FIX` + luật mới đã sửa phần nào. Rẻ nhất, cần trước mọi thứ dưới.
+2. **Bộ thế cờ người thật** (thước đo hồi quy, không phải tỉ lệ thắng): scenario đầu lượt bot ở mọi lượt `bot_exploited` / quân lẻ chết (review không `noscen` trong worktree cũ; chạy bảng mv + 1 như `sim/tests/hero_fix.gd:83`). Chỉ số = số quân bot chết được cuối lượt khi địch dồn đòn + mua (roll 0,75), so planner cũ / mới trên cùng thế cờ.
+3. **Mô hình đối thủ "người"** cho mọi quân giá trị (không chỉ tướng): lời đáp = mua + dồn đòn vào k quân đắt nhất, roll 0,75; chỉ bật ở 1 đấu 1 vs người. Đo bằng (2) + tự đấu không thua.
+4. **`lone_w` tính quân mua + dồn đòn** (như `hero_bt` nhưng cho quân thường; v4 `buy_threat` từng hòa tự đấu) -> đo bằng (2).
+5. Quân < 35 máu chiếm làng trong tầm địch: có thể là đổi lời (làng = thu nhập) -> đo bằng (2) trước khi coi là lỗi.
+
+Đội hình v3b vs v5b, luật hiện tại (mv − 1, map mới; `army_probe.gd a=hard_v3b b=hard_v5b games=1 salt=9200100..103`, 24 ván, 2 ghế, 3 map; mua / ván):
+
+| | lính | cung | thuyền | thầy mo | trống | sói | voi | máy bắn đá | chim | ngoài lính + cung |
+|---|---|---|---|---|---|---|---|---|---|---|
+| v3b (Siêu khó) | 12,75 | 4,92 | 3,79 | 0,79 | 0 | 0,42 | 0,58 | 0 | 0,12 | 23% |
+| v5b (Khó) | 15,58 | 4,12 | 3,21 | 0,71 | 0,62 | 0,33 | 0 | 0,08 | 0,17 | 20% |
+
+- v5b chỉ hơn v3b ở trống (0,62 / ván; trống phủ quân chưa đi 7,4 / ván); tổng thể **không đa dạng hơn**. Vàng lúc mua đầu lượt TB 299 (v5b) / 344 (v3b); ≥ 600 chỉ 6–9% lượt -> để dành của v5 (khi đang hơn) hiếm khi bật.
+- Điểm v3b vs v5b 0,542 (24 ván, ± ~0,10 = nhiễu).
+
+> 2026-11-09: 3 bản đồ 1 đấu 1 vẽ lại (bỏ thành giữa, `docs/content.md`) + luật quân mới (`docs/spec.md` "Khác AE2 gốc") -> mọi tỉ lệ thắng bot trong file này đo trên bản đồ / luật cũ.
+
+### Giá lính + cung (2026-11-09, phiên 7, đo nhanh trước khi user đánh tay)
+User: tăng giá gốc lính + cung (không giảm công, không tăng giá theo số lượng). Cờ sim: `prices=` / `gold=` / `spam=` (`sim/tune.gd apply_econ`, `army_probe.gd`), `MATCH_EXTRA` (`tools/match_par.sh`).
+Ghi trước khi xem kết quả: bản V0 150 / 250, A 200 / 300, B 250 / 350; bot `hard_v5b` cả 2 bên, 48 ván / bài (`match_par.sh ... 1 9600000 8`, 3 map × 2 ghế; ± ~0,07 -> chỉ thấy chênh lớn). Bài: (1) `+_spam:1` chỉ lính + cung vs đủ loại, (2) `spam=elephant,archer` chỉ voi + cung vs đủ loại, (3) `army_probe` v5b vs v5b (mua / ván, độ dài ván). Đạt: (1) ≤ 0,50 và (2) ≤ 0,50 và độ dài ván TB không tăng > 20% so V0. Chọn bản rẻ nhất đạt -> user đánh tay quyết. Đội hình bot chỉ để xem (cách bot mua chưa sửa, TODO).
+
+Kết quả (salt 9600000–007, 48 ván / ô, ± ~0,07; mỗi bản ~7 phút, 8 tiến trình):
+
+| Bản (lính / cung) | (1) chỉ lính + cung | (2) chỉ voi + cung | mua / ván (v5b): lính · cung · thuyền · thầy mo · trống · sói · voi · máy bắn đá · chim | tổng mua | lượt dư ≥ 150 vàng | lượt / ván (bên A) |
+|---|---|---|---|---|---|---|
+| V0 150 / 250 | 0,573 | 0,156 | 11,1 · 3,3 · 2,3 · 0,5 · 0,5 · 0,3 · 0,1 · 0,1 · 0,2 | 18,9 | 9% | 23,5 |
+| A 200 / 300 | 0,583 | 0,333 | 10,7 · 1,2 · 2,3 · 0,6 · 0,5 · 0,3 · 0 · 0,2 · 0,3 | 16,7 | 21% | 25,3 |
+| B 250 / 350 | 0,604 | 0,292 | 6,2 · 0,7 · 2,8 · 1,0 · 0,4 · 0,3 · 0 · 0,1 · 0,1 | 11,9 | 35% | 20,2 |
+
+- **Không bản nào đạt** (1): dồn lính + cung vẫn thắng ~0,57–0,60 ở mọi mức giá.
+- Nhưng bài (1) đo "chiến lược dồn" vs **cách bot mua hiện tại**, không phải vs đội hình đa dạng hợp lý: bên "đủ loại" (v5b) vẫn mua chủ yếu lính, giá cao chỉ làm nó mua ít quân hơn + ôm vàng (lượt dư vàng 9% -> 35%), không đổi sang golem (voi 0,1 -> 0). Bài (2) lệch vì golem không chiếm được làng (chỉ lính / tướng chiếm) -> phe dồn golem chết kinh tế.
+- -> Tự đấu chưa phân xử được giá **trước khi sửa cách bot mua** (TODO bước 2). Giá: user đánh tay quyết; đo lại (1) sau khi bot mua theo giá trị / vàng.
+
 ## Độ khó (phác thảo, chưa nối vào game)
 Cho chế độ 1v1 sau này (người vs người tại chỗ, hoặc người vs AI Dễ / Thường / Khó). Nối: lúc tạo ván, `s.aiParams = { "e": PRESET }` (lưu cùng ván -> nạp lại vẫn đúng mức).
 

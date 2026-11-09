@@ -61,32 +61,32 @@ msgid "Đứng sau hàng lính, bắn từ ô thứ 2 thì địch không đánh
 msgstr "Stay behind the front line and shoot from 2 tiles away so the enemy can't strike back. +15 ATK against dragons: always keep archers when the enemy has dragons."
 
 #: content/guide.gd:26
-msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +10 công, +15 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
-msgstr "Moves on rivers for just 1 step; in the water +10 ATK, +15 DEF. Hold the river, block the fords and hit enemies wading across (they get no defense in water). On land it moves like a Guard."
+msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +15 công, +25 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
+msgstr "Moves on rivers for just 1 step; in the water +15 ATK, +25 DEF. Hold the river, block the fords and hit enemies wading across (they get no defense in water). On land it moves like a Guard."
 
 #: content/guide.gd:27
 msgid "Đánh yếu, đừng đưa lên đầu. Đứng cạnh lính ngã (cả lính địch) rồi bấm Gọi hồn: thêm một bộ xương miễn phí. Lính ngã mất sau lượt kế của mỗi bên, nên đứng gần chỗ đang đánh."
 msgstr "Weak in a fight, keep it out of the front line. Stand next to a fallen soldier (enemy ones too) and press Raise Dead: a free skeleton. The fallen fade after each side's next turn, so stay close to the fighting."
 
 #: content/guide.gd:28
-msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đánh bộ xương +15 công."
-msgstr "Give the cleric its order first (attack or wait): our units within 2 tiles get +10 ATK until next turn, then send in the rest. +15 ATK against skeletons."
+msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đầu lượt ta, quân ta trong 2 ô hồi 10 máu: đứng sau tuyến đầu để cả đội đánh lâu không cần về làng. Đánh bộ xương +15 công."
+msgstr "Give the cleric its order first (attack or wait): our units within 2 tiles get +10 ATK until next turn, then send in the rest. At the start of our turn, our units within 2 tiles heal 10 HP: keep it just behind the front line so the army fights on without walking back to a village. +15 ATK against skeletons."
 
 #: content/guide.gd:29
-msgid "Chạy 5 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
-msgstr "Runs 5 steps. A bite leaves the enemy −10 ATK, −10 DEF until our next turn: let the wolf bite first, then attack with the others. Great for hunting lone archers and catapults."
+msgid "Chạy 5 bước, rừng / đồi / núi chỉ tốn 1 bước: vòng qua rừng núi đánh tạt sườn. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
+msgstr "Runs 5 steps; forests, hills and mountains cost only 1 step: circle through the wilds to strike a flank. A bite leaves the enemy −10 ATK, −10 DEF until our next turn: let the wolf bite first, then attack with the others. Great for hunting lone archers and catapults."
 
 #: content/guide.gd:30
 msgid "Thủ rất dày, đánh mạnh, lên được cả núi. Đưa lên chặn cầu, cửa ải hoặc đấm thẳng vào chỗ địch đông. Đắt: đừng để bị vây."
 msgstr "Very thick armor, hits hard, can even climb mountains. Use it to block bridges and passes or to smash into a crowd of enemies. Expensive: don't let it get surrounded."
 
 #: content/guide.gd:31
-msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
-msgstr "Can only throw while standing still, range 2–4, never strikes back. Can destroy enemy villages. Keep it far behind with units shielding it."
+msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Xuyên giáp: địch đứng núi, rừng, làng, thành cũng không được thủ địa hình -> lôi golem trên núi, quân núp trong thành ra. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
+msgstr "Can only throw while standing still, range 2–4, never strikes back. Armor-piercing: targets on mountains, forests, villages or castles get no terrain defense -> breaks golems on mountains and units hiding in castles. Can destroy enemy villages. Keep it far behind with units shielding it."
 
 #: content/guide.gd:32
-msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
-msgstr "Flies over rivers and mountains for 1 step each, moves 6. Strongest and most expensive (1000 gold). Swing behind lines to hit catapults, lone archers and distant villages. Avoid enemy archers."
+msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (750 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
+msgstr "Flies over rivers and mountains for 1 step each, moves 6. Strongest and most expensive (750 gold). Swing behind lines to hit catapults, lone archers and distant villages. Avoid enemy archers."
 
 #: content/guide.gd:33
 msgid "Pháp sư gọi hồn dựng dậy, không mua được, không tính vào trần quân, không chiếm được làng. Dùng làm lá chắn, chặn đường hoặc đánh phụ. Sợ tu sĩ ánh sáng."
@@ -416,7 +416,7 @@ msgstr "The Commander has its orders, so it's greyed out. The Guard hasn't moved
 msgid "Mỗi lượt bạn điều khiển được TẤT CẢ quân. Giờ tới Vệ binh"
 msgstr "Every turn you command ALL your units. Now the Guard"
 
-#: content/levels/t01.gd:45 content/levels/t03.gd:44 content/theme.gd:91
+#: content/levels/t01.gd:45 content/levels/t03.gd:44 content/theme.gd:90
 msgid "Hết lượt"
 msgstr "End Turn"
 
@@ -468,7 +468,7 @@ msgstr "An abandoned castle right on the line that splits the empire. The Demon 
 msgid "Hạ hết quân địch để thắng. Giữa bản đồ có 1 lâu đài trống: chiếm nó trước!"
 msgstr "Defeat every enemy to win. There's an empty castle in the middle of the map: capture it first!"
 
-#: content/levels/t02.gd:35 content/theme.gd:219
+#: content/levels/t02.gd:35 content/theme.gd:218
 msgid "Lâu đài"
 msgstr "Castle"
 
@@ -480,7 +480,7 @@ msgstr "Only the Commander can capture castles. Units on a castle get very high 
 msgid "Đưa Tướng lên lâu đài rồi bấm 🏯 Chiếm lâu đài"
 msgstr "Move the Commander onto the castle, then press 🏯 Capture castle"
 
-#: content/levels/t02.gd:37 scripts/ui/menus.gd:852
+#: content/levels/t02.gd:37 scripts/ui/menus.gd:754
 msgid "Địa hình"
 msgstr "Terrain"
 
@@ -528,7 +528,7 @@ msgstr "Tap the castle and recruit 1 Guard (150 gold)"
 msgid "Quân mới mua đi được ngay. Đưa Vệ binh vào làng rồi bấm 🏠 Chiếm làng"
 msgstr "Newly recruited units can move right away. Move the Guard into the village, then press 🏠 Capture village"
 
-#: content/levels/t03.gd:39 content/theme.gd:218
+#: content/levels/t03.gd:39 content/theme.gd:217
 msgid "Làng"
 msgstr "Village"
 
@@ -561,24 +561,24 @@ msgid "Đảo Sông Bạc"
 msgstr "Silver River Isle"
 
 #: content/skirmish_maps.gd:8
-msgid "Sông lớn chia đôi chiến trường, lâu đài trên cù lao giữa dòng. Hai cầu gỗ hai bên."
-msgstr "A great river splits the battlefield, with a castle on the island midstream. Two wooden bridges on either side."
+msgid "Sông lớn chia đôi chiến trường, cù lao giữa dòng nối hai bờ. Hai cầu gỗ hai bên."
+msgstr "A great river splits the battlefield; an island midstream links both banks. Two wooden bridges on either side."
 
 #: content/skirmish_maps.gd:28
 msgid "Quần đảo Sương Mù"
 msgstr "Misty Isles"
 
 #: content/skirmish_maps.gd:29
-msgid "Mỗi bên giữ một đảo và 2 làng. Cầu hẹp nối các đảo, thuyền có đất dụng võ."
-msgstr "Each side holds an island and 2 villages. Narrow bridges link the islands, so boats come into their own."
+msgid "Mỗi bên giữ một đảo và 2 làng. Cầu và bãi cạn nối các đảo, đảo giữa là lối tắt; thuyền có đất dụng võ."
+msgstr "Each side holds an island and 2 villages. Bridges and shallows link the islands, the middle isle is the shortcut; boats have room to shine."
 
 #: content/skirmish_maps.gd:48
 msgid "Hẻm núi Đá Xám"
 msgstr "Grey Rock Gorge"
 
 #: content/skirmish_maps.gd:49
-msgid "Núi đá hai bờ suối. Lâu đài chắn ngang dòng là lối qua giữa, hai cầu gỗ ở hai đầu hẻm."
-msgstr "Rocky mountains on both banks of a stream. The castle across the stream is the middle crossing, with a wooden bridge at each end of the gorge."
+msgid "Núi đá hai bờ suối. Bãi cạn rộng giữa hẻm là lối qua chính, hai cầu gỗ ở hai đầu hẻm."
+msgstr "Rocky mountains on both banks of a stream. A wide ford mid-gorge is the main crossing, with a wooden bridge at each end."
 
 #: content/theme.gd:11
 msgid "Vệ binh"
@@ -596,13 +596,13 @@ msgstr "Archer"
 msgid "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn quân bay (rồng)."
 msgstr "Shoots 1–2 tiles; from 2 tiles the enemy can't strike back. +15 ATK against flyers (dragons)."
 
-#: content/theme.gd:14 scripts/ui/menus.gd:943
+#: content/theme.gd:14 scripts/ui/menus.gd:845
 msgid "Hải tặc"
 msgstr "Pirate"
 
 #: content/theme.gd:16
-msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ."
-msgstr "River folk in small boats: moving on rivers costs only 1 step. In the river +10 ATK, +15 DEF."
+msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +15 công, +25 thủ."
+msgstr "River folk in small boats: moving on rivers costs only 1 step. In the river +15 ATK, +25 DEF."
 
 #: content/theme.gd:18
 msgid "Pháp sư gọi hồn"
@@ -617,16 +617,16 @@ msgid "Tu sĩ ánh sáng"
 msgstr "Cleric of Light"
 
 #: content/theme.gd:22
-msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương."
-msgstr "After raising its lamp in blessing (after any order): our units within 2 tiles get +10 ATK until next turn. +15 ATK against skeletons."
+msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. Đầu lượt ta: quân ta trong 2 ô hồi 10 máu. +15 công khi đánh bộ xương."
+msgstr "After raising its lamp in blessing (after any order): our units within 2 tiles get +10 ATK until next turn. At the start of our turn: our units within 2 tiles heal 10 HP. +15 ATK against skeletons."
 
 #: content/theme.gd:25
 msgid "Sói bóng đêm"
 msgstr "Shadow Wolf"
 
 #: content/theme.gd:27
-msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
-msgstr "A huge black wolf from the deep forest. Runs fast (5 steps). Its bite wounds the enemy: −10 ATK, −10 DEF until our next turn."
+msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước), rừng / đồi / núi chỉ tốn 1 bước. Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
+msgstr "A huge black wolf from the deep forest. Runs fast (5 steps); forests, hills and mountains cost only 1 step. Its bite wounds the enemy: −10 ATK, −10 DEF until our next turn."
 
 #: content/theme.gd:29
 msgid "Golem đá"
@@ -641,8 +641,8 @@ msgid "Máy bắn đá"
 msgstr "Catapult"
 
 #: content/theme.gd:33
-msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
-msgstr "Throws stones 2–4 tiles. Can't throw on a turn it has moved. Never strikes back. Can destroy enemy or unclaimed villages (they become burned villages)."
+msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Xuyên giáp: địch bị ném không được thủ địa hình. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
+msgstr "Throws stones 2–4 tiles. Can't throw on a turn it has moved. Never strikes back. Armor-piercing: its target gets no terrain defense. Can destroy enemy or unclaimed villages (they become burned villages)."
 
 #: content/theme.gd:36
 msgid "Rồng"
@@ -688,483 +688,479 @@ msgstr "Half the empire has sworn to the Demon Lord. Win back every castle."
 msgid "Lượt quân Ma Vương"
 msgstr "Demon Lord's turn"
 
-#: content/theme.gd:56 scripts/ui/menus.gd:263 scripts/ui/menus.gd:464
-msgid "Đấu tự do"
-msgstr "Skirmish"
-
-#: content/theme.gd:57
+#: content/theme.gd:56
 msgid "Hiệp Sĩ Chỉ Huy đấu với Vorn"
 msgstr "Knight Commander vs Vorn"
 
-#: content/theme.gd:58
+#: content/theme.gd:57
 msgid "Hai người chung máy, hoặc đấu với máy"
 msgstr "Two players on one device, or play the computer"
 
-#: content/theme.gd:59
+#: content/theme.gd:58
 msgid "Lượt {turn} · {side}"
 msgstr "Turn {turn} · {side}"
 
-#: content/theme.gd:60
+#: content/theme.gd:59
 msgid "{side} thắng"
 msgstr "{side} wins"
 
-#: content/theme.gd:61
+#: content/theme.gd:60
 msgid "{loser} mất hết lâu đài, tướng cũng đã ngã."
 msgstr "{loser} lost every castle, and its commander has fallen."
 
-#: content/theme.gd:62
+#: content/theme.gd:61
 msgid "{loser} không còn quân, không còn lâu đài."
 msgstr "{loser} has no units and no castles left."
 
-#: content/theme.gd:63
+#: content/theme.gd:62
 msgid "{loser} đã đầu hàng."
 msgstr "{loser} surrendered."
 
-#: content/theme.gd:64
+#: content/theme.gd:63
 msgid "Lượt của {side}"
 msgstr "{side}'s turn"
 
-#: content/theme.gd:65
+#: content/theme.gd:64
 msgid "Lượt {turn} · chạm để bắt đầu"
 msgstr "Turn {turn} · tap to start"
 
-#: content/theme.gd:66
+#: content/theme.gd:65
 msgid "gọi hồn"
 msgstr "raise the dead"
 
-#: content/theme.gd:67
+#: content/theme.gd:66
 msgid "☠ Gọi hồn"
 msgstr "☠ Raise Dead"
 
-#: content/theme.gd:68
+#: content/theme.gd:67
 msgid "Lính ngã: pháp sư gọi hồn đứng cạnh dựng dậy được thành bộ xương. Mất sau lượt kế của mỗi bên, hoặc khi có quân bước lên."
 msgstr "Fallen soldier: a Necromancer standing next to it can raise it as a skeleton. Gone after each side's next turn, or when a unit steps on it."
 
-#: content/theme.gd:69
+#: content/theme.gd:68
 msgid "Lính ngã"
 msgstr "Fallen soldier"
 
-#: content/theme.gd:70
+#: content/theme.gd:69
 msgid "Lượt {turn} · Quân ta"
 msgstr "Turn {turn} · Our army"
 
-#: content/theme.gd:71
+#: content/theme.gd:70
 msgid "Chiếm lâu đài!"
 msgstr "Castle captured!"
 
-#: content/theme.gd:72
+#: content/theme.gd:71
 msgid "Chiếm làng"
 msgstr "Village captured"
 
-#: content/theme.gd:73
+#: content/theme.gd:72
 msgid "Đại thắng"
 msgstr "Victory"
 
-#: content/theme.gd:74
+#: content/theme.gd:73
 msgid "Thất thủ"
 msgstr "Defeat"
 
-#: content/theme.gd:75
+#: content/theme.gd:74
 msgid "TƯỚNG TA"
 msgstr "OUR COMMANDER"
 
-#: content/theme.gd:76
+#: content/theme.gd:75
 msgid "TƯỚNG ĐỊCH"
 msgstr "ENEMY COMMANDER"
 
-#: content/theme.gd:77
+#: content/theme.gd:76
 msgid "QUÂN MỚI · PHE TA"
 msgstr "NEW UNIT · OURS"
 
-#: content/theme.gd:78
+#: content/theme.gd:77
 msgid "QUÂN ĐỊCH MỚI"
 msgstr "NEW ENEMY UNIT"
 
-#: content/theme.gd:79
+#: content/theme.gd:78
 msgid "🔄 Xem lại"
 msgstr "🔄 Replay"
 
-#: content/theme.gd:80
+#: content/theme.gd:79
 msgid "Đã hiểu"
 msgstr "Got it"
 
-#: content/theme.gd:81
+#: content/theme.gd:80
 msgid "đánh mục tiêu viền vàng"
 msgstr "attack the gold-ringed target"
 
-#: content/theme.gd:82
+#: content/theme.gd:81
 msgid "chiếm"
 msgstr "capture"
 
-#: content/theme.gd:83
+#: content/theme.gd:82
 msgid "dựng lại"
 msgstr "rebuild"
 
-#: content/theme.gd:84
+#: content/theme.gd:83
 msgid "đốt làng viền vàng"
 msgstr "burn the gold-ringed village"
 
-#: content/theme.gd:85
+#: content/theme.gd:84
 msgid "Đốt làng!"
 msgstr "Burn the village!"
 
-#: content/theme.gd:86
+#: content/theme.gd:85
 msgid "Dựng lại làng"
 msgstr "Rebuild village"
 
-#: content/theme.gd:87
+#: content/theme.gd:86
 msgid "đi tới ô sáng rồi chờ"
 msgstr "move to the lit tile, then wait"
 
-#: content/theme.gd:88
+#: content/theme.gd:87
 msgid "Mộ quân"
 msgstr "Recruit"
 
-#: content/theme.gd:89
+#: content/theme.gd:88
 msgid "» Bỏ qua hướng dẫn"
 msgstr "» Skip tutorial"
 
-#: content/theme.gd:90
+#: content/theme.gd:89
 msgid "Tính thắng 1 sao, về lưới thử thách"
 msgstr "Counts as a 1-star win, back to the challenge map"
 
-#: content/theme.gd:92
+#: content/theme.gd:91
 msgid "▶ Đã hiểu"
 msgstr "▶ Got it"
 
-#: content/theme.gd:93
+#: content/theme.gd:92
 msgid "Xuất quân ›"
 msgstr "March ›"
 
-#: content/theme.gd:94
+#: content/theme.gd:93
 msgid "🔒 Chưa chiếm lại: thắng màn trước để mở"
 msgstr "🔒 Not retaken yet: win the previous level to unlock"
 
-#: content/theme.gd:95
+#: content/theme.gd:94
 msgid "Mọi quân đã đi (xám): bấm Hết lượt"
 msgstr "Every unit has moved (grey): press End Turn"
 
-#: content/theme.gd:96
+#: content/theme.gd:95
 msgid "quân địch"
 msgstr "enemy units"
 
-#: content/theme.gd:97
+#: content/theme.gd:96
 msgid "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta."
 msgstr "{capV}: stand on the village, then press Capture: +{income} gold/turn, heals our units."
 
-#: content/theme.gd:98
+#: content/theme.gd:97
 msgid "Làng bị {raze} đốt cháy. {capV} đứng vào rồi bấm Dựng lại làng; lượt sau mới chiếm được."
 msgstr "Village burned by {raze}. {capV}: stand on it and press Rebuild village; it can be captured the turn after."
 
-#: content/theme.gd:99
+#: content/theme.gd:98
 msgid "Chỉ {capC_l} chiếm được lâu đài. Lâu đài: +{income} vàng/lượt, mua lính, hồi máu. Có quân ta đứng trên lâu đài vẫn mua được: lính mới phải bước ra ô khác."
 msgstr "Only {capC_l} can capture castles. Castle: +{income} gold/turn, recruit units, heal. You can still recruit with one of our units on the castle: the new unit has to step off."
 
-#: content/theme.gd:100
+#: content/theme.gd:99
 msgid "Giếng Thần: không ai chiếm được. Quân phe nào đứng đây cũng hồi {heal} máu mỗi lượt, thủ +15."
 msgstr "Holy Well: nobody can capture it. A unit of either side standing here heals {heal} HP each turn, DEF +15."
 
-#: content/theme.gd:101
-msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ."
-msgstr "Every unit can wade across, but it costs 3 steps and gives no defense. {water} needs only 1 step, and in the river gets +10 ATK, +15 DEF."
+#: content/theme.gd:100
+msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +15 công, +25 thủ."
+msgstr "Every unit can wade across, but it costs 3 steps and gives no defense. {water} needs only 1 step, and in the river gets +15 ATK, +25 DEF."
 
-#: content/theme.gd:102
+#: content/theme.gd:101
 msgid "Mẹo: giữ tướng sau hàng vệ binh; đứng trên đồi, làng, lâu đài được thêm thủ."
 msgstr "Tip: keep the commander behind your guards; hills, villages and castles add defense."
 
-#: content/theme.gd:103
+#: content/theme.gd:102
 msgid "Mẹo: luôn để một quân đứng chặn trên lâu đài khi địch có tướng ở gần."
 msgstr "Tip: always keep a unit on your castle when the enemy commander is close."
 
-#: content/theme.gd:104
+#: content/theme.gd:103
 msgid "Mẹo: chiếm làng sớm để có vàng mua quân; đừng đem lính lẻ ra đánh."
 msgstr "Tip: capture villages early for gold to recruit; don't send units out alone."
 
-#: content/theme.gd:105
+#: content/theme.gd:104
 msgid "Mẹo: đi đường mòn cho nhanh, để vệ binh chặn đường đuổi phía sau."
 msgstr "Tip: take the trails to move fast, and leave guards to block pursuers behind you."
 
-#: content/theme.gd:107
+#: content/theme.gd:106
 msgid "Thắng trận"
 msgstr "Win the battle"
 
-#: content/theme.gd:108
+#: content/theme.gd:107
 msgid "Tướng ta không ngã lần nào"
 msgstr "Our commander never falls"
 
-#: content/theme.gd:109
+#: content/theme.gd:108
 msgid "Thắng trong {n} lượt"
 msgstr "Win within {n} turns"
 
-#: content/theme.gd:110
+#: content/theme.gd:109
 msgid "Mất không quá {n} lính"
 msgstr "Lose at most {n} units"
 
-#: content/theme.gd:111
+#: content/theme.gd:110
 msgid "Không mất lính nào"
 msgstr "Lose no units"
 
-#: content/theme.gd:112
+#: content/theme.gd:111
 msgid "Kỷ lục: {n}/3 sao"
 msgstr "Best: {n}/3 stars"
 
-#: content/theme.gd:113
+#: content/theme.gd:112
 msgid "Nhiệm vụ {have}/{need}"
 msgstr "Quests {have}/{need}"
 
-#: content/theme.gd:115 scripts/core/content.gd:283 scripts/ui/menus.gd:926
+#: content/theme.gd:114 scripts/core/content.gd:283 scripts/ui/menus.gd:828
 msgid "Tướng"
 msgstr "Commander"
 
-#: content/theme.gd:116
+#: content/theme.gd:115
 msgid "tướng địch"
 msgstr "enemy commander"
 
-#: content/theme.gd:118
+#: content/theme.gd:117
 msgid "Chọn {unit}"
 msgstr "Select {unit}"
 
-#: content/theme.gd:119
+#: content/theme.gd:118
 msgid "Đi {unit}"
 msgstr "Move {unit}"
 
-#: content/theme.gd:120
+#: content/theme.gd:119
 msgid "Đi 1 quân"
 msgstr "Move 1 unit"
 
-#: content/theme.gd:122
+#: content/theme.gd:121
 msgid "Chiếm 1 {tile}"
 msgstr "Capture 1 {tile}"
 
-#: content/theme.gd:123
+#: content/theme.gd:122
 msgid "Chiếm 1 ô"
 msgstr "Capture 1 tile"
 
-#: content/theme.gd:124
+#: content/theme.gd:123
 msgid "Đứng vào {tile}"
 msgstr "Stand on {tile}"
 
-#: content/theme.gd:125
+#: content/theme.gd:124
 msgid "Đánh bằng {unit}"
 msgstr "Attack with {unit}"
 
-#: content/theme.gd:126
+#: content/theme.gd:125
 msgid "Đánh 1 đòn"
 msgstr "Land 1 attack"
 
-#: content/theme.gd:127
+#: content/theme.gd:126
 msgid "Hạ địch bằng {unit}"
 msgstr "Defeat an enemy with {unit}"
 
-#: content/theme.gd:128 content/theme.gd:132
+#: content/theme.gd:127 content/theme.gd:131
 msgid "Hạ 1 địch"
 msgstr "Defeat 1 enemy"
 
-#: content/theme.gd:129
+#: content/theme.gd:128
 msgid "Đánh {unit}"
 msgstr "Attack {unit}"
 
-#: content/theme.gd:130
+#: content/theme.gd:129
 msgid "Đánh 1 địch"
 msgstr "Attack 1 enemy"
 
-#: content/theme.gd:131
+#: content/theme.gd:130
 msgid "Hạ 1 {unit}"
 msgstr "Defeat 1 {unit}"
 
-#: content/theme.gd:134
+#: content/theme.gd:133
 msgid "Mua 1 quân"
 msgstr "Recruit 1 unit"
 
-#: content/theme.gd:135
+#: content/theme.gd:134
 msgid "Hồi máu ở {tile}"
 msgstr "Heal at {tile}"
 
-#: content/theme.gd:136
+#: content/theme.gd:135
 msgid "Hồi máu"
 msgstr "Heal"
 
-#: content/theme.gd:137
+#: content/theme.gd:136
 msgid "Sửa làng hỏng"
 msgstr "Repair a ruined village"
 
-#: content/theme.gd:138
+#: content/theme.gd:137
 msgid "Đốt 1 làng"
 msgstr "Burn 1 village"
 
-#: content/theme.gd:139
+#: content/theme.gd:138
 msgid "Gọi dậy 1 bộ xương"
 msgstr "Raise 1 skeleton"
 
-#: content/theme.gd:144
+#: content/theme.gd:143
 msgid "Chiếm hết lâu đài của địch và hạ {eh} (hoặc diệt sạch quân lẫn lâu đài)."
 msgstr "Capture every enemy castle and defeat {eh} (or wipe out all their units and castles)."
 
-#: content/theme.gd:145
+#: content/theme.gd:144
 msgid "Chiếm {n} lâu đài + hạ {eh}"
 msgstr "Capture {n} castles + defeat {eh}"
 
-#: content/theme.gd:146
+#: content/theme.gd:145
 msgid "Chiếm hết lâu đài + hạ {eh}"
 msgstr "Capture every castle + defeat {eh}"
 
-#: content/theme.gd:148
+#: content/theme.gd:147
 msgid "Diệt hết quân địch."
 msgstr "Defeat every enemy unit."
 
-#: content/theme.gd:148
+#: content/theme.gd:147
 msgid "Diệt hết địch (còn {n})"
 msgstr "Defeat every enemy ({n} left)"
 
-#: content/theme.gd:148
+#: content/theme.gd:147
 msgid "Diệt hết quân địch"
 msgstr "Defeat every enemy unit"
 
-#: content/theme.gd:149
+#: content/theme.gd:148
 msgid "Hạ {eh}."
 msgstr "Defeat {eh}."
 
-#: content/theme.gd:149 content/theme.gd:149
+#: content/theme.gd:148 content/theme.gd:148
 msgid "Hạ {eh}"
 msgstr "Defeat {eh}"
 
-#: content/theme.gd:150
+#: content/theme.gd:149
 msgid "Giữ vững đến hết lượt {turns}."
 msgstr "Hold out until the end of turn {turns}."
 
-#: content/theme.gd:150
+#: content/theme.gd:149
 msgid "Giữ vững: còn {left} lượt"
 msgstr "Hold out: {left} turns left"
 
-#: content/theme.gd:150
+#: content/theme.gd:149
 msgid "Giữ vững {turns} lượt"
 msgstr "Hold out {turns} turns"
 
-#: content/theme.gd:152
+#: content/theme.gd:151
 msgid "Đưa {hero} tới ô cờ vàng{within}."
 msgstr "Bring {hero} to the gold flag{within}."
 
-#: content/theme.gd:153
+#: content/theme.gd:152
 msgid "Đưa {hero} tới cờ vàng{left_txt}"
 msgstr "Bring {hero} to the gold flag{left_txt}"
 
-#: content/theme.gd:154
+#: content/theme.gd:153
 msgid "Đưa {hero} tới cờ vàng{within}"
 msgstr "Bring {hero} to the gold flag{within}"
 
-#: content/theme.gd:160
+#: content/theme.gd:159
 msgid "Đã quét sạch quân địch."
 msgstr "The enemy army has been wiped out."
 
-#: content/theme.gd:161
+#: content/theme.gd:160
 msgid "Đã chiếm hết lâu đài và hạ tướng địch."
 msgstr "Every castle captured and the enemy commander defeated."
 
-#: content/theme.gd:162
+#: content/theme.gd:161
 msgid "{eh} đã bị hạ."
 msgstr "{eh} has been defeated."
 
-#: content/theme.gd:163
+#: content/theme.gd:162
 msgid "Đã giữ vững đến cùng."
 msgstr "We held out to the end."
 
-#: content/theme.gd:164
+#: content/theme.gd:163
 msgid "{hero} đã tới nơi an toàn."
 msgstr "{hero} reached safety."
 
-#: content/theme.gd:165
+#: content/theme.gd:164
 msgid "Địch đã đầu hàng."
 msgstr "The enemy surrendered."
 
-#: content/theme.gd:168
+#: content/theme.gd:167
 msgid "{hero} đã ngã."
 msgstr "{hero} has fallen."
 
-#: content/theme.gd:169
+#: content/theme.gd:168
 msgid "Mất hết lâu đài, tướng ta cũng đã ngã."
 msgstr "Every castle lost, and our commander has fallen."
 
-#: content/theme.gd:170
+#: content/theme.gd:169
 msgid "{hero} đã ngã, ta không còn lâu đài nào."
 msgstr "{hero} has fallen and we hold no castles."
 
-#: content/theme.gd:171
+#: content/theme.gd:170
 msgid "Quân ta đã tan."
 msgstr "Our army is broken."
 
-#: content/theme.gd:172
+#: content/theme.gd:171
 msgid "Ta đã đầu hàng."
 msgstr "We surrendered."
 
-#: content/theme.gd:173
+#: content/theme.gd:172
 msgid "Không kịp tới nơi, quân Ma Vương đã khép vòng vây."
 msgstr "Too late: the Demon Lord's host has closed the ring."
 
-#: content/theme.gd:179
+#: content/theme.gd:178
 msgid "Quân Đế Quốc"
 msgstr "Imperial Army"
 
-#: content/theme.gd:180 scripts/ui/game_hud.gd:554 scripts/ui/menus.gd:852
+#: content/theme.gd:179 scripts/ui/game_hud.gd:554 scripts/ui/menus.gd:754
 msgid "Quân ta"
 msgstr "Our army"
 
-#: content/theme.gd:181
+#: content/theme.gd:180
 msgid "Đế Quốc"
 msgstr "Empire"
 
-#: content/theme.gd:190
+#: content/theme.gd:189
 msgid "Quân Ma Vương"
 msgstr "Demon Lord's Host"
 
-#: content/theme.gd:191 content/theme.gd:192
+#: content/theme.gd:190 content/theme.gd:191
 msgid "Ma Vương"
 msgstr "Demon Lord"
 
-#: content/theme.gd:203
+#: content/theme.gd:202
 msgid "Đồng cỏ"
 msgstr "Grassland"
 
-#: content/theme.gd:205
+#: content/theme.gd:204
 msgid "Đường mòn"
 msgstr "Trail"
 
-#: content/theme.gd:213
+#: content/theme.gd:212
 msgid "Rừng"
 msgstr "Forest"
 
-#: content/theme.gd:214
+#: content/theme.gd:213
 msgid "Đồi"
 msgstr "Hill"
 
-#: content/theme.gd:215
+#: content/theme.gd:214
 msgid "Núi"
 msgstr "Mountain"
 
-#: content/theme.gd:216
+#: content/theme.gd:215
 msgid "Sông"
 msgstr "River"
 
-#: content/theme.gd:217
+#: content/theme.gd:216
 msgid "Cầu gỗ"
 msgstr "Wooden Bridge"
 
-#: content/theme.gd:220
+#: content/theme.gd:219
 msgid "Làng cháy"
 msgstr "Burned Village"
 
-#: content/theme.gd:221
+#: content/theme.gd:220
 msgid "Giếng Thần"
 msgstr "Holy Well"
 
-#: content/theme.gd:232
+#: content/theme.gd:231
 msgid "Hiệp Sĩ Chỉ Huy"
 msgstr "Knight Commander"
 
-#: content/theme.gd:234
+#: content/theme.gd:233
 msgid "Hiệp sĩ trung thành của Đế Quốc, cầm quân giành lại nửa đất đã mất. Chiếm được cả làng lẫn lâu đài. Ngã thì mua lại ở lâu đài, giữ nguyên cấp; mỗi lần ngã giá mua lại +200."
 msgstr "A loyal knight of the Empire, leading the army to win back the lost half of the land. Captures both villages and castles. If he falls, buy him back at a castle at the same level; each fall raises the price by 200."
 
-#: content/theme.gd:240
+#: content/theme.gd:239
 msgid "Tướng quân phản loạn, bán đế quốc cho Ma Vương để được lên ngôi. Cầm quân trong mọi trận. Cùng sức với tướng ta."
 msgstr "The rebel general who sold the empire to the Demon Lord for a crown. Leads the enemy in every battle. As strong as our commander."
 
@@ -1288,11 +1284,11 @@ msgstr " or "
 msgid "Tiếng Việt"
 msgstr "Tiếng Việt"
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " hạ gục"
 msgstr " kills"
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " có thể hạ"
 msgstr " may kill"
 
@@ -1300,7 +1296,7 @@ msgstr " may kill"
 msgid " ngã"
 msgstr " falls"
 
-#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:597
+#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:599
 msgid " có thể ngã"
 msgstr " may fall"
 
@@ -1332,7 +1328,7 @@ msgstr "Units, terrain, buildings and interface icons: drawn for this game."
 msgid "Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."
 msgstr "Emoji: Noto Emoji © Google LLC, Apache License 2.0."
 
-#: scripts/ui/credits.gd:21 scripts/ui/game_hud.gd:251 scripts/ui/menus.gd:268
+#: scripts/ui/credits.gd:21 scripts/ui/game_hud.gd:251 scripts/ui/menus.gd:261
 msgid "Âm thanh"
 msgstr "Sound"
 
@@ -1420,11 +1416,11 @@ msgstr "💬 Suggest a move"
 msgid "Gợi ý (phím H)"
 msgstr "Hint (H key)"
 
-#: scripts/ui/game_hud.gd:258 scripts/ui/menus.gd:269
+#: scripts/ui/game_hud.gd:258 scripts/ui/menus.gd:262
 msgid "Nhạc"
 msgstr "Music"
 
-#: scripts/ui/game_hud.gd:263 scripts/ui/menus.gd:270
+#: scripts/ui/game_hud.gd:263 scripts/ui/menus.gd:263
 msgid "Tốc độ"
 msgstr "Speed"
 
@@ -1432,7 +1428,7 @@ msgstr "Speed"
 msgid "Tốc độ hoạt cảnh"
 msgstr "Animation speed"
 
-#: scripts/ui/game_hud.gd:267 scripts/ui/menus.gd:272
+#: scripts/ui/game_hud.gd:267 scripts/ui/menus.gd:265
 msgid "Ngôn ngữ"
 msgstr "Language"
 
@@ -1484,19 +1480,19 @@ msgstr "Surrender? [b]%s[/b] will lose this game."
 msgid "Đầu hàng"
 msgstr "Surrender"
 
-#: scripts/ui/game_hud.gd:574 scripts/ui/menus.gd:293
+#: scripts/ui/game_hud.gd:574 scripts/ui/menus.gd:286
 msgid "Âm thanh: %s"
 msgstr "Sound: %s"
 
-#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:293
+#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:286
 msgid "tắt"
 msgstr "off"
 
-#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:293
+#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:286
 msgid "bật"
 msgstr "on"
 
-#: scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:294
+#: scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:287
 msgid "Nhạc: %s"
 msgstr "Music: %s"
 
@@ -1660,95 +1656,99 @@ msgstr "+%d ATK vs dragons"
 msgid "+%d công đánh %s"
 msgstr "+%d ATK vs %s"
 
-#: scripts/ui/info_panel.gd:280
+#: scripts/ui/info_panel.gd:278
+msgid "xuyên giáp: địch không được thủ địa hình"
+msgstr "armor-piercing: no terrain defense for the enemy"
+
+#: scripts/ui/info_panel.gd:282
 msgid "địch được %s +%d thủ"
 msgstr "enemy gets %s +%d DEF"
 
-#: scripts/ui/info_panel.gd:282
+#: scripts/ui/info_panel.gd:284
 msgid "[color=#%s]địch +%d thủ[/color] dưới sông"
 msgstr "[color=#%s]enemy +%d DEF[/color] in the river"
 
-#: scripts/ui/info_panel.gd:284
+#: scripts/ui/info_panel.gd:286
 msgid "[color=#%s]địch −%d thủ[/color] (bị cắn)"
 msgstr "[color=#%s]enemy −%d DEF[/color] (bitten)"
 
-#: scripts/ui/info_panel.gd:286
+#: scripts/ui/info_panel.gd:288
 msgid "địch không đánh trả được"
 msgstr "the enemy can't strike back"
 
-#: scripts/ui/info_panel.gd:312 scripts/ui/info_panel.gd:494
+#: scripts/ui/info_panel.gd:314 scripts/ui/info_panel.gd:496
 msgid "✖ Đóng"
 msgstr "✖ Close"
 
-#: scripts/ui/info_panel.gd:333
+#: scripts/ui/info_panel.gd:335
 msgid "Đánh [b]%s[/b] (máu %d):"
 msgstr "Attack [b]%s[/b] (HP %d):"
 
-#: scripts/ui/info_panel.gd:341
+#: scripts/ui/info_panel.gd:343
 msgid "⚔ Đánh"
 msgstr "⚔ Attack"
 
-#: scripts/ui/info_panel.gd:348
+#: scripts/ui/info_panel.gd:350
 msgid "Bấm vào kẻ địch viền đỏ để chọn mục tiêu."
 msgstr "Tap an enemy outlined in red to pick a target."
 
-#: scripts/ui/info_panel.gd:351
+#: scripts/ui/info_panel.gd:353
 msgid "↩ Quay lại"
 msgstr "↩ Back"
 
-#: scripts/ui/info_panel.gd:363
+#: scripts/ui/info_panel.gd:365
 msgid "⚔ Đánh (%d)"
 msgstr "⚔ Attack (%d)"
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏯 Chiếm lâu đài"
 msgstr "🏯 Capture castle"
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏠 Chiếm làng"
 msgstr "🏠 Capture village"
 
-#: scripts/ui/info_panel.gd:388
+#: scripts/ui/info_panel.gd:390
 msgid "Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được."
 msgstr "Burned village: once rebuilt it becomes an unclaimed village, capturable the next turn."
 
-#: scripts/ui/info_panel.gd:391
+#: scripts/ui/info_panel.gd:393
 msgid "🔨 Dựng lại làng"
 msgstr "🔨 Rebuild village"
 
-#: scripts/ui/info_panel.gd:401
+#: scripts/ui/info_panel.gd:403
 msgid "Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước."
 msgstr "Burn the gold-ringed village: it becomes a [b]burned village[/b], and whoever wants it must rebuild it first."
 
-#: scripts/ui/info_panel.gd:404
+#: scripts/ui/info_panel.gd:406
 msgid "💥 Đốt làng"
 msgstr "💥 Burn village"
 
-#: scripts/ui/info_panel.gd:426
+#: scripts/ui/info_panel.gd:428
 msgid "🏯 Mộ quân"
 msgstr "🏯 Recruit"
 
-#: scripts/ui/info_panel.gd:437
+#: scripts/ui/info_panel.gd:439
 msgid "⏳ Chờ"
 msgstr "⏳ Wait"
 
-#: scripts/ui/info_panel.gd:443
+#: scripts/ui/info_panel.gd:445
 msgid "✖ Hủy"
 msgstr "✖ Cancel"
 
-#: scripts/ui/info_panel.gd:454
+#: scripts/ui/info_panel.gd:456
 msgid "Có %d vàng · Quân %d/%d · lính mới đi được ngay"
 msgstr "%d gold · Units %d/%d · new units can move right away"
 
-#: scripts/ui/info_panel.gd:596
+#: scripts/ui/info_panel.gd:598
 msgid "Gây"
 msgstr "Deal"
 
-#: scripts/ui/info_panel.gd:597
+#: scripts/ui/info_panel.gd:599
 msgid "Bị đánh trả"
 msgstr "Counter"
 
-#: scripts/ui/level_select.gd:8 scripts/ui/menus.gd:493
+#: scripts/ui/level_select.gd:8
 msgid "Dễ"
 msgstr "Easy"
 
@@ -1776,151 +1776,143 @@ msgstr "CPU Medium"
 msgid "Máy Khó"
 msgstr "CPU Hard"
 
-#: scripts/ui/menus.gd:13
-msgid "Máy Siêu khó"
-msgstr "CPU Very Hard"
-
-#: scripts/ui/menus.gd:245
+#: scripts/ui/menus.gd:239
 msgid "Màn %d/%d"
 msgstr "Level %d/%d"
 
-#: scripts/ui/menus.gd:245
+#: scripts/ui/menus.gd:239
 msgid "Đã thắng hết"
 msgstr "All levels won"
 
-#: scripts/ui/menus.gd:252
+#: scripts/ui/menus.gd:246
 msgid "Đánh tiếp ván đang dở"
 msgstr "Continue the game in progress"
 
-#: scripts/ui/menus.gd:252
+#: scripts/ui/menus.gd:246
 msgid "%s · lượt %d"
 msgstr "%s · turn %d"
 
-#: scripts/ui/menus.gd:262
+#: scripts/ui/menus.gd:256
 msgid "Thử thách"
 msgstr "Challenges"
 
-#: scripts/ui/menus.gd:264 scripts/ui/menus.gd:642
+#: scripts/ui/menus.gd:257 scripts/ui/menus.gd:544
 msgid "1 đấu 1"
 msgstr "1 vs 1"
 
-#: scripts/ui/menus.gd:271 scripts/ui/menus.gd:850
+#: scripts/ui/menus.gd:264 scripts/ui/menus.gd:752
 msgid "Sách lính"
 msgstr "Unit Book"
 
-#: scripts/ui/menus.gd:282 scripts/ui/menus.gd:390
+#: scripts/ui/menus.gd:275 scripts/ui/menus.gd:383
 msgid "Giới thiệu"
 msgstr "About"
 
-#: scripts/ui/menus.gd:285
+#: scripts/ui/menus.gd:278
 msgid "Tốc độ hoạt cảnh x1 / x2 / x3"
 msgstr "Animation speed x1 / x2 / x3"
 
-#: scripts/ui/menus.gd:387 scripts/ui/menus.gd:411 scripts/ui/menus.gd:449
+#: scripts/ui/menus.gd:380 scripts/ui/menus.gd:404 scripts/ui/menus.gd:442
 msgid "‹ Trở lại"
 msgstr "‹ Back"
 
-#: scripts/ui/menus.gd:395
+#: scripts/ui/menus.gd:388
 msgid "Phiên bản %s"
 msgstr "Version %s"
 
-#: scripts/ui/menus.gd:403
+#: scripts/ui/menus.gd:396
 msgid "Giấy phép Godot Engine"
 msgstr "Godot Engine license"
 
-#: scripts/ui/menus.gd:404
+#: scripts/ui/menus.gd:397
 msgid "📜 Toàn văn giấy phép"
 msgstr "📜 Full license texts"
 
-#: scripts/ui/menus.gd:411
+#: scripts/ui/menus.gd:404
 msgid "Giấy phép"
 msgstr "Licenses"
 
-#: scripts/ui/menus.gd:494
-msgid "Thường"
-msgstr "Normal"
-
-#: scripts/ui/menus.gd:511
-msgid "Dễ: địch khởi đầu với nửa số vàng."
-msgstr "Easy: the enemy starts with half the gold."
-
-#: scripts/ui/menus.gd:511
-msgid "Thường: hai bên ngang vàng."
-msgstr "Normal: both sides get the same gold."
-
-#: scripts/ui/menus.gd:520 scripts/ui/menus.gd:672
-msgid "Xuất quân"
-msgstr "March"
-
-#: scripts/ui/menus.gd:565
+#: scripts/ui/menus.gd:467
 msgid "Công %d · Thủ %d · Đi %d"
 msgstr "ATK %d · DEF %d · Move %d"
 
-#: scripts/ui/menus.gd:608
+#: scripts/ui/menus.gd:510
 msgid "Vàng khởi đầu"
 msgstr "Starting gold"
 
-#: scripts/ui/menus.gd:608
+#: scripts/ui/menus.gd:510
 msgid "Giới hạn quân"
 msgstr "Unit cap"
 
-#: scripts/ui/menus.gd:645
+#: scripts/ui/menus.gd:547
 msgid "Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch."
 msgstr "Two players on one device (pass it each turn), or play the computer. Doesn't count toward the challenges."
 
-#: scripts/ui/menus.gd:686
+#: scripts/ui/menus.gd:574
+msgid "Xuất quân"
+msgstr "March"
+
+#: scripts/ui/menus.gd:588
 msgid "Bên Xanh · đi trước"
 msgstr "Blue side · moves first"
 
-#: scripts/ui/menus.gd:686
+#: scripts/ui/menus.gd:588
 msgid "Bên Đỏ"
 msgstr "Red side"
 
-#: scripts/ui/menus.gd:691
+#: scripts/ui/menus.gd:593
 msgid "Người chơi 1"
 msgstr "Player 1"
 
-#: scripts/ui/menus.gd:707
+#: scripts/ui/menus.gd:609
 msgid "Người chơi 2, chung máy: đổi tay mỗi lượt."
 msgstr "Player 2, same device: pass it each turn."
 
-#: scripts/ui/menus.gd:707
+#: scripts/ui/menus.gd:609
 msgid "Máy chơi bên Đỏ."
 msgstr "The computer plays the red side."
 
-#: scripts/ui/menus.gd:753
+#: scripts/ui/menus.gd:655
 msgid "Màn này đang đánh dở [b]lượt %d[/b]."
 msgstr "This level is in progress at [b]turn %d[/b]."
 
-#: scripts/ui/menus.gd:754
+#: scripts/ui/menus.gd:656
 msgid "Đánh lại từ đầu"
 msgstr "Restart from the beginning"
 
-#: scripts/ui/menus.gd:757
+#: scripts/ui/menus.gd:659
 msgid "Đánh tiếp"
 msgstr "Continue"
 
-#: scripts/ui/menus.gd:786
+#: scripts/ui/menus.gd:688
 msgid "Thôi"
 msgstr "Cancel"
 
-#: scripts/ui/menus.gd:852
+#: scripts/ui/menus.gd:754
 msgid "Quân địch"
 msgstr "Enemy units"
 
-#: scripts/ui/menus.gd:867
+#: scripts/ui/menus.gd:769
 msgid "Đóng ✕"
 msgstr "Close ✕"
 
-#: scripts/ui/menus.gd:943
+#: scripts/ui/menus.gd:845
 msgid "Đi bộ"
 msgstr "On foot"
 
-#: scripts/ui/menus.gd:951
+#: scripts/ui/menus.gd:845
+msgid "Sói"
+msgstr "Wolf"
+
+#: scripts/ui/menus.gd:845
+msgid "Bay"
+msgstr "Flying"
+
+#: scripts/ui/menus.gd:853
 msgid "Thủ +%d"
 msgstr "DEF +%d"
 
-#: scripts/ui/menus.gd:957
+#: scripts/ui/menus.gd:859
 msgid "Bước đi: "
 msgstr "Movement: "
 

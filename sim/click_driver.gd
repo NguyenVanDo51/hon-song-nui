@@ -319,17 +319,17 @@ func _duel(g: GameScreen) -> void:
 	var said := _texts(g.cards.end_layer) if g.cards.end_layer != null else ""
 	ok(said.contains("đã đầu hàng"), "end card names the surrender")
 	await main.shot("duel_surrender_end")
-	# vs AI (hard): Red ends the turn -> the AI plays Blue -> back to Red
+	# vs AI (Khó = army): Red ends the turn -> the AI plays Blue -> back to Red
 	main.show_title()
 	await wait(0.6)
 	press("1 đấu 1")
 	await wait(0.6)
-	press("Máy Siêu khó")
+	press("Máy Khó")
 	await process_frame
 	press("Xuất quân")
 	await wait(0.8)
 	var ai_ctrl: Dictionary = g.s.get("ctrl", { })
-	okv(ai_ctrl.e == "ai:hard" and g.turns.handoff_layer == null, "vs AI: Blue = ai:hard, no handoff")
+	okv(ai_ctrl.e == "ai:army" and g.turns.handoff_layer == null, "vs AI: Blue = ai:army, no handoff")
 	ok(await turn_of(g, "p"), "vs AI: Red to move")
 	press("Hết lượt")
 	var ai_back: bool = await turn_of(g, "p")

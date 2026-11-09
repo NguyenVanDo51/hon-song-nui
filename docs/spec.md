@@ -10,11 +10,13 @@ Chiến thuật theo lượt trên lưới ô. Bối cảnh / tên phe: `docs/se
 
 ## Đánh
 - Sát thương = `(công lăn ngẫu nhiên [min, max−1] + thưởng − thủ − 2·cấp_địch − thủ địa hình − thưởng thủ) × máu_người_đánh / 100`, làm tròn xuống, 0..máu. AE2 không bao giờ lăn ra đúng công max của bảng (vd bộ binh 50–55 -> lăn 50–54); UI hiện khoảng lăn được. Lăn có seed theo ván (`s.rng`); xem trước hiện đúng min–max thật.
-  - Thưởng công: +2·cấp; trống đồng +10 (đóng dấu); nỏ vs rồng +15; trống vs âm binh +15; thủy binh dưới sông +10; bị sói cắn −10.
-  - Thưởng thủ: thủy binh dưới sông +15; bị sói cắn −10.
+  - Thưởng công: +2·cấp; trống đồng +10 (đóng dấu); nỏ vs rồng +15; trống vs âm binh +15; thủy binh dưới sông +15; bị sói cắn −10.
+  - Thưởng thủ: thủy binh dưới sông +25; bị sói cắn −10.
+  - Máy bắn đá xuyên giáp: mục tiêu không được thủ địa hình (`pierce`).
 - Đánh trả: chỉ khi kề nhau (khoảng cách 1) và bên bị đánh có tầm min 1 (không phải máy bắn đá). Bắn từ 2 ô không bị đáp.
 - Kinh nghiệm: "chất lượng" = công min + công max + thủ, **tính cả thưởng cấp** (+6 / cấp). Mỗi đòn = sát thương × chất lượng nạn nhân. Cấp kế = chất lượng của mình × 200/3; dư mang sang; tối đa 1 cấp / trận; cấp tối đa 9; mỗi cấp +2 công (cả min, max), +2 thủ. Tên cấp 4 bậc: cấp 0–1 không tên, 2–3 lão luyện, 4–5 tinh nhuệ, 6–9 dũng mãnh; tướng không có tên cấp (chỉ LvN). "Lên cấp N" to chỉ khi đổi tên (cấp chẵn ≤ 6, không phải tướng); cấp khác: LvN nhỏ.
 - Trống đồng: sau mọi lệnh của nó, quân ta trong 2 ô +10 công tới đầu lượt sau của ta (giữ cả khi đánh trả lượt địch). Trống chết vì bị đánh trả vẫn đánh trống từ ô nó ngã.
+- Trống hồi máu (`healAura` 10): đầu lượt ta, quân ta trong 2 ô (không tính chính nó) hồi 10 máu. Không cộng dồn: đứng làng / thành ta (20) hoặc cạnh 2 trống -> lấy mức cao nhất.
 - Sói: cắn (không phải đánh trả) mà mục tiêu còn sống -> **sau** đòn đánh trả (đáp đủ sức), mục tiêu −10 công, −10 thủ tới đầu lượt sau của phe sói. Cắn 0 sát thương vẫn tính; sói chết vì đánh trả vẫn tính.
 - Chết (trừ tướng, âm binh) -> mộ (ttl 3, trừ 1 mỗi đầu lượt của mỗi bên; có quân bước lên là mất). Thầy mo đứng cạnh -> Gọi hồn -> âm binh (cả lính địch ngã).
 - Máy bắn đá: chưa đi mới bắn / phá làng (2–4 ô). Phá làng địch / chưa ai chiếm -> làng hỏng; bộ binh / tướng sửa (1 lượt) -> làng trống, lượt sau chiếm.
@@ -36,7 +38,7 @@ Chiến thuật theo lượt trên lưới ô. Bối cảnh / tên phe: `docs/se
 Bấm 1 quân địch: ô trắng mờ = ô nó đi tới được; ô đỏ = chỉ đánh tới được (máy bắn đá: cả vòng 2–4 quanh chỗ đứng, vì đi rồi không ném được); viền đỏ = mọi ô nó đánh được lượt sau nếu không ai di chuyển (`Game.threat_tiles`). Quân ta đứng trong vùng có dấu "!" đỏ.
 
 ## Địa hình (thủ +, giá đi)
-Đồng 5/1 · Đường 0/1 · Rừng 10/2 · Đồi 10/2 · Núi 15/3 (mọi quân) · Sông 0/3 (thủy binh 1) · Cầu 5/1 · Làng 15/1 · Thành 15/1 · Làng hỏng 15/1 · Đền 15/1 (không chiếm, hồi máu mọi phe). Rồng: mọi ô 1.
+Đồng 5/1 · Đường 0/1 · Rừng 10/2 · Đồi 10/2 · Núi 15/3 (mọi quân; sói: rừng / đồi / núi 1) · Sông 0/3 (thủy binh 1) · Cầu 5/1 · Làng 15/1 · Thành 15/1 · Làng hỏng 15/1 · Đền 15/1 (không chiếm, hồi máu mọi phe). Rồng: mọi ô 1.
 Công trình = mô tả trong `TERRAIN` (`income`, `cap`, `heals`, `sells`, `razeTo`, `repairTo`/`repairBy`): làng 30 vàng, chiếm `capV`, phá -> làng hỏng; thành 50 vàng, chiếm `capC`, mua lính; làng hỏng sửa (`capV`) -> làng; đền hồi máu mọi phe.
 
 ## Lính (giá · công / thủ / đi / tầm; tên hiện = `content/theme.gd` `UNITS`)
@@ -45,19 +47,22 @@ Công trình = mô tả trong `TERRAIN` (`income`, `cap`, `heals`, `sells`, `raz
 |---|---|---|---|---|---|
 | `soldier` | Vệ binh | Soldier | 150 | 50–55 / 5 / 4 / 1 | chiếm, sửa làng |
 | `archer` | Cung thủ | Archer | 250 | 50–55 / 5 / 4 / 1–2 | +15 vs rồng |
-| `boat` | Hải tặc | Elemental | 300 | 50–55 / 10 / 4 / 1 | sông giá 1, dưới sông +10 / +15 |
+| `boat` | Hải tặc | Elemental | 300 | 50–55 / 10 / 4 / 1 | sông giá 1, dưới sông +15 / +25 |
 | `shaman` | Pháp sư gọi hồn | Sorceress | 400 | 40–45 / 5 / 4 / 1 | gọi hồn |
-| `drum` | Tu sĩ ánh sáng | Wisp | 500 | 35–40 / 10 / 4 / 1 | hào quang tầm 2, +15 vs âm binh |
-| `wolf` | Sói bóng đêm | Dire Wolf | 600 | 60–65 / 15 / 5 / 1 | cắn: −10 / −10 |
+| `drum` | Tu sĩ ánh sáng | Wisp | 500 | 35–40 / 10 / 4 / 1 | hào quang tầm 2, hồi 10 máu tầm 2, +15 vs âm binh |
+| `wolf` | Sói bóng đêm | Dire Wolf | 500 | 60–65 / 15 / 5 / 1 | cắn: −10 / −10; rừng / đồi / núi giá 1 |
 | `elephant` | Golem đá | Golem | 600 | 60–70 / 30 / 4 / 1 | |
-| `catapult` | Máy bắn đá | Catapult | 700 | 50–70 / 10 / 3 / 2–4 | công thành, phá làng |
-| `bird` | Rồng | Dragon | 1000 | 70–80 / 25 / 6 / 1 | bay |
+| `catapult` | Máy bắn đá | Catapult | 700 | 50–70 / 10 / 3 / 2–4 | công thành, phá làng, xuyên giáp (bỏ thủ địa hình) |
+| `bird` | Rồng | Dragon | 750 | 70–80 / 25 / 6 / 1 | bay |
 | `ghost` | Bộ xương | Skeleton | — | 40–50 / 2 / 4 / 1 | gọi từ mộ, không tính trần |
 
 Số liệu đặc biệt (hào quang, độc, thưởng vs loại, gọi hồn ra loại gì) là cờ trong `UNITS`; quân bị đóng dấu giữ phe đóng dấu (`aura` / `poison`) + lượng (`auraAtk` / `poisonAmt`). Lưu ván v4 (v3 tự nâng, lượng = 10).
 
 ## Đã xác nhận từ mã gốc AE2 (`docs/review/ae2_research.md`, 2026-11-06)
 Luật mua (đi ngay, mua dưới quân ta / quân địch đứng trên thành, không giới hạn số lần), công thức KN (chỉ số gồm cả thưởng cấp, ×200/3), cấp tối đa 9, bảng địa hình + rồng vẫn được thủ địa hình, voi / máy bắn đá lên núi, +15 nỏ vs bay, độc không giảm bước đi, hào quang tầm 1–2, mộ (đếm 3, bước lên là mất), tướng hồi sinh giữ cấp + giá 200/+200/tối đa 1000.
+
+## Khác AE2 gốc có chủ ý (2026-11-09, user: mỗi quân 1 việc riêng để người chơi mua đa dạng)
+Trống hồi máu, sói đi rừng / đồi / núi 1 bước + giá 600 -> 500, rồng 1000 -> 750, thủy binh dưới sông +10 / +15 -> +15 / +25, máy bắn đá xuyên giáp. Bản thử chờ user đánh tay; lý do + số đo `docs/ai.md` "Trận người thật", `docs/TODO.md` "Kinh tế + cân bằng".
 
 ## Còn theo mã bản mod (chưa đối chiếu gốc)
 Lăn sát thương không ra giá trị max (`[min, max−1]`), thứ tự độc sau đánh trả, trống chết vẫn thúc quân, trần quân chiến dịch 100.

@@ -61,7 +61,7 @@ msgid "Đứng sau hàng lính, bắn từ ô thứ 2 thì địch không đánh
 msgstr ""
 
 #: content/guide.gd:26
-msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +10 công, +15 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
+msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +15 công, +25 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
 msgstr ""
 
 #: content/guide.gd:27
@@ -69,11 +69,11 @@ msgid "Đánh yếu, đừng đưa lên đầu. Đứng cạnh lính ngã (cả 
 msgstr ""
 
 #: content/guide.gd:28
-msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đánh bộ xương +15 công."
+msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đầu lượt ta, quân ta trong 2 ô hồi 10 máu: đứng sau tuyến đầu để cả đội đánh lâu không cần về làng. Đánh bộ xương +15 công."
 msgstr ""
 
 #: content/guide.gd:29
-msgid "Chạy 5 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
+msgid "Chạy 5 bước, rừng / đồi / núi chỉ tốn 1 bước: vòng qua rừng núi đánh tạt sườn. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
 msgstr ""
 
 #: content/guide.gd:30
@@ -81,11 +81,11 @@ msgid "Thủ rất dày, đánh mạnh, lên được cả núi. Đưa lên ch�
 msgstr ""
 
 #: content/guide.gd:31
-msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
+msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Xuyên giáp: địch đứng núi, rừng, làng, thành cũng không được thủ địa hình -> lôi golem trên núi, quân núp trong thành ra. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
 msgstr ""
 
 #: content/guide.gd:32
-msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
+msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (750 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
 msgstr ""
 
 #: content/guide.gd:33
@@ -416,7 +416,7 @@ msgstr ""
 msgid "Mỗi lượt bạn điều khiển được TẤT CẢ quân. Giờ tới Vệ binh"
 msgstr ""
 
-#: content/levels/t01.gd:45 content/levels/t03.gd:44 content/theme.gd:91
+#: content/levels/t01.gd:45 content/levels/t03.gd:44 content/theme.gd:90
 msgid "Hết lượt"
 msgstr ""
 
@@ -468,7 +468,7 @@ msgstr ""
 msgid "Hạ hết quân địch để thắng. Giữa bản đồ có 1 lâu đài trống: chiếm nó trước!"
 msgstr ""
 
-#: content/levels/t02.gd:35 content/theme.gd:219
+#: content/levels/t02.gd:35 content/theme.gd:218
 msgid "Lâu đài"
 msgstr ""
 
@@ -480,7 +480,7 @@ msgstr ""
 msgid "Đưa Tướng lên lâu đài rồi bấm 🏯 Chiếm lâu đài"
 msgstr ""
 
-#: content/levels/t02.gd:37 scripts/ui/menus.gd:852
+#: content/levels/t02.gd:37 scripts/ui/menus.gd:754
 msgid "Địa hình"
 msgstr ""
 
@@ -528,7 +528,7 @@ msgstr ""
 msgid "Quân mới mua đi được ngay. Đưa Vệ binh vào làng rồi bấm 🏠 Chiếm làng"
 msgstr ""
 
-#: content/levels/t03.gd:39 content/theme.gd:218
+#: content/levels/t03.gd:39 content/theme.gd:217
 msgid "Làng"
 msgstr ""
 
@@ -561,7 +561,7 @@ msgid "Đảo Sông Bạc"
 msgstr ""
 
 #: content/skirmish_maps.gd:8
-msgid "Sông lớn chia đôi chiến trường, lâu đài trên cù lao giữa dòng. Hai cầu gỗ hai bên."
+msgid "Sông lớn chia đôi chiến trường, cù lao giữa dòng nối hai bờ. Hai cầu gỗ hai bên."
 msgstr ""
 
 #: content/skirmish_maps.gd:28
@@ -569,7 +569,7 @@ msgid "Quần đảo Sương Mù"
 msgstr ""
 
 #: content/skirmish_maps.gd:29
-msgid "Mỗi bên giữ một đảo và 2 làng. Cầu hẹp nối các đảo, thuyền có đất dụng võ."
+msgid "Mỗi bên giữ một đảo và 2 làng. Cầu và bãi cạn nối các đảo, đảo giữa là lối tắt; thuyền có đất dụng võ."
 msgstr ""
 
 #: content/skirmish_maps.gd:48
@@ -577,7 +577,7 @@ msgid "Hẻm núi Đá Xám"
 msgstr ""
 
 #: content/skirmish_maps.gd:49
-msgid "Núi đá hai bờ suối. Lâu đài chắn ngang dòng là lối qua giữa, hai cầu gỗ ở hai đầu hẻm."
+msgid "Núi đá hai bờ suối. Bãi cạn rộng giữa hẻm là lối qua chính, hai cầu gỗ ở hai đầu hẻm."
 msgstr ""
 
 #: content/theme.gd:11
@@ -596,12 +596,12 @@ msgstr ""
 msgid "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn quân bay (rồng)."
 msgstr ""
 
-#: content/theme.gd:14 scripts/ui/menus.gd:943
+#: content/theme.gd:14 scripts/ui/menus.gd:845
 msgid "Hải tặc"
 msgstr ""
 
 #: content/theme.gd:16
-msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ."
+msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +15 công, +25 thủ."
 msgstr ""
 
 #: content/theme.gd:18
@@ -617,7 +617,7 @@ msgid "Tu sĩ ánh sáng"
 msgstr ""
 
 #: content/theme.gd:22
-msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương."
+msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. Đầu lượt ta: quân ta trong 2 ô hồi 10 máu. +15 công khi đánh bộ xương."
 msgstr ""
 
 #: content/theme.gd:25
@@ -625,7 +625,7 @@ msgid "Sói bóng đêm"
 msgstr ""
 
 #: content/theme.gd:27
-msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
+msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước), rừng / đồi / núi chỉ tốn 1 bước. Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
 msgstr ""
 
 #: content/theme.gd:29
@@ -641,7 +641,7 @@ msgid "Máy bắn đá"
 msgstr ""
 
 #: content/theme.gd:33
-msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
+msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Xuyên giáp: địch bị ném không được thủ địa hình. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
 msgstr ""
 
 #: content/theme.gd:36
@@ -688,483 +688,479 @@ msgstr ""
 msgid "Lượt quân Ma Vương"
 msgstr ""
 
-#: content/theme.gd:56 scripts/ui/menus.gd:263 scripts/ui/menus.gd:464
-msgid "Đấu tự do"
-msgstr ""
-
-#: content/theme.gd:57
+#: content/theme.gd:56
 msgid "Hiệp Sĩ Chỉ Huy đấu với Vorn"
 msgstr ""
 
-#: content/theme.gd:58
+#: content/theme.gd:57
 msgid "Hai người chung máy, hoặc đấu với máy"
 msgstr ""
 
-#: content/theme.gd:59
+#: content/theme.gd:58
 msgid "Lượt {turn} · {side}"
 msgstr ""
 
-#: content/theme.gd:60
+#: content/theme.gd:59
 msgid "{side} thắng"
 msgstr ""
 
-#: content/theme.gd:61
+#: content/theme.gd:60
 msgid "{loser} mất hết lâu đài, tướng cũng đã ngã."
 msgstr ""
 
-#: content/theme.gd:62
+#: content/theme.gd:61
 msgid "{loser} không còn quân, không còn lâu đài."
 msgstr ""
 
-#: content/theme.gd:63
+#: content/theme.gd:62
 msgid "{loser} đã đầu hàng."
 msgstr ""
 
-#: content/theme.gd:64
+#: content/theme.gd:63
 msgid "Lượt của {side}"
 msgstr ""
 
-#: content/theme.gd:65
+#: content/theme.gd:64
 msgid "Lượt {turn} · chạm để bắt đầu"
 msgstr ""
 
-#: content/theme.gd:66
+#: content/theme.gd:65
 msgid "gọi hồn"
 msgstr ""
 
-#: content/theme.gd:67
+#: content/theme.gd:66
 msgid "☠ Gọi hồn"
 msgstr ""
 
-#: content/theme.gd:68
+#: content/theme.gd:67
 msgid "Lính ngã: pháp sư gọi hồn đứng cạnh dựng dậy được thành bộ xương. Mất sau lượt kế của mỗi bên, hoặc khi có quân bước lên."
 msgstr ""
 
-#: content/theme.gd:69
+#: content/theme.gd:68
 msgid "Lính ngã"
 msgstr ""
 
-#: content/theme.gd:70
+#: content/theme.gd:69
 msgid "Lượt {turn} · Quân ta"
 msgstr ""
 
-#: content/theme.gd:71
+#: content/theme.gd:70
 msgid "Chiếm lâu đài!"
 msgstr ""
 
-#: content/theme.gd:72
+#: content/theme.gd:71
 msgid "Chiếm làng"
 msgstr ""
 
-#: content/theme.gd:73
+#: content/theme.gd:72
 msgid "Đại thắng"
 msgstr ""
 
-#: content/theme.gd:74
+#: content/theme.gd:73
 msgid "Thất thủ"
 msgstr ""
 
-#: content/theme.gd:75
+#: content/theme.gd:74
 msgid "TƯỚNG TA"
 msgstr ""
 
-#: content/theme.gd:76
+#: content/theme.gd:75
 msgid "TƯỚNG ĐỊCH"
 msgstr ""
 
-#: content/theme.gd:77
+#: content/theme.gd:76
 msgid "QUÂN MỚI · PHE TA"
 msgstr ""
 
-#: content/theme.gd:78
+#: content/theme.gd:77
 msgid "QUÂN ĐỊCH MỚI"
 msgstr ""
 
-#: content/theme.gd:79
+#: content/theme.gd:78
 msgid "🔄 Xem lại"
 msgstr ""
 
-#: content/theme.gd:80
+#: content/theme.gd:79
 msgid "Đã hiểu"
 msgstr ""
 
-#: content/theme.gd:81
+#: content/theme.gd:80
 msgid "đánh mục tiêu viền vàng"
 msgstr ""
 
-#: content/theme.gd:82
+#: content/theme.gd:81
 msgid "chiếm"
 msgstr ""
 
-#: content/theme.gd:83
+#: content/theme.gd:82
 msgid "dựng lại"
 msgstr ""
 
-#: content/theme.gd:84
+#: content/theme.gd:83
 msgid "đốt làng viền vàng"
 msgstr ""
 
-#: content/theme.gd:85
+#: content/theme.gd:84
 msgid "Đốt làng!"
 msgstr ""
 
-#: content/theme.gd:86
+#: content/theme.gd:85
 msgid "Dựng lại làng"
 msgstr ""
 
-#: content/theme.gd:87
+#: content/theme.gd:86
 msgid "đi tới ô sáng rồi chờ"
 msgstr ""
 
-#: content/theme.gd:88
+#: content/theme.gd:87
 msgid "Mộ quân"
 msgstr ""
 
-#: content/theme.gd:89
+#: content/theme.gd:88
 msgid "» Bỏ qua hướng dẫn"
 msgstr ""
 
-#: content/theme.gd:90
+#: content/theme.gd:89
 msgid "Tính thắng 1 sao, về lưới thử thách"
 msgstr ""
 
-#: content/theme.gd:92
+#: content/theme.gd:91
 msgid "▶ Đã hiểu"
 msgstr ""
 
-#: content/theme.gd:93
+#: content/theme.gd:92
 msgid "Xuất quân ›"
 msgstr ""
 
-#: content/theme.gd:94
+#: content/theme.gd:93
 msgid "🔒 Chưa chiếm lại: thắng màn trước để mở"
 msgstr ""
 
-#: content/theme.gd:95
+#: content/theme.gd:94
 msgid "Mọi quân đã đi (xám): bấm Hết lượt"
 msgstr ""
 
-#: content/theme.gd:96
+#: content/theme.gd:95
 msgid "quân địch"
 msgstr ""
 
-#: content/theme.gd:97
+#: content/theme.gd:96
 msgid "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta."
 msgstr ""
 
-#: content/theme.gd:98
+#: content/theme.gd:97
 msgid "Làng bị {raze} đốt cháy. {capV} đứng vào rồi bấm Dựng lại làng; lượt sau mới chiếm được."
 msgstr ""
 
-#: content/theme.gd:99
+#: content/theme.gd:98
 msgid "Chỉ {capC_l} chiếm được lâu đài. Lâu đài: +{income} vàng/lượt, mua lính, hồi máu. Có quân ta đứng trên lâu đài vẫn mua được: lính mới phải bước ra ô khác."
 msgstr ""
 
-#: content/theme.gd:100
+#: content/theme.gd:99
 msgid "Giếng Thần: không ai chiếm được. Quân phe nào đứng đây cũng hồi {heal} máu mỗi lượt, thủ +15."
 msgstr ""
 
-#: content/theme.gd:101
-msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ."
+#: content/theme.gd:100
+msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +15 công, +25 thủ."
 msgstr ""
 
-#: content/theme.gd:102
+#: content/theme.gd:101
 msgid "Mẹo: giữ tướng sau hàng vệ binh; đứng trên đồi, làng, lâu đài được thêm thủ."
 msgstr ""
 
-#: content/theme.gd:103
+#: content/theme.gd:102
 msgid "Mẹo: luôn để một quân đứng chặn trên lâu đài khi địch có tướng ở gần."
 msgstr ""
 
-#: content/theme.gd:104
+#: content/theme.gd:103
 msgid "Mẹo: chiếm làng sớm để có vàng mua quân; đừng đem lính lẻ ra đánh."
 msgstr ""
 
-#: content/theme.gd:105
+#: content/theme.gd:104
 msgid "Mẹo: đi đường mòn cho nhanh, để vệ binh chặn đường đuổi phía sau."
 msgstr ""
 
-#: content/theme.gd:107
+#: content/theme.gd:106
 msgid "Thắng trận"
 msgstr ""
 
-#: content/theme.gd:108
+#: content/theme.gd:107
 msgid "Tướng ta không ngã lần nào"
 msgstr ""
 
-#: content/theme.gd:109
+#: content/theme.gd:108
 msgid "Thắng trong {n} lượt"
 msgstr ""
 
-#: content/theme.gd:110
+#: content/theme.gd:109
 msgid "Mất không quá {n} lính"
 msgstr ""
 
-#: content/theme.gd:111
+#: content/theme.gd:110
 msgid "Không mất lính nào"
 msgstr ""
 
-#: content/theme.gd:112
+#: content/theme.gd:111
 msgid "Kỷ lục: {n}/3 sao"
 msgstr ""
 
-#: content/theme.gd:113
+#: content/theme.gd:112
 msgid "Nhiệm vụ {have}/{need}"
 msgstr ""
 
-#: content/theme.gd:115 scripts/core/content.gd:283 scripts/ui/menus.gd:926
+#: content/theme.gd:114 scripts/core/content.gd:283 scripts/ui/menus.gd:828
 msgid "Tướng"
 msgstr ""
 
-#: content/theme.gd:116
+#: content/theme.gd:115
 msgid "tướng địch"
 msgstr ""
 
-#: content/theme.gd:118
+#: content/theme.gd:117
 msgid "Chọn {unit}"
 msgstr ""
 
-#: content/theme.gd:119
+#: content/theme.gd:118
 msgid "Đi {unit}"
 msgstr ""
 
-#: content/theme.gd:120
+#: content/theme.gd:119
 msgid "Đi 1 quân"
 msgstr ""
 
-#: content/theme.gd:122
+#: content/theme.gd:121
 msgid "Chiếm 1 {tile}"
 msgstr ""
 
-#: content/theme.gd:123
+#: content/theme.gd:122
 msgid "Chiếm 1 ô"
 msgstr ""
 
-#: content/theme.gd:124
+#: content/theme.gd:123
 msgid "Đứng vào {tile}"
 msgstr ""
 
-#: content/theme.gd:125
+#: content/theme.gd:124
 msgid "Đánh bằng {unit}"
 msgstr ""
 
-#: content/theme.gd:126
+#: content/theme.gd:125
 msgid "Đánh 1 đòn"
 msgstr ""
 
-#: content/theme.gd:127
+#: content/theme.gd:126
 msgid "Hạ địch bằng {unit}"
 msgstr ""
 
-#: content/theme.gd:128 content/theme.gd:132
+#: content/theme.gd:127 content/theme.gd:131
 msgid "Hạ 1 địch"
 msgstr ""
 
-#: content/theme.gd:129
+#: content/theme.gd:128
 msgid "Đánh {unit}"
 msgstr ""
 
-#: content/theme.gd:130
+#: content/theme.gd:129
 msgid "Đánh 1 địch"
 msgstr ""
 
-#: content/theme.gd:131
+#: content/theme.gd:130
 msgid "Hạ 1 {unit}"
 msgstr ""
 
-#: content/theme.gd:134
+#: content/theme.gd:133
 msgid "Mua 1 quân"
 msgstr ""
 
-#: content/theme.gd:135
+#: content/theme.gd:134
 msgid "Hồi máu ở {tile}"
 msgstr ""
 
-#: content/theme.gd:136
+#: content/theme.gd:135
 msgid "Hồi máu"
 msgstr ""
 
-#: content/theme.gd:137
+#: content/theme.gd:136
 msgid "Sửa làng hỏng"
 msgstr ""
 
-#: content/theme.gd:138
+#: content/theme.gd:137
 msgid "Đốt 1 làng"
 msgstr ""
 
-#: content/theme.gd:139
+#: content/theme.gd:138
 msgid "Gọi dậy 1 bộ xương"
 msgstr ""
 
-#: content/theme.gd:144
+#: content/theme.gd:143
 msgid "Chiếm hết lâu đài của địch và hạ {eh} (hoặc diệt sạch quân lẫn lâu đài)."
 msgstr ""
 
-#: content/theme.gd:145
+#: content/theme.gd:144
 msgid "Chiếm {n} lâu đài + hạ {eh}"
 msgstr ""
 
-#: content/theme.gd:146
+#: content/theme.gd:145
 msgid "Chiếm hết lâu đài + hạ {eh}"
 msgstr ""
 
-#: content/theme.gd:148
+#: content/theme.gd:147
 msgid "Diệt hết quân địch."
 msgstr ""
 
-#: content/theme.gd:148
+#: content/theme.gd:147
 msgid "Diệt hết địch (còn {n})"
 msgstr ""
 
-#: content/theme.gd:148
+#: content/theme.gd:147
 msgid "Diệt hết quân địch"
 msgstr ""
 
-#: content/theme.gd:149
+#: content/theme.gd:148
 msgid "Hạ {eh}."
 msgstr ""
 
-#: content/theme.gd:149 content/theme.gd:149
+#: content/theme.gd:148 content/theme.gd:148
 msgid "Hạ {eh}"
 msgstr ""
 
-#: content/theme.gd:150
+#: content/theme.gd:149
 msgid "Giữ vững đến hết lượt {turns}."
 msgstr ""
 
-#: content/theme.gd:150
+#: content/theme.gd:149
 msgid "Giữ vững: còn {left} lượt"
 msgstr ""
 
-#: content/theme.gd:150
+#: content/theme.gd:149
 msgid "Giữ vững {turns} lượt"
 msgstr ""
 
-#: content/theme.gd:152
+#: content/theme.gd:151
 msgid "Đưa {hero} tới ô cờ vàng{within}."
 msgstr ""
 
-#: content/theme.gd:153
+#: content/theme.gd:152
 msgid "Đưa {hero} tới cờ vàng{left_txt}"
 msgstr ""
 
-#: content/theme.gd:154
+#: content/theme.gd:153
 msgid "Đưa {hero} tới cờ vàng{within}"
 msgstr ""
 
-#: content/theme.gd:160
+#: content/theme.gd:159
 msgid "Đã quét sạch quân địch."
 msgstr ""
 
-#: content/theme.gd:161
+#: content/theme.gd:160
 msgid "Đã chiếm hết lâu đài và hạ tướng địch."
 msgstr ""
 
-#: content/theme.gd:162
+#: content/theme.gd:161
 msgid "{eh} đã bị hạ."
 msgstr ""
 
-#: content/theme.gd:163
+#: content/theme.gd:162
 msgid "Đã giữ vững đến cùng."
 msgstr ""
 
-#: content/theme.gd:164
+#: content/theme.gd:163
 msgid "{hero} đã tới nơi an toàn."
 msgstr ""
 
-#: content/theme.gd:165
+#: content/theme.gd:164
 msgid "Địch đã đầu hàng."
 msgstr ""
 
-#: content/theme.gd:168
+#: content/theme.gd:167
 msgid "{hero} đã ngã."
 msgstr ""
 
-#: content/theme.gd:169
+#: content/theme.gd:168
 msgid "Mất hết lâu đài, tướng ta cũng đã ngã."
 msgstr ""
 
-#: content/theme.gd:170
+#: content/theme.gd:169
 msgid "{hero} đã ngã, ta không còn lâu đài nào."
 msgstr ""
 
-#: content/theme.gd:171
+#: content/theme.gd:170
 msgid "Quân ta đã tan."
 msgstr ""
 
-#: content/theme.gd:172
+#: content/theme.gd:171
 msgid "Ta đã đầu hàng."
 msgstr ""
 
-#: content/theme.gd:173
+#: content/theme.gd:172
 msgid "Không kịp tới nơi, quân Ma Vương đã khép vòng vây."
 msgstr ""
 
-#: content/theme.gd:179
+#: content/theme.gd:178
 msgid "Quân Đế Quốc"
 msgstr ""
 
-#: content/theme.gd:180 scripts/ui/game_hud.gd:554 scripts/ui/menus.gd:852
+#: content/theme.gd:179 scripts/ui/game_hud.gd:554 scripts/ui/menus.gd:754
 msgid "Quân ta"
 msgstr ""
 
-#: content/theme.gd:181
+#: content/theme.gd:180
 msgid "Đế Quốc"
 msgstr ""
 
-#: content/theme.gd:190
+#: content/theme.gd:189
 msgid "Quân Ma Vương"
 msgstr ""
 
-#: content/theme.gd:191 content/theme.gd:192
+#: content/theme.gd:190 content/theme.gd:191
 msgid "Ma Vương"
 msgstr ""
 
-#: content/theme.gd:203
+#: content/theme.gd:202
 msgid "Đồng cỏ"
 msgstr ""
 
-#: content/theme.gd:205
+#: content/theme.gd:204
 msgid "Đường mòn"
 msgstr ""
 
-#: content/theme.gd:213
+#: content/theme.gd:212
 msgid "Rừng"
 msgstr ""
 
-#: content/theme.gd:214
+#: content/theme.gd:213
 msgid "Đồi"
 msgstr ""
 
-#: content/theme.gd:215
+#: content/theme.gd:214
 msgid "Núi"
 msgstr ""
 
-#: content/theme.gd:216
+#: content/theme.gd:215
 msgid "Sông"
 msgstr ""
 
-#: content/theme.gd:217
+#: content/theme.gd:216
 msgid "Cầu gỗ"
 msgstr ""
 
-#: content/theme.gd:220
+#: content/theme.gd:219
 msgid "Làng cháy"
 msgstr ""
 
-#: content/theme.gd:221
+#: content/theme.gd:220
 msgid "Giếng Thần"
 msgstr ""
 
-#: content/theme.gd:232
+#: content/theme.gd:231
 msgid "Hiệp Sĩ Chỉ Huy"
 msgstr ""
 
-#: content/theme.gd:234
+#: content/theme.gd:233
 msgid "Hiệp sĩ trung thành của Đế Quốc, cầm quân giành lại nửa đất đã mất. Chiếm được cả làng lẫn lâu đài. Ngã thì mua lại ở lâu đài, giữ nguyên cấp; mỗi lần ngã giá mua lại +200."
 msgstr ""
 
-#: content/theme.gd:240
+#: content/theme.gd:239
 msgid "Tướng quân phản loạn, bán đế quốc cho Ma Vương để được lên ngôi. Cầm quân trong mọi trận. Cùng sức với tướng ta."
 msgstr ""
 
@@ -1288,11 +1284,11 @@ msgstr ""
 msgid "Tiếng Việt"
 msgstr ""
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " hạ gục"
 msgstr ""
 
-#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:598
 msgid " có thể hạ"
 msgstr ""
 
@@ -1300,7 +1296,7 @@ msgstr ""
 msgid " ngã"
 msgstr ""
 
-#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:597
+#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:599
 msgid " có thể ngã"
 msgstr ""
 
@@ -1332,7 +1328,7 @@ msgstr ""
 msgid "Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."
 msgstr ""
 
-#: scripts/ui/credits.gd:21 scripts/ui/game_hud.gd:251 scripts/ui/menus.gd:268
+#: scripts/ui/credits.gd:21 scripts/ui/game_hud.gd:251 scripts/ui/menus.gd:261
 msgid "Âm thanh"
 msgstr ""
 
@@ -1420,11 +1416,11 @@ msgstr ""
 msgid "Gợi ý (phím H)"
 msgstr ""
 
-#: scripts/ui/game_hud.gd:258 scripts/ui/menus.gd:269
+#: scripts/ui/game_hud.gd:258 scripts/ui/menus.gd:262
 msgid "Nhạc"
 msgstr ""
 
-#: scripts/ui/game_hud.gd:263 scripts/ui/menus.gd:270
+#: scripts/ui/game_hud.gd:263 scripts/ui/menus.gd:263
 msgid "Tốc độ"
 msgstr ""
 
@@ -1432,7 +1428,7 @@ msgstr ""
 msgid "Tốc độ hoạt cảnh"
 msgstr ""
 
-#: scripts/ui/game_hud.gd:267 scripts/ui/menus.gd:272
+#: scripts/ui/game_hud.gd:267 scripts/ui/menus.gd:265
 msgid "Ngôn ngữ"
 msgstr ""
 
@@ -1484,19 +1480,19 @@ msgstr ""
 msgid "Đầu hàng"
 msgstr ""
 
-#: scripts/ui/game_hud.gd:574 scripts/ui/menus.gd:293
+#: scripts/ui/game_hud.gd:574 scripts/ui/menus.gd:286
 msgid "Âm thanh: %s"
 msgstr ""
 
-#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:293
+#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:286
 msgid "tắt"
 msgstr ""
 
-#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:293
+#: scripts/ui/game_hud.gd:574 scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:286
 msgid "bật"
 msgstr ""
 
-#: scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:294
+#: scripts/ui/game_hud.gd:577 scripts/ui/menus.gd:287
 msgid "Nhạc: %s"
 msgstr ""
 
@@ -1660,95 +1656,99 @@ msgstr ""
 msgid "+%d công đánh %s"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:280
-msgid "địch được %s +%d thủ"
+#: scripts/ui/info_panel.gd:278
+msgid "xuyên giáp: địch không được thủ địa hình"
 msgstr ""
 
 #: scripts/ui/info_panel.gd:282
-msgid "[color=#%s]địch +%d thủ[/color] dưới sông"
+msgid "địch được %s +%d thủ"
 msgstr ""
 
 #: scripts/ui/info_panel.gd:284
-msgid "[color=#%s]địch −%d thủ[/color] (bị cắn)"
+msgid "[color=#%s]địch +%d thủ[/color] dưới sông"
 msgstr ""
 
 #: scripts/ui/info_panel.gd:286
+msgid "[color=#%s]địch −%d thủ[/color] (bị cắn)"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:288
 msgid "địch không đánh trả được"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:312 scripts/ui/info_panel.gd:494
+#: scripts/ui/info_panel.gd:314 scripts/ui/info_panel.gd:496
 msgid "✖ Đóng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:333
+#: scripts/ui/info_panel.gd:335
 msgid "Đánh [b]%s[/b] (máu %d):"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:341
+#: scripts/ui/info_panel.gd:343
 msgid "⚔ Đánh"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:348
+#: scripts/ui/info_panel.gd:350
 msgid "Bấm vào kẻ địch viền đỏ để chọn mục tiêu."
 msgstr ""
 
-#: scripts/ui/info_panel.gd:351
+#: scripts/ui/info_panel.gd:353
 msgid "↩ Quay lại"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:363
+#: scripts/ui/info_panel.gd:365
 msgid "⚔ Đánh (%d)"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏯 Chiếm lâu đài"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:381
+#: scripts/ui/info_panel.gd:383
 msgid "🏠 Chiếm làng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:388
+#: scripts/ui/info_panel.gd:390
 msgid "Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được."
 msgstr ""
 
-#: scripts/ui/info_panel.gd:391
+#: scripts/ui/info_panel.gd:393
 msgid "🔨 Dựng lại làng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:401
+#: scripts/ui/info_panel.gd:403
 msgid "Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước."
 msgstr ""
 
-#: scripts/ui/info_panel.gd:404
+#: scripts/ui/info_panel.gd:406
 msgid "💥 Đốt làng"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:426
+#: scripts/ui/info_panel.gd:428
 msgid "🏯 Mộ quân"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:437
+#: scripts/ui/info_panel.gd:439
 msgid "⏳ Chờ"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:443
+#: scripts/ui/info_panel.gd:445
 msgid "✖ Hủy"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:454
+#: scripts/ui/info_panel.gd:456
 msgid "Có %d vàng · Quân %d/%d · lính mới đi được ngay"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:596
+#: scripts/ui/info_panel.gd:598
 msgid "Gây"
 msgstr ""
 
-#: scripts/ui/info_panel.gd:597
+#: scripts/ui/info_panel.gd:599
 msgid "Bị đánh trả"
 msgstr ""
 
-#: scripts/ui/level_select.gd:8 scripts/ui/menus.gd:493
+#: scripts/ui/level_select.gd:8
 msgid "Dễ"
 msgstr ""
 
@@ -1776,151 +1776,143 @@ msgstr ""
 msgid "Máy Khó"
 msgstr ""
 
-#: scripts/ui/menus.gd:13
-msgid "Máy Siêu khó"
-msgstr ""
-
-#: scripts/ui/menus.gd:245
+#: scripts/ui/menus.gd:239
 msgid "Màn %d/%d"
 msgstr ""
 
-#: scripts/ui/menus.gd:245
+#: scripts/ui/menus.gd:239
 msgid "Đã thắng hết"
 msgstr ""
 
-#: scripts/ui/menus.gd:252
+#: scripts/ui/menus.gd:246
 msgid "Đánh tiếp ván đang dở"
 msgstr ""
 
-#: scripts/ui/menus.gd:252
+#: scripts/ui/menus.gd:246
 msgid "%s · lượt %d"
 msgstr ""
 
-#: scripts/ui/menus.gd:262
+#: scripts/ui/menus.gd:256
 msgid "Thử thách"
 msgstr ""
 
-#: scripts/ui/menus.gd:264 scripts/ui/menus.gd:642
+#: scripts/ui/menus.gd:257 scripts/ui/menus.gd:544
 msgid "1 đấu 1"
 msgstr ""
 
-#: scripts/ui/menus.gd:271 scripts/ui/menus.gd:850
+#: scripts/ui/menus.gd:264 scripts/ui/menus.gd:752
 msgid "Sách lính"
 msgstr ""
 
-#: scripts/ui/menus.gd:282 scripts/ui/menus.gd:390
+#: scripts/ui/menus.gd:275 scripts/ui/menus.gd:383
 msgid "Giới thiệu"
 msgstr ""
 
-#: scripts/ui/menus.gd:285
+#: scripts/ui/menus.gd:278
 msgid "Tốc độ hoạt cảnh x1 / x2 / x3"
 msgstr ""
 
-#: scripts/ui/menus.gd:387 scripts/ui/menus.gd:411 scripts/ui/menus.gd:449
+#: scripts/ui/menus.gd:380 scripts/ui/menus.gd:404 scripts/ui/menus.gd:442
 msgid "‹ Trở lại"
 msgstr ""
 
-#: scripts/ui/menus.gd:395
+#: scripts/ui/menus.gd:388
 msgid "Phiên bản %s"
 msgstr ""
 
-#: scripts/ui/menus.gd:403
+#: scripts/ui/menus.gd:396
 msgid "Giấy phép Godot Engine"
 msgstr ""
 
-#: scripts/ui/menus.gd:404
+#: scripts/ui/menus.gd:397
 msgid "📜 Toàn văn giấy phép"
 msgstr ""
 
-#: scripts/ui/menus.gd:411
+#: scripts/ui/menus.gd:404
 msgid "Giấy phép"
 msgstr ""
 
-#: scripts/ui/menus.gd:494
-msgid "Thường"
-msgstr ""
-
-#: scripts/ui/menus.gd:511
-msgid "Dễ: địch khởi đầu với nửa số vàng."
-msgstr ""
-
-#: scripts/ui/menus.gd:511
-msgid "Thường: hai bên ngang vàng."
-msgstr ""
-
-#: scripts/ui/menus.gd:520 scripts/ui/menus.gd:672
-msgid "Xuất quân"
-msgstr ""
-
-#: scripts/ui/menus.gd:565
+#: scripts/ui/menus.gd:467
 msgid "Công %d · Thủ %d · Đi %d"
 msgstr ""
 
-#: scripts/ui/menus.gd:608
+#: scripts/ui/menus.gd:510
 msgid "Vàng khởi đầu"
 msgstr ""
 
-#: scripts/ui/menus.gd:608
+#: scripts/ui/menus.gd:510
 msgid "Giới hạn quân"
 msgstr ""
 
-#: scripts/ui/menus.gd:645
+#: scripts/ui/menus.gd:547
 msgid "Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch."
 msgstr ""
 
-#: scripts/ui/menus.gd:686
+#: scripts/ui/menus.gd:574
+msgid "Xuất quân"
+msgstr ""
+
+#: scripts/ui/menus.gd:588
 msgid "Bên Xanh · đi trước"
 msgstr ""
 
-#: scripts/ui/menus.gd:686
+#: scripts/ui/menus.gd:588
 msgid "Bên Đỏ"
 msgstr ""
 
-#: scripts/ui/menus.gd:691
+#: scripts/ui/menus.gd:593
 msgid "Người chơi 1"
 msgstr ""
 
-#: scripts/ui/menus.gd:707
+#: scripts/ui/menus.gd:609
 msgid "Người chơi 2, chung máy: đổi tay mỗi lượt."
 msgstr ""
 
-#: scripts/ui/menus.gd:707
+#: scripts/ui/menus.gd:609
 msgid "Máy chơi bên Đỏ."
 msgstr ""
 
-#: scripts/ui/menus.gd:753
+#: scripts/ui/menus.gd:655
 msgid "Màn này đang đánh dở [b]lượt %d[/b]."
 msgstr ""
 
-#: scripts/ui/menus.gd:754
+#: scripts/ui/menus.gd:656
 msgid "Đánh lại từ đầu"
 msgstr ""
 
-#: scripts/ui/menus.gd:757
+#: scripts/ui/menus.gd:659
 msgid "Đánh tiếp"
 msgstr ""
 
-#: scripts/ui/menus.gd:786
+#: scripts/ui/menus.gd:688
 msgid "Thôi"
 msgstr ""
 
-#: scripts/ui/menus.gd:852
+#: scripts/ui/menus.gd:754
 msgid "Quân địch"
 msgstr ""
 
-#: scripts/ui/menus.gd:867
+#: scripts/ui/menus.gd:769
 msgid "Đóng ✕"
 msgstr ""
 
-#: scripts/ui/menus.gd:943
+#: scripts/ui/menus.gd:845
 msgid "Đi bộ"
 msgstr ""
 
-#: scripts/ui/menus.gd:951
+#: scripts/ui/menus.gd:845
+msgid "Sói"
+msgstr ""
+
+#: scripts/ui/menus.gd:845
+msgid "Bay"
+msgstr ""
+
+#: scripts/ui/menus.gd:853
 msgid "Thủ +%d"
 msgstr ""
 
-#: scripts/ui/menus.gd:957
+#: scripts/ui/menus.gd:859
 msgid "Bước đi: "
 msgstr ""
 

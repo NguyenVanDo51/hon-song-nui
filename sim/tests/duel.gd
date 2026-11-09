@@ -92,7 +92,7 @@ func duel_tests() -> void:
 			eq(var_to_str(s0), var_to_str(s), "replay matches"),
 	)
 	run(
-		"ai:army (UI Khó) = hard v5 preset; ai:hard (UI Siêu khó) = v3 unchanged",
+		"ai:army (UI Khó) = hard v5 preset; ai:hard (old saves) = v3 unchanged",
 		func() -> void:
 			eq(AI.PRESETS.army, AI.PRESETS.hard.merged(AI.V5_ARMY), "army = hard + V5_ARMY")
 			var army := Game.new_game(duel("dong_bang", "ai:army"))

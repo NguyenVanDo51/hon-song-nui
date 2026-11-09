@@ -635,7 +635,7 @@ static func evaluate(c: Dictionary, side: String, shared: Dictionary, P: Diction
 			var hpv := minf(val * (1.0 - alpha), hp_cap) # hp heals: a commander's hp is not worth its whole value
 			part += val - hpv + hpv * hp / 100.0
 			var st := Game.stat(c, u)
-			var mc: String = st.move if st.move in ["fly", "water"] else "foot"
+			var mc: String = st.move if st.move in ["fly", "water", "beast"] else "foot"
 			var hero: bool = u.type == "hero"
 			var goals: Array = cas if hero else tgt
 			if goals.is_empty():

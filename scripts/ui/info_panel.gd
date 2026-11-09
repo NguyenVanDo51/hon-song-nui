@@ -111,7 +111,7 @@ func _unit_info(u: Dictionary, full := false) -> void:
 	]
 	info.add_child(_head(Token.make(side, type, gs.s.heroKey[side], 40), title, sub, side))
 	info.add_child(Style.Bar.make(hp / 100.0, 6, Color("#5fa83c"), Style.GOOD))
-	var b := Game.buffs_at(gs.s, u, dtx, dty)
+	var b := Buffs.at(gs.s, u, dtx, dty)
 	info.add_child(_stat_note(u, st, b))
 	for line: String in _buff_lines(u, b):
 		info.add_child(_note(line, Style.INK, 13))
@@ -167,7 +167,7 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var sub := Lang.t("%s · Máu %d%s") % [side_txt, u.hp, Lang.t(" · đã đi") if u.side == gs._me() and u.acted else ""]
 		gs.hud.card_box.add_child(_head(Token.make(side, type, gs.s.heroKey[side], 38), title, sub, side))
 		gs.hud.card_box.add_child(Style.Bar.make(hp / 100.0, 5, Color("#5fa83c"), Style.GOOD))
-		var b := Game.buffs_at(gs.s, cu, dtx, dty)
+		var b := Buffs.at(gs.s, cu, dtx, dty)
 		gs.hud.card_box.add_child(_stat_note(cu, st, b))
 		var id: int = u.id
 		var more := Style.button(Lang.t("📜 Chi tiết"), "ChipBtn")
@@ -252,7 +252,7 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	var parts := []
 	var su := Game.stat(gs.s, u)
 	var stg := Game.stat(gs.s, tgt)
-	var bu := Game.buffs_at(gs.s, u, dx, dy)
+	var bu := Buffs.at(gs.s, u, dx, dy)
 	var r := Game.atk_range(gs.s, u)
 	var lo: int = r[0]
 	var hi: int = r[1]
@@ -273,8 +273,10 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	if vs:
 		var tname: String = Content.unit_type_look(tside, ttype, null).name
 		parts.append(Lang.t("+%d công đánh %s") % [vs, tname.to_lower()])
-	var bt := Game.buffs_at(gs.s, tgt, tx, ty)
-	if bt.terrain:
+	var bt := Buffs.at(gs.s, tgt, tx, ty)
+	if bt.terrain and su.get("pierce", false):
+		parts.append(Lang.t("xuyên giáp: địch không được thủ địa hình"))
+	elif bt.terrain:
 		var tt: String = gs.s.tiles[ty][tx]
 		var ter_name: String = Content.terrain(tt).name
 		parts.append(Lang.t("địch được %s +%d thủ") % [ter_name.to_lower(), bt.terrain])

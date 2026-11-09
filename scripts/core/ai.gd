@@ -418,7 +418,7 @@ static func best_for_unit(s: Dictionary, u: Dictionary, threat: Dictionary, clai
 	var P := params(s, u_side, mem)
 	var st := Game.stat(s, u)
 	var reach := _reach_cached(s, u, mem)
-	var mc: String = st.move if st.move in ["fly", "water"] else "foot"
+	var mc: String = st.move if st.move in ["fly", "water", "beast"] else "foot"
 	var df := { }
 	var near_cast := { } # hero_ncast: distance to the free castles it heads for
 	var homeless := false

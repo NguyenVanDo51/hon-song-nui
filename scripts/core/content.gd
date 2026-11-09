@@ -119,7 +119,7 @@ static func ctrl_of(s: Dictionary, side: String) -> String:
 static func is_ai(s: Dictionary, side: String) -> bool:
 	return ctrl_of(s, side).begins_with("ai:")
 
-## "easy" | "normal" | "army" (UI Khó) | "hard" (UI Siêu khó); "" for a human side
+## "easy" | "normal" | "army" (UI Khó) | "hard" (old UI Siêu khó, still in old saves); "" for a human side
 static func ai_level(s: Dictionary, side: String) -> String:
 	var c := ctrl_of(s, side)
 	return c.substr(3) if c.begins_with("ai:") else ""

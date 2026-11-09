@@ -259,3 +259,48 @@ func duel_tests() -> void:
 			eq(Store.unlocked_index(), ids.size())
 			Store.set_v("campaign_done", []),
 	)
+	run(
+		"per-game rules (s.rules): game modes stay AE2; a def override changes base pay + commander rebuy (sims)",
+		func() -> void:
+			var hp: String = Content.heroes_of("p")[0]
+			check(not Game.new_game(duel("dong_bang", "human")).has("rules"), "duel: AE2")
+			check(not Game.new_game(mission("m01")).has("rules"), "levels: AE2")
+			var plain := Game.new_game(Content.skirmish_def("dong_bang", hp, false))
+			check(not plain.has("rules"), "skirmish: AE2")
+			var try := { "baseIncome": 100, "heroStep": 0 }
+			var d := Game.new_game(Content.skirmish_def("dong_bang", hp, false, 500, 10, try))
+			eq(d.rules, try, "override stored")
+			for side: String in ["p", "e"]:
+				eq(Game.income(d, side), Game.income(plain, side) + 100, side + " income = buildings + base")
+			for n: int in [0, 1, 4, 9]:
+				d.heroDeaths.p = n
+				plain.heroDeaths.p = n
+				eq(Game.hero_cost(d, "p"), 200, "flat rebuy after %d deaths" % n)
+				eq(Game.hero_cost(plain, "p"), mini(1000, 200 + 200 * n), "AE2 rebuy after %d deaths" % n)
+			var g0: int = d.gold.e
+			Game.end_turn(d)
+			eq(d.gold.e, g0 + Game.income(d, "e"), "end_turn pays the base too")
+			var back: Dictionary = str_to_var(var_to_str(d))
+			eq(back.rules, d.rules, "save text keeps rules"),
+	)
+	run(
+		"surrender: the other side wins at once, replay step applies it, no-op after the end",
+		func() -> void:
+			var s := Game.new_game(duel("dong_bang", "human"))
+			var s0: Dictionary = s.duplicate(true)
+			var ev := Objectives.surrender(s, "p")
+			eq(s.winner, "e")
+			eq(s.reason, "surrender")
+			eq(ev, [{ "t": "win", "side": "e", "reason": "surrender" }])
+			eq(Objectives.surrender(s, "e"), [], "game over: nothing more")
+			eq(s.winner, "e", "winner kept")
+			var r: Variant = Replay.apply(s0, { "kind": "surrender", "side": "p" })
+			check(r != null, "replay applies surrender")
+			eq(Replay.state_hash(s0), Replay.state_hash(s), "same state as the live surrender")
+			check(Replay.apply(Game.new_game(duel("dong_bang", "human")), { "kind": "surrender", "side": "x" }) == null, "bad side refused")
+			var line := Content.text("duelEnd_surrender").format({ "loser": "Quân A" })
+			eq(line, "Quân A đã đầu hàng.")
+			var hk: Dictionary = s.heroKey
+			eq(Content.end_text("e", "surrender", hk), "Ta đã đầu hàng.")
+			eq(Content.end_text("p", "surrender", hk), "Địch đã đầu hàng."),
+	)

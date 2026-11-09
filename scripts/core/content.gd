@@ -78,11 +78,12 @@ static func next_level(id: String) -> Variant:
 
 ## free-play def: any hero vs the map's enemy hero (default: the first enemy hero in the theme)
 ## AE2 lets the player set starting gold and the unit cap; easy = the enemy starts with half the gold
-static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 500, cap := 10) -> Dictionary:
+## rules: per-game RULES overrides (s.rules, Rules.of); { } = AE2. Only sims use it today (tune.gd comeback research)
+static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 500, cap := 10, rules := { }) -> Dictionary:
 	var m: Dictionary = SKIRMISH.MAPS.get(map_id, SKIRMISH.MAPS.dong_bang)
 	@warning_ignore("integer_division")
 	var e_gold := gold / 2 if easy else gold
-	return {
+	var d := {
 		"id": "skirmish:" + map_id,
 		"title": Lang.t(m.name),
 		"hero": hero_key,
@@ -95,10 +96,13 @@ static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 5
 		"win": { "type": "castles" },
 		"skirmish": { "mapId": map_id, "easy": easy },
 	}
+	if not rules.is_empty():
+		d.rules = rules.duplicate()
+	return d
 
 ## 1 vs 1 (docs/1v1.md): a skirmish map, a commander + controller per side, same gold both sides
-static func duel_def(map_id: String, hero_p: String, hero_e: String, ctrl_e: String, gold := 300, cap := 15) -> Dictionary:
-	var d := skirmish_def(map_id, hero_p, false, gold, cap)
+static func duel_def(map_id: String, hero_p: String, hero_e: String, ctrl_e: String, gold := 300, cap := 15, rules := { }) -> Dictionary:
+	var d := skirmish_def(map_id, hero_p, false, gold, cap, rules)
 	d.erase("skirmish")
 	d.id = "duel:" + map_id
 	d.enemyHero = hero_e

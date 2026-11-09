@@ -13,6 +13,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 - **Thử thách**: 39 level = 3 hướng dẫn (t01–t03) + 36 level (m01–m16, g01–g20), Dễ / Trung bình / Khó, 3 sao / level, mở tuần tự. Chọn level trên bản đồ vương quốc (làng = Dễ / TB, lâu đài = Khó). `docs/content.md`.
 - **Đấu tự do**: 3 bản đồ (Đảo Sông Bạc, Quần đảo Sương Mù, Hẻm núi Đá Xám), độ khó Dễ (địch ½ vàng) / Thường.
 - **1 đấu 1**: người–người chung máy, hoặc người–máy Dễ / Trung bình / Khó / Siêu khó. `docs/1v1.md`, AI `docs/ai.md`.
+- **Đầu hàng** (⚙, chỉ 1 đấu 1 + đấu tự do, trong lượt mình): hỏi lại -> bên kia thắng ngay. `docs/1v1.md`.
 - **Sách lính**: thẻ từng loại quân (`content/guide.gd`).
 - **Đánh tiếp ván đang dở** (1 chỗ lưu). Cài đặt (màn tiêu đề + ⚙): âm thanh, nhạc, tốc độ hoạt cảnh x1/x2/x3, ngôn ngữ VI / EN.
 
@@ -29,6 +30,7 @@ Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thậ
 - Bối cảnh v2 + tiếng Anh xong trên nhánh `feat/setting-v2`, chờ user chơi thử rồi merge; iOS build mới chưa làm.
 - Store listing (tiếng Anh); trận trùm cuối Ma Vương; online.
 - Cân bằng kinh tế + đội hình đa dạng cho bot; người chơi thử mốc sao.
+- Lật kèo 1 đấu 1 (bên thua hết làng = hết tiền): đang nghiên cứu, lương cố định đo ra tệ hơn -> chưa đổi luật (`docs/1v1.md` "Lật kèo", `sim/tune.gd comeback`).
 - Toàn bộ danh sách: `docs/TODO.md`.
 
 ## File sự thật (mỗi mảng 1 nơi, luôn đúng bản hiện tại)

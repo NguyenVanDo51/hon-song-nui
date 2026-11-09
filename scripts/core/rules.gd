@@ -144,6 +144,15 @@ const RULES := {
 	"heroBase": 200,
 	"heroStep": 200,
 	"heroMax": 1000,
+	# flat gold every side gets each turn on top of its buildings (AE2: none); per-game override only (s.rules, comeback research)
+	"baseIncome": 0,
 	# buyAE2: a bought unit acts the same turn; our castle may be bought on while one of our units stands there
 	"buyAE2": true,
 }
+
+## RULES[key] unless this game overrides it (s.rules, set from def.rules); numeric rules only, missing = 0.
+## Reads Game.RULES (tests may swap the tables)
+static func of(s: Dictionary, key: String) -> int:
+	var over: Dictionary = s.get("rules", { })
+	var v: Variant = over[key] if over.has(key) else Game.RULES.get(key, 0)
+	return type_convert(v, TYPE_INT)

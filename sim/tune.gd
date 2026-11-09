@@ -8,6 +8,10 @@ extends SceneTree
 ##   presets [games=8] [salt=9000000] [tuned=<file>] [names=a,b,..] -> round robin of the presets (row score vs column)
 ##   any mode: log=1 -> one line per game (winner, reason, turn, commander deaths)
 ##   time a=<spec> b=<spec> [games=2] [salt=9100000] -> A's AI wall time per step / per turn (avg, worst)
+##   comeback a=<spec> [games=8] [salt=9007000] [thr=0.5] [rules=off,base,hero,both] (+ baseN / bothN = pay N)
+##                                                   -> a vs a per rules variant (COMEBACK_TRY parts): wins, draws,
+##                                                      length, and how often the side that first fell behind (army
+##                                                      value + gold <= thr x foe's, fewer buildings) still won
 ##   evaldata a= b= [games=2] [salt=500] out=<csv>   -> per turn start: eval features (side to move) + final result
 ##                                                      (Texel-style fit: tools/texel_fit.py)
 ## spec: default | normal | easy | easy_gold (easy + half start gold) | hard (tuned file) | hard_n2 (tuned, noise 2)
@@ -71,6 +75,9 @@ const V5_ARMY := AI.V5_ARMY
 ## commander fixes from a human match (docs/ai.md "Sửa lỗi tướng từ trận người chơi"), frozen copy of AI.HERO_FIX
 const HERO_FIX := { "hero_bt": 1.0, "hero_ncast": 2.0, "pl_hero_kill": 0.75 }
 
+## comeback research (docs/1v1.md "Lật kèo"): candidate anti-snowball rules, not in the game (base pay measured worse)
+const COMEBACK_TRY := { "baseIncome": 100, "heroStep": 0 }
+
 var seed_v := 1.0
 var args := { }
 var games_played := 0
@@ -96,6 +103,8 @@ func _init() -> void:
 		time_ai()
 	elif mode == "evaldata":
 		eval_data()
+	elif mode == "comeback":
+		comeback()
 	if AIPlan.capped_n > 0:
 		print("WARNING planner capped %d times (pl_ms): not deterministic" % AIPlan.capped_n)
 	var sec := (Time.get_ticks_msec() - t0) / 1000.0
@@ -188,10 +197,12 @@ func play_match(a: Dictionary, b: Dictionary, games: int, salt: int, verbose := 
 				print("  %-10s A as %s: %.1f / %d" % [map_id, a_side, part, games])
 	return [score / n, n]
 
-## winner side or "draw". timing.side set -> that side's AI wall time (usec) appended to timing.steps / timing.turns
+## winner side or "draw". timing.side set -> that side's AI wall time (usec) appended to timing.steps / timing.turns.
+## timing.rules -> per-game RULES overrides; timing.watch(s) runs at every turn start; timing.last = final turn
 func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int, timing := { }) -> String:
 	seed_v = 1000.0 + (salt * 64.0 + k) * 7919.0
-	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false))
+	var rules: Dictionary = timing.get("rules", { })
+	var s := Game.new_game(Content.skirmish_def(map_id, "anhhung", false, 500, 10, rules))
 	s.seed = int(seed_v)
 	s.rng = int(seed_v)
 	for side: String in ["p", "e"]:
@@ -222,6 +233,9 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 			turn_us = 0
 			Game.end_turn(s)
 			mem = { }
+			if timing.has("watch") and s.winner == null:
+				var watch: Callable = timing.watch
+				watch.call(s)
 			if timing.has("rec") and s.winner == null:
 				var rec: Array = timing.rec
 				var me: String = s.side
@@ -231,6 +245,7 @@ func play_one(map_id: String, pp: Dictionary, pe: Dictionary, salt: int, k: int,
 		AI.apply_step(s, st)
 		steps += 1
 	games_played += 1
+	timing.last = s.turn
 	if args.has("log"): # one line per game: who won, why, when, commander deaths
 		print(
 			"    game %s k%d winner %s reason %s turn %d heroDeaths p%d e%d" % [map_id, k, s.winner, s.reason, s.turn, s.heroDeaths.p, s.heroDeaths.e]
@@ -446,3 +461,74 @@ func features(s: Dictionary, me: String) -> Array:
 				risk = minf(AI.expected_hit(s, h, hx, hy, threat.get(Vector2i(hx, hy)), 1.0) / hhp, 1.0)
 		out[11 if sd == me else 12] = risk
 	return out
+
+## comeback rules (docs/1v1.md "Lật kèo"): same AI both sides, each rules variant on the same seeds
+func comeback() -> void:
+	var a := spec(arg("a", "default"))
+	var games := int(arg("games", "8"))
+	var salt := int(arg("salt", str(HELD_OUT + 7000)))
+	var thr := float(arg("thr", "0.5"))
+	var cb: Dictionary = COMEBACK_TRY
+	var variants := { "off": { }, "base": { "baseIncome": cb.baseIncome }, "hero": { "heroStep": cb.heroStep }, "both": cb }
+	print(
+		"a=%s both sides, %d games per variant, behind = value + gold <= %.2f x foe + fewer buildings"
+		% [arg("a", "default"), games * Content.SKIRMISH.MAPS.size(), thr]
+	)
+	print("%-5s  p win  e win  draw  avg turn  behind games  comeback (behind side won)  turns behind -> loss" % "rules")
+	for vname: String in arg("rules", "off,base,hero,both").split(","):
+		if vname.length() > 4 and (vname.begins_with("base") or vname.begins_with("both")): # base50 / both50: other pay
+			var pay := int(vname.substr(4))
+			variants[vname] = { "baseIncome": pay } if vname.begins_with("base") else { "baseIncome": pay, "heroStep": 0 }
+		var c := { "n": 0, "p": 0, "e": 0, "draw": 0, "turns": 0, "behind": 0, "back": 0, "tail": 0, "lost": 0 }
+		for map_id: String in Content.SKIRMISH.MAPS:
+			for k in games:
+				var st := { "side": "", "turn": 0 }
+				var opt := {
+					"rules": variants[vname],
+					"watch": func(s: Dictionary) -> void:
+						if st.side != "":
+							return
+						for side: String in ["p", "e"]:
+							if behind(s, side, thr):
+								st.side = side
+								st.turn = s.turn
+								return,
+				}
+				var w := play_one(map_id, a, a, salt, k, opt)
+				var last: int = opt.last
+				c.n += 1
+				c[w] += 1
+				c.turns += last
+				if st.side != "":
+					c.behind += 1
+					if w == st.side:
+						c.back += 1
+					elif w != "draw":
+						c.lost += 1
+						var t0: int = st.turn
+						c.tail += last - t0
+		var n: int = c.n
+		var nb: int = c.behind
+		var nl: int = c.lost
+		var turns: float = c.turns
+		var tail: float = c.tail
+		var back: float = c.back
+		print(
+			"%-5s  %5d  %5d  %4d  %8.1f  %12d  %26s  %20.1f"
+			% [vname, c.p, c.e, c.draw, turns / n, nb, "%d / %d = %.0f%%" % [back, nb, 100.0 * back / maxi(nb, 1)], tail / maxi(nl, 1)]
+		)
+
+## gold + what its units are worth to the AI (AI.value x hp)
+static func strength(s: Dictionary, side: String) -> float:
+	var v: float = s.gold[side]
+	for u: Dictionary in s.units:
+		if u.side == side:
+			var hp: float = u.hp
+			v += AI.value(s, u) * hp / 100.0
+	return v
+
+static func behind(s: Dictionary, side: String, thr: float) -> bool:
+	var foe := Game.other(side)
+	var mine := Game.castles(s, side) + Game.villages(s, side)
+	var theirs := Game.castles(s, foe) + Game.villages(s, foe)
+	return strength(s, side) <= thr * strength(s, foe) and mine < theirs

@@ -26,6 +26,14 @@ static var TYPES := {
 	},
 }
 
+## `side` gives up: the other side wins at once (duel / skirmish ⚙ Đầu hàng; recorded as a replay step like end turn)
+static func surrender(s: Dictionary, side: String) -> Array:
+	if s.winner != null:
+		return []
+	s.winner = Game.other(side)
+	s.reason = "surrender"
+	return [{ "t": "win", "side": s.winner, "reason": "surrender" }]
+
 static func has(type: Variant) -> bool:
 	return TYPES.has(type)
 

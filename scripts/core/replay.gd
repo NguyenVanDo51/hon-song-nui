@@ -96,6 +96,11 @@ static func apply(s: Dictionary, step: Dictionary) -> Variant:
 	var kind: String = step.get("kind", "")
 	if kind == "end":
 		return Game.end_turn(s)
+	if kind == "surrender":
+		var side: String = step.get("side", "")
+		if side != "p" and side != "e":
+			return null
+		return Objectives.surrender(s, side)
 	if kind == "unbuy":
 		var id: int = step.id
 		if Game.unbuy(s, id):

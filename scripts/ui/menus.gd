@@ -778,7 +778,7 @@ func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callabl
 	var card := Style.card(Color("#1f110b"), Style.BRONZE, 14, 20)
 	card.custom_minimum_size.x = 420
 	var v := Style.vbox(14)
-	v.add_child(Style.rich(bb, 16, Style.INK, Style.GOLD))
+	v.add_child(Style.rich(bb, 16, Style.LIGHT, Style.GOLD)) # dark card: light text (INK was unreadable)
 	var row := Style.hbox(10)
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.add_child(

@@ -26,6 +26,7 @@ Chiến thuật theo lượt trên lưới ô. Bối cảnh / tên phe: `docs/se
 
 ## Thắng / thua
 - Một phe bị loại khi: hết thành **và** tướng đã chết; hoặc hết quân **và** hết thành. Phe chưa từng có thành (một số màn) chỉ thua khi hết quân.
+- 1 đấu 1 / đấu tự do: ⚙ Đầu hàng trong lượt mình -> bên kia thắng ngay (lý do `surrender`).
 - Màn chiến dịch thêm mục tiêu: `hero` (hạ tướng địch), `survive` N lượt, `reach` (đưa tướng tới ô), `rout`; `waves` = quân phục kích theo lượt. Mỗi kiểu = 1 mục trong `scripts/core/objectives.gd`.
 
 ## Sao màn (chiến dịch)

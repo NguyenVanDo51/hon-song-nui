@@ -301,6 +301,24 @@ func _duel(g: GameScreen) -> void:
 	await wait(0.8)
 	var again_ctrl: Dictionary = g.s.get("ctrl", { })
 	okv(g.visible and g.s.turn == 1 and again_ctrl.e == "human", "Chơi lại restarts the duel")
+	# ⚙ Đầu hàng (docs/1v1.md "Lật kèo"): Red gives up on its turn -> Blue wins, end card says so
+	ok(await wait_handoff(g), "restarted duel opens on the handoff card")
+	press("Bắt đầu lượt")
+	ok(await turn_of(g, "p"), "Red to move (surrender check)")
+	g.hud.show_menu(true)
+	await process_frame
+	var sb := find_btn(g.hud.menu, "Đầu hàng")
+	ok(sb != null and not sb.disabled, "⚙ shows an enabled Đầu hàng in a duel")
+	await main.shot("duel_menu_surrender")
+	press("Đầu hàng", g.hud.menu)
+	await wait(0.3)
+	await main.shot("duel_surrender_ask")
+	press("Đầu hàng")
+	await wait(1.5)
+	okv(g.s.winner == "e" and g.s.reason == "surrender", "surrender: Blue wins (%s / %s)" % [g.s.winner, g.s.reason])
+	var said := _texts(g.cards.end_layer) if g.cards.end_layer != null else ""
+	ok(said.contains("đã đầu hàng"), "end card names the surrender")
+	await main.shot("duel_surrender_end")
 	# vs AI (hard): Red ends the turn -> the AI plays Blue -> back to Red
 	main.show_title()
 	await wait(0.6)
@@ -319,6 +337,17 @@ func _duel(g: GameScreen) -> void:
 	main.show_title()
 	await wait(0.4)
 
+## every visible Label / RichTextLabel text under n, joined (end-card checks)
+func _texts(n: Node) -> String:
+	var out := ""
+	if n is Label and (n as Label).is_visible_in_tree():
+		out += (n as Label).text + "\n"
+	elif n is RichTextLabel and (n as RichTextLabel).is_visible_in_tree():
+		out += (n as RichTextLabel).get_parsed_text() + "\n"
+	for c: Node in n.get_children():
+		out += _texts(c)
+	return out
+
 func _run() -> void:
 	FX.speed = 3.0
 	await wait(1.0)
@@ -330,6 +359,7 @@ func _run() -> void:
 		quit(1 if fails else 0)
 		return
 	var s: Dictionary = g.s
+	ok(not g.hud.can_surrender(), "levels: no Đầu hàng in ⚙ (Đánh lại instead)")
 	var hero: Dictionary = units_of(s).filter(
 		func(u: Dictionary) -> bool:
 			return u.side == "p" and u.type == "hero",

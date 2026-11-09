@@ -82,6 +82,9 @@ static func new_game(def: Dictionary, opts := { }) -> Dictionary:
 		"hadCastle": { },
 		"unitCap": _or(def, "unitCap", RULES.unitCap),
 	}
+	var rules_def: Dictionary = _or(def, "rules", { }) # per-game RULES overrides (duel / skirmish comeback), Rules.of
+	if not rules_def.is_empty():
+		s.rules = rules_def.duplicate()
 	var lv_ai: String = def.get("ai", "normal") # level enemy preset; "normal" = no ctrl key (state as before levels)
 	var ctrl: Dictionary = def.get("ctrl", { "p": "human", "e": "ai:" + lv_ai } if lv_ai != "normal" else { })
 	if not ctrl.is_empty(): # 1 vs 1 sets ctrl, a level may set ai; neither = p human, e AI normal (Content.ctrl_of)
@@ -802,14 +805,11 @@ static func unbuy(s: Dictionary, id: int) -> bool:
 	units.erase(u)
 	return true
 
-## AE2: 200 + 200 per death so far, capped at 1000
+## AE2: 200 + 200 per death so far, capped at 1000 (duel / skirmish: heroStep 0 = flat 200)
 static func hero_cost(s: Dictionary, side: String) -> int:
 	var deaths: Dictionary = s.get("heroDeaths", { })
 	var n: int = deaths.get(side, 0)
-	var top: int = RULES.heroMax
-	var base: int = RULES.heroBase
-	var step: int = RULES.heroStep
-	return mini(top, base + step * n)
+	return mini(Rules.of(s, "heroMax"), Rules.of(s, "heroBase") + Rules.of(s, "heroStep") * n)
 
 ## owned tiles that sell units (castles), in owner order
 static func castle_tiles(s: Dictionary, side: String) -> Array:
@@ -830,9 +830,9 @@ static func villages(s: Dictionary, side: String) -> int:
 			n += 1
 	return n
 
-## sum of what every owned tile pays
+## sum of what every owned tile pays + the game's flat base pay (duel / skirmish comeback rule; 0 elsewhere)
 static func income(s: Dictionary, side: String) -> int:
-	var n := 0
+	var n := Rules.of(s, "baseIncome")
 	for key: Vector2i in s.owner:
 		if s.owner[key] == side:
 			n += income_of(tile_at(s, key.x, key.y))

@@ -31,6 +31,7 @@ var _income: Label
 var _btn_speed: Button
 var _btn_sound: Button
 var _btn_restart: Button
+var _btn_surrender: Button # duel / skirmish only: give the game up (Objectives.surrender)
 var _btn_music: Button
 var _btn_skip: Button
 var _pause: PanelContainer
@@ -314,6 +315,17 @@ func _build_menu() -> void:
 	)
 	for c: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color"]:
 		home.add_theme_color_override(c, Style.CRIMSON_D)
+	_btn_surrender = _ibtn(
+		Lang.t("🏳 Đầu hàng"),
+		Lang.t("Chịu thua ván này ngay"),
+		func() -> void:
+			_under = true
+			menu.visible = false
+			_confirm_surrender(),
+	)
+	_btn_surrender.theme_type_variation = "TileBtn"
+	_btn_surrender.custom_minimum_size.y = 48
+	v.add_child(_btn_surrender)
 	_btn_skip = _ibtn(
 		Content.text("tutSkip"),
 		Content.text("tutSkipTip"),
@@ -350,6 +362,8 @@ func show_menu(on: bool) -> void:
 	if on and gs.tutorial != null:
 		gs.tutorial.visible = false # its _process (which hides it under the menu) is paused too
 	_btn_skip.visible = gs.def.has("tutorial")
+	_btn_surrender.visible = can_surrender()
+	_btn_surrender.disabled = not gs._human_turn() # vs AI: only on our own turn (state is not mid-AI-step)
 	if on:
 		sound_label()
 		speed_label()
@@ -522,6 +536,31 @@ func _confirm_restart() -> void:
 		func() -> void:
 			var c := gs.ctx.duplicate()
 			gs.main.start_game(Game.new_game(gs._def_for(c)), c),
+		"",
+		Callable(),
+		back_to_menu,
+	)
+
+## Đầu hàng only where a lost game cannot be won back by retrying a level: 1 vs 1 + skirmish
+func can_surrender() -> bool:
+	var kind: String = gs.ctx.get("kind", "")
+	return kind == "duel" or kind == "skirmish"
+
+func _confirm_surrender() -> void:
+	if gs.s.is_empty() or gs.ui.busy or gs.s.winner != null or not gs._human_turn():
+		back_to_menu()
+		return
+	var side := gs._me()
+	var who := gs._side_name(side) if gs._hotseat() else Lang.t("Quân ta")
+	gs.main.menus.confirm(
+		Lang.t("Đầu hàng? [b]%s[/b] sẽ thua ván này.") % who,
+		Lang.t("Đầu hàng"),
+		func() -> void:
+			show_menu(false)
+			Objectives.surrender(gs.s, side)
+			MatchRec.step(gs.s, { "kind": "surrender", "side": side })
+			GameLog.crumb("surrender side %s turn %s" % [side, gs.s.turn])
+			gs.turns.finish(),
 		"",
 		Callable(),
 		back_to_menu,

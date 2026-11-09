@@ -22,6 +22,14 @@ func income_fx() -> void:
 		func(a: Dictionary, b: Dictionary) -> bool:
 			return a.y < b.y or (a.y == b.y and a.x < b.x),
 	)
+	var base := Rules.of(gs.s, "baseIncome") # flat pay (s.rules, research): added to our first castle's pop
+	if base > 0:
+		var home: Array = Game.castle_tiles(gs.s, me)
+		if not home.is_empty():
+			var hk: Vector2i = home[0]
+			for it: Dictionary in items:
+				if it.x == hk.x and it.y == hk.y:
+					it.amount += base
 	gs.hud.coins.board = gs.board
 	gs.hud.coins.play(items)
 	gs.main.audio.play("coin")

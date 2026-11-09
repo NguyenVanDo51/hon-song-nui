@@ -20,6 +20,11 @@ func _init() -> void:
 	var scn: PackedScene = load("res://main.tscn")
 	main = scn.instantiate()
 	main.flags["nozoom"] = "1"
+	if not argv.any(
+		func(a: String) -> bool:
+			return a.begins_with("lang="),
+	):
+		main.flags["lang"] = "vi" # the driver presses buttons by their Vietnamese text
 	root.add_child(main)
 	_run.call_deferred()
 

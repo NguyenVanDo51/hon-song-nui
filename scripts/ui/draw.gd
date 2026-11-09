@@ -149,38 +149,6 @@ static func radial(ci: CanvasItem, c: Vector2, r: float, stops: Array, seg := 28
 static func glow(ci: CanvasItem, c: Vector2, r: float, color: Color, squash := Vector2.ONE) -> void:
 	radial(ci, c, r, [[0.0, color], [1.0, Color(color, 0.0)]], 24, squash)
 
-## castle flame (premise "Ngọn Lửa Lâu Đài"): flickering teardrop, 3 tones + ink edge + glow + rising embers.
-## b = base point, h = height px, t = ms, sd = per-castle phase, boost = 0..1 flare just after a capture
-static func flame(ci: CanvasItem, b: Vector2, h: float, t: float, sd: float, boost := 0.0) -> void:
-	h *= 1.0 + 0.07 * sin(t / 90.0 + sd) + 0.05 * sin(t / 53.0 + sd * 2.0) + boost * 1.1
-	var w := h * 0.42
-	glow(ci, b + Vector2(0, -h * 0.35), h * (0.9 + boost * 0.6), Color(1.0, 0.62, 0.24, 0.32 + boost * 0.3))
-	var sway := w * 0.35 * sin(t / 140.0 + sd)
-	var tones := [[1.0, Color("#2b2220")], [0.9, Color("#e2462c")], [0.66, Color("#ff9a3c")], [0.38, Color("#ffe48a")]]
-	for tone: Array in tones:
-		var k: float = tone[0]
-		var tc: Color = tone[1]
-		var hh := h * k
-		var ww := w * k
-		var base := b + Vector2(0, -(1.0 - k) * h * 0.12)
-		var tip := base + Vector2(sway * k, -hh)
-		var left := cubic(tip, base + Vector2(-ww * 0.25, -hh * 0.6), base + Vector2(-ww * 1.05, -hh * 0.25), base, 10)
-		var right := cubic(base, base + Vector2(ww * 1.05, -hh * 0.25), base + Vector2(ww * 0.25, -hh * 0.6), tip, 10)
-		left.append_array(right.slice(1, right.size() - 1))
-		ci.draw_colored_polygon(left, tc)
-	for i in 3:
-		var ph := fposmod(t / 900.0 + i / 3.0 + sd * 0.13, 1.0)
-		var at := b + Vector2(sin(t / 300.0 + i * 2.1 + sd) * w * 0.5, -h * (0.7 + ph * 0.9))
-		ci.draw_circle(at, maxf(1.0, h * 0.045 * (1.0 - ph)), Color(1.0, 0.8, 0.4, 1.0 - ph))
-
-## thin smoke over a put-out castle: 3 grey puffs rising + drifting; boost = 0..1 big puff just after it fell
-static func smoke(ci: CanvasItem, b: Vector2, h: float, t: float, sd: float, boost := 0.0) -> void:
-	for i in 3:
-		var ph := fposmod(t / 2200.0 + i / 3.0 + sd * 0.11, 1.0)
-		var at := b + Vector2(sin(t / 700.0 + i * 1.7 + sd) * h * 0.12 + ph * h * 0.25, -h * ph * (1.0 + boost))
-		var r := h * (0.08 + ph * 0.14) * (1.0 + boost * 1.5)
-		ci.draw_circle(at, r, Color(0.25, 0.23, 0.27, minf(0.85, 0.62 * (1.0 - ph) * (1.0 + boost))))
-
 ## axis-aligned rect with a multi-stop gradient; vertical = top -> bottom
 static func gradient_rect(ci: CanvasItem, r: Rect2, stops: Array, vertical := true) -> void:
 	for i in stops.size() - 1:

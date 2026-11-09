@@ -9,15 +9,15 @@ const SPEC = {
   title: 'Trưng Trắc · Chém gió',
   feet: 244, cx: 128,
   parts: {
-    cape: `<path d="M108 126 Q64 148 28 236 Q46 226 56 242 Q70 228 86 244 Q98 232 114 240 L138 132 Z" fill="#c9503f"/>
-<path d="M104 138 Q76 164 54 228 Q68 220 82 234 Q94 222 108 230" fill="none" stroke="#93362b" stroke-width="5"/>`,
+    cape: `<path d="M108 126 Q64 148 28 236 Q46 226 56 242 Q70 228 86 244 Q98 232 114 240 L138 132 Z" fill="#4f74c9"/>
+<path d="M104 138 Q76 164 54 228 Q68 220 82 234 Q94 222 108 230" fill="none" stroke="#32508f" stroke-width="5"/>`,
     legB: `<rect x="104" y="196" width="20" height="40" rx="4" fill="#5a4a3c"/>
 <rect x="98" y="226" width="30" height="20" rx="8" fill="#3a2e28"/>
 <path d="M102 228 L124 228" stroke="#e2c36e" stroke-width="5"/>`,
     legF: `<rect x="134" y="196" width="20" height="40" rx="4" fill="#5a4a3c"/>
 <rect x="130" y="226" width="32" height="20" rx="8" fill="#3a2e28"/>
 <path d="M134 228 L158 228" stroke="#e2c36e" stroke-width="5"/>`,
-    skirt: `<path d="M94 176 L162 176 L168 206 Q128 216 88 206 Z" fill="#c9503f"/>`,
+    skirt: `<path d="M94 176 L162 176 L168 206 Q128 216 88 206 Z" fill="#4f74c9"/>`,
     torso: `<path d="M100 128 Q128 118 156 128 L162 180 Q128 190 94 180 Z" fill="#aab3bd"/>
 <path d="M120 140 L120 174" stroke="#7e8790" stroke-width="5"/>
 <path d="M96 178 Q128 188 160 178" fill="none" stroke="#e2c36e" stroke-width="8"/>
@@ -31,8 +31,8 @@ const SPEC = {
 <rect x="207" y="118" width="10" height="22" rx="3" fill="#3a2e28" stroke-width="5"/>
 <circle cx="212" cy="144" r="7" fill="#e2c36e" stroke-width="5"/>
 </g>`,
-    plume: `<path d="M138 40 C144 16 130 4 108 4 C86 4 64 16 46 38 C64 32 78 32 88 36 C74 42 64 52 58 66 C78 56 98 52 116 50 Z" fill="#c9503f" stroke-width="6"/>
-<path d="M128 32 C126 18 116 12 102 12 M116 40 C102 34 86 34 72 38 M110 48 C96 48 84 52 74 58" fill="none" stroke="#93362b" stroke-width="4"/>`,
+    plume: `<path d="M138 40 C144 16 130 4 108 4 C86 4 64 16 46 38 C64 32 78 32 88 36 C74 42 64 52 58 66 C78 56 98 52 116 50 Z" fill="#4f74c9" stroke-width="6"/>
+<path d="M128 32 C126 18 116 12 102 12 M116 40 C102 34 86 34 72 38 M110 48 C96 48 84 52 74 58" fill="none" stroke="#32508f" stroke-width="4"/>`,
     head: `<circle cx="130" cy="88" r="54" fill="#f3cfa6"/>
 <path d="M78 98 L72 130 Q86 138 102 130 L102 98 Z" fill="#aab3bd" stroke-width="5"/>
 <path d="M76 128 Q87 134 99 128" fill="none" stroke="#e2c36e" stroke-width="4"/>
@@ -47,7 +47,7 @@ const SPEC = {
 <ellipse cx="180" cy="132" rx="6" ry="4" fill="#f09a88" opacity="0.6"/>
 <path d="M149 132 Q158 143 167 132" fill="none" stroke="#2b2220" stroke-width="3" stroke-linecap="round"/>`,
     arm: `<path d="M152 152 Q182 150 210 130" fill="none" stroke="#2b2220" stroke-width="24"/>
-<path d="M152 152 Q182 150 210 130" fill="none" stroke="#c9503f" stroke-width="12"/>
+<path d="M152 152 Q182 150 210 130" fill="none" stroke="#4f74c9" stroke-width="12"/>
 <circle cx="212" cy="128" r="12" fill="#f3cfa6" stroke-width="5"/>`,
   },
   raw: ['face'],

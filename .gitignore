@@ -5,3 +5,5 @@
 .claude/*
 !.claude/skills/
 /override.cfg
+/docs/design/scene/
+/docs/design/shots/

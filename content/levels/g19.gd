@@ -5,7 +5,7 @@ const DEF := {
 	"id": "g19",
 	"order": 175,
 	"title": "Cổng Kinh Đô",
-	"lore": "Trước cổng kinh đô, Đế Quốc dốc toàn lực phản công. Trụ vững.",
+	"lore": "Trước cổng kinh đô, quân Ma Vương dốc toàn lực phản công. Trụ vững.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

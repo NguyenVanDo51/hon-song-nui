@@ -1,11 +1,11 @@
 extends RefCounted
-## m02: Ngọn Lửa Đầu Tiên. Format: docs/content.md
+## m02: Trận Đầu Tiên. Format: docs/content.md
 
 const DEF := {
 	"id": "m02",
 	"order": 20,
-	"title": "Ngọn Lửa Đầu Tiên",
-	"lore": "Vorn: «Một đốm lửa con. Ta dập nó trong một đêm.»",
+	"title": "Trận Đầu Tiên",
+	"lore": "Vorn: «Nửa đế quốc đã quỳ trước Ma Vương. Nửa kia cũng sẽ quỳ.»",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["archer"],

@@ -5,9 +5,9 @@
 const CHAR = {
  title: 'Hiệp Sĩ Chỉ Huy · Kiếm Giáng',
  parts: {
-  cape: `<path d="M100 122 Q44 150 24 244 Q60 232 92 244 Q128 236 162 246 Q198 232 230 244 Q212 166 156 122 Z" fill="#c9503f"/>
-<path d="M98 142 Q64 180 54 232 Q76 226 96 232 Z" fill="#93362b" stroke="none"/>
-<path d="M158 142 Q192 180 202 232 Q180 226 160 232 Z" fill="#93362b" stroke="none"/>
+  cape: `<path d="M100 122 Q44 150 24 244 Q60 232 92 244 Q128 236 162 246 Q198 232 230 244 Q212 166 156 122 Z" fill="#4f74c9"/>
+<path d="M98 142 Q64 180 54 232 Q76 226 96 232 Z" fill="#32508f" stroke="none"/>
+<path d="M158 142 Q192 180 202 232 Q180 226 160 232 Z" fill="#32508f" stroke="none"/>
 <path d="M28 239 Q60 228 92 239 Q128 231 162 241 Q198 228 226 239" fill="none" stroke="#e2c36e" stroke-width="5"/>`,
   legB: `<rect x="96" y="194" width="24" height="40" rx="5" fill="#aab3bd"/>
 <rect x="86" y="226" width="38" height="20" rx="8" fill="#7e8790"/>
@@ -18,7 +18,7 @@ const CHAR = {
   torso: `<path d="M98 126 Q128 114 158 126 L168 202 Q128 214 88 202 Z" fill="#cdd4da"/>
 <path d="M110 136 Q107 162 112 190" fill="none" stroke="#f6f8fa" stroke-width="5"/>
 <path d="M104 130 Q128 143 152 130" fill="none" stroke="#e2c36e" stroke-width="6"/>
-<path d="M90 192 Q128 204 166 192 L172 214 Q128 228 84 214 Z" fill="#c9503f"/>
+<path d="M90 192 Q128 204 166 192 L172 214 Q128 228 84 214 Z" fill="#4f74c9"/>
 <path d="M87 210 Q128 224 169 210" fill="none" stroke="#e2c36e" stroke-width="5"/>
 <path d="M92 190 Q128 200 164 190" fill="none" stroke="#5a4a3c" stroke-width="9"/>
 <circle cx="128" cy="196" r="7" fill="#e2c36e" stroke-width="4"/>`,

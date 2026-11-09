@@ -1,6 +1,6 @@
-# Công Thành Chiến — spec (luật AE2, 2026-11-06)
+# Công Thành Chiến — spec (luật AE2, cập nhật 2026-11-09)
 
-Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Hán. Luật = Ancient Empires II (đối chiếu: `docs/review/rules_compare.html`); tên / bản đồ / hình / truyện = tự làm. Số liệu trong `scripts/core/rules.gd`.
+Chiến thuật theo lượt trên lưới ô. Bối cảnh / tên phe: `docs/setting.md`. Luật = Ancient Empires II (đối chiếu: `docs/review/rules_compare.html`); tên / bản đồ / hình / truyện = tự làm. Số liệu trong `scripts/core/rules.gd`.
 
 ## Lượt
 - Chọn lính -> đi (xuyên quân mình, không xuyên địch) -> 1 hành động: Đánh / Chiếm / Sửa làng / Phá làng / Gọi hồn / Chờ.
@@ -20,7 +20,7 @@ Chiến thuật theo lượt trên lưới ô. Hai Bà Trưng (ta) vs Đông Há
 - Máy bắn đá: chưa đi mới bắn / phá làng (2–4 ô). Phá làng địch / chưa ai chiếm -> làng hỏng; bộ binh / tướng sửa (1 lượt) -> làng trống, lượt sau chiếm.
 
 ## Tướng
-- Hai tướng cùng chỉ số (55–65 / 20 / 5 / 1), chiếm được làng + thành.
+- Hai tướng cùng chỉ số (55–65 / 20 / 4 / 1), chiếm được làng + thành.
 - Chết -> mua lại ở thành: 200 + 200 × số lần đã chết (tối đa 1000), giữ cấp + KN.
 - AI né đòn: máu mất = giá bộ binh / máu (mọi quân, máu hồi được); giá trị đầy đủ của quân chỉ tính theo nguy cơ chết (tổng đòn địch tới ô: ≤ 0.6 máu -> 0, = máu -> ½, ≥ 1.4 máu -> đủ) -> tướng khoẻ tiến lên đánh, không lùi về ô an toàn; tướng yếu tránh ô có thể chết. Thưởng đứng làng hồi máu tính tối đa giá 300 (tướng 60 máu không bám làng).
 
@@ -38,20 +38,20 @@ Bấm 1 quân địch: ô trắng mờ = ô nó đi tới được; ô đỏ = c
 Đồng 5/1 · Đường 0/1 · Rừng 10/2 · Đồi 10/2 · Núi 15/3 (mọi quân) · Sông 0/3 (thủy binh 1) · Cầu 5/1 · Làng 15/1 · Thành 15/1 · Làng hỏng 15/1 · Đền 15/1 (không chiếm, hồi máu mọi phe). Rồng: mọi ô 1.
 Công trình = mô tả trong `TERRAIN` (`income`, `cap`, `heals`, `sells`, `razeTo`, `repairTo`/`repairBy`): làng 30 vàng, chiếm `capV`, phá -> làng hỏng; thành 50 vàng, chiếm `capC`, mua lính; làng hỏng sửa (`capV`) -> làng; đền hồi máu mọi phe.
 
-## Lính (giá · công / thủ / đi / tầm)
+## Lính (giá · công / thủ / đi / tầm; tên hiện = `content/theme.gd` `UNITS`)
 Đi = số bước thật = số trong `units.bin` gốc − 1 (gốc: ô đích phải còn dư > 0 bước; màn thông tin gốc hiện số thô).
-| Lính | AE2 | Giá | C / T / Đi / Tầm | Đặc biệt |
-|---|---|---|---|---|
-| Bộ binh | Soldier | 150 | 50–55 / 5 / 4 / 1 | chiếm, sửa làng |
-| Nỏ thủ | Archer | 250 | 50–55 / 5 / 4 / 1–2 | +15 vs rồng |
-| Thủy binh | Elemental | 300 | 50–55 / 10 / 4 / 1 | sông giá 1, dưới sông +10 / +15 |
-| Thầy mo | Sorceress | 400 | 40–45 / 5 / 4 / 1 | gọi hồn |
-| Trống đồng | Wisp | 500 | 35–40 / 10 / 4 / 1 | hào quang tầm 2, +15 vs âm binh |
-| Sói | Dire Wolf | 600 | 60–65 / 15 / 5 / 1 | cắn: −10 / −10 |
-| Voi chiến | Golem | 600 | 60–70 / 30 / 4 / 1 | |
-| Máy bắn đá | Catapult | 700 | 50–70 / 10 / 3 / 2–4 | công thành, phá làng |
-| Rồng | Dragon | 1000 | 70–80 / 25 / 6 / 1 | bay |
-| Âm binh | Skeleton | — | 40–50 / 2 / 4 / 1 | gọi từ mộ, không tính trần |
+| Khóa | Tên hiện | AE2 | Giá | C / T / Đi / Tầm | Đặc biệt |
+|---|---|---|---|---|---|
+| `soldier` | Vệ binh | Soldier | 150 | 50–55 / 5 / 4 / 1 | chiếm, sửa làng |
+| `archer` | Cung thủ | Archer | 250 | 50–55 / 5 / 4 / 1–2 | +15 vs rồng |
+| `boat` | Hải tặc | Elemental | 300 | 50–55 / 10 / 4 / 1 | sông giá 1, dưới sông +10 / +15 |
+| `shaman` | Pháp sư gọi hồn | Sorceress | 400 | 40–45 / 5 / 4 / 1 | gọi hồn |
+| `drum` | Tu sĩ ánh sáng | Wisp | 500 | 35–40 / 10 / 4 / 1 | hào quang tầm 2, +15 vs âm binh |
+| `wolf` | Sói bóng đêm | Dire Wolf | 600 | 60–65 / 15 / 5 / 1 | cắn: −10 / −10 |
+| `elephant` | Golem đá | Golem | 600 | 60–70 / 30 / 4 / 1 | |
+| `catapult` | Máy bắn đá | Catapult | 700 | 50–70 / 10 / 3 / 2–4 | công thành, phá làng |
+| `bird` | Rồng | Dragon | 1000 | 70–80 / 25 / 6 / 1 | bay |
+| `ghost` | Bộ xương | Skeleton | — | 40–50 / 2 / 4 / 1 | gọi từ mộ, không tính trần |
 
 Số liệu đặc biệt (hào quang, độc, thưởng vs loại, gọi hồn ra loại gì) là cờ trong `UNITS`; quân bị đóng dấu giữ phe đóng dấu (`aura` / `poison`) + lượng (`auraAtk` / `poisonAmt`). Lưu ván v4 (v3 tự nâng, lượng = 10).
 

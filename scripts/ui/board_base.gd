@@ -94,7 +94,7 @@ func _gui_input(ev: InputEvent) -> void:
 		var ih := _info_at(mm.position)
 		if ih != _info_hit_id:
 			_info_hit_id = ih
-			tooltip_text = "Xem thông tin quân" if ih >= 0 else ""
+			tooltip_text = Lang.t("Xem thông tin quân") if ih >= 0 else ""
 		var tl: Variant = _pick(mm.position)
 		if tl != hover:
 			hover = tl

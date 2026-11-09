@@ -500,7 +500,7 @@ class Projectile extends Fx:
 					ctx.line_to(-L * 0.7 * s - 12 * s, sg * 10 * s)
 					ctx.line_to(-L * 0.7 * s + 8 * s, sg * 2 * s)
 					ctx.close_path()
-					ctx.fill(o.get("color", "#c9503f"))
+					ctx.fill(o.get("color", "#4f74c9"))
 					ctx.stroke(INK, 3)
 		elif kind == "rock":
 			ctx.begin_path()

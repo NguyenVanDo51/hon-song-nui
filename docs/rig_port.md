@@ -33,7 +33,7 @@ Art source of truth = the spec parts: `assets/units/styles/chibi/*.svg` are gene
    - module-level helper fx (`function fooFx(api){ return api.add({upd, draw}) }`) -> a static func or inner class in the same file; `r.add({ "upd": func(s, ms) -> bool: ..., "draw": func(ctx, cam, layer) -> void: ... })` or a `RigFx.Fx` subclass (override `upd(s, ms) -> bool` + `draw(ctx, cam, layer)`; fx loops are typed, so anything else errors at runtime).
    - channels listed in JSON `attacks[].sampled` (JS `track + wobble` combos) are exported as 5 ms linear samples: fine as is; override `channels(p, t, attack)` only if it must be exact.
    - numbers/colours/timings: read `data.consts` (every plain top-level JS const, evaluated, incl. `bake()` results; tracks as `{track: keys}`, sample with `RigData.sample(RigData.keys_of(c.X.track), t)`).
-4. Register: one line in `Rigs.SPECS`: `"<type>": { "script": "res://scripts/ui/rig/specs/<unit>.gd", "p": "<unit>", "e": "<unit>" }` (same name both sides = enemy gets the team-colour swap `#c9503f->#4f74c9`, `#93362b->#32508f`, gold trim `#e2c36e->#d9dee3`).
+4. Register: one line in `Rigs.SPECS`: `"<type>": { "script": "res://scripts/ui/rig/specs/<unit>.gd", "p": "<unit>", "e": "<unit>" }` (same name both sides = enemy gets the team-colour swap `RigData.TEAM_SWAP` = `tools/rig_export.mjs` `TEAM_SWAP`: `#4f74c9->#8c1f3a`, `#32508f->#3d1238`, gold trim `#e2c36e->#a77bd6`; setting v2 2026-11-09).
 5. Test (below). Units without an entry keep `FX.attack`.
 
 ## JS -> GDScript api

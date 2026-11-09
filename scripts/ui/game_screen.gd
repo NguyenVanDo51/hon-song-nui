@@ -764,9 +764,9 @@ func _stack_hint() -> void:
 	var sel: Variant = _sel_unit()
 	var u: Dictionary = sel if sel != null else { }
 	if sel != null and Game.stacked(s, u):
-		ui.hint = "Hai quân đứng chung lâu đài: cho [b]%s[/b] bước ra ô khác%s." % [
+		ui.hint = Lang.t("Hai quân đứng chung lâu đài: cho [b]%s[/b] bước ra ô khác%s.") % [
 			_name_of(u),
-			", hoặc bấm ra ngoài vùng đi để hủy mua (hoàn vàng)" if Game.can_unbuy(s, u) else "",
+			Lang.t(", hoặc bấm ra ngoài vùng đi để hủy mua (hoàn vàng)") if Game.can_unbuy(s, u) else "",
 		]
 
 ## units of ours that could still attack or capture this turn
@@ -792,21 +792,21 @@ func _on_hint() -> void:
 	_reset_ui()
 	var step: Variant = AI.next_step(s.duplicate(true), { }) # next_step may clear guard flags: ask on a copy
 	if step == null:
-		ui.hint = "Không còn việc gì đáng làm. Bấm [b]Hết lượt[/b]."
+		ui.hint = Lang.t("Không còn việc gì đáng làm. Bấm [b]Hết lượt[/b].")
 		refresh()
 		return
 	if step.kind == "buy":
 		ui.buyAt = [step.x, step.y]
 		ui.hotBuy = step.type
 		var hot_type: String = step.type
-		ui.hint = "Gợi ý: mua [b]%s[/b]." % Content.unit_type_look(_me(), hot_type, s.heroKey[_me()]).name
+		ui.hint = Lang.t("Gợi ý: mua [b]%s[/b].") % Content.unit_type_look(_me(), hot_type, s.heroKey[_me()]).name
 		refresh()
 		return
 	var a: Dictionary = step.act
 	var aid: int = a.id
 	var u: Dictionary = Game.unit_by_id(s, aid)
 	if a.kind == "wait" and a.to[0] == u.x and a.to[1] == u.y: # there is no "wait in place" any more
-		ui.hint = "Gợi ý: [b]%s[/b] cứ đứng yên giữ chỗ. Ra lệnh cho quân khác hoặc bấm [b]Hết lượt[/b]." % _name_of(u)
+		ui.hint = Lang.t("Gợi ý: [b]%s[/b] cứ đứng yên giữ chỗ. Ra lệnh cho quân khác hoặc bấm [b]Hết lượt[/b].") % _name_of(u)
 		refresh()
 		return
 	ui.sel = u.id
@@ -819,7 +819,7 @@ func _on_hint() -> void:
 	ui.raze = a.target if a.kind == "raze" else null
 	var kind: String = a.kind
 	var verb: String = Content.text("raiseVerb") if kind == "raise" else Content.text("hint_" + kind)
-	ui.hint = "Gợi ý: [b]%s[/b] %s. Bấm nút sáng để làm theo." % [_name_of(u), verb]
+	ui.hint = Lang.t("Gợi ý: [b]%s[/b] %s. Bấm nút sáng để làm theo.") % [_name_of(u), verb]
 	ui.hintKind = a.kind
 	refresh()
 

@@ -90,7 +90,7 @@ func _handoff() -> void:
 	handoff_layer = HudWidgets.Handoff.make(
 		Content.text("handoffTitle").format({ "side": side_txt }),
 		Content.text("handoffSub").format({ "turn": turn }),
-		Style.P_NAME if gs.s.side == "p" else Style.SEA_HI,
+		Style.P_NAME if gs.s.side == "p" else Style.E_NAME,
 		handoff_closed.emit,
 	)
 	gs.add_child(handoff_layer)
@@ -261,35 +261,35 @@ func finish() -> void:
 				var next: Dictionary = nx
 				buttons.append(
 					[
-						"Thử thách tiếp ›",
+						Lang.t("Thử thách tiếp ›"),
 						func() -> void:
 							gs.main.play_mission(next),
 						true,
 					]
 				)
 			else:
-				reason_text += " Đã thắng mọi thử thách!"
-			buttons.append(["Chọn thử thách", back, false])
+				reason_text += Lang.t(" Đã thắng mọi thử thách!")
+			buttons.append([Lang.t("Chọn thử thách"), back, false])
 		else:
 			var c2 := gs.ctx.duplicate()
 			var retry := func() -> void:
 				var m: Dictionary = Content.level(mission_id)
 				gs.main.start_game(Game.new_game(m), c2)
-			buttons.append(["Đánh lại", retry, true])
-			buttons.append(["Chọn thử thách", back, false])
+			buttons.append([Lang.t("Đánh lại"), retry, true])
+			buttons.append([Lang.t("Chọn thử thách"), back, false])
 	elif duel:
 		var c3 := gs.ctx.duplicate()
 		buttons.append(
 			[
-				"Chơi lại",
+				Lang.t("Chơi lại"),
 				func() -> void:
 					gs.main.start_game(Game.new_game(gs._def_for(c3)), c3),
 				true,
 			]
 		)
-		buttons.append(["Về menu", gs.main.show_title, false])
+		buttons.append([Lang.t("Về menu"), gs.main.show_title, false])
 	else:
-		buttons.append(["Ván mới", gs.main.show_skirmish, true])
+		buttons.append([Lang.t("Ván mới"), gs.main.show_skirmish, true])
 		buttons.append(["Menu", gs.main.show_title, false])
 	gs.cards.show_end(win, reason_text, buttons, star_goals if win else [], best_before, stars)
 	if gs.main.flags.has("shots"):

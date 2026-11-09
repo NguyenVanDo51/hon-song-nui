@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chữ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+
+<section class="sheet">
+  <header><h2>Chữ trong game</h2><span class="pill" id="cnt"></span></header>
+  <p class="lede">Mọi dòng chữ hiện ra cho người chơi, kèm bản tiếng Anh (<code>locale/en.po</code>; ô đỏ nhạt ở cột English = thiếu bản dịch). Lấy từ <code>content/theme.gd</code> (text / goals / ends / phe / tướng / lính / địa hình), <code>content/guide.gd</code> và từng level. <code>{eh}</code> = tên tướng địch, <code>{hero}</code> = tướng ta, <code>{n}</code> / <code>{turns}</code> = số. Ô cam = có chữ liên quan bối cảnh (phe, Ma Vương, Vorn).</p>
+  <input class="filter" id="q" placeholder="Tìm chữ hoặc khóa…">
+  <label class="src"><input type="checkbox" id="only"> chỉ dòng liên quan bối cảnh</label>
+  <table class="list"><thead><tr><th>Nhóm</th><th>Khóa</th><th>Tiếng Việt (gốc)</th><th>English</th></tr></thead><tbody id="rows"></tbody></table>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="design.js"></script>
+<script>
+
+const FLAG = /(Đế Quốc|Ma Vương|Vorn|phản loạn)/i;
+const rows = [];
+const add = (g, k, v) => rows.push([g, k, String(v)]);
+add('Tiêu đề', 'title', D.texts.title); add('Tiêu đề', 'tagline', D.texts.tagline); add('Tiêu đề', 'lede', D.texts.lede);
+for (const [k, v] of Object.entries(D.texts.text)) add('Giao diện (text)', k, v);
+for (const [w, g] of Object.entries(D.texts.goals)) for (const [f, v] of Object.entries(g)) add('Mục tiêu', `${w}.${f}`, v);
+for (const [s, g] of Object.entries(D.texts.ends)) for (const [r, v] of Object.entries(g)) add('Kết trận', `${s}.${r}`, v);
+for (const [s, f] of Object.entries(D.factions)) for (const k of ['name', 'short', 'duelShort']) if (f[k]) add('Phe', `${s}.${k}`, f[k]);
+for (const [id, h] of Object.entries(D.heroes)) { add('Tướng', id + '.name', h.name); add('Tướng', id + '.blurb', h.blurb); }
+for (const t of D.unitOrder) { const u = D.units[t]; if (t !== 'hero') { add('Lính', t + '.name', u.look.name); if (u.look.desc) add('Lính', t + '.desc', u.look.desc); } add('Lính (cách dùng)', t + '.role', u.role); add('Lính (cách dùng)', t + '.play', u.play); }
+D.rankTitles.forEach((r, i) => r && add('Lính', 'rank.' + i, r));
+for (const k of D.terrainOrder) { add('Địa hình', k + '.name', D.terrain[k].look.name); if (D.terrain[k].note) add('Địa hình', k + '.note', D.terrain[k].note); }
+for (const m of D.levels) { add('Level', m.id + '.title', m.title); if (m.lore) add('Level', m.id + '.lore', m.lore); add('Level', m.id + '.brief', m.brief); }
+for (const m of D.skirmish) { add('Đấu tự do', m.id + '.name', m.name); add('Đấu tự do', m.id + '.blurb', m.blurb); }
+const tb = $('rows');
+const trs = rows.map(([g, k, v]) => {
+  const tr = el('tr');
+  const hit = FLAG.test(v);
+  tr.className = hit ? 'hit' : '';
+  const en = (D.i18n.en || {})[v];
+  tr.innerHTML = `<td class="src">${g}</td><td><code>${esc(k)}</code></td><td>${esc(v).replace(new RegExp(FLAG.source, 'gi'), (m) => `<mark>${m}</mark>`)}</td><td${en ? '' : ' style="background:#f3b3a8"'}>${en ? esc(en) : '<i>chưa dịch</i>'}</td>`;
+  tr.dataset.q = (g + ' ' + k + ' ' + v + ' ' + (en || '')).toLowerCase();
+  tr.dataset.hit = hit ? '1' : '';
+  tb.append(tr);
+  return tr;
+});
+const flagged = trs.filter((t) => t.dataset.hit).length;
+const noEn = rows.filter(([, , v]) => !(D.i18n.en || {})[v]).length;
+$('cnt').textContent = `${rows.length} dòng · ${flagged} liên quan bối cảnh · ${noEn} chưa dịch EN`;
+const apply = () => { const q = $('q').value.toLowerCase().trim(), only = $('only').checked; trs.forEach((t) => t.hidden = (q && !t.dataset.q.includes(q)) || (only && !t.dataset.hit)); };
+$('q').oninput = apply; $('only').onchange = apply;
+
+</script>
+</body>
+</html>

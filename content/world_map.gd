@@ -1,11 +1,13 @@
 extends RefCounted
 # gdlint: disable=max-line-length
 ## "Thử thách" kingdom map (scripts/ui/world_map.gd): one node per level, the march from the south-west border to the
-## capital in the north-east (premise "Ngọn Lửa Lâu Đài"). Units: map viewbox VB (x right, y down). Kept out of the
+## capital in the north-east (setting docs/setting.md: the traitor general holds the capital, the Demon Lord's tower behind it). Units: map viewbox VB (x right, y down). Kept out of the
 ## level DEFs on purpose (old `pos` / `region` keys were removed with the chapters). Test: every level placed, in VB,
 ## spaced, regions cover every level.
 
 const VB := Vector2(150, 110)
+## the Demon Lord's tower (decor, not a level): past the capital, top-right corner
+const DEMON_TOWER := Vector2(137, 12)
 
 ## level id -> node position
 const POS := {

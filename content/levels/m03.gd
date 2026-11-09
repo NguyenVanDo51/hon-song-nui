@@ -7,7 +7,7 @@ const DEF := {
 	"id": "m03",
 	"order": 30,
 	"title": "Giữ Làng Biên Giới",
-	"lore": "Đế Quốc kéo quân tới đòi lại làng. Giữ vững cho tới khi chúng nản.",
+	"lore": "Quân Ma Vương kéo tới đòi lại làng. Giữ vững cho tới khi chúng nản.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["drum"],

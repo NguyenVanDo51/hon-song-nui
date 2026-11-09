@@ -92,7 +92,7 @@ const SPEC = {
   feet: 244, cx: 128, range: 1,
   parts: {
     armB: `<path d="M108 140 Q102 164 100 188" fill="none" stroke="#2b2220" stroke-width="26"/>
-<path d="M108 140 Q102 164 100 188" fill="none" stroke="#93362b" stroke-width="14"/>
+<path d="M108 140 Q102 164 100 188" fill="none" stroke="#32508f" stroke-width="14"/>
 <circle cx="100" cy="192" r="11" fill="#f3cfa6" stroke-width="5"/>`,
     // small green wisp spirit floating beside the necromancer
     wisp: `<path d="M60 152 Q42 138 52 118 Q58 132 66 130 Q60 116 74 104 Q74 126 84 136 Q82 154 60 152 Z" fill="#8be37a" stroke-width="5"/>
@@ -101,9 +101,9 @@ const SPEC = {
     feet: `<rect x="98" y="226" width="30" height="20" rx="8" fill="#3a2e28"/>
 <rect x="132" y="226" width="32" height="20" rx="8" fill="#3a2e28"/>`,
     // dark team robe + team trim, rope belt, skull pendant
-    body: `<path d="M100 128 Q128 118 156 128 L176 230 Q128 242 80 230 Z" fill="#93362b"/>
-<path d="M84 222 Q128 233 172 222" fill="none" stroke="#c9503f" stroke-width="8"/>
-<path d="M128 132 L131 226" stroke="#c9503f" stroke-width="6"/>
+    body: `<path d="M100 128 Q128 118 156 128 L176 230 Q128 242 80 230 Z" fill="#32508f"/>
+<path d="M84 222 Q128 233 172 222" fill="none" stroke="#4f74c9" stroke-width="8"/>
+<path d="M128 132 L131 226" stroke="#4f74c9" stroke-width="6"/>
 <path d="M92 176 Q128 186 164 176" fill="none" stroke="#2b2220" stroke-width="15"/>
 <path d="M92 176 Q128 186 164 176" fill="none" stroke="#a87a4c" stroke-width="7"/>
 <path d="M120 146 Q120 136 128 136 Q136 136 136 146 Q136 151 132 152 L132 156 L124 156 L124 152 Q120 151 120 146 Z" fill="#ece6da" stroke-width="4"/>`,
@@ -116,14 +116,14 @@ const SPEC = {
 <circle cx="207" cy="46" r="4.5" fill="#2b2220" stroke="none"/>
 <path d="M196 62 L196 68 M200 62 L200 68 M204 62 L204 68" stroke="#2b2220" stroke-width="2.5"/>`,
     armF: `<path d="M152 140 Q176 150 196 160" fill="none" stroke="#2b2220" stroke-width="28"/>
-<path d="M152 140 Q176 150 196 160" fill="none" stroke="#93362b" stroke-width="16"/>
+<path d="M152 140 Q176 150 196 160" fill="none" stroke="#32508f" stroke-width="16"/>
 <circle cx="200" cy="162" r="12" fill="#f3cfa6" stroke-width="5"/>`,
     // hood tail (flops back)
-    plume: `<path d="M86 46 Q54 30 36 48 Q60 54 76 68 Z" fill="#93362b"/>`,
-    head: `<path d="M72 112 Q56 42 112 24 Q152 14 178 36 Q198 56 192 104 Z" fill="#93362b"/>
+    plume: `<path d="M86 46 Q54 30 36 48 Q60 54 76 68 Z" fill="#32508f"/>`,
+    head: `<path d="M72 112 Q56 42 112 24 Q152 14 178 36 Q198 56 192 104 Z" fill="#32508f"/>
 <circle cx="130" cy="84" r="54" fill="#f3cfa6"/>
-<path d="M76 98 Q72 40 130 30 Q188 36 188 96 Q168 66 132 64 Q98 66 76 98 Z" fill="#93362b"/>
-<path d="M82 92 Q102 70 132 68 Q164 68 182 88" fill="none" stroke="#c9503f" stroke-width="5"/>`,
+<path d="M76 98 Q72 40 130 30 Q188 36 188 96 Q168 66 132 64 Q98 66 76 98 Z" fill="#32508f"/>
+<path d="M82 92 Q102 70 132 68 Q164 68 182 88" fill="none" stroke="#4f74c9" stroke-width="5"/>`,
     // brows, glowing green eye glints, tired eye bags
     face: `<path d="M140 103 L155 109 M163 109 L178 103" stroke="#2b2220" stroke-width="5" stroke-linecap="round"/>
 <circle cx="148" cy="116" r="6" fill="#2b2220"/>

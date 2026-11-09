@@ -49,8 +49,8 @@ const SPEC = {
     pole: `<line x1="218" y1="104" x2="218" y2="20" stroke-width="13"/>
 <line x1="218" y1="104" x2="218" y2="20" stroke="#6b4a2e" stroke-width="5"/>
 <circle cx="218" cy="16" r="6" fill="#e2c36e" stroke-width="4"/>`,
-    flag: `<path d="M221 22 L254 30 L240 44 L254 60 L221 66 Z" fill="#c9503f" stroke-width="5"/>
-<path d="M224 26 L224 62" stroke="#93362b" stroke-width="5"/>
+    flag: `<path d="M221 22 L254 30 L240 44 L254 60 L221 66 Z" fill="#4f74c9" stroke-width="5"/>
+<path d="M224 26 L224 62" stroke="#32508f" stroke-width="5"/>
 <path d="M233 37 L237 44 L233 51 L229 44 Z" fill="#e2c36e" stroke-width="3"/>`,
     aframe: `<line x1="180" y1="178" x2="206" y2="122" stroke-width="22"/>
 <line x1="180" y1="178" x2="206" y2="122" stroke="#a87a4c" stroke-width="10"/>
@@ -83,8 +83,8 @@ const SPEC = {
 <circle cx="191.5" cy="193" r="2.5" fill="#2b2220" stroke="none"/>
 <circle cx="150" cy="178" r="12" fill="#aab3bd" stroke-width="5"/>
 <circle cx="150" cy="178" r="4" fill="#5a4a3c" stroke-width="3"/>
-<path d="M134 198 L178 198 L178 232 L156 222 L134 232 Z" fill="#c9503f"/>
-<path d="M134 205 L178 205" stroke="#93362b" stroke-width="5"/>
+<path d="M134 198 L178 198 L178 232 L156 222 L134 232 Z" fill="#4f74c9"/>
+<path d="M134 205 L178 205" stroke="#32508f" stroke-width="5"/>
 <path d="M146 220 L147 210 L151.5 214.5 L156 206 L160.5 214.5 L165 210 L166 220 Z" fill="#e2c36e" stroke-width="3"/>`,
     wheels: `<circle cx="104" cy="214" r="28" fill="#7e8790"/>
 <circle cx="104" cy="214" r="20" fill="#a87a4c" stroke-width="5"/>
@@ -107,8 +107,8 @@ const SPEC = {
 <rect x="38" y="218" width="12" height="20" rx="3" fill="#5a4a3c"/>
 <rect x="15" y="232" width="21" height="12" rx="5" fill="#3a2e28"/>
 <rect x="35" y="232" width="21" height="12" rx="5" fill="#3a2e28"/>
-<path d="M20 184 Q36 176 52 184 L57 222 Q36 228 15 222 Z" fill="#c9503f"/>
-<path d="M17 216 Q36 221 55 216" fill="none" stroke="#93362b" stroke-width="5"/>
+<path d="M20 184 Q36 176 52 184 L57 222 Q36 228 15 222 Z" fill="#4f74c9"/>
+<path d="M17 216 Q36 221 55 216" fill="none" stroke="#32508f" stroke-width="5"/>
 <path d="M17 205 L55 205" stroke="#5a4a3c" stroke-width="6"/>
 <rect x="31" y="200" width="10" height="10" rx="2" fill="#e2c36e" stroke-width="3"/>`,
     opHead: `<circle cx="36" cy="156" r="26" fill="#f3cfa6"/>
@@ -117,7 +117,7 @@ const SPEC = {
 <path d="M36 124 L36 149" stroke="#7e8790" stroke-width="3"/>
 <path d="M2 153 Q36 140 70 153 Q36 161 2 153 Z" fill="#7e8790" stroke-width="5"/>`,
     opArm: `<path d="M44 197 Q56 196 66 189" fill="none" stroke-width="17"/>
-<path d="M44 197 Q56 196 66 189" fill="none" stroke="#c9503f" stroke-width="8"/>
+<path d="M44 197 Q56 196 66 189" fill="none" stroke="#4f74c9" stroke-width="8"/>
 <circle cx="68" cy="187" r="8" fill="#f3cfa6" stroke-width="5"/>`,
     face: `<circle cx="44" cy="165" r="4" fill="#2b2220"/>
 <circle cx="56" cy="165" r="4" fill="#2b2220"/>

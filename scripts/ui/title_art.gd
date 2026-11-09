@@ -57,8 +57,6 @@ func _draw() -> void:
 		# chibi art stands on y ~ 0.78 of its 256 box (castle ground ~ 0.75)
 		var r := Rect2(foot.x - s / 2.0, foot.y - s * 0.80 + bob, s, s)
 		draw_texture_rect(tex, r, false)
-		if path == CASTLE: # premise: our castle's flame (same spot as on the board)
-			Draw.flame(self, r.position + BoardPaint.FIRE_AT * s, s * 0.3, _t * 1000.0, 0.0)
 
 func _ellipse(c: Vector2, rx: float, ry: float, col: Color) -> void:
 	var pts := PackedVector2Array()

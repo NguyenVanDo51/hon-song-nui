@@ -5,7 +5,7 @@ const DEF := {
 	"id": "m15",
 	"order": 150,
 	"title": "Pháo Đài Trên Núi",
-	"lore": "Ngọn lửa cuối cùng phía tây. Giữ nó bằng mọi giá.",
+	"lore": "Pháo đài cuối cùng phía tây còn cờ Đế Quốc. Giữ nó bằng mọi giá.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["bird"],

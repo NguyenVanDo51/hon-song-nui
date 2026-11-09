@@ -9,6 +9,7 @@ const LOGO_SHADER := preload("res://shaders/logo.gdshader")
 const TITLE_SIZE := Vector2(1000, 560) # title stage, scaled to fit the window
 ## 1 vs 1: who plays Blue (s.ctrl.e)
 ## Khó = ai:army (hard v5, varied army); Siêu khó = ai:hard (v3; campaign "hard" levels keep it)
+## labels go through Lang.t where shown (i18n-const)
 const OPPONENTS := [["human", "Người"], ["ai:easy", "Máy Dễ"], ["ai:normal", "Máy Trung bình"], ["ai:army", "Máy Khó"], ["ai:hard", "Máy Siêu khó"]]
 
 var main: Main
@@ -232,7 +233,7 @@ func show_title() -> void:
 	var logo := _logo(title, 84)
 	logo.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	top.add_child(logo)
-	var lede := Style.lbl(str(th.lede), 16, Style.INK, Style.semi) # premise "Ngọn Lửa Lâu Đài"
+	var lede := Style.lbl(str(th.lede), 16, Style.INK, Style.semi) # premise line (docs/setting.md)
 	lede.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	top.add_child(lede)
 	var list := Style.vbox(10)
@@ -241,14 +242,14 @@ func show_title() -> void:
 	stage.add_child(list)
 	var camp := Content.levels()
 	var nx := LevelSelect.first_unwon(camp, Store.unlocked_index())
-	var prog := ("Màn %d/%d" % [nx + 1, camp.size()]) if nx < camp.size() else "Đã thắng hết"
+	var prog := (Lang.t("Màn %d/%d") % [nx + 1, camp.size()]) if nx < camp.size() else Lang.t("Đã thắng hết")
 	var sv: Variant = Store.load_game()
 	if sv != null:
 		var svd: Dictionary = sv
 		var sst: Dictionary = svd.state
 		list.add_child(
 			_on(
-				Style.menu_button("Đánh tiếp ván đang dở", "%s · lượt %d" % [svd.get("title", ""), sst.turn], true),
+				Style.menu_button(Lang.t("Đánh tiếp ván đang dở"), Lang.t("%s · lượt %d") % [_saved_title(svd), sst.turn], true),
 				func() -> void:
 					var s2: Variant = Store.load_game()
 					if s2 != null:
@@ -258,21 +259,30 @@ func show_title() -> void:
 						main.start_game(st2, ctx2),
 			)
 		)
-	list.add_child(_on(Style.menu_button("Thử thách", prog, sv == null), show_levels))
-	list.add_child(_on(Style.menu_button("Đấu tự do"), show_skirmish))
-	list.add_child(_on(Style.menu_button("1 đấu 1"), show_duel))
+	list.add_child(_on(Style.menu_button(Lang.t("Thử thách"), prog, sv == null), show_levels))
+	list.add_child(_on(Style.menu_button(Lang.t("Đấu tự do")), show_skirmish))
+	list.add_child(_on(Style.menu_button(Lang.t("1 đấu 1")), show_duel))
 	var tg := Style.hbox(18)
 	tg.position = Vector2(60, 462)
 	stage.add_child(tg)
-	var snd := _round(tg, "Âm thanh")
-	var mus := _round(tg, "Nhạc")
-	var spd := _round(tg, "Tốc độ")
-	var book := _round(tg, "Sách lính")
+	var snd := _round(tg, Lang.t("Âm thanh"))
+	var mus := _round(tg, Lang.t("Nhạc"))
+	var spd := _round(tg, Lang.t("Tốc độ"))
+	var book := _round(tg, Lang.t("Sách lính"))
+	var lang := _round(tg, Lang.t("Ngôn ngữ"))
+	lang.text = Lang.current.to_upper()
+	lang.tooltip_text = Lang.NAMES[Lang.current]
+	_on(
+		lang,
+		func() -> void:
+			if main:
+				main.switch_lang(false),
+	)
 	book.icon = Icons.tex("book")
-	var about := _round(tg, "Giới thiệu")
+	var about := _round(tg, Lang.t("Giới thiệu"))
 	about.icon = Icons.tex("scroll")
 	_on(about, show_credits)
-	spd.tooltip_text = "Tốc độ hoạt cảnh x1 / x2 / x3"
+	spd.tooltip_text = Lang.t("Tốc độ hoạt cảnh x1 / x2 / x3")
 	var sync := func() -> void:
 		var snd_on := main == null or not main.audio.muted
 		var mus_on := main == null or main.audio.music_on
@@ -280,8 +290,8 @@ func show_title() -> void:
 		mus.icon = Icons.tex("music" if mus_on else "music_off")
 		snd.theme_type_variation = "RoundOn" if snd_on else "RoundOff"
 		mus.theme_type_variation = "RoundOn" if mus_on else "RoundOff"
-		snd.tooltip_text = "Âm thanh: %s" % ("bật" if snd_on else "tắt")
-		mus.tooltip_text = "Nhạc: %s" % ("bật" if mus_on else "tắt")
+		snd.tooltip_text = Lang.t("Âm thanh: %s") % (Lang.t("bật") if snd_on else Lang.t("tắt"))
+		mus.tooltip_text = Lang.t("Nhạc: %s") % (Lang.t("bật") if mus_on else Lang.t("tắt"))
 		spd.text = "x%d" % int(FX.speed)
 	_on(
 		spd,
@@ -318,6 +328,16 @@ func show_title() -> void:
 	tw.tween_property(holder, "modulate:a", 1.0, 0.45)
 	tw.tween_property(holder, "offset_top", 0.0, 0.45)
 	tw.tween_property(holder, "offset_bottom", 0.0, 0.45)
+
+## a saved game's name in the current language (the save keeps the title as it was when saved)
+func _saved_title(svd: Dictionary) -> String:
+	var c: Dictionary = svd.get("ctx", { })
+	if c.get("kind") == "campaign":
+		var m: Variant = Content.level(str(c.get("id", "")))
+		if m != null:
+			var md: Dictionary = m
+			return str(md.get("title", ""))
+	return Lang.t(svd.get("title", ""))
 
 ## round toggle (RoundOn face) with a small caption under it
 func _round(parent: Control, caption: String) -> Button:
@@ -364,15 +384,15 @@ func show_credits() -> void:
 	var v := _page(760)
 	v.add_child(
 		_head(
-			"‹ Trở lại",
+			Lang.t("‹ Trở lại"),
 			func() -> void:
 				main.show_title(),
-			"Giới thiệu",
+			Lang.t("Giới thiệu"),
 		)
 	)
 	var head := Style.vbox(2)
 	head.add_child(_h2(str(Content.theme().title), 26))
-	head.add_child(Style.lbl("Phiên bản %s" % ProjectSettings.get_setting("application/config/version", ""), 14, Style.MUTED))
+	head.add_child(Style.lbl(Lang.t("Phiên bản %s") % ProjectSettings.get_setting("application/config/version", ""), 14, Style.MUTED))
 	v.add_child(_credit_card([head]))
 	for sec: Array in Credits.sections():
 		var lines: Array = sec[1]
@@ -380,15 +400,15 @@ func show_credits() -> void:
 		for line: String in lines:
 			kids.append(Style.lbl(line, 15, Style.INK, Style.body, true))
 		v.add_child(_credit_card(kids))
-	v.add_child(_credit_card([_eyebrow("Giấy phép Godot Engine", 13), Style.lbl(Credits.godot_notice(), 12, Style.INK, Style.body, true)]))
-	var more := _on(Style.button("📜 Toàn văn giấy phép", "ActBtn"), show_licenses)
+	v.add_child(_credit_card([_eyebrow(Lang.t("Giấy phép Godot Engine"), 13), Style.lbl(Credits.godot_notice(), 12, Style.INK, Style.body, true)]))
+	var more := _on(Style.button(Lang.t("📜 Toàn văn giấy phép"), "ActBtn"), show_licenses)
 	more.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	v.add_child(more)
 
 ## every licence text in full (OFL, Apache, Godot third-party), one card per licence
 func show_licenses() -> void:
 	var v := _page(760)
-	v.add_child(_head("‹ Trở lại", show_credits, "Giấy phép"))
+	v.add_child(_head(Lang.t("‹ Trở lại"), show_credits, Lang.t("Giấy phép")))
 	for block: Array in Credits.full_texts():
 		v.add_child(_credit_card([_eyebrow(str(block[0]), 13), Style.lbl(str(block[1]), 12, Style.INK, Style.body, true)]))
 
@@ -426,7 +446,7 @@ func show_levels(focus_id := "") -> void:
 	)
 	var e := Style.safe_insets(holder)
 	var back := _on(
-		Style.button("‹ Trở lại", "BackBtn"),
+		Style.button(Lang.t("‹ Trở lại"), "BackBtn"),
 		func() -> void:
 			main.show_title(),
 	)
@@ -438,10 +458,10 @@ func show_skirmish() -> void:
 	var v := _page(1040)
 	v.add_child(
 		_head(
-			"‹ Trở lại",
+			Lang.t("‹ Trở lại"),
 			func() -> void:
 				main.show_title(),
-			"Đấu tự do",
+			Lang.t("Đấu tự do"),
 		)
 	)
 	var grid := _grid(220, 12, true)
@@ -470,8 +490,8 @@ func show_skirmish() -> void:
 	)
 	var row := _flow(10)
 	var seg := Style.hbox(0)
-	var e_btn := Style.button("Dễ", "SegOn" if easy else "SegBtn")
-	var n_btn := Style.button("Thường", "SegBtn" if easy else "SegOn")
+	var e_btn := Style.button(Lang.t("Dễ"), "SegOn" if easy else "SegBtn")
+	var n_btn := Style.button(Lang.t("Thường"), "SegBtn" if easy else "SegOn")
 	_on(
 		e_btn,
 		func() -> void:
@@ -487,11 +507,17 @@ func show_skirmish() -> void:
 	seg.add_child(e_btn)
 	seg.add_child(n_btn)
 	row.add_child(seg)
-	var note := Style.lbl("Dễ: địch khởi đầu với nửa số vàng." if easy else "Thường: hai bên ngang vàng.", 13, Style.MUTED, null, true)
+	var note := Style.lbl(
+		Lang.t("Dễ: địch khởi đầu với nửa số vàng.") if easy else Lang.t("Thường: hai bên ngang vàng."),
+		13,
+		Style.MUTED,
+		null,
+		true,
+	)
 	note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	note.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(note)
-	var go := Style.menu_button("Xuất quân", "", true)
+	var go := Style.menu_button(Lang.t("Xuất quân"), "", true)
 	go.custom_minimum_size.x = 200
 	_on(
 		go,
@@ -536,7 +562,7 @@ func _hero_card(side: String, key: String, hot: bool, on_pick: Callable, blurb :
 	var h_name: String = h.name
 	var h_blurb: String = h.blurb
 	tv.add_child(Style.lbl(h_name, 21, Style.GOLD, Style.display))
-	tv.add_child(Style.lbl("Công %d · Thủ %d · Đi %d" % [st.atk, st.def, st.mv], 12, Style.MUTED))
+	tv.add_child(Style.lbl(Lang.t("Công %d · Thủ %d · Đi %d") % [st.atk, st.def, st.mv], 12, Style.MUTED))
 	top.add_child(tv)
 	cv.add_child(top)
 	if blurb:
@@ -579,7 +605,7 @@ func _map_cards(cur: String, on_pick: Callable) -> HFlowContainer:
 ## AE2 options: starting gold + unit cap; on_set("gold" | "cap", value)
 func _gold_cap_row(gold: int, cap: int, on_set: Callable) -> HFlowContainer:
 	var opts := _flow(16)
-	for spec: Array in [["Vàng khởi đầu", [500, 1000, 2000], "gold"], ["Giới hạn quân", [10, 20, 25], "cap"]]:
+	for spec: Array in [[Lang.t("Vàng khởi đầu"), [500, 1000, 2000], "gold"], [Lang.t("Giới hạn quân"), [10, 20, 25], "cap"]]:
 		var spec_name: String = spec[0]
 		var pair := Style.hbox(10) # label + its buttons wrap as one piece
 		pair.add_child(Style.lbl(spec_name, 14, Style.MUTED))
@@ -610,13 +636,14 @@ func show_duel() -> void:
 	var v := _page(1040)
 	v.add_child(
 		_head(
-			"‹ Trở lại",
+			Lang.t("‹ Trở lại"),
 			func() -> void:
 				main.show_title(),
-			"1 đấu 1",
+			Lang.t("1 đấu 1"),
 		)
 	)
-	v.add_child(Style.lbl("Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch.", 14, Style.MUTED, null, true))
+	var intro := Lang.t("Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch.")
+	v.add_child(Style.lbl(intro, 14, Style.MUTED, null, true))
 	var cols := _flow(12)
 	for side: String in ["p", "e"]:
 		cols.add_child(_duel_side(side))
@@ -642,7 +669,7 @@ func show_duel() -> void:
 	)
 	opts.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(opts)
-	var go := Style.menu_button("Xuất quân", "", true)
+	var go := Style.menu_button(Lang.t("Xuất quân"), "", true)
 	go.custom_minimum_size.x = 200
 	_on(go, _start_duel)
 	row.add_child(go)
@@ -656,18 +683,18 @@ func _duel_side(side: String) -> Control:
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var cv := Style.vbox(10)
 	card.add_child(cv)
-	cv.add_child(_eyebrow("Bên Đỏ · đi trước" if side == "p" else "Bên Xanh"))
+	cv.add_child(_eyebrow(Lang.t("Bên Xanh · đi trước") if side == "p" else Lang.t("Bên Đỏ")))
 	var f_name: String = f.name
-	cv.add_child(Style.lbl(f_name, 24, Style.P_NAME if side == "p" else Style.SEA_HI, Style.display))
+	cv.add_child(Style.lbl(f_name, 24, Style.P_NAME if side == "p" else Style.E_NAME, Style.display))
 	var ctrl_e: String = duel_opts.ctrlE
 	if side == "p":
-		cv.add_child(Style.lbl("Người chơi 1", 14, Style.MUTED))
+		cv.add_child(Style.lbl(Lang.t("Người chơi 1"), 14, Style.MUTED))
 	else:
 		var seg := _flow(0) # 5 choices: wraps on a phone held upright
 		seg.add_theme_constant_override("v_separation", 4)
 		for o: Array in OPPONENTS:
 			var key: String = o[0]
-			var label: String = o[1]
+			var label := Lang.t(str(o[1]))
 			var b := Style.button(label, "SegOn" if key == ctrl_e else "SegBtn")
 			_on(
 				b,
@@ -677,7 +704,8 @@ func _duel_side(side: String) -> Control:
 			)
 			seg.add_child(b)
 		cv.add_child(seg)
-		cv.add_child(Style.lbl("Người chơi 2, chung máy: đổi tay mỗi lượt." if ctrl_e == "human" else "Máy chơi bên Xanh.", 14, Style.MUTED))
+		var who := Lang.t("Người chơi 2, chung máy: đổi tay mỗi lượt.") if ctrl_e == "human" else Lang.t("Máy chơi bên Đỏ.")
+		cv.add_child(Style.lbl(who, 14, Style.MUTED))
 	var hk := "hero" if side == "p" else "heroE"
 	var heroes := Content.heroes_of(side)
 	if not heroes.has(duel_opts[hk]):
@@ -722,11 +750,11 @@ func confirm_start(state: Dictionary, ctx: Dictionary) -> void:
 			return
 		# one tap on the map node must not wipe the game in progress
 		confirm(
-			"Màn này đang đánh dở [b]lượt %d[/b]." % sst.turn,
-			"Đánh lại từ đầu",
+			Lang.t("Màn này đang đánh dở [b]lượt %d[/b].") % sst.turn,
+			Lang.t("Đánh lại từ đầu"),
 			func() -> void:
 				main.start_game(state, ctx),
-			"Đánh tiếp",
+			Lang.t("Đánh tiếp"),
 			func() -> void:
 				main.start_game(sst, sctx),
 		)
@@ -755,7 +783,7 @@ func confirm(bb: String, yes: String, fn: Callable, alt := "", alt_fn := Callabl
 	row.alignment = BoxContainer.ALIGNMENT_END
 	row.add_child(
 		_on(
-			Style.button("Thôi", "ActBtn"),
+			Style.button(Lang.t("Thôi"), "ActBtn"),
 			func() -> void:
 				layer.queue_free()
 				if no_fn.is_valid():
@@ -819,9 +847,9 @@ func add_overlays() -> void:
 	_codex_card = card
 	var v := Style.vbox(14)
 	var head := Style.hbox(14)
-	head.add_child(_h2("Sách lính"))
+	head.add_child(_h2(Lang.t("Sách lính")))
 	var seg := Style.hbox(0)
-	for pair: Array in [["p", "Quân ta"], ["e", "Quân địch"], ["terrain", "Địa hình"]]:
+	for pair: Array in [["p", Lang.t("Quân ta")], ["e", Lang.t("Quân địch")], ["terrain", Lang.t("Địa hình")]]:
 		var pair_name: String = pair[1]
 		var b := Style.button(pair_name, "SegBtn")
 		var sd: String = pair[0]
@@ -836,7 +864,7 @@ func add_overlays() -> void:
 	var sp := Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(sp)
-	head.add_child(_on(Style.button("Đóng ✕", "BackBtn"), close_codex))
+	head.add_child(_on(Style.button(Lang.t("Đóng ✕"), "BackBtn"), close_codex))
 	v.add_child(head)
 	var sc := ScrollContainer.new()
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -895,7 +923,7 @@ func open_codex(side := "p") -> void:
 		uc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_codex_grid.add_child(uc)
 	for hk: String in Content.heroes_of(side):
-		var uc := Style.unit_card(side, "hero", hk, { "tag": "Tướng" })
+		var uc := Style.unit_card(side, "hero", hk, { "tag": Lang.t("Tướng") })
 		uc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_codex_grid.add_child(uc)
 	_show_codex()
@@ -912,7 +940,7 @@ func _show_codex() -> void:
 
 ## one card per terrain: name, defence bonus, move cost per move class, rule note
 func _codex_terrain() -> void:
-	var classes := [["foot", "Đi bộ"], ["water", "Hải tặc"], ["fly", "Bay"]]
+	var classes := [["foot", Lang.t("Đi bộ")], ["water", Lang.t("Hải tặc")], ["fly", "Bay"]]
 	for t: String in Rules.TERRAIN:
 		var ter: Dictionary = Rules.TERRAIN[t]
 		var card := Style.card(Color(0, 0, 0, 0.3), Style.LACQUER_3, 10, 12)
@@ -920,13 +948,13 @@ func _codex_terrain() -> void:
 		var v := Style.vbox(4)
 		var t_name: String = Content.terrain(t).name
 		v.add_child(Style.lbl(t_name, 19, Style.GOLD, Style.display))
-		v.add_child(Style.lbl("Thủ +%d" % ter.def, 15, Style.INK, Style.semi))
+		v.add_child(Style.lbl(Lang.t("Thủ +%d") % ter.def, 15, Style.INK, Style.semi))
 		var costs := []
 		for mc: Array in classes:
 			var mcls: String = mc[0]
 			var c := Game.move_cost(mcls, t)
 			costs.append("%s %s" % [mc[1], "—" if c == INF else str(int(c))])
-		v.add_child(Style.lbl("Bước đi: " + " · ".join(costs), 13, Style.MUTED, null, true))
+		v.add_child(Style.lbl(Lang.t("Bước đi: ") + " · ".join(costs), 13, Style.MUTED, null, true))
 		var note := Content.tile_note(t)
 		if note != "":
 			v.add_child(Style.lbl(note, 13, Style.INK, null, true))

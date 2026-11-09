@@ -5,7 +5,7 @@ const DEF := {
 	"id": "g13",
 	"order": 135,
 	"title": "Đền Cổ",
-	"lore": "Lâu đài quanh ngôi đền cổ đã tắt lửa quá lâu.",
+	"lore": "Ngôi đền cổ đã bị Ma Vương làm ô uế. Giành lại lâu đài quanh nó.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

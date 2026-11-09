@@ -3,13 +3,8 @@ extends RefCounted
 ## Board part: terrain painting (cached bake: tiles / SVG art, roads, shore, grid, static buildings), water mask,
 ## building / goal / grave drawing (static + per-frame), raster cache. Reads / calls the board (bd) directly.
 
-const FIRE_AT := Vector2(0.5, 0.16) # flame base in tile units: top of the castle art's gate-tower spire
-const FLARE_MS := 1100.0
-
 var bd: Board
 var art_tex := { } # "path@texels" -> terrain / building raster, kept here so a close-up bake never re-rasterises
-var fires := { } # Vector2i -> owner of every castle (draw_fires)
-var flare_at := { } # Vector2i -> FX.now() when that castle changed hands
 
 func _init(host: Board) -> void:
 	bd = host
@@ -177,43 +172,6 @@ func prep_buildings() -> void:
 			var own: String = b[3]
 			return _bld_art(t, own) == "",
 	)
-	_prep_fires()
-
-## castles (sells) -> owner for draw_fires; owner changed since the last prep = flare from now
-func _prep_fires() -> void:
-	var seen := not fires.is_empty()
-	var was := fires
-	fires = { }
-	for b: Array in _bld_list():
-		var bt: String = b[0]
-		if not Game.sells(bt):
-			continue
-		var bx: int = b[1]
-		var by: int = b[2]
-		var own: String = b[3]
-		var k := Vector2i(bx, by)
-		fires[k] = own
-		if seen and str(was.get(k, own)) != own:
-			flare_at[k] = FX.now()
-
-## premise "Ngọn Lửa Lâu Đài": our castles burn, the Empire's smoke, neutral ones are cold.
-## Over the building art, on the gate-tower spire; upright on a turned board.
-func draw_fires(ci: CanvasItem, time: float) -> void:
-	for k: Vector2i in fires:
-		var own: String = fires[k]
-		if own == "n":
-			continue
-		var x := k.x
-		var y := k.y
-		var t0: float = flare_at.get(k, -1e9)
-		var boost := maxf(0.0, 1.0 - (time - t0) / FLARE_MS)
-		Draw.set_xf(ci, bd.up_xf(Vector2(x + 0.5, y + 0.5) * bd.T))
-		var at := _at(x * bd.T, y * bd.T, FIRE_AT.x, FIRE_AT.y)
-		var sd := Board.hash01(x, y, 7) * TAU
-		if own == "p":
-			Draw.flame(ci, at, bd.T * 0.4, time, sd, boost)
-		else:
-			Draw.smoke(ci, at, bd.T * 0.5, time, sd, boost)
 
 ## water mask for shaders/water.gdshader: r = water tile, g / b = its sparkle spot
 func update_water_mask() -> void:

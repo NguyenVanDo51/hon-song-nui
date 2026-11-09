@@ -50,9 +50,9 @@ const RANK_TITLES := ["", "lão luyện", "tinh nhuệ", "dũng mãnh"]
 const THEME := {
 	"title": "Công Thành Chiến",
 	"tagline": "Cờ chiến thuật theo lượt",
-	"lede": "Đế Quốc đã dập tắt mọi ngọn lửa. Thắp lại từng lâu đài.",
+	"lede": "Nửa đế quốc đã theo Ma Vương. Giành lại từng lâu đài.",
 	"text": {
-		"enemyTurn": "Lượt Đế Quốc",
+		"enemyTurn": "Lượt quân Ma Vương",
 		"skirmishTitle": "Đấu tự do",
 		"skirmishBlurb": "Hiệp Sĩ Chỉ Huy đấu với Vorn",
 		"duelBlurb": "Hai người chung máy, hoặc đấu với máy",
@@ -167,31 +167,32 @@ const THEME := {
 			"castlesLost": "Mất hết lâu đài, tướng ta cũng đã ngã.",
 			"heroKilled": "{hero} đã ngã, ta không còn lâu đài nào.",
 			"routed": "Quân ta đã tan.",
-			"timeUp": "Không kịp tới nơi, quân Đế Quốc đã khép vòng vây.",
+			"timeUp": "Không kịp tới nơi, quân Ma Vương đã khép vòng vây.",
 		},
 	},
 	"factions": {
+		## setting v2 (2026-11-09): we = the loyal Empire (blue + gold), they = the Demon Lord's host (palette A: wine red / night purple / violet)
 		"p": {
-			"name": "Quân Khởi Nghĩa",
+			"name": "Quân Đế Quốc",
 			"short": "Quân ta",
-			"duelShort": "Khởi Nghĩa", # 1 vs 1 with two humans: no "ta" / "địch"
-			"body": "#7a2219",
-			"body2": "#a8372a",
-			"ring": "#f0a07c",
-			"glow": "#ff9a6b",
-			"roof": "#c2412f",
-			"fig": "#e0503f", # standing piece silhouette
-		},
-		"e": {
-			"name": "Đế Quốc",
-			"short": "Đế Quốc",
-			"duelShort": "Đế Quốc",
+			"duelShort": "Đế Quốc", # 1 vs 1 with two humans: no "ta" / "địch"
 			"body": "#1f2740",
 			"body2": "#34406a",
 			"ring": "#d8c27a",
 			"glow": "#f0d890",
 			"roof": "#3d4a78",
-			"fig": "#5b7bd0",
+			"fig": "#5b7bd0", # standing piece silhouette
+		},
+		"e": {
+			"name": "Quân Ma Vương",
+			"short": "Ma Vương",
+			"duelShort": "Ma Vương",
+			"body": "#2a0f22",
+			"body2": "#4a1838",
+			"ring": "#a77bd6",
+			"glow": "#c79bff",
+			"roof": "#6e1a35",
+			"fig": "#b0304f",
 		},
 		"n": { "roof": "#7a6a55" },
 	},
@@ -227,13 +228,13 @@ const THEME := {
 			"side": "p",
 			"name": "Hiệp Sĩ Chỉ Huy",
 			"icon": "👑",
-			"blurb": "Người thề thắp lại ngọn lửa lâu đài, cầm quân khởi nghĩa trong mọi trận. Chiếm được cả làng lẫn lâu đài. Ngã thì mua lại ở lâu đài, giữ nguyên cấp; mỗi lần ngã giá mua lại +200.",
+			"blurb": "Hiệp sĩ trung thành của Đế Quốc, cầm quân giành lại nửa đất đã mất. Chiếm được cả làng lẫn lâu đài. Ngã thì mua lại ở lâu đài, giữ nguyên cấp; mỗi lần ngã giá mua lại +200.",
 		},
 		"tuonggiac": {
 			"side": "e",
 			"name": "Vorn",
 			"icon": "⚔",
-			"blurb": "Hắc Hiệp Sĩ của Đế Quốc, kẻ đã dập tắt ngọn lửa các lâu đài. Cầm quân trong mọi trận. Cùng sức với tướng ta.",
+			"blurb": "Tướng quân phản loạn, bán đế quốc cho Ma Vương để được lên ngôi. Cầm quân trong mọi trận. Cùng sức với tướng ta.",
 		},
 	},
 }

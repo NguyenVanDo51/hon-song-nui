@@ -5,7 +5,7 @@ const DEF := {
 	"id": "m14",
 	"order": 140,
 	"title": "Rút Lên Núi",
-	"lore": "Đại quân Đế Quốc tràn tới. Rút lên pháo đài trên núi, giữ lấy ngọn lửa.",
+	"lore": "Đại quân Ma Vương tràn tới. Rút lên pháo đài trên núi mà giữ quân.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

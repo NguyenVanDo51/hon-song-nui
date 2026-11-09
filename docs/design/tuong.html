@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tướng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+<section class="sheet" id="heroes">
+  <header><h2>Tướng</h2><span class="pill">2 tướng · cùng chỉ số</span></header>
+  <p class="lede">Hình, tên, màu và chỉ số dưới đây lấy thẳng từ code game (<code>content/theme.gd</code>, <code>scripts/core/rules.gd</code>). Hình trên bàn cờ là file SVG game đang dùng. Mỗi phe chỉ có 1 tướng, ngã thì mua lại ở lâu đài.</p>
+  <div class="heroes" id="heroList"></div>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="design.js"></script>
+<script>
+// ---------- heroes ----------
+const SIDE_LABEL = { p: 'Phe ta', e: 'Phe địch' };
+const SW_LABEL = { fig: 'hình đứng', body: 'thân', body2: 'thân 2', ring: 'viền', glow: 'phát sáng', roof: 'mái nhà' };
+function heroCard(id, h) {
+  const f = D.factions[h.side];
+  const st = D.heroStats;
+  const card = el('div', { class: 'hero' });
+  const fig = '../../' + h.fig;
+  card.innerHTML = `
+    <div class="figs">
+      <div class="tile"><img src="${fig}" alt="${h.name}"></div>
+      <div style="display:flex;gap:8px;align-items:end">
+        <div class="tile small"><img src="${fig}" alt=""></div>
+        <div class="cap">cỡ trên<br>bàn cờ</div>
+      </div>
+      <div class="cap"><code>${h.fig}</code></div>
+    </div>
+    <div>
+      <h3><span>${h.icon}</span>${h.name}</h3>
+      <div class="side" style="color:${f.fig}">${SIDE_LABEL[h.side]} · ${f.name}</div>
+      <p class="blurb">${h.blurb}</p>
+      <table class="kv">
+        <tr><td>Khóa</td><td><code>${id}</code> · phe <code>${h.side}</code></td></tr>
+        <tr><td>Công / Thủ</td><td>${st.atk}–${Math.max(st.atk, st.atkMax - 1)} / ${st.def}</td></tr>
+        <tr><td>Đi / Tầm</td><td>${st.mv} ô / ${st.rmin === st.rmax ? st.rmin : st.rmin + '–' + st.rmax}</td></tr>
+        <tr><td>Chiếm</td><td>${st.capV ? 'làng' : ''}${st.capV && st.capC ? ' + ' : ''}${st.capC ? 'lâu đài' : ''}</td></tr>
+        <tr><td>Ngã</td><td>mua lại ở lâu đài: ${st.cost} + ${st.cost}/lần đã ngã (tối đa 1000), giữ cấp</td></tr>
+        <tr><td>Đòn</td><td>Kiếm Giáng (chung 2 tướng). Âm: <b>slash</b> lúc vung → <b>heavy</b> lúc trúng (tướng là quân nặng)</td></tr>
+        <tr><td>Đặc tính</td><td>${(h.traits || []).join('<br>')}</td></tr>
+        <tr><td>Tên ngắn</td><td>${f.short} · 1 đấu 1: ${f.duelShort}</td></tr>
+      </table>
+      <div class="swatches">${Object.keys(SW_LABEL).filter((k) => f[k]).map((k) => `<span class="sw"><i style="background:${f[k]}"></i>${SW_LABEL[k]} <code>${f[k]}</code></span>`).join('')}</div>
+      <div class="src" style="margin-top:6px">Màu phe: <code>content/theme.gd</code> → <code>factions.${h.side}</code></div>
+    </div>
+    <details class="rigbox"><summary>Hoạt cảnh đánh (rig)</summary>
+      <div class="src">Bản nguồn JS của rig (<code>docs/anim_demo/hero_${h.side}.html</code>); game chạy bản port Godot cùng khung xương (<code>docs/rig_port.md</code>). Phím Space = đánh lại.</div>
+      <iframe loading="lazy" data-src="../anim_demo/hero_${h.side}.html"></iframe>
+    </details>`;
+  const det = card.querySelector('details');
+  det.addEventListener('toggle', () => { const f = det.querySelector('iframe'); if (det.open && !f.src) f.src = f.dataset.src; });
+  return card;
+}
+for (const id in D.heroes) $('heroList').append(heroCard(id, D.heroes[id]));
+
+</script>
+</body>
+</html>

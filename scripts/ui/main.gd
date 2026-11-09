@@ -3,9 +3,13 @@ extends Control
 ## app shell: theme, audio, menus (title / levels / skirmish / 1 vs 1 / codex), the game screen, debug flags.
 ## debug args (after `--`): mission=m01 (start it) bot (AI plays our side) speed=3
 ##   fresh (ignore save) screen=title|levels|skirmish|duel|codex shots=DIR (png every shot_every s) shot_every=2 quit_at=60 crash_at=5
+##   sfxlog (print each sound + frame; tools/record_sfx_scene.sh)
 
 const BASE := Vector2(1280, 720)
 const MIN_SCALE := 0.8
+
+## set by switch_lang before reloading the scene: reopen the saved game instead of the title
+static var _resume_after_reload := false
 
 var audio: Audio
 var menus: Menus
@@ -29,8 +33,12 @@ func _ready() -> void:
 		flags[kv[0]] = kv[1] if kv.size() > 1 else "1"
 	if flags.has("profile"): # profile=test: settings / progress / save kept apart from the player's
 		Store.use_profile(str(flags.profile))
+	# language: debug flag lang=vi|en > the player's pick > the device language (scripts/core/lang.gd)
+	Lang.apply(str(flags.get("lang", Store.get_v("lang", Lang.device_default()))))
 	GameLog.boot(str(flags.get("profile", "")), args) # crash / error log per session (README "Log lỗi / crash")
 	MatchRec.boot(str(flags.get("profile", "")), flags.has("bot")) # match replays (README "Ghi trận / phân tích")
+	if flags.has("sfxlog"): # sfxlog: print every sound played with its frame (docs/design scene)
+		Audio.log_sfx = true
 	if flags.has("norig"): # norig: every attack uses the old FX.attack instead of the code-rigged animation
 		Rigs.enabled = false
 	if flags.has("safe"): # safe=l,t,r,b: preview a phone's hidden edges (notch / rounded corners) on desktop
@@ -76,6 +84,15 @@ func _fit_scale() -> void:
 
 func _boot() -> void:
 	GameLog.crumb("boot flags=%s" % [flags])
+	if _resume_after_reload:
+		_resume_after_reload = false
+		var sv: Variant = Store.load_game()
+		if sv != null:
+			var d: Dictionary = sv
+			var st: Dictionary = d.state
+			var c: Dictionary = d.ctx
+			start_game(st, c)
+			return
 	if flags.has("mission"):
 		var mid := str(flags.mission)
 		var md: Dictionary = Content.level(mid)
@@ -122,6 +139,19 @@ func show_duel() -> void:
 	menus.show_duel()
 
 ## ctx = {kind:'campaign', id} | {kind:'skirmish', hero, easy, map, gold, cap} | {kind:'duel', map, hero, heroE, ctrlE, gold, cap}
+## next language in Lang.SUPPORTED, saved as the player's pick; every screen is built in the old language, so the
+## whole scene reloads (back into the saved game when called from one)
+func switch_lang(resume_game: bool) -> void:
+	var i := Lang.SUPPORTED.find(Lang.current)
+	var code: String = Lang.SUPPORTED[(i + 1) % Lang.SUPPORTED.size()]
+	Store.set_v("lang", code)
+	if resume_game:
+		game.save()
+		_resume_after_reload = true
+	get_tree().paused = false
+	PauseClock.hold(false) # static: would stay frozen across the reload when switched from the ⚙ menu
+	get_tree().reload_current_scene()
+
 func start_game(state: Dictionary, ctx: Dictionary) -> void:
 	GameLog.crumb("game start turn=%s side=%s ctx=%s" % [state.get("turn"), state.get("side"), ctx])
 	menus.hide_all()

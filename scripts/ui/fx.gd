@@ -484,7 +484,7 @@ func rank(x: int, y: int, level: int, loud := true) -> void:
 			"smax": 0.1,
 		},
 	)
-	float_text(x, y - 0.55, ("★ Lên cấp %d" % level) if loud else ("Lv%d" % level), "#ffe08a", 1300.0 if loud else 800.0)
+	float_text(x, y - 0.55, (Lang.t("★ Lên cấp %d") % level) if loud else ("Lv%d" % level), "#ffe08a", 1300.0 if loud else 800.0)
 
 func raise_fx(x: int, y: int) -> void:
 	_play("raise")

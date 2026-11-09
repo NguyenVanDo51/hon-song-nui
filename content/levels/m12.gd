@@ -5,7 +5,7 @@ const DEF := {
 	"id": "m12",
 	"order": 120,
 	"title": "Hồ Sương Mù",
-	"lore": "Vorn: «Ngươi thắp mười ngọn, ta dập mười một.»",
+	"lore": "Vorn: «Mỗi lâu đài ngươi lấy lại, Ma Vương ban cho ta mười đạo quân.»",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

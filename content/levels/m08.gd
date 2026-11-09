@@ -1,11 +1,11 @@
 extends RefCounted
-## m08: Phủ Thành Đế Quốc. Format: docs/content.md
+## m08: Phủ Thành Cũ. Format: docs/content.md
 
 const DEF := {
 	"id": "m08",
 	"order": 80,
-	"title": "Phủ Thành Đế Quốc",
-	"lore": "Nơi Đế Quốc cai trị cả vùng. Chiếm nó, cả vùng sẽ thắp lửa.",
+	"title": "Phủ Thành Cũ",
+	"lore": "Phủ thành cũ của Đế Quốc, nay là sào huyệt phản loạn. Lấy lại nó, cả vùng sông về tay ta.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

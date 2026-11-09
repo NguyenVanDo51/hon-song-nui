@@ -21,6 +21,7 @@ var failed := 0
 var passed := 0
 
 func _init() -> void:
+	Lang.apply("vi") # tests check the Vietnamese source text; the device language may be English
 	_add(ParityTests.new(), "parity_tests")
 	_add(ContentTests.new(), "content_tests")
 	_add(RulesTests.new(), "rule_tests")

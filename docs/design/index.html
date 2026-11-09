@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thành phần game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+
+<section class="sheet">
+  <header><h2>Thành phần game</h2><span class="pill" id="stamp"></span></header>
+  <p class="lede">Mọi thành phần của Công Thành Chiến ở một chỗ, khớp 1-1 với game: hình, âm thanh, chữ, số liệu đọc thẳng từ code + file của game; ảnh màn hình chụp từ game thật. Chọn một trang:</p>
+  <div class="grid" id="hub" style="--min: 240px"></div>
+</section>
+<section class="sheet">
+  <header><h2>Cập nhật</h2></header>
+  <ul>
+    <li>Đổi âm (công thức trong <code>scripts/ui/audio.gd</code>) → <code>godot --headless --path . -s tools/bake_sfx.gd</code> → <code>godot --headless --path . -s tools/design_dump.gd</code></li>
+    <li>Đổi tướng / lính / màu / chữ / level / địa hình → <code>godot --headless --path . -s tools/design_dump.gd</code></li>
+    <li>Đổi giao diện / hình → <code>tools/design_shots.sh</code> (≈ 5 phút, mở nhiều cửa sổ game, cần màn hình bật)</li>
+    <li>Quay lại cảnh có tiếng → <code>tools/record_sfx_scene.sh m07 150</code> (≈ 2 phút)</li>
+  </ul>
+  <p class="note">Ảnh + cảnh quay nằm trong <code>docs/design/shots/</code>, <code>docs/design/scene/</code> (git bỏ qua, mỗi máy tự sinh).</p>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="scene/scene.js"></script>
+<script src="design.js"></script>
+<script>
+
+document.addEventListener('click', (e) => {
+  const im = e.target.closest('.gal img');
+  if (!im) return;
+  const lb = el('div', { class: 'lightbox' }, `<img src="${im.src}" alt="">`);
+  lb.onclick = () => lb.remove();
+  document.body.append(lb);
+});
+const missingShot = (what) => `<p class="miss">Chưa có ảnh ${what}. Chạy <code>tools/design_shots.sh</code> (cần màn hình bật).</p>`;
+
+const nUi = SH ? SH.files.filter((f) => f.startsWith('ui_')).length : 0;
+const nScreens = SH ? SH.files.filter((f) => f.startsWith('screen_') || f.startsWith('game_')).length : 0;
+const nText = Object.keys(D.texts.text).length + Object.values(D.texts.goals).reduce((a, g) => a + Object.keys(g).length, 0) + Object.values(D.texts.ends).reduce((a, g) => a + Object.keys(g).length, 0);
+const HUB = [
+  ['tuong.html', 'Tướng', Object.keys(D.heroes).length, 'tướng', 'Hình, màu phe, chỉ số, hoạt cảnh đánh'],
+  ['linh.html', 'Lính', D.unitOrder.length - 1, 'loại quân', 'Hình 2 phe, chỉ số, đặc tính, cách dùng, âm đánh, hoạt cảnh'],
+  ['dia-hinh.html', 'Địa hình', D.terrainOrder.length, 'loại ô', 'Hình ô, thủ / giá đi, công trình, ghi chú luật'],
+  ['am-thanh.html', 'Âm thanh', Object.keys(D.sfx).length, 'âm', 'Nghe từng âm, phát lúc nào, cảnh game có tiếng, nhạc nền'],
+  ['giao-dien.html', 'Giao diện', Object.keys(D.colors).length, 'màu', `Màu, font (${D.fonts.length}), icon (${D.icons.length}), emoji (${D.emoji.length})`],
+  ['man-hinh.html', 'Màn hình', nScreens + nUi, 'ảnh', 'Mọi màn (ngang + dọc) + popup / thẻ trong trận, chụp từ game'],
+  ['noi-dung.html', 'Level & bản đồ', D.levels.length, 'level', `Bản đồ vương quốc, ảnh mở màn từng level, ${D.skirmish.length} bản đồ đấu tự do`],
+  ['chu.html', 'Chữ', nText + D.levels.length * 2, 'dòng chữ', 'Mọi chữ hiện ra trong game, có ô tìm (dùng khi đổi tên phe)'],
+];
+for (const [f, n, c, u, d] of HUB) $('hub').append(el('a', { class: 'card', href: f }, `<h3>${n}</h3><div class="big">${c}</div><div class="sub">${u}</div><p class="note">${d}</p>`));
+$('stamp').textContent = `game ${D.version}` + (SH ? ` · ảnh ${SH.taken}` : ' · chưa chụp ảnh') + (S ? ` · cảnh ${S.recorded}` : '');
+
+</script>
+</body>
+</html>

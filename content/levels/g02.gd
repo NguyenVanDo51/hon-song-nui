@@ -5,7 +5,7 @@ const DEF := {
 	"id": "g02",
 	"order": 55,
 	"title": "Đồi Gió",
-	"lore": "Một đạo quân Đế Quốc cắm trại trên đồi. Quét sạch chúng.",
+	"lore": "Một đạo quân Ma Vương cắm trại trên đồi. Quét sạch chúng.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

@@ -1,8 +1,9 @@
 class_name WorldMap
 extends Control
-## "Thử thách" as a kingdom map (geography: content/world_map.gd; premise "Ngọn Lửa Lâu Đài"). One shield per level on
-## the march route: won = ours (red shield, best stars under it, land glows red), not won = the Empire's (blue), not
-## open yet = faded + Empire haze, whole region not open = clouds. Scenery = the board's chibi terrain art without its
+## "Thử thách" as a kingdom map (geography: content/world_map.gd; setting docs/setting.md: an empire split in two, half
+## sworn to the Demon Lord). One building per level on the march route: won = ours (blue roofs, land turns green again),
+## not won = the Demon Lord's (wine-red roofs, ash-purple land), not open yet = faded, whole region not open = dark
+## violet storm clouds; the Demon Lord's tower stands past the capital. Scenery = the board's chibi terrain art without its
 ## grass square. Drag / wheel pans (never below K_MIN px per map unit; portrait fills the height). Nothing selected
 ## at first (the next level pulses); tap a shield = its card in the middle of the screen over a dim layer (title,
 ## setting line, short goal, best stars, "Xuất quân" = level_picked); tap outside = closes. The map never jumps on a
@@ -14,8 +15,11 @@ const Geo := preload("res://content/world_map.gd")
 const ART := "res://assets/terrain/chibi/%s.svg"
 const K_MIN := 10.5 # px per map unit at least: villages ~65 px, stars ~25 px across (reference look: few big markers, pan)
 const HIT_R := 3.8
-const CLOUD := Color("#f7f3ea")
-const CLOUD_SHADE := Color("#ddd5c6")
+const CLOUD := Color("#6a5577") # the Demon Lord's land: dark violet storm clouds
+const CLOUD_SHADE := Color("#46344f")
+const CLOUD_SHINE := Color("#d3b0ff", 0.22)
+const ASH := Color("#4a2a55") # land still held by the Demon Lord
+const GREEN := Color("#5c9a3a") # land won back
 const DRAG_PX := 8.0
 const TOP_PAD := 64.0 # back button over the map
 const LAND := Color("#ead6a4")
@@ -230,7 +234,7 @@ func _build_card() -> void:
 	var tier := LevelSelect.tier_of(def)
 	var tc: Color = LevelSelect.TIER_COL[tier]
 	var num := Style.lbl("%d" % (sel + 1), 20, tc, Style.display)
-	num.tooltip_text = str(LevelSelect.TIER_NAME[tier])
+	num.tooltip_text = Lang.t(str(LevelSelect.TIER_NAME[tier]))
 	head.add_child(num)
 	var title := Style.lbl(str(def.get("title", "")), 22, Style.GOLD if not locked else Style.MUTED, Style.display)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -374,6 +378,10 @@ func _draw() -> void:
 		var tex := _art(str(d[1]), s * px)
 		if tex != null:
 			draw_texture_rect(tex, Rect2(_p(at) - Vector2(s, s) / 2.0, Vector2(s, s)), false)
+	var ts := FORT * 1.7 * k
+	var ttex := _art("castle_e", ts * px)
+	if ttex != null:
+		draw_texture_rect(ttex, Rect2(_p(Geo.DEMON_TOWER) + Vector2(-ts / 2.0, -ts * 0.72), Vector2(ts, ts)), false)
 	_draw_marks(k, ink)
 	_draw_fog(k)
 	_draw_names(k, ink)
@@ -424,20 +432,24 @@ func _draw_compass(c: Vector2, k: float, ink: Color) -> void:
 		var side := Vector2(cos(a + PI / 2.0), sin(a + PI / 2.0)) * r * 0.16
 		draw_colored_polygon(PackedVector2Array([c + side, tip, c]), ink if j % 2 == 0 else Color(ink, 0.6))
 		draw_colored_polygon(PackedVector2Array([c - side, tip, c]), Style.PAPER_HI if j != 0 else Style.CRIMSON)
-	Draw.text_c(self, Style.display, c + Vector2(0, -r - 1.4 * k), "B", roundi(2.2 * k), ink)
+	Draw.text_c(self, Style.display, c + Vector2(0, -r - 1.4 * k), Lang.t("Bắc").left(1), roundi(2.2 * k), ink) # compass north: first letter (B / N)
 
-## won land glows red (breathing); not open yet = Empire haze
+## land not won yet = ash-purple (the Demon Lord's half); won land turns green again (breathing)
 func _draw_territory(k: float) -> void:
 	var breath := 0.85 + 0.15 * cos(_t * TAU / 3.0)
 	for i in levels.size():
 		var p := pos_of(i)
-		if p != Vector2.INF and _locked(i):
-			Draw.glow(self, _p(p), 10.0 * k, Color(Style.ROYAL, 0.26))
+		var def: Dictionary = levels[i]
+		if p != Vector2.INF and not Store.is_done(str(def.id)):
+			Draw.glow(self, _p(p), 11.0 * k, Color(ASH, 0.42 if _locked(i) else 0.32))
 	for i in levels.size():
 		var p := pos_of(i)
 		var def: Dictionary = levels[i]
 		if p != Vector2.INF and Store.is_done(str(def.id)):
-			Draw.glow(self, _p(p), 10.5 * k, Color(Style.CRIMSON, 0.3 * breath))
+			Draw.glow(self, _p(p), 10.5 * k, Color(GREEN, 0.32 * breath))
+	# the Demon Lord's tower past the capital: violet glow + an enemy castle, bigger than any level's
+	var tw := _p(Geo.DEMON_TOWER)
+	Draw.glow(self, tw, 12.0 * k * breath, Color("#9b4dff", 0.4))
 
 ## lakes, rivers (thin at the source, wide at the mouth, a highlight drifting downstream), reeds
 func _draw_water(k: float, ink: Color) -> void:
@@ -564,7 +576,7 @@ func _cloud(c: Vector2, w: float, k: float, sd: float) -> void:
 	for lb: Array in lobes:
 		var lc: Vector2 = lb[0]
 		var lr: float = lb[1]
-		draw_circle(lc + Vector2(-0.25, -0.3) * lr, lr * 0.45, Color(1, 1, 1, 0.55))
+		draw_circle(lc + Vector2(-0.25, -0.3) * lr, lr * 0.45, CLOUD_SHINE)
 
 ## region names (spaced capitals; red once every level in it is won), sea / river names
 func _draw_names(k: float, ink: Color) -> void:
@@ -574,15 +586,15 @@ func _draw_names(k: float, ink: Color) -> void:
 			all_done = all_done and Store.is_done(id)
 		var col := Color(Style.CRIMSON_D, 0.9) if all_done else Color(ink, 0.5)
 		var at: Vector2 = rg.at
-		var spaced := " ".join(str(rg.name).to_upper().split(""))
+		var spaced := " ".join(Lang.t(rg.name).to_upper().split(""))
 		Draw.text_c(self, Style.display, _p(at), spaced, roundi(2.6 * k), col, maxi(2, roundi(0.5 * k)), Color(LAND, 0.9))
 	for nm: Array in Geo.NAMES:
 		var at: Vector2 = nm[1]
 		var fs: float = nm[2]
 		var col := Color(Style.PAPER_HI, 0.9) if str(nm[3]) == "sea" else Color(SEA_D.darkened(0.35), 0.9)
-		Draw.text_c(self, Style.semi, _p(at), str(nm[0]), roundi(fs * k), col)
+		Draw.text_c(self, Style.semi, _p(at), Lang.t(nm[0]), roundi(fs * k), col)
 
-## one building per level: village = easy / mid, castle = hard; red roofs = won (ours), blue = the Empire's, faded
+## one building per level: village = easy / mid, castle = hard; blue roofs = won (ours), wine red = the Demon Lord's, faded
 ## = not open. Round level medallion at its lower left, 3 floating stars above (gold = earned, dark = not yet; none
 ## while not open). Next level = pulsing gold ring, selected = gold glow + bigger
 func _draw_marks(k: float, ink: Color) -> void:

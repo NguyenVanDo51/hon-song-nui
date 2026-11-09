@@ -224,11 +224,11 @@ static func end_stars(v: VBoxContainer, goals: Array, best_before: int, got: int
 		var note := ""
 		match str(g.key):
 			"turns":
-				note = " (lượt %d)" % have
+				note = Lang.t(" (lượt %d)") % have
 			"lost":
-				note = " (mất %d)" % have
+				note = Lang.t(" (mất %d)") % have
 			"hero":
-				note = "" if ok else " (ngã %d lần)" % have
+				note = "" if ok else Lang.t(" (ngã %d lần)") % have
 		var line := Style.hbox(8)
 		var col := Style.GOOD if ok else Style.MUTED
 		if g.get("penalty", false):
@@ -282,7 +282,7 @@ class Handoff extends Control:
 		var st := Style.lbl(sub, 16, Style.MUTED)
 		st.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		v.add_child(st)
-		var go := Style.menu_button("Bắt đầu lượt", "", true)
+		var go := Style.menu_button(Lang.t("Bắt đầu lượt"), "", true)
 		var go_title: Label = go.get_meta("title")
 		go_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		go.custom_minimum_size = Vector2(220, 52)

@@ -5,7 +5,7 @@ const DEF := {
 	"id": "m10",
 	"order": 100,
 	"title": "Vịnh Bão",
-	"lore": "Đế Quốc đốt làng dọc vịnh. Dựng lại làng, rồi hạ Vorn.",
+	"lore": "Quân Ma Vương đốt làng dọc vịnh. Dựng lại làng, rồi hạ Vorn.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

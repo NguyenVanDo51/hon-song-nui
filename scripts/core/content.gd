@@ -38,15 +38,24 @@ static func _defs(dir: String) -> Array:
 	)
 	return out
 
+## theme + levels are cached already translated to Lang.current (Lang.apply drops the caches)
 static func theme() -> Dictionary:
 	if _theme.is_empty():
-		_theme = THEME_SCRIPT.THEME.duplicate(true)
+		_theme = Lang.deep(THEME_SCRIPT.THEME.duplicate(true))
 	return _theme
 
 static func levels() -> Array:
 	if _levels.is_empty():
-		_levels = _defs(LEVEL_DIR)
+		var defs := _defs(LEVEL_DIR)
+		for i in defs.size():
+			var d: Dictionary = defs[i]
+			defs[i] = Lang.deep(d.duplicate(true))
+		_levels = defs
 	return _levels
+
+static func reset_cache() -> void:
+	_theme = { }
+	_levels = []
 
 static func level(id: String) -> Variant:
 	for m: Dictionary in levels():
@@ -75,7 +84,7 @@ static func skirmish_def(map_id: String, hero_key: String, easy: bool, gold := 5
 	var e_gold := gold / 2 if easy else gold
 	return {
 		"id": "skirmish:" + map_id,
-		"title": m.name,
+		"title": Lang.t(m.name),
 		"hero": hero_key,
 		"enemyHero": m.get("enemyHero", heroes_of("e")[0]),
 		"map": { "rows": m.rows },
@@ -136,7 +145,7 @@ static func unit_title(name: String, rank: int, hero := false) -> String:
 		return "%s Lv%d" % [name, rank]
 	var titles: Array = THEME_SCRIPT.RANK_TITLES
 	@warning_ignore("integer_division")
-	var t: String = titles[mini(rank / 2, titles.size() - 1)]
+	var t: String = Lang.t(titles[mini(rank / 2, titles.size() - 1)])
 	return "%s%s Lv%d" % [name, (" " + t) if t != "" else "", rank]
 
 ## level-up worth the big "Lên cấp N": a rename (RM MainDisplayable:4355)
@@ -158,65 +167,65 @@ static func type_stat(type: String, hero_key: Variant) -> Dictionary:
 	return st
 
 static func role(type: String) -> String:
-	return GUIDE.ROLE.get(type, "")
+	return Lang.t(GUIDE.ROLE.get(type, ""))
 
 static func how_to_play(type: String) -> String:
-	return GUIDE.PLAY.get(type, "")
+	return Lang.t(GUIDE.PLAY.get(type, ""))
 
 ## strengths / quirks as short lines, generated from the stats so they never disagree with the rules
 static func traits(type: String, hero_key: Variant) -> Array:
 	var st := type_stat(type, hero_key)
 	var out := []
 	if st.get("capC", false):
-		out.append("Chiếm được cả lâu đài lẫn làng.")
+		out.append(Lang.t("Chiếm được cả lâu đài lẫn làng."))
 	elif st.get("capV", false):
-		out.append("Chiếm được làng (+%d vàng mỗi lượt)." % Rules.TERRAIN.v.income)
+		out.append(Lang.t("Chiếm được làng (+%d vàng mỗi lượt).") % Rules.TERRAIN.v.income)
 	var lo: int = st.atk
 	var atk_max: int = st.get("atkMax", st.atk)
 	var hi: int = maxi(lo, atk_max - 1) # AE2 never rolls atkMax (same as Game.atk_range)
 	if hi > lo:
-		out.append("Công %d–%d: mỗi đòn lăn ngẫu nhiên trong khoảng này." % [lo, hi])
+		out.append(Lang.t("Công %d–%d: mỗi đòn lăn ngẫu nhiên trong khoảng này.") % [lo, hi])
 	if st.rmax > 1:
 		out.append(
 			(
-				"Đánh xa %d–%d ô. Chỉ quân đứng kề mới đánh trả được." % [st.rmin, st.rmax]
+				Lang.t("Đánh xa %d–%d ô. Chỉ quân đứng kề mới đánh trả được.") % [st.rmin, st.rmax]
 				if not st.get("siege", false)
-				else "Bắn xa %d–%d ô, nhưng đã di chuyển thì lượt đó không bắn được." % [st.rmin, st.rmax]
+				else Lang.t("Bắn xa %d–%d ô, nhưng đã di chuyển thì lượt đó không bắn được.") % [st.rmin, st.rmax]
 			)
 		)
 	if st.rmin > 1:
-		out.append("Không bao giờ đánh trả: bị áp sát là nguy.")
+		out.append(Lang.t("Không bao giờ đánh trả: bị áp sát là nguy."))
 	if st.get("aura", 0):
-		out.append("Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta." % st.aura)
+		out.append(Lang.t("Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta.") % st.aura)
 	if st.get("antiAir", 0):
-		out.append("+%d công khi đánh rồng." % st.antiAir)
+		out.append(Lang.t("+%d công khi đánh rồng.") % st.antiAir)
 	var vs: Dictionary = st.get("vsType", { })
 	for t: String in vs:
 		var unit_name: String = theme().units.p[t].name
-		out.append("+%d công khi đánh %s." % [vs[t], unit_name.to_lower()])
+		out.append(Lang.t("+%d công khi đánh %s.") % [vs[t], unit_name.to_lower()])
 	if st.get("poison", 0):
-		out.append("Cắn trúng: địch −%d công, −%d thủ tới lượt sau của ta." % [st.poison, st.poison])
+		out.append(Lang.t("Cắn trúng: địch −%d công, −%d thủ tới lượt sau của ta.") % [st.poison, st.poison])
 	if st.get("waterAtk", 0):
-		out.append("Đứng dưới sông: +%d công, +%d thủ." % [st.waterAtk, st.get("waterDef", 0)])
+		out.append(Lang.t("Đứng dưới sông: +%d công, +%d thủ.") % [st.waterAtk, st.get("waterDef", 0)])
 	if st.get("raise", false):
-		out.append("Gọi hồn: đứng cạnh lính ngã (cả địch) để dựng dậy thành bộ xương của ta.")
+		out.append(Lang.t("Gọi hồn: đứng cạnh lính ngã (cả địch) để dựng dậy thành bộ xương của ta."))
 	match st.move:
 		"fly":
-			out.append("Bay: mọi ô chỉ tốn 1 bước, vượt cả sông núi.")
+			out.append(Lang.t("Bay: mọi ô chỉ tốn 1 bước, vượt cả sông núi."))
 		"water":
-			out.append("Đi trên sông chỉ tốn 1 bước (quân khác tốn 3).")
+			out.append(Lang.t("Đi trên sông chỉ tốn 1 bước (quân khác tốn 3)."))
 	if st.get("noCap", false):
-		out.append("Không tính vào giới hạn quân.")
+		out.append(Lang.t("Không tính vào giới hạn quân."))
 	if st.mv >= 5:
-		out.append("Đi xa %d ô mỗi lượt." % st.mv)
+		out.append(Lang.t("Đi xa %d ô mỗi lượt.") % st.mv)
 	elif st.mv <= 2:
-		out.append("Chậm: chỉ đi %d ô mỗi lượt." % st.mv)
+		out.append(Lang.t("Chậm: chỉ đi %d ô mỗi lượt.") % st.mv)
 	if st.def >= 25:
-		out.append("Thủ rất dày (%d): hợp làm tường chắn." % st.def)
+		out.append(Lang.t("Thủ rất dày (%d): hợp làm tường chắn.") % st.def)
 	elif st.def <= 5:
-		out.append("Thủ mỏng (%d): luôn giữ sau lưng quân khác." % st.def)
+		out.append(Lang.t("Thủ mỏng (%d): luôn giữ sau lưng quân khác.") % st.def)
 	if st.get("noGrave", false):
-		out.append("Ngã xuống thì không để lại mộ.")
+		out.append(Lang.t("Ngã xuống thì không để lại mộ."))
 	return out
 
 static func heroes_of(side: String) -> Array:
@@ -247,8 +256,8 @@ static func goal_text(win: Dictionary, form: String, hero_keys: Dictionary, vars
 	v.within = ""
 	if w.has("turns"):
 		var turns: int = w.turns
-		v.within = " trong %d lượt" % turns
-	v.left_txt = (": còn %s lượt" % str(v.get("left", ""))) if w.has("turns") else ""
+		v.within = Lang.t(" trong %d lượt") % turns
+	v.left_txt = (Lang.t(": còn %s lượt") % str(v.get("left", ""))) if w.has("turns") else ""
 	var goals: Dictionary = theme().get("goals", { })
 	var g: Dictionary = goals.get(w.type, { })
 	return str(g.get(form, w.type)).format(v)
@@ -267,8 +276,8 @@ static func tile_note(t: String) -> String:
 		for type: String in Rules.UNITS:
 			var st: Dictionary = Rules.UNITS[type]
 			if st.get("buyable", true) and pred.call(st, type):
-				names.append(theme().units.p[type].name if type != "hero" else "Tướng")
-		return " hoặc ".join(names)
+				names.append(theme().units.p[type].name if type != "hero" else Lang.t("Tướng"))
+		return Lang.t(" hoặc ").join(names)
 	match t:
 		"v":
 			return text("tileVillage").format(

@@ -1,0 +1,48 @@
+# Công Thành Chiến — bản hiện tại (đọc đầu tiên)
+
+Cập nhật: 2026-11-09 · nhánh `feat/setting-v2` (từ master `af215a4`, chưa merge) · `config/version` 1.0.6 · iOS TestFlight build 1.0 (6) = bản trước v2, tag `ios-1.0.6`.
+Trang này = game **đang có gì**, 1 màn hình. Chi tiết -> file sự thật (bảng cuối). Lịch sử -> `docs/HANDOFF.md`, `docs/superpowers/`.
+
+## Game
+- Cờ chiến thuật theo lượt trên lưới ô, luật = Ancient Empires II (`docs/spec.md`). Godot 4.7, GDScript.
+- Nền tảng: iOS (TestFlight, ngang + dọc), macOS / Windows (`godot --path .`), web (`tools/export_web.ps1` chạy trên máy Windows; bản trên Vercel không rõ cập nhật tới commit nào).
+- Bối cảnh: **Quân Đế Quốc (xanh) vs Quân Ma Vương (đỏ rượu + tím)**, Vorn = tướng quân phản loạn -> `docs/setting.md`.
+- Ngôn ngữ: Tiếng Việt + English, mặc định theo máy, đổi ở nút Ngôn ngữ (màn tiêu đề + ⚙) -> `docs/i18n.md`.
+
+## Chế độ (màn tiêu đề)
+- **Thử thách**: 39 level = 3 hướng dẫn (t01–t03) + 36 level (m01–m16, g01–g20), Dễ / Trung bình / Khó, 3 sao / level, mở tuần tự. Chọn level trên bản đồ vương quốc (làng = Dễ / TB, lâu đài = Khó). `docs/content.md`.
+- **Đấu tự do**: 3 bản đồ (Đảo Sông Bạc, Quần đảo Sương Mù, Hẻm núi Đá Xám), độ khó Dễ (địch ½ vàng) / Thường.
+- **1 đấu 1**: người–người chung máy, hoặc người–máy Dễ / Trung bình / Khó / Siêu khó. `docs/1v1.md`, AI `docs/ai.md`.
+- **Sách lính**: thẻ từng loại quân (`content/guide.gd`).
+- **Đánh tiếp ván đang dở** (1 chỗ lưu). Cài đặt (màn tiêu đề + ⚙): âm thanh, nhạc, tốc độ hoạt cảnh x1/x2/x3, ngôn ngữ VI / EN.
+
+## Nội dung
+- Quân (2 phe dùng chung, chỉ khác màu): 9 loại mua được + Bộ xương (pháp sư gọi hồn) + 2 tướng (Hiệp Sĩ Chỉ Huy / Vorn). Bảng chỉ số `docs/spec.md`, số gốc `scripts/core/rules.gd`.
+- Địa hình (tên trong game): đồng cỏ, đường mòn, rừng, đồi, núi, sông, cầu gỗ, làng, làng cháy, lâu đài, Giếng Thần.
+- Kiểu thắng: chiếm thành · diệt hết · hạ tướng · giữ N lượt · đưa tướng tới ô đích.
+- Hướng dẫn cầm tay t01–t03 + nhiệm vụ (quest) ở t01–t03, m01–m04, m10 + thẻ giới thiệu quân mới.
+- Hình: 2D vector, rig hoạt cảnh đánh cho mọi loại quân (`docs/rig_port.md`); giao diện giấy da / dấu sáp, font Paytone One.
+- Hỗ trợ: vùng địch đánh tới, gợi ý đòn (rê chuột / chạm 2 lần), replay + phân tích trận (`tools/review_match.sh`), log phiên (`logs/game/`).
+
+## Chưa có / đang chờ
+- Bối cảnh v2 + tiếng Anh xong trên nhánh `feat/setting-v2`, chờ user chơi thử rồi merge; iOS build mới chưa làm.
+- Store listing (tiếng Anh); trận trùm cuối Ma Vương; online.
+- Cân bằng kinh tế + đội hình đa dạng cho bot; người chơi thử mốc sao.
+- Toàn bộ danh sách: `docs/TODO.md`.
+
+## File sự thật (mỗi mảng 1 nơi, luôn đúng bản hiện tại)
+| Mảng | File |
+|---|---|
+| Tổng quan bản hiện tại | `docs/STATUS.md` (trang này) |
+| Bối cảnh, phe, tên, màu, tông | `docs/setting.md` |
+| Ngôn ngữ, bản dịch, thuật ngữ EN | `docs/i18n.md`, `locale/en.po` |
+| Luật, chỉ số quân, địa hình | `docs/spec.md` (số gốc `scripts/core/rules.gd`) |
+| Level, bản đồ, nhiệm vụ, hướng dẫn, cách thêm nội dung | `docs/content.md` |
+| AI / bot | `docs/ai.md` |
+| 1 đấu 1 | `docs/1v1.md` |
+| Hình quân + hoạt cảnh | `docs/rig_port.md`, `docs/anim_demo/SHARED.md` |
+| Xem tận mắt mọi thành phần (9 trang: tướng, lính, địa hình, âm thanh + cảnh có tiếng, giao diện, màn hình, level & bản đồ, chữ); preview đổi bối cảnh làm ở đây trước | `docs/design/index.html` (sinh từ game: `tools/design_dump.gd`, `tools/design_shots.sh`, `tools/record_sfx_scene.sh`) |
+| Việc còn lại, nợ kỹ thuật | `docs/TODO.md` |
+| Chạy, build, test, debug | `README.md` |
+
+Không phải sự thật hiện tại: `docs/HANDOFF.md` (nhật ký), `docs/superpowers/specs|plans/` (thiết kế theo ngày), `docs/review/` (phân tích, mockup).

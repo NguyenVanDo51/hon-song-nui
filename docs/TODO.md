@@ -22,6 +22,13 @@
 - [ ] Sau mỗi lần đổi AI (`scripts/core/ai.gd`): chạy lại `bash tools/sim_many.sh "m01 … m16" 12 8` + cập nhật bảng cân bằng README (số hiện tại đo với AI `fe83a5d`).
 
 ## Tính năng
+- [x] **Bối cảnh v2: Đế Quốc vs Ma Vương** (làm 2026-11-09 trên `feat/setting-v2`: màu A, Vorn V1, lính ngã giữ như cũ; chờ user chơi thử + merge. Còn: iOS build mới, trận trùm cuối Ma Vương. Gốc: user chốt 2026-11-09; thay tiền đề "Ngọn Lửa Lâu Đài" — user không ưng: người đánh người = "chiến tranh vô nghĩa"):
+  - Cốt: đế quốc từng hùng mạnh, đất rộng; Tướng quân + bè phái muốn lật đổ chính quyền để lên ngôi -> cấu kết quân Ma Vương -> nay chiếm 1/2 đế quốc. Không chữ / truyện (user luôn bỏ qua), hiểu qua hình.
+  - Phe: **Quân Đế Quốc** (ta) vs **Quân Ma Vương** (địch). Lưu ý: hiện "Đế Quốc" = tên phe địch -> rà mọi chữ hiện ra, lật tên.
+  - Màu: ta = xanh dương; địch = tối, đỏ + tím (thay bảng đổi màu đội, không vẽ lại). ⚠ Lật màu: hiện ta đỏ, địch xanh -> bản đồ vương quốc "mái đỏ = đã thắng" đổi theo.
+  - Lính: GIỮ NGUYÊN dáng cả 2 phe (user: cùng quân = dễ làm quen). Dấu hiệu chỉ qua: tướng địch Vorn = Tướng quân phản loạn (Hắc Hiệp Sĩ + mũ sừng / hào quang tím), bản đồ vương quốc chia đôi (nửa mất tím tro, thắng level -> vùng xanh lại, cuối = tháp Ma Vương), tuỳ chọn: lính địch chết tan khói đen.
+  - Gỡ / sửa: lửa + khói trên thành, lede màn tiêu đề, 4 câu khiêu khích Vorn, dòng `lore` từng level, mây che vùng chưa mở (-> vùng tím). Tên 36 level phần lớn giữ được.
+  - Chi tiết + nguồn duy nhất: `docs/setting.md`. Store (EN): "Once a mighty empire. Its own general sold it to the Demon Lord — half the land has fallen. Take it back, castle by castle."
 - [ ] **Giao diện "chất game"** (`docs/review/ui_direction.html`, 2026-11-07): 3 hướng (Trống Đồng / Sơn Mài / Đông Hồ) + mockup, đề xuất B Sơn Mài; chờ chọn hướng -> làm P0–P5 sau khi tách `game_screen.gd` merge.
 - [ ] Vùng địch đánh tới: có thể thêm nút bật vùng gộp mọi quân địch + cảnh báo khi chọn ô đích nằm trong vùng.
 - [ ] **Màn dọc** (nhánh `feat/portrait`, 2026-11-08): bàn xoay 90° (`Board.rot`), lính / nhà / chữ đứng thẳng. Còn lại (user: chưa cần, chơi được trước):
@@ -60,10 +67,14 @@
 ## Nợ kỹ thuật
 - [x] (2026-11-09) `assets/units/*.svg` (10 biểu tượng game-icons.net, CC BY 3.0) — chỉ còn là ảnh lùi khi bật cờ debug `figstyle=off` (khoá `fig` trong `content/theme.gd`), nhưng vẫn bị đóng vào bản build và bắt buộc credit -> đã xoá svg + LICENSE + khoá `fig` + dòng credit; `figstyle=off` giờ vẽ đĩa tròn.
 - [ ] (2026-11-09) `project.godot` `config/description` — còn "Hai Bà Trưng, chống Mã Viện, Bà Triệu" (trước reskin fantasy) -> lệch game (bản web / metadata có thể đọc). Sửa theo bối cảnh hiện tại.
-- [ ] (2026-11-09) `scripts/ui/credits.gd` — chữ màn Giới thiệu chưa qua i18n (nhánh `feat/setting-v2` có `Lang` + `locale/en.po`) -> merge 2 nhánh thì `tools/i18n_extract.py --check` báo thiếu; thêm bản EN ("Giới thiệu" = "About", trang support đã ghi About).
+- [x] (2026-11-09, xong khi merge `feat/setting-v2`: 15 câu bọc `Lang.t` + dịch EN) `scripts/ui/credits.gd` — chữ màn Giới thiệu chưa qua i18n (nhánh `feat/setting-v2` có `Lang` + `locale/en.po`) -> merge 2 nhánh thì `tools/i18n_extract.py --check` báo thiếu; thêm bản EN ("Giới thiệu" = "About", trang support đã ghi About).
+- [ ] (2026-11-09) `sim/click_driver.gd:486` "one click attack after hover" chập chờn: 1/3 lần chạy fail rồi kéo theo 12 bước sau (lưu ván, bản đồ, 1 đấu 1) -> báo đỏ giả. Sửa: chờ hoạt cảnh đánh xong theo điều kiện (`ui.busy` / hp đổi) thay vì `idle(g)` một lần; in trạng thái khi fail.
+- [ ] (2026-11-09) Driver UI (`click_driver`, `tut_driver`) bấm nút theo chữ tiếng Việt -> `lang=en` chỉ chạy được 1 phần (ảnh EN thiếu bước). Sửa: tìm nút theo `Lang.t("…")` hoặc theo node / meta id.
+- [ ] (2026-11-09) `scripts/ui/audio.gd` SFX `"page"` (lật trang) — có công thức + file `s_page.wav` nhưng không chỗ nào `play("page")` -> âm chết, file thừa trong bản dựng. Sửa: gắn vào lật trang / mở Sách lính, hoặc xoá công thức + wav.
+- [ ] (2026-11-09) `scripts/ui/audio.gd` SFX `"drum"` — tên "trống" nhưng tiếng là chuông (A5 + E6, chú thích "Cleric of Light aura"), lại dùng cho băng rôn báo lượt (`game_hud.gd banner`) + chuyển tay 1v1 -> tên gây hiểu nhầm khi đổi âm. Sửa: đổi khóa thành `turn` (cả wav + chỗ gọi) khi làm lại âm thanh.
 - [ ] (2026-11-09) `sim/tests/duel.gd:106` "ai:army vs normal: whole game to a winner" chập chờn: `scripts/core/ai_plan.gd:192` dừng tìm theo đồng hồ (`ms`) -> máy bận (game khác đang chạy) = ít lượt tìm hơn -> ván seed 4242 khác đi, có lần chưa thắng tới lượt 40 (1 fail / 3 lần chạy). Sửa: test đặt ngân sách theo số lần chạy (không theo ms) hoặc nới lượt; không đụng bot khi chưa được phép.
 - [ ] (2026-11-08) `scripts/ui/style.gd` `make_theme` — ~20 kiểu nút (MenuBtn, PrimaryBtn, ActBtn, ActGo, ChipBtn, BackBtn, SegBtn, RoyalBtn, TileBtn…), mỗi kiểu tự gói màu + cỡ chữ + đệm, nhiều kiểu chỉ dùng 1 chỗ -> nút mỗi màn một cỡ, khó giữ thống nhất. Sửa: kiểu = màu (paper / primary / royal / hot / ghost) × cỡ (sm / md / lg) sinh trong theme, `Style.btn(text, kind, size)`, chuyển dần các màn.
-- [ ] (2026-11-08) `README.md:8` — còn "Anh hùng / Tướng giặc" (tên trước reskin; nay Hiệp Sĩ Chỉ Huy / Vorn) -> README lệch game; sửa câu theo `content/theme.gd` `heroes`.
+- [x] (2026-11-08, sửa 2026-11-09) `README.md:8` — còn "Anh hùng / Tướng giặc" (tên trước reskin; nay Hiệp Sĩ Chỉ Huy / Vorn) -> README lệch game; sửa câu theo `content/theme.gd` `heroes`.
 - [ ] (2026-11-08) `content/theme.gd` `text.skirmishTitle` — không script nào đọc -> khóa chết, sửa tên ở đó không có tác dụng (xoá hoặc dùng ở màn đấu tự do).
 - [ ] (2026-11-08) `docs/content.md` bảng "Nhịp ra mắt" cột "Mới" — còn tên quân trước reskin (nỏ thủ, trống đồng, voi, thầy mo, thủy binh, âm binh) -> lệch với tên trong game (Cung thủ, Tu sĩ ánh sáng, Golem đá…); đổi theo `content/theme.gd` `UNITS`.
 - [ ] (2026-11-08) `sim/sim.gd` mode `naive` — bản đồ cố định dong_bang -> random-vs-AI không kiểm 2 bản đồ còn lại (dùng chung tham số map như `skirmish`).

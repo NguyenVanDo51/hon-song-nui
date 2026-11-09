@@ -103,6 +103,8 @@ const SFX := {
 }
 
 const DIR := "res://assets/sfx"
+## debug flag sfxlog: print "SFXLOG <frame> <sfx>" per play (tools/record_sfx_scene.sh -> docs/design scene markers)
+static var log_sfx := false
 
 var muted: bool
 var music_on: bool
@@ -135,6 +137,8 @@ func unlock() -> void:
 	pass # browsers needed a user gesture; Godot does not
 
 func play(sfx: String) -> void:
+	if log_sfx:
+		print("SFXLOG %d %s" % [Engine.get_process_frames(), sfx])
 	if muted:
 		return
 	var st := _stream("s:" + sfx)

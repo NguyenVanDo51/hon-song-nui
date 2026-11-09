@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giao diện</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+
+<section class="sheet" id="colors">
+  <header><h2>Màu</h2><span class="pill" id="ccnt"></span></header>
+  <p class="lede">Mọi hằng màu trong <code>scripts/ui/style.gd</code> (giấy, mực, son, lá vàng, sơn mài…). Tên = tên hằng trong code.</p>
+  <div class="grid" id="cols" style="--min: 150px"></div>
+</section>
+<section class="sheet">
+  <header><h2>Màu phe</h2></header>
+  <p class="lede"><code>content/theme.gd</code> → <code>factions</code>: tô áo quân, viền, mái nhà, cờ lâu đài.</p>
+  <div class="grid" id="fac" style="--min: 300px"></div>
+</section>
+<section class="sheet">
+  <header><h2>Font</h2><span class="pill" id="fcnt"></span></header>
+  <p class="lede">File font game nhúng (<code>assets/fonts/</code>). Mẫu chữ hiển thị bằng chính file đó.</p>
+  <div id="fonts"></div>
+</section>
+<section class="sheet">
+  <header><h2>Icon</h2><span class="pill" id="icnt"></span></header>
+  <p class="lede"><code>assets/ui/icons/*.svg</code>, trên nền giấy và nền gỗ tối.</p>
+  <div class="grid" id="icons" style="--min: 92px"></div>
+</section>
+<section class="sheet">
+  <header><h2>Emoji</h2><span class="pill" id="ecnt"></span></header>
+  <p class="lede"><code>assets/emoji/*.png</code>: ảnh emoji game nhúng sẵn (để icon giống nhau trên mọi máy). Tên file = mã Unicode.</p>
+  <div class="grid" id="emoji" style="--min: 78px"></div>
+</section>
+<section class="sheet">
+  <header><h2>Nút, thẻ, popup</h2></header>
+  <p class="lede">Kiểu nút / khung trong game do <code>Style.make_theme()</code> dựng bằng code (~20 kiểu nút: MenuBtn, PrimaryBtn, ActBtn, BackBtn, SegBtn…). Xem hình thật ở <a href="man-hinh.html">trang Màn hình</a>. Gom kiểu nút đang nằm trong <code>docs/TODO.md</code> § Nợ kỹ thuật.</p>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="design.js"></script>
+<script>
+
+$('ccnt').textContent = Object.keys(D.colors).length + ' màu';
+for (const [k, v] of Object.entries(D.colors)) $('cols').append(el('div', { class: 'card' }, `<div class="swatch-lg" style="background:${v}"></div><b>${k}</b><br><code>${v}</code>`));
+const FL = { name: 'tên', fig: 'hình đứng', body: 'thân', body2: 'thân 2', ring: 'viền', glow: 'phát sáng', roof: 'mái nhà' };
+for (const [s, f] of Object.entries(D.factions)) {
+  const sw = Object.keys(f).filter((k) => String(f[k]).startsWith('#')).map((k) => `<span class="sw"><i style="background:${f[k]}"></i>${FL[k] || k} <code>${f[k]}</code></span>`).join('');
+  $('fac').append(el('div', { class: 'card' }, `<h3>${f.name || 'Trung lập'} <code class="src">${s}</code></h3><div class="swatches">${sw}</div>`));
+}
+$('fcnt').textContent = D.fonts.length + ' file';
+const css = D.fonts.map((p, i) => `@font-face { font-family: "gf${i}"; src: url("${ROOT + p}"); }`).join('\n');
+document.head.append(el('style', {}, css));
+D.fonts.forEach((p, i) => $('fonts').append(el('div', { class: 'fontrow' }, `<div class="src"><code>${p}</code></div><div class="sample" style="font-family:gf${i}">Công Thành Chiến · Lượt địch 1234 ⚔</div>`)));
+$('icnt').textContent = D.icons.length + ' icon';
+for (const p of D.icons) { const n = p.split('/').pop().replace('.svg', ''); $('icons').append(el('div', { class: 'ico' }, `<img src="${ROOT + p}" alt="">${n}`)); $('icons').append(el('div', { class: 'ico dark' }, `<img src="${ROOT + p}" alt="">${n}`)); }
+$('ecnt').textContent = D.emoji.length + ' ảnh';
+for (const p of D.emoji) {
+  const code = p.split('/').pop().replace('.png', '').replace('emoji_u', '');
+  const ch = code.split('_').map((h) => { try { return String.fromCodePoint(parseInt(h, 16)); } catch (e) { return ''; } }).join('');
+  $('emoji').append(el('div', { class: 'ico' }, `<img src="${ROOT + p}" alt="">${ch} <code>${code}</code>`));
+}
+
+</script>
+</body>
+</html>

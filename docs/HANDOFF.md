@@ -1,4 +1,6 @@
-# HANDOFF — trạng thái làm việc (đọc trước khi làm tiếp)
+# HANDOFF — nhật ký làm việc theo ngày
+
+> **Không phải bản hiện tại.** Phần đầu (chương, Hai Bà Trưng, Mã Viện…) đã bỏ từ lâu. Game đang có gì: `docs/STATUS.md`; từng mảng: bảng "File sự thật" trong đó.
 
 Yêu cầu người dùng (2026-11-04 tối): làm tiếp phần đang dở, rồi **tự thiết kế + làm thêm cho đủ chương, đủ game**, và khi họ quay lại (vài tiếng) game phải **sẵn sàng release bản web**. Không hỏi lại, tự quyết.
 
@@ -153,3 +155,8 @@ Còn để dành: ô thông tin chiến dịch bấm được + nhãn dự báo 
 - Vòng 6 (user, ảnh mẫu bản đồ level kiểu game mobile): huy hiệu tròn số "08" góc dưới trái công trình (viền trắng sticker, vành múi), 3 sao nổi trên (đạt = vàng, chưa = nâu sẫm; user trước đó muốn chỉ hiện sao đạt -> theo ảnh, đổi 1 dòng nếu cần); 1 con đường lớn Catmull-Rom qua mọi màn + vạch đứt + cầu gỗ chỗ cắt sông; K_MIN 10.5 (mốc to, kéo nhiều hơn). Nhánh `feat/map-markers`.
 - Vòng 7 (user): sao cao hơn trên mái, huy hiệu nhỏ + đứng cạnh nhà; sao bo tròn (cánh mập + Chaikin 3 lần, `Draw.star` dùng chung); bỏ hỏi "Ván đang dở … sẽ bị thay [Thôi / Xuất quân]" -> vào thẳng (ván dở màn khác bị thay). Giữ hỏi khi chọn lại đúng màn đang dở (Đánh lại / Đánh tiếp).
 
+
+## 2026-11-09 — bối cảnh v2 + đa ngôn ngữ (nhánh `feat/setting-v2`, worktree `.claude/worktrees/setting-v2`)
+- User chọn trên trang nháp (đã xoá): màu địch A Máu & Đêm, Vorn V1 (hào quang tím), lính ngã giữ như cũ, chữ mới OK; thêm Tiếng Việt + English, mặc định theo máy, đổi trong cài đặt.
+- Làm: nguồn rig `docs/anim_demo/*.spec.js` đỏ -> xanh (ta), `TEAM_SWAP` -> bảng A, xuất lại rig json + svg chibi, lâu đài / làng; `theme.gd` phe / màu / chữ; 23 level `lore` + 4 tên; gỡ lửa / khói; `Token.FOE_GLOW` tím; bản đồ vương quốc tím tro / xanh / mây giông / tháp Ma Vương; icon iOS. i18n: `Lang` + `locale/en.po` (470 câu) + `tools/i18n_extract.py` + lint check + nút Ngôn ngữ (title + ⚙, reload scene). Chi tiết: `docs/setting.md`, `docs/i18n.md`.
+- Kiểm: test 191 ok, lint ok, click_driver 139 ok (1 lần chập chờn, TODO), tut t01–t03 ok, ảnh VI + EN ở `docs/design/man-hinh.html`.

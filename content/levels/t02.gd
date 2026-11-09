@@ -9,7 +9,7 @@ const DEF := {
 	"id": "t02",
 	"order": 2,
 	"title": "Lâu Đài Trống",
-	"lore": "Lâu đài bỏ hoang từ ngày lửa tắt. Quân Đế Quốc đang kéo tới.",
+	"lore": "Lâu đài bỏ hoang ngay trên đường ranh chia đôi đế quốc. Quân Ma Vương đang kéo tới.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": [],

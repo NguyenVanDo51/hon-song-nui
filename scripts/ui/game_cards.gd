@@ -93,7 +93,7 @@ func intro_card(u: Dictionary, i: int, n: int) -> void:
 	center.add_child(card)
 	var v := Style.vbox(6)
 	card.add_child(v)
-	var side_col := Style.P_NAME if mine else Style.SEA_HI
+	var side_col := Style.P_NAME if mine else Style.E_NAME
 	var eyebrow := Content.text(("introHero" if u.type == "hero" else "introUnit") + ("P" if mine else "E"))
 	var eh := Style.hbox(8)
 	var el := Style.lbl(eyebrow, 13, side_col, Style.xbold)
@@ -227,9 +227,9 @@ func show_end(win: bool, text: String, buttons: Array, star_goals: Array = [], b
 		v.add_child(t)
 	var st := Style.hbox(26)
 	st.alignment = BoxContainer.ALIGNMENT_CENTER
-	var rows := [[gs.s.turn, "lượt"], [gs.stats[gs._foe()], "địch bị hạ"], [gs.stats[gs._me()], "quân ta ngã"]]
+	var rows := [[gs.s.turn, Lang.t("lượt")], [gs.stats[gs._foe()], Lang.t("địch bị hạ")], [gs.stats[gs._me()], Lang.t("quân ta ngã")]]
 	if duel and gs._hotseat():
-		rows = [[gs.s.turn, "lượt"], [gs.stats.p, gs._side_name("p") + " ngã"], [gs.stats.e, gs._side_name("e") + " ngã"]]
+		rows = [[gs.s.turn, Lang.t("lượt")], [gs.stats.p, gs._side_name("p") + Lang.t(" ngã")], [gs.stats.e, gs._side_name("e") + Lang.t(" ngã")]]
 	for pair: Array in rows:
 		var col := Style.vbox(0)
 		var n := Style.lbl(str(pair[0]), 24, Style.INK, Style.display_x)

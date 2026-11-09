@@ -34,7 +34,8 @@ const SEA_HI := ROYAL
 const GOOD := Color("#3f7a2e")
 const BAD := Color("#b3262e")
 const AMBER := Color("#a8700a")
-const P_NAME := CRIMSON
+const P_NAME := ROYAL # our side name (setting v2: we are blue)
+const E_NAME := CRIMSON # the Demon Lord's side name
 
 const EDGE_MOBILE := 14.0 # min room kept from every screen edge on phones / tablets (rounded corners)
 static var safe_override := Vector4(-1, -1, -1, -1) # debug flag safe=l,t,r,b (canvas units)
@@ -416,13 +417,13 @@ static func unit_card(side: String, type: String, hero_key: Variant, opts := { }
 	txt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var lname: String = look.name
 	txt.add_child(lbl(lname, 20, GOLD, display))
-	var desc: String = (look.blurb + " Tướng chiếm được cả làng và lâu đài.") if type == "hero" else look.desc
+	var desc: String = (look.blurb + Lang.t(" Tướng chiếm được cả làng và lâu đài.")) if type == "hero" else look.desc
 	txt.add_child(lbl(desc, 14, INK, null, true))
 	head.add_child(txt)
 	v.add_child(head)
-	var rows := [["Công", st.atk, 75], ["Thủ", st.def, 30], ["Đi", st.mv, 6], ["Tầm", stat_range(st)]]
+	var rows := [[Lang.t("Công"), st.atk, 75], [Lang.t("Thủ"), st.def, 30], [Lang.t("Đi"), st.mv, 6], [Lang.t("Tầm"), stat_range(st)]]
 	if type != "ghost":
-		rows.append(["Giá", st.cost])
+		rows.append([Lang.t("Giá"), st.cost])
 	v.add_child(stat_bars(rows))
 	c.add_child(v)
 	# every card gets the same top gap so tagged and untagged cards line up in a grid; the ribbon sits across the top edge

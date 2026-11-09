@@ -5,7 +5,7 @@ const DEF := {
 	"id": "g15",
 	"order": 147,
 	"title": "Thành Mới Xây",
-	"lore": "Đế Quốc xây thành mới để chặn đường. Đừng để nó đứng vững.",
+	"lore": "Quân phản loạn xây thành mới để chặn đường. Đừng để nó đứng vững.",
 	"tier": "easy",
 	"ai": "normal",
 	"hero": "anhhung",

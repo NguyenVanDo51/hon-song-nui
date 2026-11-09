@@ -1,11 +1,11 @@
 extends RefCounted
-## m01: Lời Thề Bên Tro Tàn. Format: docs/content.md
+## m01: Lời Thề Biên Giới. Format: docs/content.md
 
 const DEF := {
 	"id": "m01",
 	"order": 10,
-	"title": "Lời Thề Bên Tro Tàn",
-	"lore": "Bên đống tro lâu đài cũ, những người cuối cùng thề thắp lại ngọn lửa.",
+	"title": "Lời Thề Biên Giới",
+	"lore": "Trên đường ranh chia đôi đế quốc, những hiệp sĩ cuối cùng thề lấy lại từng tấc đất.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": [],

@@ -5,7 +5,7 @@ const DEF := {
 	"id": "m11",
 	"order": 110,
 	"title": "Ải Sói",
-	"lore": "Bầy sói của Đế Quốc canh ải núi. Chiếm lâu đài sau ải.",
+	"lore": "Bầy sói của Ma Vương canh ải núi. Chiếm lâu đài sau ải.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": ["wolf"],

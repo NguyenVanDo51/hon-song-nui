@@ -15,8 +15,8 @@ The attack's own VFX (wind, fire, water, sound rings...) may differ per unit; th
 - viewBox="0 0 256 256" width/height 256; feet/base near y≈236–246; facing RIGHT; chibi (big head, small body), visual size like the current set.
 - One outline group `<g stroke="#2b2220" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">`; flat fills + one shade tone; no gradients/filters/text/raster.
 - Palette: outline #2b2220, skin #f3cfa6 (blush #f09a88), dark cloth #5a4a3c / #3a2e28, metal #cdd4da / #aab3bd, gold #e2c36e, wood #a87a4c.
-- Team colours: ours (`_p`) #c9503f + shade #93362b ; enemy (`_e`) #4f74c9 + shade #32508f. `_e` = `_p` with ONLY these two colours swapped (except the two commanders, which are different characters).
-- Setting: Vietnam, 1st century AD — ours = Lạc Việt / Hai Bà Trưng army (Đông Sơn motifs, conical or feather headgear, bronze); enemy = Eastern Han army (Han helmets/armour) — for normal units the enemy look is just the colour swap, so keep headgear neutral enough.
+- Team colours (setting v2, 2026-11-09, docs/setting.md): ours (`_p`) blue #4f74c9 + shade #32508f + gold trim #e2c36e; enemy (`_e`, the Demon Lord) wine red #8c1f3a + night purple #3d1238 + violet trim #a77bd6. `_e` = `_p` with ONLY these three colours swapped (`TEAM_SWAP`, except the two commanders, which are different characters).
+- Setting: generic fantasy (docs/setting.md) — one empire split in two; for normal units the enemy look is just the colour swap, so keep headgear neutral.
 - Rig-ready: draw each part that will move (head, torso, each arm, weapon separate from the hand, legs, tail/cape/plume) as its own contiguous block of elements, in a clean draw order, so it can be cut into parts verbatim.
 
 ## Files (per unit type <type>)

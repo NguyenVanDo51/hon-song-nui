@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Màn hình</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+
+<section class="sheet">
+  <header><h2>Màn hình chính</h2><span class="pill" id="stamp"></span><span class="mode" id="langsw"><button data-l="" class="on">Tiếng Việt</button><button data-l="_en">English</button></span></header>
+  <p class="lede">Chụp từ game thật (cửa sổ 1280×720 và dọc 540×1170 như iPhone), hồ sơ lưu <code>test</code>. Bấm ảnh để phóng to.</p>
+  <h3 style="margin:6px 0">Ngang</h3><div class="gal" id="land"></div>
+  <h3 style="margin:16px 0 6px">Dọc</h3><div class="gal portrait" id="port"></div>
+</section>
+<section class="sheet">
+  <header><h2>Trong trận: popup, thẻ, hướng dẫn</h2><span class="pill" id="ucnt"></span></header>
+  <p class="lede">Ảnh do các script bấm thật qua UI chụp (<code>sim/click_driver.gd</code>: lệnh, dự báo, giới thiệu quân, 1 đấu 1; <code>sim/tut_driver.gd</code>: từng bước hướng dẫn t01–t03; <code>sim/design_driver.gd</code>: thẻ level, chọn lính, lệnh, ⓘ, vùng địch, ⚙, thẻ thắng / thua — thẻ thắng / thua gọi đúng hàm kết trận của game với phe thắng gán sẵn). Tên ảnh = tên bước trong script.</p>
+  <div class="gal" id="ui"></div>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="design.js"></script>
+<script>
+
+document.addEventListener('click', (e) => {
+  const im = e.target.closest('.gal img');
+  if (!im) return;
+  const lb = el('div', { class: 'lightbox' }, `<img src="${im.src}" alt="">`);
+  lb.onclick = () => lb.remove();
+  document.body.append(lb);
+});
+const missingShot = (what) => `<p class="miss">Chưa có ảnh ${what}. Chạy <code>tools/design_shots.sh</code> (cần màn hình bật).</p>`;
+
+let SUF = '';
+function renderAll() {
+  ['land', 'port', 'ui'].forEach((id) => ($(id).innerHTML = ''));
+  const old = document.getElementById('tut'); if (old) { old.previousElementSibling.remove(); old.remove(); }
+const SCREENS = { title: 'Màn tiêu đề', levels: 'Bản đồ vương quốc (Thử thách)', skirmish: 'Đấu tự do: thiết lập', duel: '1 đấu 1: thiết lập', codex: 'Sách lính' };
+const fig = (src, title, sub) => el('figure', {}, `<img loading="lazy" src="${src}" alt=""><figcaption><b>${title}</b>${sub || ''}</figcaption>`);
+let any = false;
+for (const [k, n] of Object.entries(SCREENS).concat([['__game', 'Trong trận (m07, lượt 1)']])) {
+  const base = k === '__game' ? 'game_m07' : 'screen_' + k;
+  const a = shot(base + SUF), b = shot(base + '_portrait' + SUF);
+  if (a) { $('land').append(fig(a, n, `<code>${base}${SUF}.png</code>`)); any = true; }
+  if (b) $('port').append(fig(b, n, `<code>${base}_portrait${SUF}.png</code>`));
+}
+if (!any) $('land').innerHTML = missingShot('màn hình');
+$('stamp').textContent = SH ? 'chụp ' + SH.taken : 'chưa chụp';
+const ui = SH ? SH.files.filter((f) => f.startsWith('ui_') && (SUF ? f.endsWith(SUF + '.png') : !/_en\.png$/.test(f))) : [];
+$('ucnt').textContent = ui.length + ' ảnh';
+const UIN = { map_card: 'Bản đồ vương quốc: thẻ level', unit_selected: 'Chọn lính: ô đi được', orders_popup: 'Popup lệnh sau khi đi', info_card: 'Thẻ ⓘ thông tin quân', enemy_threat: 'Chạm quân địch: vùng nó đánh tới', pause_menu: 'Menu ⚙ (tạm dừng)', end_win: 'Thẻ thắng (sao + nhiệm vụ)', end_lose: 'Thẻ thua', duel_handoff: '1 đấu 1: màn chuyển tay', duel_p2_aim: '1 đấu 1: người 2 ngắm đánh', duel_end: '1 đấu 1: thẻ kết thúc', ux_float: 'Nhãn dự báo nổi trên bàn cờ', ux_forecast: 'Dự báo trận (⚔ gây · ↩ nhận)', ux_intro: 'Thẻ giới thiệu quân mới' };
+const idOf = (f) => f.replace(/^ui_/, '').replace(/\.png$/, '').replace(/_en$/, '');
+const order = Object.keys(UIN);
+const nat = (a, b) => a.localeCompare(b, undefined, { numeric: true });
+const named = ui.filter((f) => order.includes(idOf(f))).sort((a, b) => order.indexOf(idOf(a)) - order.indexOf(idOf(b)));
+const tut = ui.filter((f) => !order.includes(idOf(f))).sort(nat);
+const TUTN = { t01: 'Bài Học Đầu', t02: 'Lâu Đài Trống', t03: 'Chiêu Binh' };
+for (const f of named) $('ui').append(fig('shots/' + f, UIN[idOf(f)], `<code>${f}</code>`));
+if (tut.length) {
+  $('ui').after(el('h3', { style: 'margin:18px 0 6px' }, 'Hướng dẫn t01–t03 (từng bước, ảnh *_popup / *_shop = popup đang mở)'), el('div', { class: 'gal', id: 'tut' }));
+  for (const f of tut) { const m = idOf(f).match(/tut_(t0\d)_(.*)/); $('tut').append(fig('shots/' + f, m ? `${m[1]} ${TUTN[m[1]] || ''}: ${m[2].replace(/_/g, ' ').replace('step', 'bước')}` : idOf(f), `<code>${f}</code>`)); }
+}
+if (!ui.length) $('ui').innerHTML = missingShot('popup trong trận');
+
+}
+renderAll();
+document.querySelectorAll('#langsw button').forEach((b) => b.onclick = () => { SUF = b.dataset.l; document.querySelectorAll('#langsw button').forEach((x) => x.classList.toggle('on', x === b)); renderAll(); });
+</script>
+</body>
+</html>

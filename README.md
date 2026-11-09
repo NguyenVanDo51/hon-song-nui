@@ -2,10 +2,12 @@
 
 Tên cũ: Hồn Sông Núi (repo / thư mục `hon-song-nui`, save cũ ở `~/Library/Application Support/Godot/app_userdata/Hồn Sông Núi/`, đã chép sang thư mục tên mới).
 
-Chiến thuật theo lượt trên lưới ô, thế giới giả tưởng: Quân Khởi Nghĩa giành lại từng lâu đài từ Đế Quốc (tiền đề "Ngọn Lửa Lâu Đài"). Godot 4.7, GDScript, chạy trên web và máy bàn.
+Chiến thuật theo lượt trên lưới ô, thế giới giả tưởng. Godot 4.7, GDScript, chạy trên iOS, web và máy bàn.
+
+**Bản hiện tại có gì: `docs/STATUS.md`** (đọc đầu tiên). Bối cảnh / phe: `docs/setting.md`.
 Viết lại từ `../hon-song-nui` (JS + canvas, JS commit `3e888f1`). Chế độ chính: **Thử thách** = chuỗi level đánh số, thắng level này mở level sau, nhãn Dễ / Trung bình / Khó, 3 sao mỗi level (không cốt truyện, không chương; thiết kế `docs/superpowers/specs/2026-11-07-levels-design.md`).
 
-Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); một chỉ huy mỗi phe (Anh hùng / Tướng giặc), cùng chỉ số. Không có cốt truyện: chỉ chơi cờ.
+Như các game chiến thuật lưới ô kinh điển: **hai phe dùng chung một bộ lính** (cùng tên, cùng icon, chỉ khác màu); một chỉ huy mỗi phe (Hiệp Sĩ Chỉ Huy / Vorn), cùng chỉ số. Không có cốt truyện: chỉ chơi cờ.
 
 Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · giữ vững N lượt · **đưa tướng tới ô đích**. Thêm chế độ đấu tự do (3 chiến trường), **1 đấu 1** (hai người chung máy, đổi tay mỗi lượt, hoặc đấu máy Dễ / Trung bình / Khó / Siêu khó; `docs/1v1.md`) và Sách lính. Luật: `docs/spec.md`.
 
@@ -37,12 +39,16 @@ Kiểu màn: chiếm thành · diệt hết địch · hạ tướng địch · 
 - Bấm thành trống của ta để mua lính (popup cạnh thành). Nút **Hết lượt** nằm ở góc dưới bên phải bàn cờ, sáng nhịp khi mọi quân đã ra lệnh.
 - **ⓘ** ở góc mỗi quân: thẻ thông tin (chỉ số, buff đang có, đặc tính, cách dùng). Quân đứng cạnh Trống trận / tướng hào quang có chấm ⚔ cam (+10 công), cạnh tướng che chắn có chấm 🛡 xanh (+10 thủ); rê chuột lên nguồn buff để thấy 4 ô nó phủ. Lần đầu gặp một loại quân, game dừng lại giới thiệu nó.
 
-Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|levels|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `crash_at=5` cố ý crash (thử log crash) · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt.
+Cờ debug (sau `--`, hoặc trên web là query `?mission=m05&bot`): `mission=m03` vào thẳng màn · `bot` AI chơi phe ta · `speed=3` · `fresh` bỏ ván đang lưu · `screen=title|levels|skirmish|duel|codex` · `shots=res://shots/x shot_every=2 tag=x` chụp màn hình · `quit_at=60` · `crash_at=5` cố ý crash (thử log crash) · `bot` tắt cận cảnh đánh cho nhanh, thêm `zoom` để bật · `nozoom` luôn tắt · `sfxlog` in `SFXLOG <frame> <âm>` mỗi lần phát âm (dùng cho `tools/record_sfx_scene.sh`) · `lang=vi|en` ép ngôn ngữ (mặc định: lựa chọn đã lưu > ngôn ngữ máy).
+
+**Đa ngôn ngữ** (`docs/i18n.md`): chữ gốc tiếng Việt trong code (`Lang.t("…")`), bản dịch `locale/en.po`. Thêm / sửa chữ -> `python3 tools/i18n_extract.py` -> dịch dòng `msgstr ""` mới; `tools/lint.sh` chặn câu chưa dịch.
+
+**Trang thành phần game** (`docs/design/index.html`, mở thẳng file trong Chrome): 9 trang — tướng, lính, địa hình, âm thanh (+ cảnh game có tiếng, nhạc nền), giao diện (màu / font / icon / emoji), màn hình, level & bản đồ, chữ. Dữ liệu thật từ game, không sửa tay. Cập nhật: `godot --headless --path . -s tools/design_dump.gd` (data.js) · `tools/design_shots.sh [screens|levels|ui]` (ảnh màn hình, ~5 phút; `sim/design_driver.gd` chụp thẻ level / lệnh / ⓘ / ⚙ / thắng / thua) · `tools/record_sfx_scene.sh m07 150` (cảnh có tiếng). Cả 2 cần màn hình bật; `docs/design/shots/`, `docs/design/scene/` gitignore (~30 MB + ~100 MB).
 
 ## Kiểm tra
 Mọi lệnh Godot nên chạy qua `tools/run_guarded.ps1` (macOS / Linux: `MAX_SEC=120 tools/run_guarded.sh out.log -- --headless --path . -s sim/tests.gd`) (kill khi vượt RAM / thời gian; một vòng lặp vẽ từng ngốn 60 GB làm treo máy):
 ```
-powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # sim/tests.gd = runner, test theo mảng ở sim/tests/*.gd (test_base.gd = check / eq / run + helper); 150 test: luật, 16 màn hợp lệ (kiểu thắng, đợt quân, thứ tự), tướng tới được mục tiêu, chương, lưu ván, 4 ván vàng chương 1
+powershell -File tools/run_guarded.ps1 -Log t.log -GArgs "--headless --path . -s sim/tests.gd"   # sim/tests.gd = runner, test theo mảng ở sim/tests/*.gd (test_base.gd = check / eq / run + helper); test: luật, level hợp lệ (kiểu thắng, đợt quân, thứ tự), tướng tới được mục tiêu, nhiệm vụ / hướng dẫn, lưu ván, replay
 powershell -File tools/run_guarded.ps1 -Log c.log -GArgs "--headless --path . -s sim/click_driver.gd -- mission=m02 fresh nointro"  # ~55 bước bấm chuột qua UI thật (popup lệnh, ⓘ, giới thiệu quân, cảnh giao chiến 3 chế độ, thắng rồi thoát ngay vẫn giữ kết quả); dùng hồ sơ lưu riêng `driver`, không đụng ván thật
 tools/run_guarded.sh t.log -- --path . -s sim/tut_driver.gd -- mission=t01 fresh shots=/tmp/tut   # màn hướng dẫn t01–t03: click thật từng bước (thẻ, lỗ, popup, mua, Hết lượt), nhắc Hết lượt, Đánh tiếp, ⚙ Bỏ qua; ảnh từng bước (cần cửa sổ)
 bash tools/sim_many.sh "m09 m10 m11" 12 4                                                        # cân bằng: AI chơi cả hai phe

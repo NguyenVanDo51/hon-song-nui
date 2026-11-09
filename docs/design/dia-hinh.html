@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Địa hình</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+
+<section class="sheet">
+  <header><h2>Địa hình</h2><span class="pill" id="cnt"></span></header>
+  <p class="lede">Hình ô = file SVG game vẽ trên bàn cờ (<code>assets/terrain/chibi/</code>; mỗi loại có 1–2 kiểu, chọn theo vị trí ô; công trình có 3 màu chủ: ta / địch / trung lập). Số từ <code>Rules.TERRAIN</code>, ghi chú = chữ game hiện khi chạm ô (<code>Content.tile_note</code>).</p>
+  <div class="grid" id="ter" style="--min: 320px"></div>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="design.js"></script>
+<script>
+
+const OWN = { p: 'ta', e: 'địch', n: 'trung lập', x: 'cháy' };
+$('cnt').textContent = `${D.terrainOrder.length} loại ô`;
+for (const k of D.terrainOrder) {
+  const t = D.terrain[k], r = t.rules, L = t.look;
+  const arts = t.art.length ? t.art.map((p) => { const n = p.split('/').pop().replace('.svg', ''); const o = n.split('_')[1]; return `<div style="text-align:center"><div class="tile" style="width:96px;height:96px"><img src="${ROOT + p}" style="width:96px;height:96px" alt=""></div><div class="src">${OWN[o] ? OWN[o] : n}</div></div>`; }).join('') : '<span class="miss">không có file hình</span>';
+  const extra = (k === 'r' ? '<p class="note">Đường mòn: nền cỏ + vệt đất vẽ bằng code (nối làng, lâu đài, cầu).</p>' : '');
+  const cols = Object.keys(L).filter((x) => String(L[x]).startsWith('#')).map((x) => `<span class="sw"><i style="background:${L[x]}"></i>${x}</span>`).join('');
+  const bits = [];
+  if (r.building) bits.push(r.building === 'castle' ? 'lâu đài' : 'làng');
+  if (r.income) bits.push(`+${r.income} vàng/lượt`);
+  if (r.cap) bits.push(`chiếm: ${r.cap}`);
+  if (r.heals) bits.push(`hồi máu: ${r.heals === 'any' ? 'mọi phe' : 'chủ ô'}`);
+  if (r.sells) bits.push('mua lính');
+  if (r.razeTo) bits.push(`phá → ${r.razeTo}`);
+  if (r.repairTo) bits.push(`sửa → ${r.repairTo}`);
+  const c = el('div', { class: 'card' });
+  c.innerHTML = `<h3>${esc(L.name)} <code class="src">${esc(k)}</code></h3>
+    <div class="figpair">${arts}</div>${extra}
+    <table class="kv"><tr><td>Thủ +</td><td>${r.def}</td></tr><tr><td>Giá đi</td><td>${r.cost}</td></tr>${bits.length ? `<tr><td>Công trình</td><td>${bits.join(' · ')}</td></tr>` : ''}</table>
+    ${t.note ? `<p class="note">${esc(t.note)}</p>` : ''}
+    <div class="swatches" title="màu vẽ bằng code (khi tắt bộ hình: figstyle=off)">${cols}</div>`;
+  $('ter').append(c);
+}
+
+</script>
+</body>
+</html>

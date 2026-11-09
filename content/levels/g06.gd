@@ -5,7 +5,7 @@ const DEF := {
 	"id": "g06",
 	"order": 85,
 	"title": "Bãi Cát Giữa Sông",
-	"lore": "Quân Đế Quốc mắc kẹt trên bãi cát. Đừng để tên nào thoát.",
+	"lore": "Quân Ma Vương mắc kẹt trên bãi cát. Đừng để tên nào thoát.",
 	"tier": "mid",
 	"ai": "normal",
 	"hero": "anhhung",

@@ -21,6 +21,8 @@ command -v gdscript-formatter >/dev/null || { echo "lint: gdscript-formatter mis
 if ! echo "$files" | tr '\n' '\0' | xargs -0 gdscript-formatter --check "${fmt[@]}" >/dev/null 2>&1; then
 	echo "lint: not formatted -> gdscript-formatter ${fmt[*]} <files>"; exit 1
 fi
+# i18n: every Vietnamese literal in scripts/ goes through Lang.t, every catalog entry has a translation (docs/i18n.md)
+python3 tools/i18n_extract.py --check >/dev/null || { python3 tools/i18n_extract.py --check; echo "lint: i18n -> python3 tools/i18n_extract.py, then translate locale/*.po"; exit 1; }
 # Godot type-checks a script with its dependencies, so check the given files only (fast) but via the real parser
 res=$(echo "$files" | sed 's#^#res://#' | tr '\n' ' ')
 [ -z "$res" ] && exit 0

@@ -5,7 +5,7 @@ extends Control
 
 const HERO_GLOW := Color("#ffd76a")
 const HERO_RING := Color("#f3c95c")
-const FOE_GLOW := Color("#ff4a36") # the enemy commander (villain): red glow + crimson ring instead of gold
+const FOE_GLOW := Color("#b46bff") # the enemy commander (Vorn, sworn to the Demon Lord): violet aura + crimson ring instead of gold
 const FOE_RING := Color("#d23a2c")
 const RAST_GEN := 192
 ## standing figure: soft ground shadow + the silhouette in the faction's figure colour with a dark outline (mirrored for

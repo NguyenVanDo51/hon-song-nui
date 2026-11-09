@@ -143,8 +143,6 @@ func _layer(fn: Callable) -> Layer:
 func set_state(state: Dictionary) -> void:
 	s = state
 	_motes.clear()
-	paint.fires.clear() # a new game: no flare for castles that "changed hands" since the last one
-	paint.flare_at.clear()
 	_terrain_dirty = true
 	_night_key = -1
 
@@ -336,7 +334,6 @@ func _draw_dyn(ci: CanvasItem) -> void:
 		var own: String = b[3]
 		Draw.set_xf(ci, up_xf(Vector2(x + 0.5, y + 0.5) * T))
 		paint.draw_building(ci, t, x * T, y * T, own, time, x, y)
-	paint.draw_fires(ci, time)
 	for g: Dictionary in s.graves:
 		var gx: float = g.x
 		var gy: float = g.y
@@ -523,8 +520,8 @@ func _draw_preview(ci: CanvasItem) -> void:
 	var dmg_max: int = p.dmgMax
 	var ctr_min: int = p.counterMin
 	var ctr_max: int = p.counterMax
-	var give := "%s%s" % [Style.range_txt(dmg_min, dmg_max), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else "")]
-	var take := "%s%s" % [Style.range_txt(ctr_min, ctr_max), " ngã" if p.die else (" có thể ngã" if p.mayDie else "")] \
+	var give := "%s%s" % [Style.range_txt(dmg_min, dmg_max), Lang.t(" hạ gục") if p.kill else (Lang.t(" có thể hạ") if p.mayKill else "")]
+	var take := "%s%s" % [Style.range_txt(ctr_min, ctr_max), Lang.t(" ngã") if p.die else (Lang.t(" có thể ngã") if p.mayDie else "")] \
 			if ctr_max > 0 else ""
 	var ic := float(fs) * 1.1 # drawn icons (sword = we hit, back arrow = counter)
 	var gap := 4.0

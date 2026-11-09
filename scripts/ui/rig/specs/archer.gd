@@ -37,7 +37,7 @@ static func loose(a: Rig) -> void:
 			"size": 1.0,
 			"arc": 18.0,
 			"speed": 2300.0,
-			"color": "#4f74c9" if a.swap else "#c9503f",
+			"color": "#8c1f3a" if a.swap else "#4f74c9",
 			"trail": "#fff6d6",
 			"hit": Rig.with(Rig.HIT, { "dmg": 40 }),
 		}

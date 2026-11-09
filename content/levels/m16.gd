@@ -5,7 +5,7 @@ const DEF := {
 	"id": "m16",
 	"order": 160,
 	"title": "Đêm Dài Nhất",
-	"lore": "Nếu lửa còn cháy tới sáng, Đế Quốc sẽ phải lùi.",
+	"lore": "Nếu pháo đài còn đứng tới sáng, quân Ma Vương sẽ phải lùi.",
 	"hero": "anhhung",
 	"enemyHero": "tuonggiac",
 	"newUnits": [],

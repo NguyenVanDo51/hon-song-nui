@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lính</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+
+<section class="sheet">
+  <header><h2>Lính</h2><span class="pill" id="cnt"></span></header>
+  <p class="lede">Hai phe dùng chung bộ quân, cùng dáng, chỉ khác màu. Tên / icon / mô tả từ <code>content/theme.gd</code>, số từ <code>scripts/core/rules.gd</code>, vai trò + cách dùng từ <code>content/guide.gd</code>, đặc tính sinh từ số (<code>Content.traits</code>, đúng chữ thẻ ⓘ trong game). Thứ tự = thứ tự bảng mua.</p>
+  <div class="grid" id="units" style="--min: 360px"></div>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="design.js"></script>
+<script>
+
+document.addEventListener('click', (e) => {
+  const im = e.target.closest('.gal img');
+  if (!im) return;
+  const lb = el('div', { class: 'lightbox' }, `<img src="${im.src}" alt="">`);
+  lb.onclick = () => lb.remove();
+  document.body.append(lb);
+});
+const missingShot = (what) => `<p class="miss">Chưa có ảnh ${what}. Chạy <code>tools/design_shots.sh</code> (cần màn hình bật).</p>`;
+
+const BASIC = ['cost', 'atk', 'atkMax', 'def', 'mv', 'rmin', 'rmax', 'move', 'aiWeight', 'aiValue'];
+const MOVE = { foot: 'đi bộ', fly: 'bay', water: 'thủy' };
+const FLAG_VN = { capV: 'chiếm làng', capC: 'chiếm lâu đài', heavy: 'quân nặng', siege: 'công thành', aura: 'hào quang', antiAir: 'diệt bay', vsType: 'thưởng vs loại', poison: 'độc', waterAtk: 'công dưới sông', waterDef: 'thủ dưới sông', raise: 'gọi hồn', noCap: 'không tính trần', noGrave: 'không để mộ', shot: 'kiểu bắn' };
+$('cnt').textContent = `${D.unitOrder.length - 1} loại + tướng`;
+for (const t of D.unitOrder) {
+  const u = D.units[t], r = u.rules, L = u.look;
+  const hi = Math.max(r.atk, (r.atkMax || r.atk) - 1);
+  const flags = Object.keys(r).filter((k) => !BASIC.includes(k)).map((k) => `<code title="${k}">${FLAG_VN[k] || k}${r[k] === true ? '' : ': ' + esc(JSON.stringify(r[k]))}</code>`).join('');
+  const c = el('div', { class: 'card', id: 'u-' + t });
+  const snd = u.sound ? `<button class="btn ghost sm" data-s="${u.sound}">▶ ${u.sound}</button>` : '<span class="src">không có âm vung (chỉ âm trúng)</span>';
+  const impact = r.heavy ? 'heavy' : 'hit (≥ 35 sát thương: heavy)';
+  c.innerHTML = `
+    <h3>${L.icon || ''} ${esc(L.name)} <code class="src">${t}</code>${u.buyable ? '' : ` <span class="pill">${t === 'hero' ? 'tướng' : 'không mua được'}</span>`}</h3>
+    <div class="sub">${esc(u.role)}</div>
+    <div class="figpair">
+      <div class="tile"><img src="${ROOT + u.figP}" alt=""></div>
+      <div class="tile"><img src="${ROOT + u.figE}" alt=""></div>
+      <div class="tile small"><img src="${ROOT + u.figP}" alt=""></div>
+      <div class="tile small"><img src="${ROOT + u.figE}" alt=""></div>
+      <div class="src">${sideName('p')} · ${sideName('e')}</div>
+    </div>
+    <table class="kv">
+      <tr><td>Giá</td><td>${u.buyable ? r.cost + ' vàng' : (t === 'hero' ? 'mua lại ' + r.cost + ' +' + r.cost + '/lần ngã' : '—')}</td></tr>
+      <tr><td>Công / Thủ</td><td>${r.atk}–${hi} / ${r.def}</td></tr>
+      <tr><td>Đi / Tầm</td><td>${r.mv} ô (${MOVE[r.move] || r.move}) / ${r.rmin === r.rmax ? r.rmin : r.rmin + '–' + r.rmax}</td></tr>
+      ${L.desc ? `<tr><td>Mô tả</td><td>${esc(L.desc)}</td></tr>` : ''}
+      <tr><td>Âm</td><td>${snd} → trúng: <b>${impact}</b></td></tr>
+    </table>
+    ${flags ? `<div class="flags">${flags}</div>` : ''}
+    <ul class="traits">${u.traits.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>
+    <p class="note">${esc(u.play)}</p>
+    <details class="rigbox"><summary>Hoạt cảnh đánh (rig)</summary><iframe loading="lazy" data-src="${ROOT + u.rigDemo}"></iframe></details>
+    ${t === 'hero' ? '<p class="note">Chi tiết 2 tướng: <a href="tuong.html">trang Tướng</a>.</p>' : ''}`;
+  c.querySelectorAll('[data-s]').forEach((b) => b.onclick = () => playFile(`${SFX_DIR}s_${b.dataset.s}.wav`, b));
+  const det = c.querySelector('details');
+  det.addEventListener('toggle', () => { const f = det.querySelector('iframe'); if (det.open && !f.src) f.src = f.dataset.src; });
+  $('units').append(c);
+}
+
+</script>
+</body>
+</html>

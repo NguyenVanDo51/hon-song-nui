@@ -1,0 +1,1945 @@
+# Công Thành Chiến — template (msgid = Vietnamese source text). Generated / merged by tools/i18n_extract.py.
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: \n"
+
+#: content/guide.gd:9
+msgid "Tướng chỉ huy"
+msgstr ""
+
+#: content/guide.gd:10
+msgid "Lính chủ lực"
+msgstr ""
+
+#: content/guide.gd:11
+msgid "Bắn xa · diệt rồng"
+msgstr ""
+
+#: content/guide.gd:12
+msgid "Thủy chiến"
+msgstr ""
+
+#: content/guide.gd:13
+msgid "Gọi hồn"
+msgstr ""
+
+#: content/guide.gd:14
+msgid "Trợ chiến"
+msgstr ""
+
+#: content/guide.gd:15
+msgid "Đánh nhanh · làm yếu địch"
+msgstr ""
+
+#: content/guide.gd:16
+msgid "Xung kích · chịu đòn"
+msgstr ""
+
+#: content/guide.gd:17
+msgid "Công thành tầm xa"
+msgstr ""
+
+#: content/guide.gd:18
+msgid "Bay · mạnh nhất"
+msgstr ""
+
+#: content/guide.gd:19
+msgid "Xác lính gọi dậy"
+msgstr ""
+
+#: content/guide.gd:23
+msgid "Người duy nhất chiếm được lâu đài, cũng chiếm được làng. Đánh kết liễu để lên cấp. Ngã thì mua lại ở lâu đài (200 vàng, mỗi lần ngã +200, tối đa 1000), giữ nguyên cấp. Mất cả tướng lẫn lâu đài là thua."
+msgstr ""
+
+#: content/guide.gd:24
+msgid "Rẻ và đông. Đi đầu chiếm làng để có vàng, xếp thành hàng khiên che cho lính bắn xa đứng phía sau."
+msgstr ""
+
+#: content/guide.gd:25
+msgid "Đứng sau hàng lính, bắn từ ô thứ 2 thì địch không đánh trả được. Bắn rồng +15 công: luôn giữ cung thủ khi địch có rồng."
+msgstr ""
+
+#: content/guide.gd:26
+msgid "Đi trên sông chỉ 1 bước, đứng dưới nước +10 công, +15 thủ. Giữ khúc sông, chặn chỗ lội, đánh địch đang lội (dưới nước chúng không được thủ). Lên bờ thì đi như vệ binh."
+msgstr ""
+
+#: content/guide.gd:27
+msgid "Đánh yếu, đừng đưa lên đầu. Đứng cạnh lính ngã (cả lính địch) rồi bấm Gọi hồn: thêm một bộ xương miễn phí. Lính ngã mất sau lượt kế của mỗi bên, nên đứng gần chỗ đang đánh."
+msgstr ""
+
+#: content/guide.gd:28
+msgid "Ra lệnh cho tu sĩ trước (đánh hoặc chờ): quân ta trong 2 ô +10 công tới lượt sau, rồi mới cho cả đội đánh. Đánh bộ xương +15 công."
+msgstr ""
+
+#: content/guide.gd:29
+msgid "Chạy 5 bước. Cắn trúng thì địch −10 công, −10 thủ tới lượt sau của ta: cho sói cắn trước, quân khác đánh sau. Hợp săn cung thủ, máy bắn đá đứng lẻ."
+msgstr ""
+
+#: content/guide.gd:30
+msgid "Thủ rất dày, đánh mạnh, lên được cả núi. Đưa lên chặn cầu, cửa ải hoặc đấm thẳng vào chỗ địch đông. Đắt: đừng để bị vây."
+msgstr ""
+
+#: content/guide.gd:31
+msgid "Đứng yên mới ném được, tầm 2–4 ô, không đánh trả. Phá được làng địch. Giữ thật xa phía sau và luôn có lính che trước mặt."
+msgstr ""
+
+#: content/guide.gd:32
+msgid "Bay qua sông, núi chỉ tốn 1 bước, đi 6 ô. Mạnh nhất, đắt nhất (1000 vàng). Vòng ra sau đánh máy bắn đá, cung thủ đứng lẻ, cướp làng xa. Tránh cung thủ địch."
+msgstr ""
+
+#: content/guide.gd:33
+msgid "Pháp sư gọi hồn dựng dậy, không mua được, không tính vào trần quân, không chiếm được làng. Dùng làm lá chắn, chặn đường hoặc đánh phụ. Sợ tu sĩ ánh sáng."
+msgstr ""
+
+#: content/levels/g01.gd:7
+msgid "Bến Phà Cũ"
+msgstr ""
+
+#: content/levels/g01.gd:8
+msgid "Bến phà là đường duy nhất qua sông, và một lâu đài đang giữ nó."
+msgstr ""
+
+#: content/levels/g02.gd:7
+msgid "Đồi Gió"
+msgstr ""
+
+#: content/levels/g02.gd:8
+msgid "Một đạo quân Ma Vương cắm trại trên đồi. Quét sạch chúng."
+msgstr ""
+
+#: content/levels/g03.gd:7
+msgid "Ngã Ba Sông"
+msgstr ""
+
+#: content/levels/g03.gd:8
+msgid "Ai giữ ngã ba sông, người đó giữ cả vùng."
+msgstr ""
+
+#: content/levels/g04.gd:7
+msgid "Giữ Đồn"
+msgstr ""
+
+#: content/levels/g04.gd:8
+msgid "Đồn gác vừa giành lại. Quân Ma Vương quay lại đòi nó."
+msgstr ""
+
+#: content/levels/g05.gd:7
+msgid "Rừng Sồi Già"
+msgstr ""
+
+#: content/levels/g05.gd:8
+msgid "Vorn ẩn trong rừng sồi. Lùng ra và hạ hắn."
+msgstr ""
+
+#: content/levels/g06.gd:7
+msgid "Bãi Cát Giữa Sông"
+msgstr ""
+
+#: content/levels/g06.gd:8
+msgid "Quân Ma Vương mắc kẹt trên bãi cát. Đừng để tên nào thoát."
+msgstr ""
+
+#: content/levels/g07.gd:7
+msgid "Cửa Sông"
+msgstr ""
+
+#: content/levels/g07.gd:8
+msgid "Vorn đóng quân ở cửa sông. Hạ hắn, cắt đường tiếp viện."
+msgstr ""
+
+#: content/levels/g08.gd:7
+msgid "Sông Bạc"
+msgstr ""
+
+#: content/levels/g08.gd:8
+msgid "Lâu đài bên Sông Bạc giữ đường vào vùng trong."
+msgstr ""
+
+#: content/levels/g09.gd:7
+msgid "Làng Cối Xay"
+msgstr ""
+
+#: content/levels/g09.gd:8
+msgid "Vorn lấy làng cối xay làm đại bản doanh. Hạ hắn."
+msgstr ""
+
+#: content/levels/g10.gd:7
+msgid "Rừng Đêm"
+msgstr ""
+
+#: content/levels/g10.gd:8
+msgid "Trong rừng tối, quân Ma Vương lạc nhau. Săn từng toán."
+msgstr ""
+
+#: content/levels/g11.gd:7
+msgid "Thành Đá"
+msgstr ""
+
+#: content/levels/g11.gd:8
+msgid "Thành Đá chưa từng thất thủ. Cho tới hôm nay."
+msgstr ""
+
+#: content/levels/g12.gd:7
+msgid "Bãi Sậy"
+msgstr ""
+
+#: content/levels/g12.gd:8
+msgid "Quân Ma Vương phục trong bãi sậy. Lôi chúng ra."
+msgstr ""
+
+#: content/levels/g13.gd:7
+msgid "Đền Cổ"
+msgstr ""
+
+#: content/levels/g13.gd:8
+msgid "Ngôi đền cổ đã bị Ma Vương làm ô uế. Giành lại lâu đài quanh nó."
+msgstr ""
+
+#: content/levels/g14.gd:7
+msgid "Đầm Lầy"
+msgstr ""
+
+#: content/levels/g14.gd:8
+msgid "Kẹt giữa đầm lầy. Trụ vững cho tới khi địch đuối sức."
+msgstr ""
+
+#: content/levels/g15.gd:7
+msgid "Thành Mới Xây"
+msgstr ""
+
+#: content/levels/g15.gd:8
+msgid "Quân phản loạn xây thành mới để chặn đường. Đừng để nó đứng vững."
+msgstr ""
+
+#: content/levels/g16.gd:7
+msgid "Núi Rồng"
+msgstr ""
+
+#: content/levels/g16.gd:8
+msgid "Vorn: «Leo tới đây rồi sao? Đỉnh núi này là mồ của ngươi.»"
+msgstr ""
+
+#: content/levels/g17.gd:7
+msgid "Tường Gai"
+msgstr ""
+
+#: content/levels/g17.gd:8
+msgid "Bức tường cuối cùng trước kinh đô. Phá nó."
+msgstr ""
+
+#: content/levels/g18.gd:7
+msgid "Trăng Khuyết"
+msgstr ""
+
+#: content/levels/g18.gd:8
+msgid "Dưới trăng khuyết, cận vệ của Vorn đi tuần. Diệt sạch."
+msgstr ""
+
+#: content/levels/g19.gd:7
+msgid "Cổng Kinh Đô"
+msgstr ""
+
+#: content/levels/g19.gd:8
+msgid "Trước cổng kinh đô, quân Ma Vương dốc toàn lực phản công. Trụ vững."
+msgstr ""
+
+#: content/levels/g20.gd:7
+msgid "Ngai Vàng Kinh Đô"
+msgstr ""
+
+#: content/levels/g20.gd:8
+msgid "Vorn: «Ngai vàng này là của ta. Ma Vương đã hứa.»"
+msgstr ""
+
+#: content/levels/m01.gd:7
+msgid "Lời Thề Biên Giới"
+msgstr ""
+
+#: content/levels/m01.gd:8
+msgid "Trên đường ranh chia đôi đế quốc, những hiệp sĩ cuối cùng thề lấy lại từng tấc đất."
+msgstr ""
+
+#: content/levels/m02.gd:7
+msgid "Trận Đầu Tiên"
+msgstr ""
+
+#: content/levels/m02.gd:8
+msgid "Vorn: «Nửa đế quốc đã quỳ trước Ma Vương. Nửa kia cũng sẽ quỳ.»"
+msgstr ""
+
+#: content/levels/m03.gd:9
+msgid "Giữ Làng Biên Giới"
+msgstr ""
+
+#: content/levels/m03.gd:10
+msgid "Quân Ma Vương kéo tới đòi lại làng. Giữ vững cho tới khi chúng nản."
+msgstr ""
+
+#: content/levels/m04.gd:7
+msgid "Đồn Gác Phương Bắc"
+msgstr ""
+
+#: content/levels/m04.gd:8
+msgid "Vorn đích thân trấn đồn gác. Hạ hắn, cả đồn tan rã."
+msgstr ""
+
+#: content/levels/m05.gd:7
+msgid "Đêm Hồ Gương"
+msgstr ""
+
+#: content/levels/m05.gd:8
+msgid "Trăng lặn. Đánh úp lâu đài bên hồ khi quân Ma Vương còn ngủ."
+msgstr ""
+
+#: content/levels/m06.gd:7
+msgid "Bãi Sông Xám"
+msgstr ""
+
+#: content/levels/m06.gd:8
+msgid "Vorn đuổi tới tận bãi sông. Lần này không lùi nữa."
+msgstr ""
+
+#: content/levels/m07.gd:9
+msgid "Vây Lâu Đài Đá Trắng"
+msgstr ""
+
+#: content/levels/m07.gd:10
+msgid "Tường đá quá dày cho gươm giáo. Máy bắn đá sẽ mở đường."
+msgstr ""
+
+#: content/levels/m08.gd:7
+msgid "Phủ Thành Cũ"
+msgstr ""
+
+#: content/levels/m08.gd:8
+msgid "Phủ thành cũ của Đế Quốc, nay là sào huyệt phản loạn. Lấy lại nó, cả vùng sông về tay ta."
+msgstr ""
+
+#: content/levels/m09.gd:7
+msgid "Tin Dữ Từ Biển"
+msgstr ""
+
+#: content/levels/m09.gd:8
+msgid "Thuyền quân Ma Vương đổ bộ từ biển. Giữ vững tới khi chúng rút."
+msgstr ""
+
+#: content/levels/m10.gd:7
+msgid "Vịnh Bão"
+msgstr ""
+
+#: content/levels/m10.gd:8
+msgid "Quân Ma Vương đốt làng dọc vịnh. Dựng lại làng, rồi hạ Vorn."
+msgstr ""
+
+#: content/levels/m11.gd:7
+msgid "Ải Sói"
+msgstr ""
+
+#: content/levels/m11.gd:8
+msgid "Bầy sói của Ma Vương canh ải núi. Chiếm lâu đài sau ải."
+msgstr ""
+
+#: content/levels/m12.gd:7
+msgid "Hồ Sương Mù"
+msgstr ""
+
+#: content/levels/m12.gd:8
+msgid "Vorn: «Mỗi lâu đài ngươi lấy lại, Ma Vương ban cho ta mười đạo quân.»"
+msgstr ""
+
+#: content/levels/m13.gd:9
+msgid "Phá Vòng Vây"
+msgstr ""
+
+#: content/levels/m13.gd:10
+msgid "Vòng vây khép lại. Mở đường tới cờ vàng trước khi quá muộn."
+msgstr ""
+
+#: content/levels/m14.gd:7
+msgid "Rút Lên Núi"
+msgstr ""
+
+#: content/levels/m14.gd:8
+msgid "Đại quân Ma Vương tràn tới. Rút lên pháo đài trên núi mà giữ quân."
+msgstr ""
+
+#: content/levels/m15.gd:7
+msgid "Pháo Đài Trên Núi"
+msgstr ""
+
+#: content/levels/m15.gd:8
+msgid "Pháo đài cuối cùng phía tây còn cờ Đế Quốc. Giữ nó bằng mọi giá."
+msgstr ""
+
+#: content/levels/m16.gd:7
+msgid "Đêm Dài Nhất"
+msgstr ""
+
+#: content/levels/m16.gd:8
+msgid "Nếu pháo đài còn đứng tới sáng, quân Ma Vương sẽ phải lùi."
+msgstr ""
+
+#: content/levels/t01.gd:11
+msgid "Bài Học Đầu"
+msgstr ""
+
+#: content/levels/t01.gd:12
+msgid "Làng biên giới cuối cùng còn trung thành. Quân Ma Vương đang tới."
+msgstr ""
+
+#: content/levels/t01.gd:35 content/levels/t02.gd:34 content/levels/t03.gd:34
+msgid "Mục tiêu"
+msgstr ""
+
+#: content/levels/t01.gd:35
+msgid "Bạn chỉ huy Tướng và Vệ binh. Thắng khi hạ hết quân địch. Trước hết: tập đi quân."
+msgstr ""
+
+#: content/levels/t01.gd:36
+msgid "Chạm vào Tướng để chọn"
+msgstr ""
+
+#: content/levels/t01.gd:37
+msgid "Ô sáng = nơi Tướng đi tới được. Chạm ô có vòng, rồi bấm ⏳ Chờ"
+msgstr ""
+
+#: content/levels/t01.gd:39
+msgid "Quân đã đi"
+msgstr ""
+
+#: content/levels/t01.gd:42
+msgid "Tướng đã ra lệnh nên xám lại. Vệ binh chưa đi nên còn sáng. Mỗi quân chỉ đi 1 lần mỗi lượt."
+msgstr ""
+
+#: content/levels/t01.gd:44
+msgid "Mỗi lượt bạn điều khiển được TẤT CẢ quân. Giờ tới Vệ binh"
+msgstr ""
+
+#: content/levels/t01.gd:45 content/levels/t03.gd:44 content/theme.gd:90
+msgid "Hết lượt"
+msgstr ""
+
+#: content/levels/t01.gd:45
+msgid "Mọi quân đã xám. Bấm Hết lượt: địch đi, rồi lại tới bạn"
+msgstr ""
+
+#: content/levels/t01.gd:46
+msgid "Địch tới!"
+msgstr ""
+
+#: content/levels/t01.gd:46
+msgid "Hai Vệ binh địch kéo tới. Hạ hết chúng để thắng."
+msgstr ""
+
+#: content/levels/t01.gd:47
+msgid "Chọn Tướng, chạm địch có vòng, rồi bấm ⚔ Đánh"
+msgstr ""
+
+#: content/levels/t01.gd:49
+msgid "Địch đánh trả"
+msgstr ""
+
+#: content/levels/t01.gd:51
+msgid "Bị đánh, địch đánh trả. Nhưng máu càng ít thì đánh càng yếu. Mẹo: dồn nhiều quân vào 1 tên để hạ gọn."
+msgstr ""
+
+#: content/levels/t01.gd:53
+msgid "Vệ binh đánh tiếp tên này!"
+msgstr ""
+
+#: content/levels/t01.gd:54 content/levels/t02.gd:39 content/levels/t03.gd:49
+msgid "Tự chỉ huy"
+msgstr ""
+
+#: content/levels/t01.gd:54
+msgid "Còn 1 tên. Mỗi lượt: đi hết quân rồi bấm Hết lượt. Dồn quân hạ nốt để thắng!"
+msgstr ""
+
+#: content/levels/t02.gd:11
+msgid "Lâu Đài Trống"
+msgstr ""
+
+#: content/levels/t02.gd:12
+msgid "Lâu đài bỏ hoang ngay trên đường ranh chia đôi đế quốc. Quân Ma Vương đang kéo tới."
+msgstr ""
+
+#: content/levels/t02.gd:34
+msgid "Hạ hết quân địch để thắng. Giữa bản đồ có 1 lâu đài trống: chiếm nó trước!"
+msgstr ""
+
+#: content/levels/t02.gd:35 content/theme.gd:216
+msgid "Lâu đài"
+msgstr ""
+
+#: content/levels/t02.gd:35
+msgid "Chỉ Tướng chiếm được lâu đài. Quân đứng trên lâu đài thủ rất cao và hồi 20 máu mỗi lượt."
+msgstr ""
+
+#: content/levels/t02.gd:36
+msgid "Đưa Tướng lên lâu đài rồi bấm 🏯 Chiếm lâu đài"
+msgstr ""
+
+#: content/levels/t02.gd:37 scripts/ui/menus.gd:852
+msgid "Địa hình"
+msgstr ""
+
+#: content/levels/t02.gd:37
+msgid "Rừng, đồi, làng cũng giúp thủ: đứng trên đó bị mất ít máu hơn."
+msgstr ""
+
+#: content/levels/t02.gd:38
+msgid "Đưa Vệ binh vào rừng cạnh lâu đài, chờ địch tới"
+msgstr ""
+
+#: content/levels/t02.gd:39
+msgid "Giữ lâu đài + rừng, để địch đánh vào chỗ thủ cao. Dồn quân hạ từng tên. Hạ hết để thắng!"
+msgstr ""
+
+#: content/levels/t03.gd:11
+msgid "Chiêu Binh"
+msgstr ""
+
+#: content/levels/t03.gd:12
+msgid "Có lâu đài, có làng: đủ để chiêu binh."
+msgstr ""
+
+#: content/levels/t03.gd:34
+msgid "Thắng khi Tướng chiếm lâu đài địch bên phải. Địch sắp kéo tới: cần thêm quân."
+msgstr ""
+
+#: content/levels/t03.gd:35
+msgid "Vệ binh này chỉ còn 40 máu. Đưa về làng ta: đầu lượt sau được hồi máu"
+msgstr ""
+
+#: content/levels/t03.gd:36
+msgid "Lâu đài của bạn"
+msgstr ""
+
+#: content/levels/t03.gd:36
+msgid "Lâu đài ta: mỗi lượt +50 vàng. Mua quân ở đây."
+msgstr ""
+
+#: content/levels/t03.gd:37
+msgid "Chạm lâu đài, mua 1 Vệ binh (150 vàng)"
+msgstr ""
+
+#: content/levels/t03.gd:38
+msgid "Quân mới mua đi được ngay. Đưa Vệ binh vào làng rồi bấm 🏠 Chiếm làng"
+msgstr ""
+
+#: content/levels/t03.gd:39 content/theme.gd:215
+msgid "Làng"
+msgstr ""
+
+#: content/levels/t03.gd:39
+msgid "Làng của bạn: +30 vàng mỗi lượt. Quân ta đứng trên làng / lâu đài được hồi 20 máu đầu lượt."
+msgstr ""
+
+#: content/levels/t03.gd:45
+msgid "Tướng chưa đi cũng được: quân chưa đi thì đứng yên. Bấm Hết lượt"
+msgstr ""
+
+#: content/levels/t03.gd:47
+msgid "Làng hồi máu đầu lượt: +20"
+msgstr ""
+
+#: content/levels/t03.gd:48
+msgid "Vàng"
+msgstr ""
+
+#: content/levels/t03.gd:48
+msgid "Lâu đài + mỗi làng cho vàng mỗi lượt. Càng nhiều làng, càng mua được nhiều quân."
+msgstr ""
+
+#: content/levels/t03.gd:49
+msgid "Mua quân, chiếm thêm làng, quân yếu về làng hồi máu, rồi đưa Tướng chiếm lâu đài địch!"
+msgstr ""
+
+#: content/skirmish_maps.gd:7
+msgid "Đảo Sông Bạc"
+msgstr ""
+
+#: content/skirmish_maps.gd:8
+msgid "Sông lớn chia đôi chiến trường, lâu đài trên cù lao giữa dòng. Hai cầu gỗ hai bên."
+msgstr ""
+
+#: content/skirmish_maps.gd:28
+msgid "Quần đảo Sương Mù"
+msgstr ""
+
+#: content/skirmish_maps.gd:29
+msgid "Mỗi bên giữ một đảo và 2 làng. Cầu hẹp nối các đảo, thuyền có đất dụng võ."
+msgstr ""
+
+#: content/skirmish_maps.gd:48
+msgid "Hẻm núi Đá Xám"
+msgstr ""
+
+#: content/skirmish_maps.gd:49
+msgid "Núi đá hai bờ suối. Lâu đài chắn ngang dòng là lối qua giữa, hai cầu gỗ ở hai đầu hẻm."
+msgstr ""
+
+#: content/theme.gd:11
+msgid "Vệ binh"
+msgstr ""
+
+#: content/theme.gd:11
+msgid "Lính giáo khiên. Rẻ, chiếm được làng, dựng lại được làng cháy."
+msgstr ""
+
+#: content/theme.gd:12
+msgid "Cung thủ"
+msgstr ""
+
+#: content/theme.gd:12
+msgid "Bắn xa 1–2 ô; bắn từ 2 ô thì địch không đánh trả được. +15 công khi bắn quân bay (rồng)."
+msgstr ""
+
+#: content/theme.gd:14 scripts/ui/menus.gd:943
+msgid "Hải tặc"
+msgstr ""
+
+#: content/theme.gd:16
+msgid "Dân sông nước chèo thuyền nhỏ: đi trên sông chỉ tốn 1 bước. Đứng dưới sông +10 công, +15 thủ."
+msgstr ""
+
+#: content/theme.gd:18
+msgid "Pháp sư gọi hồn"
+msgstr ""
+
+#: content/theme.gd:18
+msgid "Gọi lính ngã ngay cạnh dậy thành bộ xương đánh cho ta (cả lính địch ngã)."
+msgstr ""
+
+#: content/theme.gd:20
+msgid "Tu sĩ ánh sáng"
+msgstr ""
+
+#: content/theme.gd:22
+msgid "Giơ đèn ban phước xong (sau mọi lệnh): quân ta trong 2 ô +10 công tới lượt sau. +15 công khi đánh bộ xương."
+msgstr ""
+
+#: content/theme.gd:25
+msgid "Sói bóng đêm"
+msgstr ""
+
+#: content/theme.gd:27
+msgid "Sói đen to lớn từ rừng sâu. Chạy nhanh (5 bước). Cắn trúng thì địch bị thương: −10 công, −10 thủ tới lượt sau của ta."
+msgstr ""
+
+#: content/theme.gd:29
+msgid "Golem đá"
+msgstr ""
+
+#: content/theme.gd:29
+msgid "Người đá do pháp sư thổi hồn. Thủ rất dày, đánh mạnh, lên được cả núi. Đắt."
+msgstr ""
+
+#: content/theme.gd:31
+msgid "Máy bắn đá"
+msgstr ""
+
+#: content/theme.gd:33
+msgid "Ném đá 2–4 ô. Đã đi thì không ném được lượt đó. Không đánh trả. Phá được làng địch hoặc làng chưa ai chiếm (thành làng cháy)."
+msgstr ""
+
+#: content/theme.gd:36
+msgid "Rồng"
+msgstr ""
+
+#: content/theme.gd:38
+msgid "Bay: mọi ô (cả sông, núi) chỉ tốn 1 bước, đi 6. Mạnh nhất, đắt nhất. Cung thủ bắn rồng +15 công."
+msgstr ""
+
+#: content/theme.gd:41
+msgid "Bộ xương"
+msgstr ""
+
+#: content/theme.gd:43
+msgid "Lính ngã được pháp sư gọi hồn dựng dậy. Không mua được, không tính vào giới hạn quân, không chiếm được làng."
+msgstr ""
+
+#: content/theme.gd:48
+msgid "lão luyện"
+msgstr ""
+
+#: content/theme.gd:48
+msgid "tinh nhuệ"
+msgstr ""
+
+#: content/theme.gd:48
+msgid "dũng mãnh"
+msgstr ""
+
+#: content/theme.gd:51
+msgid "Công Thành Chiến"
+msgstr ""
+
+#: content/theme.gd:52
+msgid "Cờ chiến thuật theo lượt"
+msgstr ""
+
+#: content/theme.gd:53
+msgid "Nửa đế quốc đã theo Ma Vương. Giành lại từng lâu đài."
+msgstr ""
+
+#: content/theme.gd:55
+msgid "Lượt quân Ma Vương"
+msgstr ""
+
+#: content/theme.gd:56 scripts/ui/menus.gd:263 scripts/ui/menus.gd:464
+msgid "Đấu tự do"
+msgstr ""
+
+#: content/theme.gd:57
+msgid "Hiệp Sĩ Chỉ Huy đấu với Vorn"
+msgstr ""
+
+#: content/theme.gd:58
+msgid "Hai người chung máy, hoặc đấu với máy"
+msgstr ""
+
+#: content/theme.gd:59
+msgid "Lượt {turn} · {side}"
+msgstr ""
+
+#: content/theme.gd:60
+msgid "{side} thắng"
+msgstr ""
+
+#: content/theme.gd:61
+msgid "{loser} mất hết lâu đài, tướng cũng đã ngã."
+msgstr ""
+
+#: content/theme.gd:62
+msgid "{loser} không còn quân, không còn lâu đài."
+msgstr ""
+
+#: content/theme.gd:63
+msgid "Lượt của {side}"
+msgstr ""
+
+#: content/theme.gd:64
+msgid "Lượt {turn} · chạm để bắt đầu"
+msgstr ""
+
+#: content/theme.gd:65
+msgid "gọi hồn"
+msgstr ""
+
+#: content/theme.gd:66
+msgid "☠ Gọi hồn"
+msgstr ""
+
+#: content/theme.gd:67
+msgid "Lính ngã: pháp sư gọi hồn đứng cạnh dựng dậy được thành bộ xương. Mất sau lượt kế của mỗi bên, hoặc khi có quân bước lên."
+msgstr ""
+
+#: content/theme.gd:68
+msgid "Lính ngã"
+msgstr ""
+
+#: content/theme.gd:69
+msgid "Lượt {turn} · Quân ta"
+msgstr ""
+
+#: content/theme.gd:70
+msgid "Chiếm lâu đài!"
+msgstr ""
+
+#: content/theme.gd:71
+msgid "Chiếm làng"
+msgstr ""
+
+#: content/theme.gd:72
+msgid "Đại thắng"
+msgstr ""
+
+#: content/theme.gd:73
+msgid "Thất thủ"
+msgstr ""
+
+#: content/theme.gd:74
+msgid "TƯỚNG TA"
+msgstr ""
+
+#: content/theme.gd:75
+msgid "TƯỚNG ĐỊCH"
+msgstr ""
+
+#: content/theme.gd:76
+msgid "QUÂN MỚI · PHE TA"
+msgstr ""
+
+#: content/theme.gd:77
+msgid "QUÂN ĐỊCH MỚI"
+msgstr ""
+
+#: content/theme.gd:78
+msgid "🔄 Xem lại"
+msgstr ""
+
+#: content/theme.gd:79
+msgid "Đã hiểu"
+msgstr ""
+
+#: content/theme.gd:80
+msgid "đánh mục tiêu viền vàng"
+msgstr ""
+
+#: content/theme.gd:81
+msgid "chiếm"
+msgstr ""
+
+#: content/theme.gd:82
+msgid "dựng lại"
+msgstr ""
+
+#: content/theme.gd:83
+msgid "đốt làng viền vàng"
+msgstr ""
+
+#: content/theme.gd:84
+msgid "Đốt làng!"
+msgstr ""
+
+#: content/theme.gd:85
+msgid "Dựng lại làng"
+msgstr ""
+
+#: content/theme.gd:86
+msgid "đi tới ô sáng rồi chờ"
+msgstr ""
+
+#: content/theme.gd:87
+msgid "Mộ quân"
+msgstr ""
+
+#: content/theme.gd:88
+msgid "» Bỏ qua hướng dẫn"
+msgstr ""
+
+#: content/theme.gd:89
+msgid "Tính thắng 1 sao, về lưới thử thách"
+msgstr ""
+
+#: content/theme.gd:91
+msgid "▶ Đã hiểu"
+msgstr ""
+
+#: content/theme.gd:92
+msgid "Xuất quân ›"
+msgstr ""
+
+#: content/theme.gd:93
+msgid "🔒 Chưa chiếm lại: thắng màn trước để mở"
+msgstr ""
+
+#: content/theme.gd:94
+msgid "Mọi quân đã đi (xám): bấm Hết lượt"
+msgstr ""
+
+#: content/theme.gd:95
+msgid "quân địch"
+msgstr ""
+
+#: content/theme.gd:96
+msgid "{capV} đứng vào làng rồi bấm Chiếm: +{income} vàng/lượt, hồi máu quân ta."
+msgstr ""
+
+#: content/theme.gd:97
+msgid "Làng bị {raze} đốt cháy. {capV} đứng vào rồi bấm Dựng lại làng; lượt sau mới chiếm được."
+msgstr ""
+
+#: content/theme.gd:98
+msgid "Chỉ {capC_l} chiếm được lâu đài. Lâu đài: +{income} vàng/lượt, mua lính, hồi máu. Có quân ta đứng trên lâu đài vẫn mua được: lính mới phải bước ra ô khác."
+msgstr ""
+
+#: content/theme.gd:99
+msgid "Giếng Thần: không ai chiếm được. Quân phe nào đứng đây cũng hồi {heal} máu mỗi lượt, thủ +15."
+msgstr ""
+
+#: content/theme.gd:100
+msgid "Mọi quân lội được nhưng tốn 3 bước và không được thủ. {water} chỉ tốn 1 bước, đứng dưới sông +10 công, +15 thủ."
+msgstr ""
+
+#: content/theme.gd:101
+msgid "Mẹo: giữ tướng sau hàng vệ binh; đứng trên đồi, làng, lâu đài được thêm thủ."
+msgstr ""
+
+#: content/theme.gd:102
+msgid "Mẹo: luôn để một quân đứng chặn trên lâu đài khi địch có tướng ở gần."
+msgstr ""
+
+#: content/theme.gd:103
+msgid "Mẹo: chiếm làng sớm để có vàng mua quân; đừng đem lính lẻ ra đánh."
+msgstr ""
+
+#: content/theme.gd:104
+msgid "Mẹo: đi đường mòn cho nhanh, để vệ binh chặn đường đuổi phía sau."
+msgstr ""
+
+#: content/theme.gd:106
+msgid "Thắng trận"
+msgstr ""
+
+#: content/theme.gd:107
+msgid "Tướng ta không ngã lần nào"
+msgstr ""
+
+#: content/theme.gd:108
+msgid "Thắng trong {n} lượt"
+msgstr ""
+
+#: content/theme.gd:109
+msgid "Mất không quá {n} lính"
+msgstr ""
+
+#: content/theme.gd:110
+msgid "Không mất lính nào"
+msgstr ""
+
+#: content/theme.gd:111
+msgid "Kỷ lục: {n}/3 sao"
+msgstr ""
+
+#: content/theme.gd:112
+msgid "Nhiệm vụ {have}/{need}"
+msgstr ""
+
+#: content/theme.gd:114 scripts/core/content.gd:279 scripts/ui/menus.gd:926
+msgid "Tướng"
+msgstr ""
+
+#: content/theme.gd:115
+msgid "tướng địch"
+msgstr ""
+
+#: content/theme.gd:117
+msgid "Chọn {unit}"
+msgstr ""
+
+#: content/theme.gd:118
+msgid "Đi {unit}"
+msgstr ""
+
+#: content/theme.gd:119
+msgid "Đi 1 quân"
+msgstr ""
+
+#: content/theme.gd:121
+msgid "Chiếm 1 {tile}"
+msgstr ""
+
+#: content/theme.gd:122
+msgid "Chiếm 1 ô"
+msgstr ""
+
+#: content/theme.gd:123
+msgid "Đứng vào {tile}"
+msgstr ""
+
+#: content/theme.gd:124
+msgid "Đánh bằng {unit}"
+msgstr ""
+
+#: content/theme.gd:125
+msgid "Đánh 1 đòn"
+msgstr ""
+
+#: content/theme.gd:126
+msgid "Hạ địch bằng {unit}"
+msgstr ""
+
+#: content/theme.gd:127 content/theme.gd:131
+msgid "Hạ 1 địch"
+msgstr ""
+
+#: content/theme.gd:128
+msgid "Đánh {unit}"
+msgstr ""
+
+#: content/theme.gd:129
+msgid "Đánh 1 địch"
+msgstr ""
+
+#: content/theme.gd:130
+msgid "Hạ 1 {unit}"
+msgstr ""
+
+#: content/theme.gd:133
+msgid "Mua 1 quân"
+msgstr ""
+
+#: content/theme.gd:134
+msgid "Hồi máu ở {tile}"
+msgstr ""
+
+#: content/theme.gd:135
+msgid "Hồi máu"
+msgstr ""
+
+#: content/theme.gd:136
+msgid "Sửa làng hỏng"
+msgstr ""
+
+#: content/theme.gd:137
+msgid "Đốt 1 làng"
+msgstr ""
+
+#: content/theme.gd:138
+msgid "Gọi dậy 1 bộ xương"
+msgstr ""
+
+#: content/theme.gd:143
+msgid "Chiếm hết lâu đài của địch và hạ {eh} (hoặc diệt sạch quân lẫn lâu đài)."
+msgstr ""
+
+#: content/theme.gd:144
+msgid "Chiếm {n} lâu đài + hạ {eh}"
+msgstr ""
+
+#: content/theme.gd:145
+msgid "Chiếm hết lâu đài + hạ {eh}"
+msgstr ""
+
+#: content/theme.gd:147
+msgid "Diệt hết quân địch."
+msgstr ""
+
+#: content/theme.gd:147
+msgid "Diệt hết địch (còn {n})"
+msgstr ""
+
+#: content/theme.gd:147
+msgid "Diệt hết quân địch"
+msgstr ""
+
+#: content/theme.gd:148
+msgid "Hạ {eh}."
+msgstr ""
+
+#: content/theme.gd:148 content/theme.gd:148
+msgid "Hạ {eh}"
+msgstr ""
+
+#: content/theme.gd:149
+msgid "Giữ vững đến hết lượt {turns}."
+msgstr ""
+
+#: content/theme.gd:149
+msgid "Giữ vững: còn {left} lượt"
+msgstr ""
+
+#: content/theme.gd:149
+msgid "Giữ vững {turns} lượt"
+msgstr ""
+
+#: content/theme.gd:151
+msgid "Đưa {hero} tới ô cờ vàng{within}."
+msgstr ""
+
+#: content/theme.gd:152
+msgid "Đưa {hero} tới cờ vàng{left_txt}"
+msgstr ""
+
+#: content/theme.gd:153
+msgid "Đưa {hero} tới cờ vàng{within}"
+msgstr ""
+
+#: content/theme.gd:159
+msgid "Đã quét sạch quân địch."
+msgstr ""
+
+#: content/theme.gd:160
+msgid "Đã chiếm hết lâu đài và hạ tướng địch."
+msgstr ""
+
+#: content/theme.gd:161
+msgid "{eh} đã bị hạ."
+msgstr ""
+
+#: content/theme.gd:162
+msgid "Đã giữ vững đến cùng."
+msgstr ""
+
+#: content/theme.gd:163
+msgid "{hero} đã tới nơi an toàn."
+msgstr ""
+
+#: content/theme.gd:166
+msgid "{hero} đã ngã."
+msgstr ""
+
+#: content/theme.gd:167
+msgid "Mất hết lâu đài, tướng ta cũng đã ngã."
+msgstr ""
+
+#: content/theme.gd:168
+msgid "{hero} đã ngã, ta không còn lâu đài nào."
+msgstr ""
+
+#: content/theme.gd:169
+msgid "Quân ta đã tan."
+msgstr ""
+
+#: content/theme.gd:170
+msgid "Không kịp tới nơi, quân Ma Vương đã khép vòng vây."
+msgstr ""
+
+#: content/theme.gd:176
+msgid "Quân Đế Quốc"
+msgstr ""
+
+#: content/theme.gd:177 scripts/ui/menus.gd:852
+msgid "Quân ta"
+msgstr ""
+
+#: content/theme.gd:178
+msgid "Đế Quốc"
+msgstr ""
+
+#: content/theme.gd:187
+msgid "Quân Ma Vương"
+msgstr ""
+
+#: content/theme.gd:188 content/theme.gd:189
+msgid "Ma Vương"
+msgstr ""
+
+#: content/theme.gd:200
+msgid "Đồng cỏ"
+msgstr ""
+
+#: content/theme.gd:202
+msgid "Đường mòn"
+msgstr ""
+
+#: content/theme.gd:210
+msgid "Rừng"
+msgstr ""
+
+#: content/theme.gd:211
+msgid "Đồi"
+msgstr ""
+
+#: content/theme.gd:212
+msgid "Núi"
+msgstr ""
+
+#: content/theme.gd:213
+msgid "Sông"
+msgstr ""
+
+#: content/theme.gd:214
+msgid "Cầu gỗ"
+msgstr ""
+
+#: content/theme.gd:217
+msgid "Làng cháy"
+msgstr ""
+
+#: content/theme.gd:218
+msgid "Giếng Thần"
+msgstr ""
+
+#: content/theme.gd:229
+msgid "Hiệp Sĩ Chỉ Huy"
+msgstr ""
+
+#: content/theme.gd:231
+msgid "Hiệp sĩ trung thành của Đế Quốc, cầm quân giành lại nửa đất đã mất. Chiếm được cả làng lẫn lâu đài. Ngã thì mua lại ở lâu đài, giữ nguyên cấp; mỗi lần ngã giá mua lại +200."
+msgstr ""
+
+#: content/theme.gd:237
+msgid "Tướng quân phản loạn, bán đế quốc cho Ma Vương để được lên ngôi. Cầm quân trong mọi trận. Cùng sức với tướng ta."
+msgstr ""
+
+#: content/world_map.gd:62
+msgid "Biên Giới"
+msgstr ""
+
+#: content/world_map.gd:64
+msgid "Vùng Sông"
+msgstr ""
+
+#: content/world_map.gd:68
+msgid "Vùng Núi"
+msgstr ""
+
+#: content/world_map.gd:69
+msgid "Pháo Đài"
+msgstr ""
+
+#: content/world_map.gd:70
+msgid "Kinh Đô"
+msgstr ""
+
+#: content/world_map.gd:297
+msgid "Biển Bão"
+msgstr ""
+
+#: scripts/core/content.gd:180
+msgid "Chiếm được cả lâu đài lẫn làng."
+msgstr ""
+
+#: scripts/core/content.gd:182
+msgid "Chiếm được làng (+%d vàng mỗi lượt)."
+msgstr ""
+
+#: scripts/core/content.gd:187
+msgid "Công %d–%d: mỗi đòn lăn ngẫu nhiên trong khoảng này."
+msgstr ""
+
+#: scripts/core/content.gd:191
+msgid "Đánh xa %d–%d ô. Chỉ quân đứng kề mới đánh trả được."
+msgstr ""
+
+#: scripts/core/content.gd:193
+msgid "Bắn xa %d–%d ô, nhưng đã di chuyển thì lượt đó không bắn được."
+msgstr ""
+
+#: scripts/core/content.gd:197
+msgid "Không bao giờ đánh trả: bị áp sát là nguy."
+msgstr ""
+
+#: scripts/core/content.gd:199
+msgid "Sau mỗi lệnh: quân ta trong 2 ô +%d công tới lượt sau của ta."
+msgstr ""
+
+#: scripts/core/content.gd:201
+msgid "+%d công khi đánh rồng."
+msgstr ""
+
+#: scripts/core/content.gd:205
+msgid "+%d công khi đánh %s."
+msgstr ""
+
+#: scripts/core/content.gd:207
+msgid "Cắn trúng: địch −%d công, −%d thủ tới lượt sau của ta."
+msgstr ""
+
+#: scripts/core/content.gd:209
+msgid "Đứng dưới sông: +%d công, +%d thủ."
+msgstr ""
+
+#: scripts/core/content.gd:211
+msgid "Gọi hồn: đứng cạnh lính ngã (cả địch) để dựng dậy thành bộ xương của ta."
+msgstr ""
+
+#: scripts/core/content.gd:214
+msgid "Bay: mọi ô chỉ tốn 1 bước, vượt cả sông núi."
+msgstr ""
+
+#: scripts/core/content.gd:216
+msgid "Đi trên sông chỉ tốn 1 bước (quân khác tốn 3)."
+msgstr ""
+
+#: scripts/core/content.gd:218
+msgid "Không tính vào giới hạn quân."
+msgstr ""
+
+#: scripts/core/content.gd:220
+msgid "Đi xa %d ô mỗi lượt."
+msgstr ""
+
+#: scripts/core/content.gd:222
+msgid "Chậm: chỉ đi %d ô mỗi lượt."
+msgstr ""
+
+#: scripts/core/content.gd:224
+msgid "Thủ rất dày (%d): hợp làm tường chắn."
+msgstr ""
+
+#: scripts/core/content.gd:226
+msgid "Thủ mỏng (%d): luôn giữ sau lưng quân khác."
+msgstr ""
+
+#: scripts/core/content.gd:228
+msgid "Ngã xuống thì không để lại mộ."
+msgstr ""
+
+#: scripts/core/content.gd:259
+msgid " trong %d lượt"
+msgstr ""
+
+#: scripts/core/content.gd:260
+msgid ": còn %s lượt"
+msgstr ""
+
+#: scripts/core/content.gd:280
+msgid " hoặc "
+msgstr ""
+
+#: scripts/core/lang.gd:8
+msgid "Tiếng Việt"
+msgstr ""
+
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+msgid " hạ gục"
+msgstr ""
+
+#: scripts/ui/board.gd:523 scripts/ui/info_panel.gd:596
+msgid " có thể hạ"
+msgstr ""
+
+#: scripts/ui/board.gd:524 scripts/ui/game_cards.gd:232 scripts/ui/game_cards.gd:232
+msgid " ngã"
+msgstr ""
+
+#: scripts/ui/board.gd:524 scripts/ui/info_panel.gd:597
+msgid " có thể ngã"
+msgstr ""
+
+#: scripts/ui/board_base.gd:97
+msgid "Xem thông tin quân"
+msgstr ""
+
+#: scripts/ui/credits.gd:12
+msgid "Làm game"
+msgstr ""
+
+#: scripts/ui/credits.gd:12
+msgid "Thiết kế, lập trình, hình ảnh, âm thanh: %s"
+msgstr ""
+
+#: scripts/ui/credits.gd:12
+msgid "Liên hệ: %s"
+msgstr ""
+
+#: scripts/ui/credits.gd:14
+msgid "Hình ảnh"
+msgstr ""
+
+#: scripts/ui/credits.gd:15
+msgid "Quân lính, địa hình, công trình, biểu tượng giao diện: vẽ riêng cho game."
+msgstr ""
+
+#: scripts/ui/credits.gd:15
+msgid "Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."
+msgstr ""
+
+#: scripts/ui/credits.gd:17 scripts/ui/game_hud.gd:250 scripts/ui/menus.gd:268
+msgid "Âm thanh"
+msgstr ""
+
+#: scripts/ui/credits.gd:17
+msgid "Hiệu ứng và nhạc: tổng hợp bằng code trong game."
+msgstr ""
+
+#: scripts/ui/credits.gd:19
+msgid "Phông chữ (SIL Open Font License 1.1)"
+msgstr ""
+
+#: scripts/ui/credits.gd:28
+msgid "Làm bằng Godot Engine %s (godotengine.org), giấy phép MIT."
+msgstr ""
+
+#: scripts/ui/credits.gd:52
+msgid "Thành phần bên thứ ba trong Godot Engine"
+msgstr ""
+
+#: scripts/ui/event_player.gd:299
+msgid "−%d công/thủ"
+msgstr ""
+
+#: scripts/ui/fx.gd:487
+msgid "★ Lên cấp %d"
+msgstr ""
+
+#: scripts/ui/game_cards.gd:230 scripts/ui/game_cards.gd:232
+msgid "lượt"
+msgstr ""
+
+#: scripts/ui/game_cards.gd:230
+msgid "địch bị hạ"
+msgstr ""
+
+#: scripts/ui/game_cards.gd:230
+msgid "quân ta ngã"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:83
+msgid "Lượt 1"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:106
+msgid "» Tua lượt địch"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:107
+msgid "Chạy nhanh lượt địch (giữ Space / chuột cũng tua)"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:116
+msgid "Menu, cài đặt"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:144
+msgid "Còn 0 quân chưa đi"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:161
+msgid "Kết thúc lượt (phím E)"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:220
+msgid "Tạm dừng"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:226
+msgid "▶ Tiếp tục"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:227
+msgid "Quay lại ván (Esc)"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:236
+msgid "💬 Gợi ý nước đi"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:237
+msgid "Gợi ý (phím H)"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:257 scripts/ui/menus.gd:269
+msgid "Nhạc"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:262 scripts/ui/menus.gd:270
+msgid "Tốc độ"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:263
+msgid "Tốc độ hoạt cảnh"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:266 scripts/ui/menus.gd:272
+msgid "Ngôn ngữ"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:299
+msgid "📖 Sách lính"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:300
+msgid "Tính chất từng loại quân"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:306
+msgid "↩ Đánh lại"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:306
+msgid "Chơi lại màn này từ đầu"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:308
+msgid "🏠 Về menu"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:309
+msgid "Lưu ván và về menu chính"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:520
+msgid "Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất."
+msgstr ""
+
+#: scripts/ui/game_hud.gd:521 scripts/ui/turn_driver.gd:278
+msgid "Đánh lại"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:535 scripts/ui/menus.gd:293
+msgid "Âm thanh: %s"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:535 scripts/ui/game_hud.gd:538 scripts/ui/menus.gd:293
+msgid "tắt"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:535 scripts/ui/game_hud.gd:538 scripts/ui/menus.gd:293
+msgid "bật"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:538 scripts/ui/menus.gd:294
+msgid "Nhạc: %s"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:562
+msgid "Lượt địch"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:564
+msgid "%s đang ra quân…"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:566
+msgid "Còn %d quân chưa đi"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:566
+msgid "Mọi quân đã ra lệnh"
+msgstr ""
+
+#: scripts/ui/game_hud.gd:616
+msgid "Lượt %d"
+msgstr ""
+
+#: scripts/ui/game_screen.gd:767
+msgid "Hai quân đứng chung lâu đài: cho [b]%s[/b] bước ra ô khác%s."
+msgstr ""
+
+#: scripts/ui/game_screen.gd:769
+msgid ", hoặc bấm ra ngoài vùng đi để hủy mua (hoàn vàng)"
+msgstr ""
+
+#: scripts/ui/game_screen.gd:795
+msgid "Không còn việc gì đáng làm. Bấm [b]Hết lượt[/b]."
+msgstr ""
+
+#: scripts/ui/game_screen.gd:802
+msgid "Gợi ý: mua [b]%s[/b]."
+msgstr ""
+
+#: scripts/ui/game_screen.gd:809
+msgid "Gợi ý: [b]%s[/b] cứ đứng yên giữ chỗ. Ra lệnh cho quân khác hoặc bấm [b]Hết lượt[/b]."
+msgstr ""
+
+#: scripts/ui/game_screen.gd:822
+msgid "Gợi ý: [b]%s[/b] %s. Bấm nút sáng để làm theo."
+msgstr ""
+
+#: scripts/ui/hud_widgets.gd:227
+msgid " (lượt %d)"
+msgstr ""
+
+#: scripts/ui/hud_widgets.gd:229
+msgid " (mất %d)"
+msgstr ""
+
+#: scripts/ui/hud_widgets.gd:231
+msgid " (ngã %d lần)"
+msgstr ""
+
+#: scripts/ui/hud_widgets.gd:285
+msgid "Bắt đầu lượt"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:83
+msgid "Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:105
+msgid "Máu %d · KN %d%s · %s +%d thủ"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:108
+msgid " (tối đa)"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:135
+msgid "[b]Cách dùng:[/b] "
+msgstr ""
+
+#: scripts/ui/info_panel.gd:137
+msgid "💤 Đang canh gác: chỉ ra tay khi quân ta tới gần."
+msgstr ""
+
+#: scripts/ui/info_panel.gd:167
+msgid "%s · Máu %d%s"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:167
+msgid " · đã đi"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:173
+msgid "📜 Chi tiết"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:174
+msgid "Tính chất, cách dùng, kinh nghiệm"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:193
+msgid "chưa ai chiếm"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:196
+msgid "không qua"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:197
+msgid "Thủ +%d · Giá đi %s"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:209
+msgid "của "
+msgstr ""
+
+#: scripts/ui/info_panel.gd:210
+msgid "của ta"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:210
+msgid "của địch"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:238
+msgid "[color=#%s]⚔ +%d công[/color] nhờ tu sĩ ban phước, tới lượt sau của phe mình."
+msgstr ""
+
+#: scripts/ui/info_panel.gd:241
+msgid "[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông."
+msgstr ""
+
+#: scripts/ui/info_panel.gd:246
+msgid "[color=#%s]🐺 Bị sói cắn: −%d công, −%d thủ[/color] tới lượt sau của phe kia."
+msgstr ""
+
+#: scripts/ui/info_panel.gd:259
+msgid "công "
+msgstr ""
+
+#: scripts/ui/info_panel.gd:261
+msgid "tu sĩ ban phước"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:261
+msgid "dưới sông"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:262
+msgid "[color=#%s]+%d công[/color] (%s)"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:264
+msgid "[color=#%s]−%d công[/color] (bị cắn)"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:266
+msgid "+%d công đánh rồng"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:275
+msgid "+%d công đánh %s"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:280
+msgid "địch được %s +%d thủ"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:282
+msgid "[color=#%s]địch +%d thủ[/color] dưới sông"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:284
+msgid "[color=#%s]địch −%d thủ[/color] (bị cắn)"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:286
+msgid "địch không đánh trả được"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:312 scripts/ui/info_panel.gd:494
+msgid "✖ Đóng"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:333
+msgid "Đánh [b]%s[/b] (máu %d):"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:341
+msgid "⚔ Đánh"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:348
+msgid "Bấm vào kẻ địch viền đỏ để chọn mục tiêu."
+msgstr ""
+
+#: scripts/ui/info_panel.gd:351
+msgid "↩ Quay lại"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:363
+msgid "⚔ Đánh (%d)"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:381
+msgid "🏯 Chiếm lâu đài"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:381
+msgid "🏠 Chiếm làng"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:388
+msgid "Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được."
+msgstr ""
+
+#: scripts/ui/info_panel.gd:391
+msgid "🔨 Dựng lại làng"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:401
+msgid "Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước."
+msgstr ""
+
+#: scripts/ui/info_panel.gd:404
+msgid "💥 Đốt làng"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:426
+msgid "🏯 Mộ quân"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:437
+msgid "⏳ Chờ"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:443
+msgid "✖ Hủy"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:454
+msgid "Có %d vàng · Quân %d/%d · lính mới đi được ngay"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:596
+msgid "Gây"
+msgstr ""
+
+#: scripts/ui/info_panel.gd:597
+msgid "Bị đánh trả"
+msgstr ""
+
+#: scripts/ui/level_select.gd:8 scripts/ui/menus.gd:493
+msgid "Dễ"
+msgstr ""
+
+#: scripts/ui/level_select.gd:8
+msgid "Trung bình"
+msgstr ""
+
+#: scripts/ui/level_select.gd:8
+msgid "Khó"
+msgstr ""
+
+#: scripts/ui/menus.gd:13
+msgid "Người"
+msgstr ""
+
+#: scripts/ui/menus.gd:13
+msgid "Máy Dễ"
+msgstr ""
+
+#: scripts/ui/menus.gd:13
+msgid "Máy Trung bình"
+msgstr ""
+
+#: scripts/ui/menus.gd:13
+msgid "Máy Khó"
+msgstr ""
+
+#: scripts/ui/menus.gd:13
+msgid "Máy Siêu khó"
+msgstr ""
+
+#: scripts/ui/menus.gd:245
+msgid "Màn %d/%d"
+msgstr ""
+
+#: scripts/ui/menus.gd:245
+msgid "Đã thắng hết"
+msgstr ""
+
+#: scripts/ui/menus.gd:252
+msgid "Đánh tiếp ván đang dở"
+msgstr ""
+
+#: scripts/ui/menus.gd:252
+msgid "%s · lượt %d"
+msgstr ""
+
+#: scripts/ui/menus.gd:262
+msgid "Thử thách"
+msgstr ""
+
+#: scripts/ui/menus.gd:264 scripts/ui/menus.gd:642
+msgid "1 đấu 1"
+msgstr ""
+
+#: scripts/ui/menus.gd:271 scripts/ui/menus.gd:850
+msgid "Sách lính"
+msgstr ""
+
+#: scripts/ui/menus.gd:282 scripts/ui/menus.gd:390
+msgid "Giới thiệu"
+msgstr ""
+
+#: scripts/ui/menus.gd:285
+msgid "Tốc độ hoạt cảnh x1 / x2 / x3"
+msgstr ""
+
+#: scripts/ui/menus.gd:387 scripts/ui/menus.gd:411 scripts/ui/menus.gd:449
+msgid "‹ Trở lại"
+msgstr ""
+
+#: scripts/ui/menus.gd:395
+msgid "Phiên bản %s"
+msgstr ""
+
+#: scripts/ui/menus.gd:403
+msgid "Giấy phép Godot Engine"
+msgstr ""
+
+#: scripts/ui/menus.gd:404
+msgid "📜 Toàn văn giấy phép"
+msgstr ""
+
+#: scripts/ui/menus.gd:411
+msgid "Giấy phép"
+msgstr ""
+
+#: scripts/ui/menus.gd:494
+msgid "Thường"
+msgstr ""
+
+#: scripts/ui/menus.gd:511
+msgid "Dễ: địch khởi đầu với nửa số vàng."
+msgstr ""
+
+#: scripts/ui/menus.gd:511
+msgid "Thường: hai bên ngang vàng."
+msgstr ""
+
+#: scripts/ui/menus.gd:520 scripts/ui/menus.gd:672
+msgid "Xuất quân"
+msgstr ""
+
+#: scripts/ui/menus.gd:565
+msgid "Công %d · Thủ %d · Đi %d"
+msgstr ""
+
+#: scripts/ui/menus.gd:608
+msgid "Vàng khởi đầu"
+msgstr ""
+
+#: scripts/ui/menus.gd:608
+msgid "Giới hạn quân"
+msgstr ""
+
+#: scripts/ui/menus.gd:645
+msgid "Hai người chung một máy (đổi tay mỗi lượt), hoặc đấu với máy. Không tính vào chiến dịch."
+msgstr ""
+
+#: scripts/ui/menus.gd:686
+msgid "Bên Xanh · đi trước"
+msgstr ""
+
+#: scripts/ui/menus.gd:686
+msgid "Bên Đỏ"
+msgstr ""
+
+#: scripts/ui/menus.gd:691
+msgid "Người chơi 1"
+msgstr ""
+
+#: scripts/ui/menus.gd:707
+msgid "Người chơi 2, chung máy: đổi tay mỗi lượt."
+msgstr ""
+
+#: scripts/ui/menus.gd:707
+msgid "Máy chơi bên Đỏ."
+msgstr ""
+
+#: scripts/ui/menus.gd:753
+msgid "Màn này đang đánh dở [b]lượt %d[/b]."
+msgstr ""
+
+#: scripts/ui/menus.gd:754
+msgid "Đánh lại từ đầu"
+msgstr ""
+
+#: scripts/ui/menus.gd:757
+msgid "Đánh tiếp"
+msgstr ""
+
+#: scripts/ui/menus.gd:786
+msgid "Thôi"
+msgstr ""
+
+#: scripts/ui/menus.gd:852
+msgid "Quân địch"
+msgstr ""
+
+#: scripts/ui/menus.gd:867
+msgid "Đóng ✕"
+msgstr ""
+
+#: scripts/ui/menus.gd:943
+msgid "Đi bộ"
+msgstr ""
+
+#: scripts/ui/menus.gd:951
+msgid "Thủ +%d"
+msgstr ""
+
+#: scripts/ui/menus.gd:957
+msgid "Bước đi: "
+msgstr ""
+
+#: scripts/ui/style.gd:420
+msgid " Tướng chiếm được cả làng và lâu đài."
+msgstr ""
+
+#: scripts/ui/style.gd:424
+msgid "Công"
+msgstr ""
+
+#: scripts/ui/style.gd:424
+msgid "Thủ"
+msgstr ""
+
+#: scripts/ui/style.gd:424
+msgid "Đi"
+msgstr ""
+
+#: scripts/ui/style.gd:424
+msgid "Tầm"
+msgstr ""
+
+#: scripts/ui/style.gd:426
+msgid "Giá"
+msgstr ""
+
+#: scripts/ui/turn_driver.gd:264
+msgid "Thử thách tiếp ›"
+msgstr ""
+
+#: scripts/ui/turn_driver.gd:271
+msgid " Đã thắng mọi thử thách!"
+msgstr ""
+
+#: scripts/ui/turn_driver.gd:272 scripts/ui/turn_driver.gd:279
+msgid "Chọn thử thách"
+msgstr ""
+
+#: scripts/ui/turn_driver.gd:284
+msgid "Chơi lại"
+msgstr ""
+
+#: scripts/ui/turn_driver.gd:290
+msgid "Về menu"
+msgstr ""
+
+#: scripts/ui/turn_driver.gd:292
+msgid "Ván mới"
+msgstr ""
+
+#: scripts/ui/world_map.gd:435
+msgid "Bắc"
+msgstr ""

@@ -5,7 +5,7 @@ const DEF := {
 	"id": "m09",
 	"order": 90,
 	"title": "Tin Dữ Từ Biển",
-	"lore": "Thuyền Đế Quốc đổ bộ từ biển. Giữ vững tới khi chúng rút.",
+	"lore": "Thuyền quân Ma Vương đổ bộ từ biển. Giữ vững tới khi chúng rút.",
 	"hero": "anhhung",
 	"enemyHero": null,
 	"newUnits": ["boat"],

@@ -63,20 +63,20 @@ const SPEC = {
     // mail shirt + team tabard + belt
     torso: `<path d="M100 128 Q128 118 156 128 L166 204 Q128 214 90 204 Z" fill="#aab3bd"/>
 <path d="M96 150 Q128 158 160 150 M94 170 Q128 178 162 170" fill="none" stroke="#7e8790" stroke-width="3"/>
-<path d="M112 127 L146 127 L150 206 Q128 212 106 206 Z" fill="#c9503f"/>
+<path d="M112 127 L146 127 L150 206 Q128 212 106 206 Z" fill="#4f74c9"/>
 <path d="M95 188 L161 188" stroke="#5a4a3c" stroke-width="10"/>`,
     spear: `<line x1="198" y1="52" x2="198" y2="240" stroke="#2b2220" stroke-width="15"/>
 <line x1="198" y1="52" x2="198" y2="240" stroke="#a87a4c" stroke-width="7"/>`,
     // swallowtail pennant (rigid on the spear: the tassel spring hangs, a flag must not)
-    tassel: `<path d="M204 56 L240 64 L226 70 L240 78 L204 82 Z" fill="#c9503f" stroke-width="5"/>`,
+    tassel: `<path d="M204 56 L240 64 L226 70 L240 78 L204 82 Z" fill="#4f74c9" stroke-width="5"/>`,
     spearHead: `<path d="M198 6 Q213 28 205 50 L191 50 Q183 28 198 6 Z" fill="#eef2f5" stroke-width="5"/>
 <path d="M198 16 L198 44" stroke="#aab3bd" stroke-width="4"/>
 <rect x="189" y="48" width="18" height="10" rx="3" fill="#e2c36e" stroke-width="5"/>`,
     arm: `<path d="M152 140 Q176 150 196 160" fill="none" stroke="#2b2220" stroke-width="24"/>
-<path d="M152 140 Q176 150 196 160" fill="none" stroke="#c9503f" stroke-width="12"/>
+<path d="M152 140 Q176 150 196 160" fill="none" stroke="#4f74c9" stroke-width="12"/>
 <circle cx="198" cy="160" r="12" fill="#f3cfa6" stroke-width="5"/>`,
     // heater shield, gold chevron
-    shield: `<path d="M48 138 L118 138 L118 166 Q116 200 83 216 Q50 200 48 166 Z" fill="#c9503f"/>
+    shield: `<path d="M48 138 L118 138 L118 166 Q116 200 83 216 Q50 200 48 166 Z" fill="#4f74c9"/>
 <path d="M52 158 L83 182 L114 158" fill="none" stroke="#e2c36e" stroke-width="10"/>`,
     // kettle helm + nasal bar
     head: `<circle cx="130" cy="84" r="54" fill="#f3cfa6"/>

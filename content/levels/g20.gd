@@ -4,8 +4,8 @@ extends RefCounted
 const DEF := {
 	"id": "g20",
 	"order": 180,
-	"title": "Ngọn Lửa Kinh Đô",
-	"lore": "Vorn: «Ngọn lửa cuối cùng thuộc về Đế Quốc.»",
+	"title": "Ngai Vàng Kinh Đô",
+	"lore": "Vorn: «Ngai vàng này là của ta. Ma Vương đã hứa.»",
 	"tier": "hard",
 	"ai": "hard",
 	"hero": "anhhung",

@@ -46,7 +46,7 @@ func _head(token: Control, title: String, sub: String, side := "") -> HBoxContai
 		h.add_child(token)
 	var v := Style.vbox(1)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var col := Style.P_NAME if side == "p" else (Style.SEA_HI if side == "e" else Style.GOLD)
+	var col := Style.P_NAME if side == "p" else (Style.E_NAME if side == "e" else Style.GOLD)
 	v.add_child(Style.lbl(title, 20, col, Style.display))
 	if sub != "":
 		v.add_child(Style.lbl(sub, 13, Style.MUTED, null, true))
@@ -80,7 +80,7 @@ func _shown_at(u: Dictionary) -> Array:
 ## "Công · Thủ · Đi · Tầm" line with live buffs (unit card + corner card)
 func _stat_note(u: Dictionary, st: Dictionary, b: Dictionary) -> Control:
 	return _note(
-		"Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]" % [_atk_txt(u, b), _def_txt(u, st, b), st.mv, Style.stat_range(st)],
+		Lang.t("Công %s · Thủ %s · Đi [b]%d[/b] · Tầm [b]%s[/b]") % [_atk_txt(u, b), _def_txt(u, st, b), st.mv, Style.stat_range(st)],
 		Style.MUTED,
 		14,
 	)
@@ -102,10 +102,10 @@ func _unit_info(u: Dictionary, full := false) -> void:
 	var type: String = u.type
 	var hp: float = u.hp
 	var title: String = Content.unit_title(look_name, rank, type == "hero")
-	var sub := "Máu %d · KN %d%s · %s +%d thủ" % [
+	var sub := Lang.t("Máu %d · KN %d%s · %s +%d thủ") % [
 		u.hp,
 		u.xp,
-		("/%d" % next) if next != null else " (tối đa)",
+		("/%d" % next) if next != null else Lang.t(" (tối đa)"),
 		Content.terrain(t).name,
 		Game.terrain_def(gs.s, u, dtx, dty),
 	]
@@ -132,9 +132,9 @@ func _unit_info(u: Dictionary, full := false) -> void:
 					13,
 				)
 			)
-		info.add_child(_note("[b]Cách dùng:[/b] " + Content.how_to_play(type), Style.GOLD, 13))
+		info.add_child(_note(Lang.t("[b]Cách dùng:[/b] ") + Content.how_to_play(type), Style.GOLD, 13))
 	if u.get("guard", false):
-		info.add_child(_note("💤 Đang canh gác: chỉ ra tay khi quân ta tới gần.", Style.MUTED, 13))
+		info.add_child(_note(Lang.t("💤 Đang canh gác: chỉ ra tay khi quân ta tới gần."), Style.MUTED, 13))
 
 ## bottom-left card: the selected unit's basics + "Chi tiết", or the clicked tile. Hidden when nothing is picked
 ## (or while the full unit card is open beside its tile).
@@ -164,14 +164,14 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var hp: float = cu.hp
 		var title: String = Content.unit_title(look_name, rank, type == "hero")
 		var side_txt: String = gs._side_name(side)
-		var sub := "%s · Máu %d%s" % [side_txt, u.hp, " · đã đi" if u.side == gs._me() and u.acted else ""]
+		var sub := Lang.t("%s · Máu %d%s") % [side_txt, u.hp, Lang.t(" · đã đi") if u.side == gs._me() and u.acted else ""]
 		gs.hud.card_box.add_child(_head(Token.make(side, type, gs.s.heroKey[side], 38), title, sub, side))
 		gs.hud.card_box.add_child(Style.Bar.make(hp / 100.0, 5, Color("#5fa83c"), Style.GOOD))
 		var b := Game.buffs_at(gs.s, cu, dtx, dty)
 		gs.hud.card_box.add_child(_stat_note(cu, st, b))
 		var id: int = u.id
-		var more := Style.button("📜 Chi tiết", "ChipBtn")
-		more.tooltip_text = "Tính chất, cách dùng, kinh nghiệm"
+		var more := Style.button(Lang.t("📜 Chi tiết"), "ChipBtn")
+		more.tooltip_text = Lang.t("Tính chất, cách dùng, kinh nghiệm")
 		more.size_flags_horizontal = Control.SIZE_SHRINK_END
 		more.pressed.connect(
 			func() -> void:
@@ -190,11 +190,11 @@ func _render_card(u: Variant, peek: Variant) -> void:
 		var ter: Dictionary = Rules.TERRAIN[t]
 		var own_txt := ""
 		if ter.has("building"):
-			own_txt = " · " + (_owner_txt(str(own)) if own != null else "chưa ai chiếm")
+			own_txt = " · " + (_owner_txt(str(own)) if own != null else Lang.t("chưa ai chiếm"))
 		var ter_name: String = Content.terrain(t).name
 		var ter_cost: float = ter.cost
-		var cost_txt := "không qua" if ter_cost == INF else str(int(ter_cost))
-		gs.hud.card_box.add_child(_head(null, ter_name + own_txt, "Thủ +%d · Giá đi %s" % [ter.def, cost_txt]))
+		var cost_txt := Lang.t("không qua") if ter_cost == INF else str(int(ter_cost))
+		gs.hud.card_box.add_child(_head(null, ter_name + own_txt, Lang.t("Thủ +%d · Giá đi %s") % [ter.def, cost_txt]))
 		var note := Content.tile_note(t)
 		if note != "":
 			gs.hud.card_box.add_child(_note(note, Style.MUTED, 13))
@@ -206,8 +206,8 @@ func _render_card(u: Variant, peek: Variant) -> void:
 
 func _owner_txt(own: String) -> String:
 	if gs._hotseat():
-		return "của " + gs._side_name(own)
-	return "của ta" if own == gs._me() else "của địch"
+		return Lang.t("của ") + gs._side_name(own)
+	return Lang.t("của ta") if own == gs._me() else Lang.t("của địch")
 
 ## picked tile + a half-tile ring, in screen coords
 func _avoid_tile(x: int, y: int) -> void:
@@ -235,14 +235,16 @@ func _def_txt(u: Dictionary, st: Dictionary, b: Dictionary) -> String:
 func _buff_lines(u: Dictionary, b: Dictionary) -> Array:
 	var out := []
 	if b.atk_from == "aura":
-		out.append("[color=#%s]⚔ +%d công[/color] nhờ tu sĩ ban phước, tới lượt sau của phe mình." % [Board.BUFF_UP.to_html(false), b.aura])
+		out.append(Lang.t("[color=#%s]⚔ +%d công[/color] nhờ tu sĩ ban phước, tới lượt sau của phe mình.") % [Board.BUFF_UP.to_html(false), b.aura])
 	if b.def_from == "water":
 		out.append(
-			"[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông."
+			Lang.t("[color=#%s]🛡 +%d thủ, +%d công[/color] khi đứng dưới sông.")
 			% [Board.BUFF_UP.to_html(false), b.def, Game.stat(gs.s, u).get("waterAtk", 0)]
 		)
 	if b.poison:
-		out.append("[color=#%s]🐺 Bị sói cắn: −%d công, −%d thủ[/color] tới lượt sau của phe kia." % [Style.BAD.to_html(false), b.poison, b.poison])
+		out.append(
+			Lang.t("[color=#%s]🐺 Bị sói cắn: −%d công, −%d thủ[/color] tới lượt sau của phe kia.") % [Style.BAD.to_html(false), b.poison, b.poison]
+		)
 	return out
 
 ## why the forecast numbers are what they are: every modifier that touches this attack
@@ -254,15 +256,14 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	var r := Game.atk_range(gs.s, u)
 	var lo: int = r[0]
 	var hi: int = r[1]
-	parts.append("công " + Style.range_txt(lo, hi))
+	parts.append(Lang.t("công ") + Style.range_txt(lo, hi))
 	if bu.atk:
-		parts.append(
-			"[color=#%s]+%d công[/color] (%s)" % [Board.BUFF_UP.to_html(false), bu.atk, "tu sĩ ban phước" if bu.atk_from == "aura" else "dưới sông"]
-		)
+		var why := Lang.t("tu sĩ ban phước") if bu.atk_from == "aura" else Lang.t("dưới sông")
+		parts.append(Lang.t("[color=#%s]+%d công[/color] (%s)") % [Board.BUFF_UP.to_html(false), bu.atk, why])
 	if bu.poison:
-		parts.append("[color=#%s]−%d công[/color] (bị cắn)" % [Style.BAD.to_html(false), bu.poison])
+		parts.append(Lang.t("[color=#%s]−%d công[/color] (bị cắn)") % [Style.BAD.to_html(false), bu.poison])
 	if su.get("antiAir", 0) and stg.move == "fly":
-		parts.append("+%d công đánh rồng" % su.antiAir)
+		parts.append(Lang.t("+%d công đánh rồng") % su.antiAir)
 	var vs_type: Dictionary = su.get("vsType", { })
 	var vs: int = vs_type.get(tgt.type, 0)
 	var tside: String = tgt.side
@@ -271,18 +272,18 @@ func _mods_line(u: Dictionary, dx: int, dy: int, tgt: Dictionary) -> String:
 	var ty: int = tgt.y
 	if vs:
 		var tname: String = Content.unit_type_look(tside, ttype, null).name
-		parts.append("+%d công đánh %s" % [vs, tname.to_lower()])
+		parts.append(Lang.t("+%d công đánh %s") % [vs, tname.to_lower()])
 	var bt := Game.buffs_at(gs.s, tgt, tx, ty)
 	if bt.terrain:
 		var tt: String = gs.s.tiles[ty][tx]
 		var ter_name: String = Content.terrain(tt).name
-		parts.append("địch được %s +%d thủ" % [ter_name.to_lower(), bt.terrain])
+		parts.append(Lang.t("địch được %s +%d thủ") % [ter_name.to_lower(), bt.terrain])
 	if bt.def:
-		parts.append("[color=#%s]địch +%d thủ[/color] dưới sông" % [Style.BAD.to_html(false), bt.def])
+		parts.append(Lang.t("[color=#%s]địch +%d thủ[/color] dưới sông") % [Style.BAD.to_html(false), bt.def])
 	if bt.poison:
-		parts.append("[color=#%s]địch −%d thủ[/color] (bị cắn)" % [Board.BUFF_UP.to_html(false), bt.poison])
+		parts.append(Lang.t("[color=#%s]địch −%d thủ[/color] (bị cắn)") % [Board.BUFF_UP.to_html(false), bt.poison])
 	if not Game.can_counter(gs.s, tgt, dx, dy):
-		parts.append("địch không đánh trả được")
+		parts.append(Lang.t("địch không đánh trả được"))
 	return " · ".join(parts)
 
 func clear_pop() -> void:
@@ -308,7 +309,7 @@ func render_pop(my_turn: bool) -> void:
 		_unit_info(pu, true)
 		actions.add_child(
 			_act(
-				"✖ Đóng",
+				Lang.t("✖ Đóng"),
 				func() -> void:
 					gs.ui.peek = null
 					gs.refresh(),
@@ -329,7 +330,7 @@ func render_pop(my_turn: bool) -> void:
 				if tgt != null:
 					var td: Dictionary = tgt
 					var p := Game.preview(gs.s, su, dx, dy, td)
-					info.add_child(_note("Đánh [b]%s[/b] (máu %d):" % [gs._name_of(td), tgt.hp]))
+					info.add_child(_note(Lang.t("Đánh [b]%s[/b] (máu %d):") % [gs._name_of(td), tgt.hp]))
 					info.add_child(_preview_box(p))
 					var mods := _mods_line(su, dx, dy, td)
 					if mods != "":
@@ -337,17 +338,17 @@ func render_pop(my_turn: bool) -> void:
 					var tid: int = tgt.id
 					actions.add_child(
 						_act(
-							"⚔ Đánh",
+							Lang.t("⚔ Đánh"),
 							func() -> void:
 								gs.commit({ "kind": "attack", "target": tid }),
 							{ "act": "attack", "hot": true, "go": true },
 						)
 					)
 				else:
-					info.add_child(_note("Bấm vào kẻ địch viền đỏ để chọn mục tiêu."))
+					info.add_child(_note(Lang.t("Bấm vào kẻ địch viền đỏ để chọn mục tiêu.")))
 				actions.add_child(
 					_act(
-						"↩ Quay lại",
+						Lang.t("↩ Quay lại"),
 						func() -> void:
 							gs.ui.mode = gs.M_MOVED
 							gs.ui.target = null
@@ -359,7 +360,7 @@ func render_pop(my_turn: bool) -> void:
 				if targets.size():
 					actions.add_child(
 						_act(
-							"⚔ Đánh (%d)" % targets.size(),
+							Lang.t("⚔ Đánh (%d)") % targets.size(),
 							func() -> void:
 								gs.ui.mode = gs.M_TARGET
 								var best: Variant = null
@@ -377,17 +378,17 @@ func render_pop(my_turn: bool) -> void:
 				if Game.can_capture(gs.s, su, dx, dy):
 					actions.add_child(
 						_act(
-							"🏯 Chiếm lâu đài" if Game.sells(gs.s.tiles[dy][dx]) else "🏠 Chiếm làng",
+							Lang.t("🏯 Chiếm lâu đài") if Game.sells(gs.s.tiles[dy][dx]) else Lang.t("🏠 Chiếm làng"),
 							func() -> void:
 								gs.commit({ "kind": "capture" }),
 							{ "act": "capture", "hot": hk == "capture" or hk == null, "go": true },
 						)
 					)
 				if Game.can_repair(gs.s, su, dx, dy):
-					info.add_child(_note("Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được."))
+					info.add_child(_note(Lang.t("Làng cháy: dựng lại xong thành làng chưa ai chiếm, lượt sau mới chiếm được.")))
 					actions.add_child(
 						_act(
-							"🔨 Dựng lại làng",
+							Lang.t("🔨 Dựng lại làng"),
 							func() -> void:
 								gs.commit({ "kind": "repair" }),
 							{ "act": "repair", "hot": hk == "repair" or hk == null, "go": true },
@@ -397,10 +398,10 @@ func render_pop(my_turn: bool) -> void:
 				if razes.size():
 					var rt: Array = gs.ui.raze if gs.ui.raze != null and razes.has(gs.ui.raze) else gs._best_raze(razes)
 					if gs.ui.raze != null:
-						info.add_child(_note("Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước."))
+						info.add_child(_note(Lang.t("Đốt làng viền vàng: thành [b]làng cháy[/b], ai muốn chiếm phải cho lính dựng lại trước.")))
 					actions.add_child(
 						_act(
-							"💥 Đốt làng",
+							Lang.t("💥 Đốt làng"),
 							func() -> void:
 								gs.commit({ "kind": "raze", "target": rt }),
 							{ "act": "raze", "hot": gs.ui.raze != null or hk == "raze", "go": true },
@@ -422,7 +423,7 @@ func render_pop(my_turn: bool) -> void:
 					var by: int = u.y
 					actions.add_child(
 						_act(
-							"🏯 Mộ quân",
+							Lang.t("🏯 Mộ quân"),
 							func() -> void:
 								gs._clear_sel()
 								gs.ui.buyAt = [bx, by]
@@ -433,13 +434,13 @@ func render_pop(my_turn: bool) -> void:
 				if dx != u.x or dy != u.y: # no "wait" on its own tile
 					actions.add_child(
 						_act(
-							"⏳ Chờ",
+							Lang.t("⏳ Chờ"),
 							func() -> void:
 								gs.commit({ "kind": "wait" }),
 							{ "act": "wait", "hot": hk == "wait" },
 						)
 					)
-				actions.add_child(_act("✖ Hủy", gs.cancel))
+				actions.add_child(_act(Lang.t("✖ Hủy"), gs.cancel))
 		else:
 			pass # stats live in the corner card; choosing where to go = the board (blue tiles, red-ringed enemies)
 	elif gs.ui.buyAt != null:
@@ -450,7 +451,7 @@ func render_pop(my_turn: bool) -> void:
 			_head(
 				null,
 				Content.text("buyTitle"),
-				"Có %d vàng · Quân %d/%d · lính mới đi được ngay" % [gs.s.gold[me], Game.cap_count(gs.s, me), gs.s.unitCap],
+				Lang.t("Có %d vàng · Quân %d/%d · lính mới đi được ngay") % [gs.s.gold[me], Game.cap_count(gs.s, me), gs.s.unitCap],
 			)
 		)
 		var grid := GridContainer.new()
@@ -490,7 +491,7 @@ func render_pop(my_turn: bool) -> void:
 			b.add_child(row)
 			grid.add_child(b)
 		actions.add_child(grid)
-		actions.add_child(_act("✖ Đóng", gs.cancel))
+		actions.add_child(_act(Lang.t("✖ Đóng"), gs.cancel))
 	if gs.ui.hint != null:
 		var hint: String = gs.ui.hint
 		info.add_child(Style.rich(hint, 14, Style.GOLD, Style.GOLD_HI))
@@ -592,8 +593,8 @@ func _preview_box(p: Dictionary) -> Control:
 	var ctr_lo: int = p.counterMin
 	var ctr_hi: int = p.counterMax
 	for cell: Array in [
-		["Gây", Style.range_txt(dmg_lo, dmg_hi), " hạ gục" if p.kill else (" có thể hạ" if p.mayKill else ""), Style.GOOD],
-		["Bị đánh trả", Style.range_txt(ctr_lo, ctr_hi), " ngã" if p.die else (" có thể ngã" if p.mayDie else ""), Style.BAD],
+		[Lang.t("Gây"), Style.range_txt(dmg_lo, dmg_hi), Lang.t(" hạ gục") if p.kill else (Lang.t(" có thể hạ") if p.mayKill else ""), Style.GOOD],
+		[Lang.t("Bị đánh trả"), Style.range_txt(ctr_lo, ctr_hi), Lang.t(" ngã") if p.die else (Lang.t(" có thể ngã") if p.mayDie else ""), Style.BAD],
 	]:
 		var pc := Style.card(Color(0, 0, 0, 0.4), Style.LACQUER_3, 8, 6)
 		pc.size_flags_horizontal = Control.SIZE_EXPAND_FILL

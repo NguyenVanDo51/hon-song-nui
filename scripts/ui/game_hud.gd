@@ -80,7 +80,7 @@ func build_hud() -> void:
 	_hud_tc.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hud_tc.z_index = 40
 	gs.add_child(_hud_tc)
-	turn_label = Style.lbl("Lượt 1", 22, Style.PAPER_HI, Style.display_x)
+	turn_label = Style.lbl(Lang.t("Lượt 1"), 22, Style.PAPER_HI, Style.display_x)
 	Style.ink_outline(turn_label, 7)
 	_hud_tc.add_child(turn_label)
 	_gold_box = Style.hbox(5)
@@ -103,8 +103,8 @@ func build_hud() -> void:
 	gs.add_child(top_r)
 	hud_tr = top_r
 	btn_ff = _ibtn(
-		"» Tua lượt địch",
-		"Chạy nhanh lượt địch (giữ Space / chuột cũng tua)",
+		Lang.t("» Tua lượt địch"),
+		Lang.t("Chạy nhanh lượt địch (giữ Space / chuột cũng tua)"),
 		func() -> void:
 			gs.turns.ff = true
 			btn_ff.visible = false,
@@ -113,7 +113,7 @@ func build_hud() -> void:
 	top_r.add_child(btn_ff)
 	gear = _ibtn(
 		"",
-		"Menu, cài đặt",
+		Lang.t("Menu, cài đặt"),
 		func() -> void:
 			show_menu(not menu.visible),
 	)
@@ -141,7 +141,7 @@ func build_hud() -> void:
 	card.add_child(card_box)
 	card.minimum_size_changed.connect(queue_place) # wrapped text settles after a pass: size shrinks back with it
 	# bottom-right: Hết lượt
-	btn_end = Style.menu_button("Hết lượt", "Còn 0 quân chưa đi", true)
+	btn_end = Style.menu_button(Lang.t("Hết lượt"), Lang.t("Còn 0 quân chưa đi"), true)
 	var end_title: Label = btn_end.get_meta("title")
 	var end_sub: Label = btn_end.get_meta("sub")
 	end_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -158,7 +158,7 @@ func build_hud() -> void:
 	end_box.offset_left = 10
 	end_box.offset_right = -10
 	end_box.alignment = BoxContainer.ALIGNMENT_BEGIN
-	btn_end.tooltip_text = "Kết thúc lượt (phím E)"
+	btn_end.tooltip_text = Lang.t("Kết thúc lượt (phím E)")
 	btn_end.z_index = 40 # over the board, under the orders popup
 	btn_end.pressed.connect(
 		func() -> void:
@@ -217,14 +217,14 @@ func _build_menu() -> void:
 	ps.content_margin_top = 46
 	_pause.add_theme_stylebox_override("panel", ps)
 	menu.add_child(_pause)
-	_ribbon = HudWidgets.Ribbon.new("Tạm dừng")
+	_ribbon = HudWidgets.Ribbon.new(Lang.t("Tạm dừng"))
 	menu.add_child(_ribbon)
 	var v := Style.vbox(12)
 	v.custom_minimum_size.x = 380
 	_pause.add_child(v)
 	var go := _ibtn(
-		"▶ Tiếp tục",
-		"Quay lại ván (Esc)",
+		Lang.t("▶ Tiếp tục"),
+		Lang.t("Quay lại ván (Esc)"),
 		func() -> void:
 			show_menu(false),
 	)
@@ -233,8 +233,8 @@ func _build_menu() -> void:
 	go.add_theme_constant_override("icon_max_width", 22)
 	v.add_child(go)
 	btn_hint = _ibtn(
-		"💬 Gợi ý nước đi",
-		"Gợi ý (phím H)",
+		Lang.t("💬 Gợi ý nước đi"),
+		Lang.t("Gợi ý (phím H)"),
 		func() -> void:
 			show_menu(false)
 			gs._on_hint(),
@@ -247,20 +247,28 @@ func _build_menu() -> void:
 	v.add_child(toggles)
 	_btn_sound = _toggle(
 		toggles,
-		"Âm thanh",
+		Lang.t("Âm thanh"),
 		func() -> void:
 			gs.main.audio.set_muted(not gs.main.audio.muted)
 			sound_label(),
 	)
 	_btn_music = _toggle(
 		toggles,
-		"Nhạc",
+		Lang.t("Nhạc"),
 		func() -> void:
 			gs.main.audio.set_music(not gs.main.audio.music_on)
 			sound_label(),
 	)
-	_btn_speed = _toggle(toggles, "Tốc độ", on_speed)
-	_btn_speed.tooltip_text = "Tốc độ hoạt cảnh"
+	_btn_speed = _toggle(toggles, Lang.t("Tốc độ"), on_speed)
+	_btn_speed.tooltip_text = Lang.t("Tốc độ hoạt cảnh")
+	var lang := _toggle(
+		toggles,
+		Lang.t("Ngôn ngữ"),
+		func() -> void:
+			gs.main.switch_lang(true),
+	)
+	lang.text = Lang.current.to_upper()
+	lang.tooltip_text = Lang.NAMES[Lang.current]
 	var hr := ColorRect.new()
 	hr.color = Color(Style.INK_D, 0.25)
 	hr.custom_minimum_size.y = 2
@@ -288,17 +296,17 @@ func _build_menu() -> void:
 		row.add_child(b)
 		return b
 	tile.call(
-		"📖 Sách lính",
-		"Tính chất từng loại quân",
+		Lang.t("📖 Sách lính"),
+		Lang.t("Tính chất từng loại quân"),
 		func() -> void:
 			gs.main.menus.open_codex(gs._me()),
 		true,
 	)
 	gs.main.menus.codex_closed.connect(back_to_menu)
-	_btn_restart = tile.call("↩ Đánh lại", "Chơi lại màn này từ đầu", _confirm_restart, true)
+	_btn_restart = tile.call(Lang.t("↩ Đánh lại"), Lang.t("Chơi lại màn này từ đầu"), _confirm_restart, true)
 	var home: Button = tile.call(
-		"🏠 Về menu",
-		"Lưu ván và về menu chính",
+		Lang.t("🏠 Về menu"),
+		Lang.t("Lưu ván và về menu chính"),
 		func() -> void:
 			gs.save()
 			gs.main.show_title(),
@@ -509,8 +517,8 @@ func _confirm_restart() -> void:
 		back_to_menu() # nothing to ask mid-animation: stay on the card
 		return
 	gs.main.menus.confirm(
-		"Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất." % gs.def.get("title", ""),
-		"Đánh lại",
+		Lang.t("Chơi lại [b]%s[/b] từ đầu? Ván này sẽ mất.") % gs.def.get("title", ""),
+		Lang.t("Đánh lại"),
 		func() -> void:
 			var c := gs.ctx.duplicate()
 			gs.main.start_game(Game.new_game(gs._def_for(c)), c),
@@ -524,10 +532,10 @@ func sound_label() -> void:
 	var music := gs.main.audio.music_on
 	_btn_sound.icon = Icons.tex("mute" if muted else "sound")
 	_btn_sound.theme_type_variation = "RoundOff" if muted else "RoundOn"
-	_btn_sound.tooltip_text = "Âm thanh: %s" % ("tắt" if muted else "bật")
+	_btn_sound.tooltip_text = Lang.t("Âm thanh: %s") % (Lang.t("tắt") if muted else Lang.t("bật"))
 	_btn_music.icon = Icons.tex("music_off" if not music else "music")
 	_btn_music.theme_type_variation = "RoundOff" if not music else "RoundOn"
-	_btn_music.tooltip_text = "Nhạc: %s" % ("tắt" if not music else "bật")
+	_btn_music.tooltip_text = Lang.t("Nhạc: %s") % (Lang.t("tắt") if not music else Lang.t("bật"))
 
 func fit() -> void:
 	if gs.s.is_empty():
@@ -551,11 +559,11 @@ func refresh_end_button(my_turn: bool) -> void:
 	var enemy_busy: bool = gs.ui.busy and gs._is_ai(gs._turn_side())
 	btn_end.disabled = not my_turn
 	var end_title: Label = btn_end.get_meta("title")
-	end_title.text = "Lượt địch" if enemy_busy else "Hết lượt"
+	end_title.text = Lang.t("Lượt địch") if enemy_busy else Lang.t("Hết lượt")
 	var sub := (
-		("%s đang ra quân…" % Content.theme().factions[gs.s.side].short)
+		(Lang.t("%s đang ra quân…") % Content.theme().factions[gs.s.side].short)
 		if enemy_busy
-		else (("Còn %d quân chưa đi" % left) if left > 0 else "Mọi quân đã ra lệnh")
+		else ((Lang.t("Còn %d quân chưa đi") % left) if left > 0 else Lang.t("Mọi quân đã ra lệnh"))
 	)
 	Style.set_sub(btn_end, sub if (my_turn or enemy_busy) else "")
 	# everyone has moved: the button breathes so the next step is obvious
@@ -605,8 +613,8 @@ func _goal_line() -> String:
 ## top-centre turn / gold / income, quest slip (win line changes with the turns left)
 func refresh_top() -> void:
 	var me := gs._me()
-	turn_label.text = "Lượt %d" % gs.s.turn + ((" · " + gs._side_name(me)) if gs._hotseat() else "")
-	turn_label.add_theme_color_override("font_color", (Style.P_NAME if me == "p" else Style.SEA_HI) if gs._hotseat() else Style.PAPER_HI)
+	turn_label.text = Lang.t("Lượt %d") % gs.s.turn + ((" · " + gs._side_name(me)) if gs._hotseat() else "")
+	turn_label.add_theme_color_override("font_color", (Style.P_NAME if me == "p" else Style.E_NAME) if gs._hotseat() else Style.PAPER_HI)
 	gold_num.text = str(gs.s.gold[me] if gold_shown < 0 else gold_shown)
 	var allowed_me: Array = gs.s.allowed[me]
 	_gold_box.visible = allowed_me.size() > 0 or Game.castles(gs.s, me) > 0

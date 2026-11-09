@@ -165,6 +165,8 @@ static func _unit(id: int, p_side: String, p_type: String, x: int) -> Dictionary
 func _wait(ms: float, g: int) -> bool:
 	var t0 := FX.now()
 	while FX.now() - t0 < fx.sp(ms):
+		if not is_inside_tree(): # freed with its scene (e.g. the language switch reloads it)
+			return false
 		await get_tree().process_frame
 		if g != _gen:
 			return false

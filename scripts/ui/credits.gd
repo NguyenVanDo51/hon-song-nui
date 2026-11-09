@@ -9,14 +9,17 @@ const CONTACT := "nguyenvando510@gmail.com"
 ## [heading, body lines]; body = plain text, one paragraph per entry
 static func sections() -> Array:
 	return [
-		["Làm game", ["Thiết kế, lập trình, hình ảnh, âm thanh: %s" % AUTHOR, "Liên hệ: %s" % CONTACT]],
+		[Lang.t("Làm game"), [Lang.t("Thiết kế, lập trình, hình ảnh, âm thanh: %s") % AUTHOR, Lang.t("Liên hệ: %s") % CONTACT]],
 		[
-			"Hình ảnh",
-			["Quân lính, địa hình, công trình, biểu tượng giao diện: vẽ riêng cho game.", "Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."],
+			Lang.t("Hình ảnh"),
+			[
+				Lang.t("Quân lính, địa hình, công trình, biểu tượng giao diện: vẽ riêng cho game."),
+				Lang.t("Emoji: Noto Emoji © Google LLC, giấy phép Apache 2.0."),
+			],
 		],
-		["Âm thanh", ["Hiệu ứng và nhạc: tổng hợp bằng code trong game."]],
+		[Lang.t("Âm thanh"), [Lang.t("Hiệu ứng và nhạc: tổng hợp bằng code trong game.")]],
 		[
-			"Phông chữ (SIL Open Font License 1.1)",
+			Lang.t("Phông chữ (SIL Open Font License 1.1)"),
 			[
 				"Be Vietnam Pro — Copyright 2021 The Be Vietnam Pro Project Authors (github.com/bettergui/BeVietnamPro)",
 				"Alegreya SC — Copyright 2011 The Alegreya Project Authors (github.com/huertatipografica/Alegreya)",
@@ -25,7 +28,7 @@ static func sections() -> Array:
 				"Noto Sans Symbols 2 — Copyright 2022 The Noto Project Authors (github.com/notofonts/symbols)",
 			],
 		],
-		["Engine", ["Làm bằng Godot Engine %s (godotengine.org), giấy phép MIT." % Engine.get_version_info().string]],
+		["Engine", [Lang.t("Làm bằng Godot Engine %s (godotengine.org), giấy phép MIT.") % Engine.get_version_info().string]],
 	]
 
 ## Godot's own MIT notice (must ship with the game)
@@ -49,7 +52,7 @@ static func full_texts() -> Array:
 		for part: Dictionary in parts:
 			var who: Array = part["copyright"]
 			lines.append("%s — © %s (%s)" % [comp_name, ", ".join(PackedStringArray(who)), str(part["license"])])
-	out.append(["Thành phần bên thứ ba trong Godot Engine", "\n".join(lines)])
+	out.append([Lang.t("Thành phần bên thứ ba trong Godot Engine"), "\n".join(lines)])
 	for key: String in info:
 		if key in ["OFL-1.1", "Apache-2.0"]:
 			continue

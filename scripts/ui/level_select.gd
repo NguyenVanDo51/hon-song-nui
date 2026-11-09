@@ -4,6 +4,7 @@ extends RefCounted
 ## play, tier colour / name. (The 20-cell grid it used to draw was replaced by the map 2026-11-08.)
 
 const TIER_COL := { "easy": Color("#3f7a2e"), "mid": Color("#c98a1e"), "hard": Color("#b3262e") }
+## shown through Lang.t (i18n-const)
 const TIER_NAME := { "easy": "Dễ", "mid": "Trung bình", "hard": "Khó" }
 
 ## next level to play: the first not won after the furthest win (`open`), so levels inserted in front (t01/t02) never

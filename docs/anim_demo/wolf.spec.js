@@ -105,14 +105,14 @@ const SPEC = {
 <path d="M150 136 Q164 150 186 150 Q172 140 166 128 Z" fill="#5a5462" stroke="none"/>
 <ellipse cx="246" cy="117" rx="8" ry="6" fill="#2b2220" stroke-width="4"/>
 <path d="M206 142 L210 156 L215 142 Z M228 138 L232 152 L237 137 Z" fill="#f5ecd8" stroke-width="4"/>`,
-    collar: `<path d="M134 100 L158 90 Q168 128 198 152 L180 178 Q144 148 134 100 Z" fill="#c9503f"/>
-<path d="M148 104 Q156 136 184 162" fill="none" stroke="#93362b" stroke-width="5"/>
+    collar: `<path d="M134 100 L158 90 Q168 128 198 152 L180 178 Q144 148 134 100 Z" fill="#4f74c9"/>
+<path d="M148 104 Q156 136 184 162" fill="none" stroke="#32508f" stroke-width="5"/>
 <circle cx="144" cy="104" r="5" fill="#e2c36e" stroke-width="3"/>
 <circle cx="150" cy="124" r="5" fill="#e2c36e" stroke-width="3"/>
 <circle cx="161" cy="142" r="5" fill="#e2c36e" stroke-width="3"/>
 <circle cx="177" cy="158" r="5" fill="#e2c36e" stroke-width="3"/>
 <circle cx="188" cy="182" r="11" fill="#e2c36e" stroke-width="5"/>
-<circle cx="188" cy="182" r="5" fill="#c9503f" stroke-width="3"/>`,
+<circle cx="188" cy="182" r="5" fill="#4f74c9" stroke-width="3"/>`,
     face: `<ellipse cx="192" cy="114" rx="20" ry="13" fill="#ffd36b" opacity="0.35"/>
 <path d="M172 100 L202 108" stroke="#2b2220" stroke-width="7" stroke-linecap="round"/>
 <path d="M179 116 Q192 105 205 114 Q192 125 179 116 Z" fill="#ffe9a8" stroke="#2b2220" stroke-width="3.5" stroke-linejoin="round"/>

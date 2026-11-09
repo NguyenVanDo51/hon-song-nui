@@ -129,7 +129,7 @@ function exportSpec(name) {
 }
 
 // same pairs as RigData.TEAM_SWAP (scripts/ui/rig/rig_data.gd): enemy = player art with these colours swapped
-const TEAM_SWAP = [['#c9503f', '#4f74c9'], ['#93362b', '#32508f'], ['#e2c36e', '#d9dee3']];
+const TEAM_SWAP = [['#4f74c9', '#8c1f3a'], ['#32508f', '#3d1238'], ['#e2c36e', '#a77bd6']];
 const STYLE = path.join(ROOT, 'assets/units/styles/chibi');
 
 // rest value of a draw-entry alpha channel, as RigData.base: bone/spring channels 0, else first attack track at t=0

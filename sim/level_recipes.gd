@@ -33,7 +33,7 @@ const RECIPES := [
 	{
 		"id": "g02",
 		"title": "Đồi Gió",
-		"lore": "Một đạo quân Đế Quốc cắm trại trên đồi. Quét sạch chúng.",
+		"lore": "Một đạo quân Ma Vương cắm trại trên đồi. Quét sạch chúng.",
 		"order": 55,
 		"tier": "easy",
 		"ai": "normal",
@@ -87,7 +87,7 @@ const RECIPES := [
 	{
 		"id": "g04",
 		"title": "Giữ Đồn",
-		"lore": "Đồn gác vừa giành lại. Đế Quốc quay lại đòi nó.",
+		"lore": "Đồn gác vừa giành lại. Quân Ma Vương quay lại đòi nó.",
 		"order": 67,
 		"tier": "easy",
 		"ai": "normal",
@@ -145,7 +145,7 @@ const RECIPES := [
 	{
 		"id": "g06",
 		"title": "Bãi Cát Giữa Sông",
-		"lore": "Quân Đế Quốc mắc kẹt trên bãi cát. Đừng để tên nào thoát.",
+		"lore": "Quân Ma Vương mắc kẹt trên bãi cát. Đừng để tên nào thoát.",
 		"order": 85,
 		"tier": "mid",
 		"ai": "normal",
@@ -253,7 +253,7 @@ const RECIPES := [
 	{
 		"id": "g10",
 		"title": "Rừng Đêm",
-		"lore": "Trong rừng tối, quân Đế Quốc lạc nhau. Săn từng toán.",
+		"lore": "Trong rừng tối, quân Ma Vương lạc nhau. Săn từng toán.",
 		"order": 115,
 		"tier": "easy",
 		"ai": "normal",
@@ -307,7 +307,7 @@ const RECIPES := [
 	{
 		"id": "g12",
 		"title": "Bãi Sậy",
-		"lore": "Quân Đế Quốc phục trong bãi sậy. Lôi chúng ra.",
+		"lore": "Quân Ma Vương phục trong bãi sậy. Lôi chúng ra.",
 		"order": 127,
 		"tier": "easy",
 		"ai": "normal",
@@ -334,7 +334,7 @@ const RECIPES := [
 	{
 		"id": "g13",
 		"title": "Đền Cổ",
-		"lore": "Lâu đài quanh ngôi đền cổ đã tắt lửa quá lâu.",
+		"lore": "Ngôi đền cổ đã bị Ma Vương làm ô uế. Giành lại lâu đài quanh nó.",
 		"order": 135,
 		"tier": "easy",
 		"ai": "normal",
@@ -392,7 +392,7 @@ const RECIPES := [
 	{
 		"id": "g15",
 		"title": "Thành Mới Xây",
-		"lore": "Đế Quốc xây thành mới để chặn đường. Đừng để nó đứng vững.",
+		"lore": "Quân phản loạn xây thành mới để chặn đường. Đừng để nó đứng vững.",
 		"order": 147,
 		"tier": "easy",
 		"ai": "normal",
@@ -509,7 +509,7 @@ const RECIPES := [
 	{
 		"id": "g19",
 		"title": "Cổng Kinh Đô",
-		"lore": "Trước cổng kinh đô, Đế Quốc dốc toàn lực phản công. Trụ vững.",
+		"lore": "Trước cổng kinh đô, quân Ma Vương dốc toàn lực phản công. Trụ vững.",
 		"order": 175,
 		"tier": "easy",
 		"ai": "normal",
@@ -540,8 +540,8 @@ const RECIPES := [
 	},
 	{
 		"id": "g20",
-		"title": "Ngọn Lửa Kinh Đô",
-		"lore": "Vorn: «Ngọn lửa cuối cùng thuộc về Đế Quốc.»",
+		"title": "Ngai Vàng Kinh Đô",
+		"lore": "Vorn: «Ngai vàng này là của ta. Ma Vương đã hứa.»",
 		"order": 180,
 		"tier": "hard",
 		"ai": "hard",

@@ -43,9 +43,9 @@ const SPEC = {
   feet: 244, cx: 128, range: 1, shadowR: 50,
   parts: {
     // torn team rag tied round the skull: fluttering tails
-    bandT: `<path d="M80 86 Q58 76 36 84 L44 88 L38 94 L48 93 Q62 88 80 96 Z" fill="#c9503f" stroke-width="5"/>
-<path d="M78 94 Q56 100 42 120 L52 116 L48 126 L58 118 Q66 108 82 104 Z" fill="#c9503f" stroke-width="5"/>
-<path d="M52 89 L64 88 M60 108 L68 104" stroke="#93362b" stroke-width="3"/>`,
+    bandT: `<path d="M80 86 Q58 76 36 84 L44 88 L38 94 L48 93 Q62 88 80 96 Z" fill="#4f74c9" stroke-width="5"/>
+<path d="M78 94 Q56 100 42 120 L52 116 L48 126 L58 118 Q66 108 82 104 Z" fill="#4f74c9" stroke-width="5"/>
+<path d="M52 89 L64 88 M60 108 L68 104" stroke="#32508f" stroke-width="3"/>`,
     // dangling leg bones + pelvis + torn dark loincloth (floats: no ground contact)
     tail: `<path d="M116 196 L110 226 M142 196 L148 224" fill="none" stroke="#2b2220" stroke-width="17"/>
 <path d="M116 196 L110 226 M142 196 L148 224" fill="none" stroke="#ece6da" stroke-width="7"/>
@@ -54,7 +54,7 @@ const SPEC = {
 <path d="M98 232 Q100 222 112 224 Q124 226 126 234 Q112 240 98 232 Z" fill="#ece6da" stroke-width="5"/>
 <path d="M136 230 Q138 220 150 222 Q162 224 164 232 Q150 238 136 230 Z" fill="#ece6da" stroke-width="5"/>
 <path d="M106 184 Q128 176 152 184 L148 198 Q128 204 110 198 Z" fill="#d8d2c6"/>
-<path d="M104 188 L154 188 L152 206 L144 200 L138 214 L130 202 L122 216 L116 202 L108 208 Z" fill="#93362b"/>`,
+<path d="M104 188 L154 188 L152 206 L144 200 L138 214 L130 202 L122 216 L116 202 L108 208 Z" fill="#32508f"/>`,
     // spine + ribcage + torn team sash
     torso: `<path d="M126 128 L126 192" stroke="#2b2220" stroke-width="16"/>
 <path d="M126 128 L126 192" stroke="#d8d2c6" stroke-width="7"/>
@@ -62,9 +62,9 @@ const SPEC = {
 <path d="M104 150 Q128 158 152 150 M104 164 Q128 172 154 164" fill="none" stroke="#2b2220" stroke-width="5"/>
 <path d="M128 134 L128 176" stroke="#d8d2c6" stroke-width="4"/>
 <path d="M106 134 L156 182" stroke="#2b2220" stroke-width="22"/>
-<path d="M106 134 L156 182" stroke="#c9503f" stroke-width="10"/>
-<path d="M150 180 L164 214 L156 206 L152 220 L146 204 L140 188 Z" fill="#c9503f" stroke-width="5"/>
-<path d="M120 148 L128 156 M138 164 L142 170" stroke="#93362b" stroke-width="4"/>`,
+<path d="M106 134 L156 182" stroke="#4f74c9" stroke-width="10"/>
+<path d="M150 180 L164 214 L156 206 L152 220 L146 204 L140 188 Z" fill="#4f74c9" stroke-width="5"/>
+<path d="M120 148 L128 156 M138 164 L142 170" stroke="#32508f" stroke-width="4"/>`,
     // small round shield, cracked, a wedge broken out
     shield: `<path d="M98 148 A28 28 0 1 0 110 162 L100 160 L104 154 Z" fill="#a87a4c"/>
 <path d="M72 152 L72 192 M96 168 L96 192" fill="none" stroke="#5a4a3c" stroke-width="3"/>
@@ -75,9 +75,9 @@ const SPEC = {
 <circle cx="130" cy="84" r="54" fill="#ece6da"/>
 <path d="M84 112 Q100 134 132 138 Q100 140 84 112 Z" fill="#d8d2c6" stroke="none"/>
 <path d="M112 36 L120 46 L112 54 L118 60" fill="none" stroke="#2b2220" stroke-width="3"/>
-<path d="M77 66 Q130 46 183 66 L184 84 L172 80 L166 86 L156 78 Q130 70 106 78 L98 84 L92 78 L78 86 Z" fill="#c9503f"/>
-<path d="M82 76 Q130 58 181 75" fill="none" stroke="#93362b" stroke-width="4"/>
-<circle cx="80" cy="90" r="8" fill="#c9503f" stroke-width="5"/>`,
+<path d="M77 66 Q130 46 183 66 L184 84 L172 80 L166 86 L156 78 Q130 70 106 78 L98 84 L92 78 L78 86 Z" fill="#4f74c9"/>
+<path d="M82 76 Q130 58 181 75" fill="none" stroke="#32508f" stroke-width="4"/>
+<circle cx="80" cy="90" r="8" fill="#4f74c9" stroke-width="5"/>`,
     // dark sockets with green eye flames, nose hole, teeth
     face: `<ellipse cx="142" cy="108" rx="9.5" ry="11" fill="#2b2220"/>
 <ellipse cx="168" cy="108" rx="9.5" ry="11" fill="#2b2220"/>

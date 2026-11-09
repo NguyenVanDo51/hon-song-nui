@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Level & bản đồ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Paytone+One&display=swap">
+<link rel="stylesheet" href="design.css">
+</head>
+<body>
+<main>
+
+<section class="sheet">
+  <header><h2>Bản đồ vương quốc</h2></header>
+  <p class="lede">Màn chọn level (Thử thách). Vị trí từng level + vùng: <code>content/world_map.gd</code>; vẽ: <code>scripts/ui/world_map.gd</code>.</p>
+  <div class="gal" id="wm" style="--min: 420px"></div>
+</section>
+<section class="sheet">
+  <header><h2>Level</h2><span class="pill" id="lcnt"></span></header>
+  <p class="lede">Theo thứ tự chơi. Ảnh = bàn cờ lúc mở màn (chụp từ game, bỏ thẻ giới thiệu quân). Tên, câu bối cảnh, mục tiêu đúng chữ game hiện. File: <code>content/levels/&lt;id&gt;.gd</code>.</p>
+  <input class="filter" id="lf" placeholder="Lọc: tên, id, Dễ / Khó, kiểu thắng…">
+  <div class="gal" id="levels" style="--min: 330px"></div>
+</section>
+<section class="sheet">
+  <header><h2>Đấu tự do / 1 đấu 1</h2><span class="pill" id="scnt"></span></header>
+  <p class="lede"><code>content/skirmish_maps.gd</code>: bản đồ đối xứng xoay 180°, hai bên ngang nhau. Chưa có ảnh riêng (game không mở thẳng được bằng cờ debug).</p>
+  <div class="grid" id="sk"></div>
+</section>
+</main>
+<footer>Dữ liệu sinh từ game: <code>godot --headless --path . -s tools/design_dump.gd</code> · ảnh: <code>tools/design_shots.sh</code> · cảnh có tiếng: <code>tools/record_sfx_scene.sh m07 150</code>. Không sửa tay trang này để đổi game: sửa game rồi chạy lại các lệnh trên.</footer>
+<script src="data.js"></script>
+<script src="shots/shots.js"></script>
+<script src="design.js"></script>
+<script>
+
+document.addEventListener('click', (e) => {
+  const im = e.target.closest('.gal img');
+  if (!im) return;
+  const lb = el('div', { class: 'lightbox' }, `<img src="${im.src}" alt="">`);
+  lb.onclick = () => lb.remove();
+  document.body.append(lb);
+});
+const missingShot = (what) => `<p class="miss">Chưa có ảnh ${what}. Chạy <code>tools/design_shots.sh</code> (cần màn hình bật).</p>`;
+
+const TIER = { easy: 'Dễ', medium: 'Trung bình', hard: 'Khó' };
+const WIN = { castles: 'chiếm thành', rout: 'diệt hết', hero: 'hạ tướng', survive: 'giữ vững', reach: 'tới đích' };
+const uname = (t) => (D.units[t] ? D.units[t].look.name : t);
+const wm = [shot('screen_levels'), shot('screen_levels_portrait')].filter(Boolean);
+wm.forEach((s, i) => $('wm').append(el('figure', {}, `<img src="${s}" alt=""><figcaption>${i ? 'Dọc' : 'Ngang'}</figcaption>`)));
+if (!wm.length) $('wm').innerHTML = missingShot('bản đồ vương quốc');
+$('lcnt').textContent = D.levels.length + ' level';
+const cards = D.levels.map((m, i) => {
+  const s = shot('level_' + m.id);
+  const tags = [m.tutorial ? 'hướng dẫn' : TIER[m.tier] || m.tier, 'bot ' + m.ai, WIN[m.win.type] || m.win.type, m.size.join('×') + ' ô', m.quests ? 'có nhiệm vụ' : ''].filter(Boolean);
+  const stars = Object.entries(m.stars || {}).map(([k, v]) => (k === 'turns' ? `≤ ${v} lượt` : k === 'lost' ? `mất ≤ ${v} lính` : `${k} ${v}`)).join(', ');
+  const f = el('figure', {}, `${s ? `<img loading="lazy" src="${s}" alt="">` : '<p class="miss">chưa có ảnh</p>'}
+    <figcaption><b>${i + 1}. ${esc(m.title)} <code class="src">${m.id}</code></b>
+    <div class="tags">${tags.map((t) => `<span class="pill">${t}</span>`).join('')}</div>
+    ${m.lore ? `<p class="note">${esc(m.lore)}</p>` : ''}
+    <div>🎯 ${esc(m.short)}</div>
+    ${m.newUnits.length ? `<div class="src">Quân mới: ${m.newUnits.map(uname).join(', ')}</div>` : ''}
+    <div class="src">Vàng đầu: ta ${m.gold.p ?? 0} · địch ${m.gold.e ?? 0}${stars ? ' · sao 3: ' + stars : ''}</div></figcaption>`);
+  f.dataset.q = [m.id, m.title, m.lore, m.short, ...tags].join(' ').toLowerCase();
+  $('levels').append(f);
+  return f;
+});
+$('lf').oninput = (e) => { const q = e.target.value.toLowerCase().trim(); cards.forEach((c) => c.hidden = q && !c.dataset.q.includes(q)); };
+$('scnt').textContent = D.skirmish.length + ' bản đồ';
+for (const m of D.skirmish) $('sk').append(el('div', { class: 'card' }, `<h3>${esc(m.name)} <code class="src">${m.id}</code></h3><div class="sub">${m.size.join('×')} ô</div><p class="note">${esc(m.blurb)}</p>`));
+
+</script>
+</body>
+</html>
